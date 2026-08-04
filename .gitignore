@@ -67,3 +67,4 @@ out/
 skills/
 skills-lock.json
 
+.agents/
