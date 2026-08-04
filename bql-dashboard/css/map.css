@@ -1,0 +1,324 @@
+/* ==========================================================================
+   BQL Smart Trash Bin System - Map & Marker CSS Styling
+   ========================================================================== */
+
+/* Leaflet Container Styling */
+#map-container {
+  width: 100%;
+  height: 100%;
+  background-color: #0b0f19;
+  z-index: 1;
+}
+
+/* Custom Marker Container Override */
+.custom-trash-leaflet-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.trash-marker-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+}
+
+.trash-marker-wrapper:hover {
+  transform: scale(1.18) translateY(-4px);
+  z-index: 999;
+}
+
+.trash-marker-card {
+  position: relative;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid #3b82f6;
+  border-radius: 12px;
+  padding: 4px 6px 2px 6px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Pin Tail Arrow pointing to location */
+.marker-pin-tail {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid #3b82f6;
+  margin-top: -1px;
+}
+
+/* Red Neon Pulse Effect for Critical Status (>=80% fill) */
+.marker-pulse-critical .trash-marker-card {
+  animation: border-glow-pulse 1.4s infinite alternate ease-in-out;
+}
+
+.pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  opacity: 0.75;
+  animation: pulse-expand 1.8s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+  pointer-events: none;
+}
+
+@keyframes pulse-expand {
+  0% {
+    width: 30px;
+    height: 30px;
+    opacity: 0.9;
+  }
+  100% {
+    width: 80px;
+    height: 80px;
+    opacity: 0;
+  }
+}
+
+@keyframes border-glow-pulse {
+  0% {
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.5), 0 0 15px rgba(239, 68, 68, 0.3);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.95), 0 0 35px rgba(239, 68, 68, 0.7);
+    transform: scale(1.08);
+  }
+}
+
+/* Offline Gray Marker Styling */
+.marker-offline .trash-marker-card {
+  filter: grayscale(0.85);
+  opacity: 0.8;
+  background: rgba(30, 41, 59, 0.9);
+}
+
+/* Badges attached to marker */
+.offline-badge {
+  position: absolute;
+  top: -9px;
+  background: #4B5563;
+  color: #FFFFFF;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 6px;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  border: 1px solid #6B7280;
+}
+
+.alert-pulse-badge {
+  position: absolute;
+  top: -10px;
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 8px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  letter-spacing: 0.4px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.6);
+  animation: badge-bounce 0.8s infinite alternate ease-in-out;
+}
+
+@keyframes badge-bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-3px); }
+}
+
+/* Glassmorphism Leaflet Popup Override */
+.leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.92) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 16px !important;
+  color: #F8FAFC !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
+  padding: 4px !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: #94A3B8 !important;
+  padding: 8px 10px !important;
+  font-size: 16px !important;
+  top: 8px !important;
+  right: 8px !important;
+  transition: color 0.2s;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+  color: #FFFFFF !important;
+}
+
+/* Popup Content Card Structure */
+.bql-popup-card {
+  padding: 12px 14px;
+  min-width: 240px;
+}
+
+.bql-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bql-popup-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #F8FAFC;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.bql-popup-id {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94A3B8;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.bql-popup-location {
+  font-size: 12px;
+  color: #94A3B8;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bql-popup-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.bql-popup-metric-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 8px;
+  text-align: center;
+}
+
+.bql-popup-metric-label {
+  font-size: 10px;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.bql-popup-metric-value {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Progress bar inside popup */
+.popup-progress-track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.popup-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.bql-popup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #64748B;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.bql-popup-action-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.bql-popup-action-btn:hover {
+  filter: brightness(1.15);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+/* Route Animation & Badge Styling */
+.animated-route-line {
+  stroke-dasharray: 12, 12;
+  animation: dash-flow 1.5s linear infinite;
+}
+
+@keyframes dash-flow {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.route-badge-container {
+  background: transparent !important;
+  border: none !important;
+}
+
+.route-step-badge {
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.5px;
+}

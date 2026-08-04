@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BQL Markdown Editor & Báo Cáo - Smart Trash System</title>
+
+  <!-- Google Fonts: Inter & Code font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Spline+Sans+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Marked.js & Highlight.js for Markdown & Syntax Highlighting -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- App Stylesheets -->
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/markdown.css">
+</head>
+<body>
+
+  <div class="markdown-page-container">
+    
+    <!-- Left Navigation Rail -->
+    <nav class="nav-rail">
+      <div class="nav-logo" title="BQL GreenBin Ops">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          <line x1="10" y1="11" x2="10" y2="17"></line>
+          <line x1="14" y1="11" x2="14" y2="17"></line>
+        </svg>
+      </div>
+
+      <div class="nav-links">
+        <a href="index.html" class="nav-item" title="Bản đồ Thùng rác">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+            <line x1="8" y1="2" x2="8" y2="18"></line>
+            <line x1="16" y1="6" x2="16" y2="22"></line>
+          </svg>
+          <span class="nav-item-tooltip">Bản đồ Giám sát</span>
+        </a>
+
+        <a href="markdown.html" class="nav-item active" title="Soạn thảo Markdown / Báo cáo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span class="nav-item-tooltip">Báo cáo Markdown</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Main Markdown Container -->
+    <div class="markdown-main-content">
+      
+      <!-- Top Action Bar -->
+      <header class="markdown-header">
+        <div class="markdown-header-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+          Soạn Thảo Báo Cáo Markdown BQL
+        </div>
+
+        <div class="markdown-actions">
+          <button class="md-action-btn" onclick="window.copyRenderedHtml()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Sao chép HTML
+          </button>
+          
+          <button class="md-action-btn primary" onclick="window.downloadMarkdownFile()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Tải File .MD
+          </button>
+        </div>
+      </header>
+
+      <!-- Quick Formatting Toolbar -->
+      <div class="markdown-toolbar">
+        <button class="tb-btn" onclick="insertFormatting('**', '**')" title="Bold (Đậm)"><b>B</b></button>
+        <button class="tb-btn" onclick="insertFormatting('*', '*')" title="Italic (Nghiêng)"><i>I</i></button>
+        <button class="tb-btn" onclick="insertFormatting('~~', '~~')" title="Strikethrough (Gạch ngang)"><s>S</s></button>
+
+        <div class="tb-divider"></div>
+
+        <button class="tb-btn" onclick="insertFormatting('# ')" title="Heading 1">H1</button>
+        <button class="tb-btn" onclick="insertFormatting('## ')" title="Heading 2">H2</button>
+        <button class="tb-btn" onclick="insertFormatting('### ')" title="Heading 3">H3</button>
+
+        <div class="tb-divider"></div>
+
+        <button class="tb-btn" onclick="insertFormatting('* ')" title="Bullet List">•</button>
+        <button class="tb-btn" onclick="insertFormatting('1. ')" title="Numbered List">1.</button>
+        <button class="tb-btn" onclick="insertFormatting('> ')" title="Quote">”</button>
+
+        <div class="tb-divider"></div>
+
+        <button class="tb-btn" onclick="insertFormatting('`', '`')" title="Inline Code">&lt;/&gt;</button>
+        <button class="tb-btn" onclick="insertFormatting('```text\n', '\n```')" title="Code Block">```</button>
+        <button class="tb-btn" onclick="insertFormatting('| Cột 1 | Cột 2 |\n| :--- | :--- |\n| Giá trị 1 | Giá trị 2 |\n')" title="Tạo Bảng">Bảng</button>
+      </div>
+
+      <!-- Split Workspace Panes -->
+      <div class="markdown-workspace">
+        <!-- Editor Input Pane -->
+        <div class="editor-pane">
+          <div class="pane-label">NỘI DUNG MARKDOWN (.MD)</div>
+          <textarea id="markdown-input" placeholder="Nhập nội dung markdown tại đây..."></textarea>
+        </div>
+
+        <!-- Rendered Preview Pane -->
+        <div class="preview-pane">
+          <div class="pane-label">TRỰC QUAN XEM TRƯỚC (PREVIEW)</div>
+          <div id="markdown-preview-output"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/markdown-editor.js"></script>
+</body>
+</html>
