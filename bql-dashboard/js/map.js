@@ -1,7 +1,7 @@
 /**
- * BQL Smart Trash Bin System - Leaflet Map Integration
+ * BQL Smart Trash Bin System - Leaflet Map Integration (Senior Architecture)
  * Handles:
- * - Tile Layer initialization (CartoDB Dark Matter for Urban Dark Theme)
+ * - Tile Layer initialization (CartoDB Voyager Light Tiles for clean Enterprise UI)
  * - Markers rendering using custom SVG Marker Factory
  * - Interactive Popup rendering with real-time specs
  * - Fit Bounds to enclose all active managed trash bins
@@ -36,9 +36,9 @@ class BQLTrashMap {
     // Custom Zoom control position (top right)
     L.control.zoom({ position: 'topright' }).addTo(this.map);
 
-    // CartoDB Dark Matter Tile Layer (optimized dark map for urban smart dashboards)
+    // CartoDB Voyager Light Tile Layer (clean enterprise map for green & white UI)
     this.tileLayer = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
       {
         maxZoom: 19,
         subdomains: 'abcd',
@@ -64,7 +64,7 @@ class BQLTrashMap {
       // Create rich popup content according to spec
       const popupContent = this.buildPopupHtml(bin);
       marker.bindPopup(popupContent, {
-        maxWidth: 280,
+        maxWidth: 290,
         className: 'bql-leaflet-custom-popup'
       });
 
@@ -92,7 +92,7 @@ class BQLTrashMap {
         </div>
 
         <div class="bql-popup-location">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
             <circle cx="12" cy="10" r="3"/>
           </svg>
@@ -112,23 +112,23 @@ class BQLTrashMap {
 
           <div class="bql-popup-metric-box">
             <div class="bql-popup-metric-label">Pin Cảm Biến</div>
-            <div class="bql-popup-metric-value" style="color: ${isOffline ? '#6B7280' : '#10B981'}">
+            <div class="bql-popup-metric-value" style="color: ${isOffline ? 'var(--status-offline)' : 'var(--primary-green)'}">
               ${isOffline ? '0%' : `${bin.batteryLevel}%`}
             </div>
             <div class="popup-progress-track">
-              <div class="popup-progress-fill" style="width: ${bin.batteryLevel}%; background-color: ${isOffline ? '#6B7280' : '#10B981'}"></div>
+              <div class="popup-progress-fill" style="width: ${bin.batteryLevel}%; background-color: ${isOffline ? 'var(--status-offline)' : 'var(--primary-green)'}"></div>
             </div>
           </div>
         </div>
 
-        <div style="margin-bottom: 8px; font-size: 11px; display: flex; justify-content: space-between;">
-          <span style="color: #64748B">Trạng thái:</span>
-          <span style="font-weight: 700; color: ${status.color}">${status.badgeText}</span>
+        <div style="margin-bottom: 8px; font-size: 12px; display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted)">Trạng thái:</span>
+          <span style="font-weight: 800; color: ${status.color}">${status.badgeText}</span>
         </div>
 
-        <div style="font-size: 11px; display: flex; justify-content: space-between; margin-bottom: 10px;">
-          <span style="color: #64748B">Loại dung tích:</span>
-          <span style="color: #CBD5E1">${bin.type} (${bin.capacityLiters}L)</span>
+        <div style="font-size: 12px; display: flex; justify-content: space-between; margin-bottom: 12px;">
+          <span style="color: var(--text-muted)">Loại dung tích:</span>
+          <span style="color: var(--text-secondary); font-weight: 600;">${bin.type} (${bin.capacityLiters}L)</span>
         </div>
 
         <div class="bql-popup-footer">
@@ -136,7 +136,7 @@ class BQLTrashMap {
         </div>
 
         <button class="bql-popup-action-btn" onclick="window.dispatchCollectionRequest('${bin.id}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
             <polyline points="22 4 12 14.01 9 11.01"/>
           </svg>
@@ -176,20 +176,20 @@ class BQLTrashMap {
     const route = routeResult.route;
     const latLngs = route.map(item => [item.lat, item.lng]);
 
-    // Outer Glow Polyline
+    // Outer Glow Polyline (Emerald Green)
     const glowLine = L.polyline(latLngs, {
-      color: '#06B6D4',
+      color: '#059669',
       weight: 8,
       opacity: 0.35,
       lineCap: 'round',
       lineJoin: 'round'
     }).addTo(this.map);
 
-    // Core Animated Polyline
+    // Core Animated Polyline (Bright Mint)
     this.routePolyline = L.polyline(latLngs, {
-      color: '#38BDF8',
+      color: '#10B981',
       weight: 4,
-      opacity: 0.9,
+      opacity: 0.95,
       dashArray: '10, 10',
       className: 'animated-route-line',
       lineCap: 'round',
@@ -201,14 +201,14 @@ class BQLTrashMap {
     // Numbered step badges on route markers
     route.forEach((item, index) => {
       let isDepot = item.isDepot;
-      let badgeColor = isDepot ? '#3B82F6' : '#06B6D4';
+      let badgeColor = isDepot ? '#0284C7' : '#059669';
       let badgeLabel = isDepot ? (index === 0 ? 'XUẤT PHÁT' : 'ĐÍCH') : `BƯỚC ${index}`;
 
       const stepBadgeIcon = L.divIcon({
-        html: `<div class="route-step-badge" style="background:${badgeColor}; border: 1.5px solid #FFFFFF;">${badgeLabel}</div>`,
+        html: `<div class="route-step-badge" style="background:${badgeColor}; border: 2px solid #FFFFFF;">${badgeLabel}</div>`,
         className: 'route-badge-container',
-        iconSize: [60, 20],
-        iconAnchor: [30, 68]
+        iconSize: [64, 22],
+        iconAnchor: [32, 70]
       });
 
       const badgeMarker = L.marker([item.lat, item.lng], { icon: stepBadgeIcon }).addTo(this.map);

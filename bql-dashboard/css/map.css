@@ -1,12 +1,12 @@
 /* ==========================================================================
-   BQL Smart Trash Bin System - Map & Marker CSS Styling
+   BQL Smart Trash Bin System - Map & Marker CSS Styling (Senior Redesign)
    ========================================================================== */
 
-/* Leaflet Container Styling */
+/* Leaflet Base Container */
 #map-container {
   width: 100%;
   height: 100%;
-  background-color: #0b0f19;
+  background-color: var(--bg-dark);
   z-index: 1;
 }
 
@@ -22,27 +22,26 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
 
 .trash-marker-wrapper:hover {
-  transform: scale(1.18) translateY(-4px);
+  transform: scale(1.16) translateY(-4px);
   z-index: 999;
 }
 
 .trash-marker-card {
   position: relative;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1.5px solid #3b82f6;
+  background: var(--bg-panel);
+  border: 2px solid var(--primary-green);
   border-radius: 12px;
-  padding: 4px 6px 2px 6px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  padding: 4px 8px 3px 8px;
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: var(--transition-smooth);
 }
 
 /* Pin Tail Arrow pointing to location */
@@ -51,13 +50,18 @@
   height: 0;
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
-  border-top: 8px solid #3b82f6;
+  border-top: 8px solid var(--primary-green);
   margin-top: -1px;
 }
 
-/* Red Neon Pulse Effect for Critical Status (>=80% fill) */
+/* Red Glow Pulse Effect for Critical Status (>=80% fill) */
 .marker-pulse-critical .trash-marker-card {
+  border-color: var(--status-critical);
   animation: border-glow-pulse 1.4s infinite alternate ease-in-out;
+}
+
+.marker-pulse-critical .marker-pin-tail {
+  border-top-color: var(--status-critical);
 }
 
 .pulse-ring {
@@ -69,6 +73,7 @@
   height: 50px;
   border-radius: 50%;
   opacity: 0.75;
+  background: rgba(220, 38, 38, 0.25);
   animation: pulse-expand 1.8s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
   pointer-events: none;
 }
@@ -80,58 +85,62 @@
     opacity: 0.9;
   }
   100% {
-    width: 80px;
-    height: 80px;
+    width: 75px;
+    height: 75px;
     opacity: 0;
   }
 }
 
 @keyframes border-glow-pulse {
   0% {
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.5), 0 0 15px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.4), 0 0 15px rgba(220, 38, 38, 0.2);
     transform: scale(1);
   }
   100% {
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.95), 0 0 35px rgba(239, 68, 68, 0.7);
-    transform: scale(1.08);
+    box-shadow: 0 0 18px rgba(220, 38, 38, 0.8), 0 0 30px rgba(220, 38, 38, 0.5);
+    transform: scale(1.06);
   }
 }
 
 /* Offline Gray Marker Styling */
 .marker-offline .trash-marker-card {
   filter: grayscale(0.85);
-  opacity: 0.8;
-  background: rgba(30, 41, 59, 0.9);
+  opacity: 0.75;
+  border-color: var(--status-offline);
+  background: var(--bg-card-subtle);
+}
+
+.marker-offline .marker-pin-tail {
+  border-top-color: var(--status-offline);
 }
 
 /* Badges attached to marker */
 .offline-badge {
   position: absolute;
-  top: -9px;
-  background: #4B5563;
+  top: -10px;
+  background: var(--status-offline);
   color: #FFFFFF;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 800;
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: 6px;
   white-space: nowrap;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-  border: 1px solid #6B7280;
+  letter-spacing: 0.02em;
+  box-shadow: var(--shadow-sm);
 }
 
 .alert-pulse-badge {
   position: absolute;
-  top: -10px;
-  background: #EF4444;
+  top: -11px;
+  background: var(--status-critical);
   color: #FFFFFF;
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 900;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 6px;
   white-space: nowrap;
-  letter-spacing: 0.4px;
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.6);
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.5);
   animation: badge-bounce 0.8s infinite alternate ease-in-out;
 }
 
@@ -140,26 +149,24 @@
   to { transform: translateY(-3px); }
 }
 
-/* Glassmorphism Leaflet Popup Override */
+/* Leaflet Popup Override - Clean White & Emerald Card */
 .leaflet-popup-content-wrapper {
-  background: rgba(15, 23, 42, 0.92) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  border-radius: 16px !important;
-  color: #F8FAFC !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
+  background: var(--bg-panel) !important;
+  border: 1px solid var(--primary-green-border) !important;
+  border-radius: 18px !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--shadow-lg) !important;
   padding: 4px !important;
 }
 
 .leaflet-popup-tip {
-  background: rgba(15, 23, 42, 0.92) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: var(--bg-panel) !important;
+  border: 1px solid var(--primary-green-border) !important;
 }
 
 .leaflet-container a.leaflet-popup-close-button {
-  color: #94A3B8 !important;
-  padding: 8px 10px !important;
+  color: var(--text-muted) !important;
+  padding: 10px 12px !important;
   font-size: 16px !important;
   top: 8px !important;
   right: 8px !important;
@@ -167,13 +174,13 @@
 }
 
 .leaflet-container a.leaflet-popup-close-button:hover {
-  color: #FFFFFF !important;
+  color: var(--primary-green) !important;
 }
 
 /* Popup Content Card Structure */
 .bql-popup-card {
-  padding: 12px 14px;
-  min-width: 240px;
+  padding: 14px 16px;
+  min-width: 260px;
 }
 
 .bql-popup-header {
@@ -183,78 +190,81 @@
   gap: 8px;
   margin-bottom: 8px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .bql-popup-title {
-  font-weight: 700;
-  font-size: 14px;
-  color: #F8FAFC;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--text-primary);
   margin: 0;
   line-height: 1.3;
 }
 
 .bql-popup-id {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.08);
-  color: #94A3B8;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
+  background: var(--bg-card-subtle);
+  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  border: 1px solid var(--border-color);
 }
 
 .bql-popup-location {
   font-size: 12px;
-  color: #94A3B8;
-  margin-bottom: 12px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .bql-popup-metrics {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .bql-popup-metric-box {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  padding: 8px;
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 10px;
   text-align: center;
 }
 
 .bql-popup-metric-label {
   font-size: 10px;
-  color: #64748B;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
   margin-bottom: 4px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .bql-popup-metric-value {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 800;
   line-height: 1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Progress bar inside popup */
 .popup-progress-track {
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: var(--border-color);
+  border-radius: 4px;
   overflow: hidden;
   margin-top: 6px;
 }
 
 .popup-progress-fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: 4px;
   transition: width 0.4s ease;
 }
 
@@ -263,32 +273,33 @@
   align-items: center;
   justify-content: space-between;
   font-size: 11px;
-  color: #64748B;
-  padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
 }
 
 .bql-popup-action-btn {
   width: 100%;
-  margin-top: 10px;
-  padding: 8px 12px;
-  background: linear-gradient(135deg, #3B82F6, #1D4ED8);
-  color: white;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: var(--primary-green);
+  color: #FFFFFF;
   border: none;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all 0.2s ease;
+  transition: var(--transition-smooth);
+  box-shadow: var(--shadow-emerald);
 }
 
 .bql-popup-action-btn:hover {
-  filter: brightness(1.15);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  background: var(--primary-green-hover);
+  transform: translateY(-1px);
 }
 
 /* Route Animation & Badge Styling */
@@ -313,12 +324,13 @@
 
 .route-step-badge {
   color: #FFFFFF;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 6px;
+  padding: 3px 8px;
+  border-radius: 8px;
   text-align: center;
   white-space: nowrap;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
-  letter-spacing: 0.5px;
+  box-shadow: var(--shadow-md);
+  letter-spacing: 0.02em;
+  background: var(--primary-green);
 }
