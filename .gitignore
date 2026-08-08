@@ -58,3 +58,13 @@ out/
 # AI logs — tracked structure, ignored content
 .ai-log/*.jsonl
 .ai-log/archive/
+
+# Skills & AI agent configurations
+.agents/skills/
+.claude/skills/
+.codex/
+.cursor/
+skills/
+skills-lock.json
+
+.agents/
