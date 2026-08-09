@@ -130,7 +130,7 @@ from copilotkit import CopilotKitMiddleware
 from src.todos import todo_tools, AgentState
 
 agent = create_agent(
-    model="gpt-5.2",
+    model="gpt-4o-mini",
     tools=[*todo_tools, ...],  # manage_todos, get_todos
     middleware=[CopilotKitMiddleware()],
     state_schema=AgentState,  # Defines state shape
@@ -225,7 +225,7 @@ export function TodoList({ todos, onUpdate, isAgentRunning }: TodoListProps) {
 ## Tech Stack
 
 - **Frontend**: Next.js 16, React 19, TailwindCSS 4
-- **Agent**: LangGraph (Python), OpenAI GPT-5.2
+- **Agent**: LangGraph (Python), OpenAI GPT-4o-mini
 - **CopilotKit**: React hooks for agent integration (v2)
 - **Build**: npm with concurrently for parallel dev processes
 - **Other**: Recharts for generative UI examples
