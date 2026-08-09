@@ -107,7 +107,7 @@ const demonstrationCatalogRenderers: CatalogRenderers<DemonstrationCatalogDefini
     Title: ({ props }) => {
       const Tag = (
         props.level === "h1" ? "h1" : props.level === "h3" ? "h3" : "h2"
-      ) as keyof JSX.IntrinsicElements;
+      ) as "h1" | "h2" | "h3";
       const sizes: Record<string, string> = {
         h1: "1.75rem",
         h2: "1.25rem",
@@ -128,9 +128,6 @@ const demonstrationCatalogRenderers: CatalogRenderers<DemonstrationCatalogDefini
       );
     },
 
-    // Text: removed — use the basic catalog's Text (supports DynamicStringSchema
-    // for path bindings in fixed-schema templates).
-
     Row: ({ props, children }) => {
       const justifyMap: Record<string, string> = {
         start: "flex-start",
@@ -139,6 +136,7 @@ const demonstrationCatalogRenderers: CatalogRenderers<DemonstrationCatalogDefini
         spaceBetween: "space-between",
       };
       const items = Array.isArray(props.children) ? props.children : [];
+      const renderChild = typeof children === "function" ? children : null;
       return (
         <div
           style={{
@@ -159,7 +157,7 @@ const demonstrationCatalogRenderers: CatalogRenderers<DemonstrationCatalogDefini
                   key={`${item}-${i}`}
                   style={{ flex: "1 1 0", minWidth: 0 }}
                 >
-                  {children(item)}
+                  {renderChild ? renderChild(item) : null}
                 </div>
               );
             if (item && typeof item === "object" && "id" in item)
@@ -168,7 +166,7 @@ const demonstrationCatalogRenderers: CatalogRenderers<DemonstrationCatalogDefini
                   key={`${item.id}-${i}`}
                   style={{ flex: "1 1 0", minWidth: 0 }}
                 >
-                  {(children as any)(item.id, item.basePath)}
+                  {renderChild ? (renderChild as any)(item.id, item.basePath) : null}
                 </div>
               );
             return null;
@@ -179,6 +177,7 @@ const demonstrationCatalogRenderers: CatalogRenderers<DemonstrationCatalogDefini
 
     Column: ({ props, children }) => {
       const items = Array.isArray(props.children) ? props.children : [];
+      const renderChild = typeof children === "function" ? children : null;
       return (
         <div
           style={{
@@ -192,13 +191,13 @@ const demonstrationCatalogRenderers: CatalogRenderers<DemonstrationCatalogDefini
             if (typeof item === "string")
               return (
                 <React.Fragment key={`${item}-${i}`}>
-                  {children(item)}
+                  {renderChild ? renderChild(item) : null}
                 </React.Fragment>
               );
             if (item && typeof item === "object" && "id" in item)
               return (
                 <React.Fragment key={`${item.id}-${i}`}>
-                  {(children as any)(item.id, item.basePath)}
+                  {renderChild ? (renderChild as any)(item.id, item.basePath) : null}
                 </React.Fragment>
               );
             return null;
@@ -236,7 +235,7 @@ const demonstrationCatalogRenderers: CatalogRenderers<DemonstrationCatalogDefini
             </div>
           )}
         </div>
-        {props.child && children(props.child)}
+        {props.child && typeof children === "function" ? children(props.child) : null}
       </div>
     ),
 
@@ -431,7 +430,7 @@ const demonstrationCatalogRenderers: CatalogRenderers<DemonstrationCatalogDefini
     Button: ({ props, children }) => {
       return (
         <ActionButton label="Click" doneLabel="Done" action={props.action}>
-          {props.child ? children(props.child) : null}
+          {props.child && typeof children === "function" ? children(props.child) : null}
         </ActionButton>
       );
     },
