@@ -1,0 +1,98 @@
+name: Build APK
+
+# Đẩy một tag `v*` là phát hành: workflow build APK rồi đính vào GitHub Release
+# của chính tag đó, để trang /tai-app trỏ tới "bản mới nhất" là có file thật.
+#
+#     git tag v0.1.0 && git push origin v0.1.0
+#
+# `workflow_dispatch` để bấm chạy tay khi cần thử mà chưa muốn phát hành.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write # cần để tạo Release và đính file vào đó
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # Runner của GitHub đã có sẵn Android SDK; action này chỉ đặt biến môi
+      # trường và nhận licence để Gradle không hỏi giữa chừng.
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # URL bị nướng vào lúc build, nên phải có TRƯỚC khi gói APK. Đặt hai giá
+      # trị này trong Settings → Secrets and variables → Actions → Variables.
+      - name: Build web (xuất tĩnh)
+        working-directory: frontend
+        env:
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_WEB_URL: ${{ vars.NEXT_PUBLIC_WEB_URL }}
+          NEXT_PUBLIC_GITHUB_REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$NEXT_PUBLIC_API_URL" ]; then
+            echo "::error::Chưa đặt biến NEXT_PUBLIC_API_URL. Không có nó thì APK build ra sẽ trỏ vào localhost và không chạy trên điện thoại."
+            exit 1
+          fi
+          npx next build
+
+      - name: Sync sang khung Android
+        working-directory: frontend
+        run: npx cap sync android
+
+      - name: Build APK debug
+        working-directory: frontend/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Đổi tên file cho dễ nhận
+        run: |
+          mkdir -p dist
+          cp frontend/android/app/build/outputs/apk/debug/app-debug.apk \
+             "dist/GreenBinAI-${{ github.ref_name }}.apk"
+
+      # Giữ lại kể cả khi chạy tay (không có tag) để tải về thử.
+      - name: Lưu APK làm artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GreenBinAI-apk
+          path: dist/*.apk
+
+      # Bản debug: cài thẳng được, không phải giữ keystore trong secret. Muốn
+      # lên Google Play mới cần bản ký release — nằm trong backlog, chưa làm.
+      - name: Đính vào GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.apk
+          generate_release_notes: true
+          body: |
+            **Bản APK gỡ lỗi dùng cho demo học tập** — chưa ký để lên Google Play.
+
+            Cài: tải file `.apk` về máy Android, mở ra, chọn Cho phép khi máy hỏi
+            về cài đặt từ nguồn không xác định. Hướng dẫn đầy đủ ở trang `/tai-app`.
+
+            iPhone chưa có bản cài — dùng đường "Thêm vào màn hình chính" trên Safari.

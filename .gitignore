@@ -29,9 +29,23 @@ env/
 Thumbs.db
 
 # Data (never commit large data)
-data/
+# Viết `data/*` chứ KHÔNG phải `data/`: loại cả thư mục thì git không đi vào bên
+# trong, mọi dòng `!data/samples/**` phía dưới sẽ vô hiệu.
+data/*
 *.db
 *.sqlite3
+
+# Bộ model T0.5 dạng ONNX (~89 MB) — commit vào đây là nó nằm trong lịch sử git
+# vĩnh viễn. Sinh lại bằng `python scripts/export_clip_onnx.py`, rồi đính vào
+# GitHub Release và trỏ CLIP_ASSETS_URL vào đó. Xem ADR-0007.
+assets/clip/*.onnx
+assets/clip/clip_text_embeddings.json
+# Gói nén để đính vào Release — cũng không commit, vì lý do y hệt.
+clip-assets.tar.gz
+
+# ...nhưng dữ liệu mẫu PHẢI commit — là một phần của hồ sơ bàn giao
+!data/samples/
+!data/samples/**
 
 # Logs
 logs/
@@ -42,6 +56,31 @@ htmlcov/
 .coverage
 coverage.xml
 
+# Cache của công cụ — sinh lại sau mỗi lần chạy, không có giá trị lịch sử
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Tài liệu NỘI BỘ của nhóm, không phải deliverable BTC yêu cầu.
+# Bàn giao giữa các phiên làm việc, báo cáo tổng quan, báo cáo mentor: viết cho
+# nhóm đọc, có chỗ ghi thẳng điểm yếu của hệ thống. Giữ ở máy, không đẩy lên.
+docs/BAN_GIAO_*.md
+docs/BAO_CAO_*.md
+
+# Sách hướng dẫn của chương trình AI20K, chép vào đây để tra cứu lúc làm.
+# Không phải sản phẩm của nhóm nên không đẩy lên repo nhóm.
+docs/guide/
+
+# README của template khởi tạo, giữ ở máy để đối chiếu.
+README_boilerplate.md
+
+# Trang thiết kế giao diện tải về làm tham khảo — không phải mã của nhóm.
+original/
+
+# Hai thư mục mới dựng khung, chưa có nội dung thật.
+presentation/
+Model_List/
+
 # Docker
 docker-compose.override.yml
 
@@ -51,6 +90,17 @@ node_modules/
 out/
 .nuxt/
 
+# App Android (Capacitor) — khung dự án PHẢI commit vì GitHub Actions build từ
+# đó, nhưng phần sinh ra lúc build thì không.
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/android/.idea/
+frontend/android/capacitor-cordova-android-plugins/
+# Bản chép của `frontend/out`, do `npx cap sync` sinh lại mỗi lần build.
+frontend/android/app/src/main/assets/public/
+frontend/android/app/src/main/assets/capacitor.config.json
+frontend/android/app/src/main/assets/capacitor.plugins.json
+
 # Build
 *.pyc
 *.pyo
@@ -58,3 +108,43 @@ out/
 # AI logs — tracked structure, ignored content
 .ai-log/*.jsonl
 .ai-log/archive/
+*.tsbuildinfo
+.ai-log/.opencode-raw.offset
+
+# Bộ ảnh RealWaste tải về máy — 656 MB, 4.752 ảnh. KHÔNG commit: git giữ file
+# trong lịch sử vĩnh viễn, xoá sau phải viết lại lịch sử của cả repo nhóm.
+# Tải lại từ nguồn gốc, hoặc chép tay vào máy như hiện nay.
+realwaste-main/
+
+# Bảng khoá thiết bị thô do scripts/cap_khoa_thung.py --ghi-file sinh ra.
+khoa_thung*.json
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TẠM GIỮ LẠI MỌI FILE .md TRỪ README — chốt 11/08/2026
+#
+# Chủ dự án muốn tự đọc duyệt từng file tài liệu trước khi đẩy lên repo nhóm,
+# nên đợt commit này chỉ đưa MÃ NGUỒN lên. Đây là quyết định TẠM.
+#
+# ⛔ TRƯỚC KHI NỘP PHẢI GỠ LẠI BỐN FILE SAU — chúng là deliverable BTC chấm:
+#      ARCHITECTURE.md      (deliverable #3 — Architecture Diagram)
+#      JOURNAL.md           (deliverable #8 — Development Journal)
+#      WORKLOG.md           (deliverable #9 — Worklog)
+#      docs/evaluation.md   (deliverable #10 — Evaluation Evidence)
+#    cộng docs/decisions/*.md (ADR, README trỏ link tới) và
+#    docs/ai-logs-trich-dan.md (deliverable #4 — bản trích dẫn AI log).
+#    Thiếu chúng là mất 4–5 điểm deliverable dù code có chạy tốt tới đâu.
+#
+# Cách gỡ: xoá khối này, hoặc thêm dòng `!<đường dẫn>` cho từng file cần đẩy.
+# ═══════════════════════════════════════════════════════════════════════════
+*.md
+!README.md
+
+# Thư mục cấu hình của các công cụ AI hỗ trợ lập trình — không phải sản phẩm.
+# Giữ `.github/` (CI và workflow build APK) và `.env.example` (khuôn biến môi
+# trường, người khác cần để chạy được dự án).
+.agents/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.opencode/
