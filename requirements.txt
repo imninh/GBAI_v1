@@ -10,13 +10,29 @@ langchain>=0.3.0
 langchain-openai>=0.3.0
 langgraph>=0.2.0
 
-# Database (uncomment as needed)
-# sqlalchemy>=2.0.0
-# alembic>=1.14.0
-# psycopg2-binary>=2.9.0
+# Database
+sqlalchemy>=2.0.0
+# alembic>=1.14.0          # bật khi schema ổn định, xem docs/decisions/
+psycopg2-binary>=2.9.0
 
-# Vector Store (uncomment as needed)
-# chromadb>=0.5.0
+# Xử lý ảnh — tước EXIF, nén, làm mờ khuôn mặt, băm tri giác (pHash)
+pillow>=11.0.0
+imagehash>=4.3.0
+opencv-python-headless>=4.10.0
+
+# Upload file cho FastAPI
+python-multipart>=0.0.20
+
+# Xác thực — tự làm auth thay vì Supabase, xem ADR-0004
+pyjwt>=2.10.0
+
+# Tầng T0.5 — CLIP zero-shot.
+#
+# `onnxruntime` chạy bản CLIP đã nén int8 (chỉ nửa ảnh, ~85 MB) nên tầng này
+# chạy được cả trên máy chủ 512 MB — xem ADR-0007. `torch` (1,19 GB) chỉ cần khi
+# muốn chạy bản đầy đủ ở máy dev hoặc khi xuất model: requirements-local-model.txt.
+onnxruntime>=1.19.0
+numpy>=1.26.0
 
 # Dev tools
 ruff>=0.8.0

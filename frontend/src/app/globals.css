@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/* Design token rút trực tiếp từ bản thiết kế ở `original/GreenBin AI.dc.html`.
+   Màu nhóm rác ở đây chỉ là giá trị dự phòng — giá trị thật đọc từ API
+   (`bin_color` của từng nhóm), vì mỗi toà có thể quy định khác nhau. */
+@theme {
+  --font-display: var(--font-fredoka), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+
+  /* Nền và mực */
+  --color-cream: #f4f1ea;
+  --color-cream-soft: #fbfbf9;
+  --color-ink: #16211a;
+  --color-ink-soft: #3a453d;
+  --color-muted: #8a938a;
+  --color-muted-2: #6b756c;
+  --color-line: #eee7db;
+  --color-line-2: #e0ded4;
+  --color-line-3: #eceae3;
+
+  /* Xanh lá — màu thương hiệu */
+  --color-leaf: #2fae66;
+  --color-leaf-dark: #1f8a4f;
+  --color-leaf-soft: #e6f4ea;
+  --color-leaf-mint: #7fd7a4;
+
+  /* Xanh dương — nhóm tái chế */
+  --color-recycle: #2f7fe0;
+  --color-recycle-light: #3a8fea;
+  --color-recycle-soft: #e2eefb;
+
+  /* Đỏ cam — nhóm nguy hại. Phải nhìn khác hẳn về mặt thị giác. */
+  --color-hazard: #e05a2b;
+  --color-hazard-dark: #c1471c;
+  --color-hazard-soft: #fdeee6;
+  --color-hazard-bg: #fbeadf;
+
+  /* Tím — đồ cồng kềnh */
+  --color-bulky: #7c5cdf;
+  --color-bulky-dark: #6a4dc4;
+  --color-bulky-soft: #ece7f6;
+
+  /* Hổ phách — trạng thái chờ duyệt */
+  --color-amber: #a8791a;
+  --color-amber-line: #f2d999;
+  --color-amber-soft: #fff7e6;
+
+  /* Nền riêng của app đội vệ sinh và console ban quản lý */
+  --color-crew-bg: #eef2f6;
+  --color-console-bg: #f5f5f2;
+
+  /* ---- Lớp ánh xạ cho màn Điều phối thùng ----------------------------------
+     Màn này thiết kế bằng Lovable nên viết theo bộ tên của shadcn/ui
+     (`bg-card`, `text-muted-foreground`, `bg-warn`…), khác bộ tên thương hiệu
+     ở trên (`cream`, `ink`, `leaf`…).
+
+     Cách xử lý: KHÔNG sửa className trong 6 component đã thiết kế — dễ gõ sai
+     và mất luôn bản gốc để đối chiếu. Thay vào đó ánh xạ tên shadcn sang đúng
+     màu GreenBin ngay tại đây. Kết quả: một hệ màu duy nhất, hai lớp tên gọi,
+     và muốn chỉnh tông thì sửa đúng một chỗ này.
+
+     Đổi màu ở đây là đổi cả màn Điều phối — đừng sửa lẻ trong component. */
+  --color-background: var(--color-cream);
+  --color-foreground: var(--color-ink);
+  --color-card: #ffffff;
+  --color-card-foreground: var(--color-ink);
+  --color-popover: #ffffff;
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-leaf);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-leaf-soft);
+  --color-secondary-foreground: var(--color-leaf-dark);
+  /* ⚠️ KHÔNG định nghĩa lại `--color-muted`: nó đã là màu CHỮ phụ (#8a938a) và
+     đang được 102 chỗ trong app dùng qua `text-muted`. Đè lên bằng một màu nền
+     nhạt sẽ làm toàn bộ chữ phụ biến mất trên nền sáng. shadcn dùng `muted` làm
+     màu NỀN, nên nó phải mang một tên khác. */
+  --color-muted-bg: #eef1ec;
+  --color-muted-foreground: var(--color-muted-2);
+  --color-accent: var(--color-leaf-soft);
+  --color-accent-foreground: var(--color-leaf-dark);
+  --color-destructive: var(--color-hazard);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--color-line);
+  --color-input: var(--color-line-2);
+  --color-ring: var(--color-leaf);
+  --color-sidebar: var(--color-cream-soft);
+
+  /* Bốn trạng thái thùng. Trên nền sáng, chỉ đổi màu là không đủ để phân biệt
+     — component còn phân biệt thêm bằng viền, nét đứt và icon. */
+  --color-warn: var(--color-hazard);          /* cần gom  — nặng nhất về thị giác */
+  --color-warn-foreground: #ffffff;
+  --color-warn-soft: var(--color-hazard-soft);
+  --color-power: var(--color-amber);          /* hết pin */
+  --color-power-foreground: #ffffff;
+  --color-power-soft: var(--color-amber-soft);
+  --color-stale: var(--color-muted);          /* mất kết nối — xám, nét đứt */
+  --color-stale-soft: #f1f2f0;
+  --color-ok: var(--color-leaf);              /* bình thường — nhạt nhất */
+  --color-ok-soft: var(--color-leaf-soft);
+}
+
+/* `bin-map.tsx` dựng marker bằng chuỗi HTML nên nó đọc thẳng `var(--warn)`,
+   không đi qua class của Tailwind. Vì vậy các biến trần này phải tồn tại ngoài
+   `@theme`, và phải trỏ về cùng một nguồn màu để bản đồ không lệch tông với
+   danh sách bên trái. */
+:root {
+  --warn: var(--color-hazard);
+  --warn-foreground: #ffffff;
+  --power: var(--color-amber);
+  --power-soft: var(--color-amber-soft);
+  --stale: var(--color-muted);
+  --stale-soft: #f1f2f0;
+  --ok: var(--color-leaf);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(120% 90% at 50% 0%, #eef1ea 0%, #e2e5dd 60%, #daded4 100%);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+/* Thanh cuộn trong khung điện thoại: ẩn đi cho giống thiết bị thật. */
+.gb-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.gb-scroll {
+  scrollbar-width: none;
+}
+
+@keyframes gbspin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes gbfade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes gbfloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.animate-gbfade {
+  animation: gbfade 0.4s ease;
+}
+.animate-gbfloat {
+  animation: gbfloat 5s ease-in-out infinite;
+}
+.animate-gbspin {
+  animation: gbspin 0.8s linear infinite;
+}
+
+/* Bảng và biểu đồ rộng cuộn ngang TRONG khung riêng, không để cả trang cuộn. */
+.gb-hscroll {
+  overflow-x: auto;
+  max-width: 100%;
+}

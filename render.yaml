@@ -1,0 +1,124 @@
+# Khai báo hạ tầng cho Render — backend GreenBin AI + Supabase (PostgreSQL).
+#
+# Cách dùng: trên Render chọn "New → Blueprint", trỏ vào repo này. Render đọc
+# file này và dựng web service từ `Dockerfile` sẵn có. Database không còn do
+# Render quản lý — nó nằm ở Supabase (xem dòng trống dưới đây).
+#
+# Các biến phải tự điền trên bảng điều khiển (đánh dấu `sync: false`, Render sẽ
+# hỏi lúc tạo): `DATABASE_URL`, `GEMINI_API_KEY`, `NVIDIA_API_KEY`, và
+# `CORS_ORIGINS` sau khi có domain Vercel thật.
+#
+# Giới hạn đã biết của gói miễn phí, đã ghi thẳng lên trang Vận hành:
+#   - đĩa là tạm thời → ảnh cư dân tải lên mất khi service khởi động lại;
+#   - không đủ RAM cho torch → tầng T0.5 chạy bản CLIP đã nén int8 (ADR-0007);
+#   - service ngủ khi rảnh → request đầu tiên chậm, phải mở web trước lúc demo.
+
+# Singapore là vùng gần Việt Nam nhất Render có — chênh lệch độ trễ so với
+# Oregon (mặc định) là vài trăm mili giây mỗi request, thấy rõ khi demo trực
+# tiếp. Máy chủ vẫn đặt ở Singapore cho gần nơi demo.
+
+# ⛔ CƠ SỞ DỮ LIỆU ĐÃ CHUYỂN SANG SUPABASE — KHÔNG TẠO LẠI KHỐI `databases:`.
+# Trước đây Render quản lý một PostgreSQL nội bộ và tự nối `DATABASE_URL` qua
+# `fromDatabase`. Nay database nằm ở Supabase (PostgreSQL có sẵn), nên khối này
+# bị bỏ đi. Đừng thêm lại theo phản xạ: nếu Render cấp `DATABASE_URL` thì nó sẽ
+# GHI ĐÈ lên chuỗi Supabase bạn vừa dán trên bảng điều khiển.
+#
+#   databases:
+#     - name: greenbin-db
+#       databaseName: greenbin
+#       plan: free
+#       region: singapore
+
+services:
+  - type: web
+    name: greenbin-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      # 🔑 Dán vào đây chuỗi SESSION POOLER của Supabase (mục "Connection string"
+      # trong Dashboard → Project Settings → Database → Connection pooling →
+      # "Session pooler"), KHÔNG phải chuỗi "Direct connection". Kết nối trực
+      # tiếp của Supabase chỉ hỗ trợ IPv6, mà gói free của Render không với tới
+      # được — dùng sai chuỗi là máy chủ không kết nối được.
+      # Mật khẩu trong chuỗi phải được URL-encode nếu có ký tự đặc biệt.
+      - key: DATABASE_URL
+        sync: false
+
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+
+      # Máy chủ tự nạp danh mục, toà, tài khoản demo lúc khởi động — trên Render
+      # không có chỗ chạy tay `scripts/seed.py`. Gọi lại nhiều lần vô hại.
+      #
+      # Cũng chính vì không có chỗ chạy lệnh tay mà việc VÁ CỘT phải tự động:
+      # `init_db()` gọi `va_cot_thieu()` (src/db/schema_patch.py) ngay sau
+      # `create_all()`. Thêm cột mới vào model thì khai vào `COT_CAN_VA` ở đó,
+      # nếu không Supabase sẽ thiếu cột và mọi truy vấn bảng đó chết khi deploy.
+      # Trình tự lúc khởi động: create_all → vá cột → seed điền dữ liệu.
+      - key: SEED_ON_START
+        value: "true"
+      - key: SEED_DEMO_ON_START
+        value: "true"
+
+      # Tầng T0.5 nay chạy được ở đây: bản CLIP đã nén còn nửa ảnh int8, đo được
+      # 185 MB RAM · 56 ms/ảnh, không cần torch (ADR-0007).
+      - key: LOCAL_MODEL_ENABLED
+        value: "true"
+      # `onnx` chứ không phải `auto`: máy chủ này không có torch, ép cứng để
+      # thiếu file model thì tầng tự tắt gọn thay vì thử một đường không tồn tại.
+      - key: CLIP_RUNTIME
+        value: onnx
+      # Đĩa của gói free là đĩa tạm nên file model mất sau mỗi lần khởi động
+      # lại. Trỏ vào file .tar.gz đính trong GitHub Release (chứa
+      # clip_vision_int8.onnx + clip_text_embeddings.json) để nó tự tải lại.
+      # ĐỂ TRỐNG cũng chạy được — chỉ là tầng T0.5 tự tắt như trước.
+      - key: CLIP_ASSETS_URL
+        sync: false
+
+      - key: VISION_PROVIDER
+        value: gemini
+
+      # Provider theo từng tầng. Free tier của `gemini-flash-latest` chỉ 20
+      # request/ngày (đo 01/08/2026) nên T1 — tầng ăn phần lớn lưu lượng — đẩy
+      # sang NVIDIA (~1.000 credit); Gemini chỉ lo T2 và bước sinh hướng dẫn.
+      # Để trống là quay về dùng chung VISION_PROVIDER.
+      - key: VISION_PROVIDER_T1
+        value: nvidia
+      - key: VISION_PROVIDER_T2
+        value: gemini
+      # Bước advise chạy sau MỌI lần phân loại thành công nên nó là chỗ tiêu
+      # quota nhanh nhất. Đo 02/08: llama-3.1-8b-instruct viết hướng dẫn tiếng
+      # Việt 1,5-2,2s, bám đúng nguồn — đủ tốt cho việc này.
+      - key: VISION_PROVIDER_TEXT
+        value: nvidia
+
+      # Embedding đi đường riêng, KHÔNG bám theo tầng text: đo 02/08 thì NVIDIA
+      # không trả về vector qua endpoint OpenAI-compatible nào.
+      - key: EMBEDDING_PROVIDER
+        value: gemini
+      # Tự nhúng kho quy định lúc khởi động — ở đây không có chỗ chạy tay
+      # `scripts/seed.py --embed`. Một lệnh gọi cho cả kho, gọi lại vô hại.
+      - key: EMBED_KB_ON_START
+        value: "true"
+
+      # Điền trên bảng điều khiển. Thiếu key của tầng nào thì tầng đó dừng, các
+      # tầng còn lại vẫn chạy — trang Vận hành chỉ rõ tầng nào đang thiếu.
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+
+      # Render tự sinh chuỗi ngẫu nhiên — không bao giờ dùng lại secret của máy dev.
+      - key: JWT_SECRET
+        generateValue: true
+
+      # Cập nhật lại bằng domain Vercel thật sau khi frontend deploy xong.
+      # `https://localhost` và `capacitor://localhost` là origin của app Android
+      # đóng gói bằng Capacitor — thiếu là app cài về gọi API bị chặn.
+      - key: CORS_ORIGINS
+        sync: false
