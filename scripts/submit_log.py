@@ -19,11 +19,44 @@ import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
+
+def _nap_env() -> None:
+    """Load .env from the repo root, with or without python-dotenv installed.
+
+    The git pre-push hook runs this through `scripts/_pyrun.sh`, which picks
+    whatever `python3`/`python` Git Bash resolves first. On Windows that is
+    often the Microsoft Store stub — a different interpreter from the dev one,
+    with none of the project's packages. `python-dotenv` is missing there, so
+    the old `except ImportError: pass` silently skipped .env and every push
+    printed "AI_LOG_SERVER not set" while logs piled up locally.
+
+    The fallback parser only needs to understand what a .env actually holds:
+    `KEY=value` lines, `#` comments, and optional surrounding quotes. Values
+    already present in the environment win — never override a real setting.
+    """
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        pass
+    else:
+        load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+        return
+
+    env_file = Path(__file__).resolve().parents[1] / ".env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+_nap_env()
 
 SERVER_URL = os.environ.get("AI_LOG_SERVER", "")
 API_KEY = os.environ.get("AI_LOG_API_KEY", "")
