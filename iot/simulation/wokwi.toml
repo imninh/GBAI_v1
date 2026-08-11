@@ -1,0 +1,15 @@
+# Wokwi simulation config for GreenBinAI Phase 1.
+#
+# Uses the Wokwi build: the OV2640 is replaced by MockCameraService,
+# Wi-Fi connects to Wokwi-GUEST, and the backend URL points through the private
+# gateway to localhost:8123. The mock returns a real decodable fixture JPEG.
+# Build it first:
+#
+#     cd iot/firmware && pio run -e wokwi
+#
+# Then open iot/simulation/diagram.json in the Wokwi VS Code extension.
+
+[wokwi]
+version = 1
+firmware = "../firmware/.pio/build/wokwi/firmware.bin"
+elf = "../firmware/.pio/build/wokwi/firmware.elf"

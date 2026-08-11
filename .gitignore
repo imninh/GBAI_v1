@@ -70,3 +70,7 @@ skills-lock.json
 .cursor/
 .agents/
 
+# IoT firmware — PlatformIO build output
+iot/firmware/.pio/
+# Device credentials. Only secrets.example.h is committed.
+iot/firmware/include/secrets.h

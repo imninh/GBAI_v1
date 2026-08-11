@@ -31,6 +31,19 @@ class Settings(BaseSettings):
     # Vector Store
     chroma_persist_dir: str = "./data/chroma"
 
+    # Vision / classification
+    # "openai" | "stub". "stub" returns a canned label without calling any model —
+    # local testing only, never production. See services/vision.py.
+    vision_provider: str = "openai"
+    vision_model_name: str = "gpt-4o-mini"
+    stub_vision_label: str = "plastic"
+    stub_vision_confidence: float = Field(default=0.91, ge=0.0, le=1.0)
+    low_confidence_threshold: float = Field(default=0.6, ge=0.0, le=1.0)
+    hazard_labels: str = "battery,chemical,medical,sharps,e-waste,paint,aerosol"
+
+    # IoT devices — "device_id:key" pairs, comma separated. Never commit real keys.
+    iot_device_keys: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:
