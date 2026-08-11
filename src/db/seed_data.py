@@ -172,9 +172,9 @@ WASTE_CATEGORIES: list[dict[str, Any]] = [
 # --- Toà nhà và căn hộ ---------------------------------------------------
 
 BUILDINGS: list[dict[str, Any]] = [
-    {"code": "S1", "name": "Sunrise Residence — Toà S1", "address": "Khu đô thị mô phỏng, Quận Hoàn Kiếm, Hà Nội", "lat": 21.0271, "lng": 105.8519},
-    {"code": "S2", "name": "Sunrise Residence — Toà S2", "address": "Khu đô thị mô phỏng, Quận Hoàn Kiếm, Hà Nội", "lat": 21.0284, "lng": 105.8531},
-    {"code": "S3", "name": "Sunrise Residence — Toà S3", "address": "Khu đô thị mô phỏng, Quận Hoàn Kiếm, Hà Nội", "lat": 21.0303, "lng": 105.8554},
+    {"code": "S1", "name": "Sunrise Residence — Toà S1", "address": "25 Lý Thường Kiệt, Hoàn Kiếm, Hà Nội", "lat": 21.0271, "lng": 105.8519},
+    {"code": "S2", "name": "Sunrise Residence — Toà S2", "address": "5 Đinh Tiên Hoàng, Hoàn Kiếm, Hà Nội", "lat": 21.0284, "lng": 105.8531},
+    {"code": "S3", "name": "Sunrise Residence — Toà S3", "address": "26 Lò Sũ, Hoàn Kiếm, Hà Nội", "lat": 21.0303, "lng": 105.8554},
 ]
 
 UNITS: list[dict[str, str]] = [

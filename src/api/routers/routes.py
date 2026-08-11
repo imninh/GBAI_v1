@@ -13,12 +13,32 @@ from src.api.errors import bad_request, not_found
 from src.api.serializers import route_dict
 from src.db.models import PickupRoute, RouteStop, User
 from src.models.schemas import CompleteStopRequest, ProposeRouteRequest, ReviewRouteRequest
-from src.services import route_planner, runs
+from src.services import duong_di_that, route_planner, runs
 from src.services.auth import write_audit
 from src.services.classifier import NodeMetric
 from src.services.pickup_lifecycle import CHO_NHAN, DA_NHAN, chuan_hoa
 
 router = APIRouter(prefix="/routes", tags=["routes"])
+
+
+def _duong_di_tu_stops(cac_diem: list[dict]) -> list[list[float]] | None:
+    """Hình đường đi thật theo đúng thứ tự ``seq``, từ dữ liệu điểm dừng đã seri hoá.
+
+    Trả về ``None`` khi chưa đủ 2 toạ độ hoặc ``hinh_duong_di`` không tính được
+    (cờ tắt / hỏng / quá hạn). Khoá vẫn luôn được thêm vào payload — frontend
+    phân biệt "chưa tính được" với "không có trường này" dễ hơn.
+    """
+    toa_do = [
+        (float(diem["lat"]), float(diem["lng"]))
+        for diem in cac_diem
+        if diem.get("lat") is not None and diem.get("lng") is not None
+    ]
+    if len(toa_do) < 2:
+        return None
+    hinh = duong_di_that.hinh_duong_di(toa_do)
+    if hinh is None:
+        return None
+    return [[lat, lng] for lat, lng in hinh]
 
 
 @router.post("/propose")
@@ -102,6 +122,7 @@ def get_route(route_id: int, session: DbSession, user: CurrentUser) -> dict:
 
     data = route_dict(session, route, full=True)
     data["diff"] = route_planner.route_diff(route)
+    data["duong_di"] = _duong_di_tu_stops(data.get("stops", []))
     return data
 
 
@@ -158,6 +179,7 @@ def review_route(
 
     data = route_dict(session, route, full=True)
     data["diff"] = route_planner.route_diff(route)
+    data["duong_di"] = _duong_di_tu_stops(data.get("stops", []))
     data["message_vi"] = (
         f"Đã thông báo cho {len(route.stops)} cư dân" + (" và tổ vệ sinh." if route.team_id else ".")
         if payload.action != "cancel"

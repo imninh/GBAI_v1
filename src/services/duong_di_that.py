@@ -78,6 +78,71 @@ def _la_ma_tran_vuong(gia_tri: object, n: int) -> bool:
     return True
 
 
+def hinh_duong_di(toa_do: list[tuple[float, float]]) -> list[tuple[float, float]] | None:
+    """Hình đường đi thật nối các điểm dừng theo đúng thứ tự đã xếp.
+
+    Args:
+        toa_do: danh sách ``(lat, lng)`` theo đúng thứ tự ghé.
+
+    Returns:
+        Danh sách ``(lat, lng)`` dày hơn đầu vào — là các đoạn đường thật để vẽ
+        lên bản đồ. ``None`` khi tắt cờ / dưới 2 điểm / gọi hỏng / dữ liệu trả về
+        sai hình dạng. ``None`` là tín hiệu "vẽ nét đứt thẳng như cũ".
+    """
+    settings = get_settings()
+    if not settings.route_real_distance:
+        return None
+    if len(toa_do) < 2:
+        return None
+
+    # OSRM nhận toạ độ theo thứ tự lng,lat — ngược với (lat, lng) của repo.
+    diem = ";".join(f"{lng},{lat}" for lat, lng in toa_do)
+    url = f"{settings.osrm_base_url}/route/v1/driving/{diem}?overview=full&geometries=geojson"
+
+    try:
+        with httpx.Client(timeout=settings.osrm_timeout_seconds) as khach:
+            phan_hoi = khach.get(url)
+            phan_hoi.raise_for_status()
+            du_lieu = phan_hoi.json()
+        hinh = _hinh_tu_geojson(du_lieu)
+        if hinh is None or len(hinh) < 2:
+            return None
+        return hinh
+    except Exception as loi:
+        logger.warning("Không lấy được hình đường đi thật, vẽ đường chim bay: %s", loi)
+        return None
+
+
+def _hinh_tu_geojson(du_lieu: object) -> list[tuple[float, float]] | None:
+    """Đọc ``routes[0].geometry.coordinates`` của OSRM.
+
+    GeoJSON trả ``[lng, lat]`` — phải đảo về ``(lat, lng)`` cho khớp quy ước của
+    cả repo. Sai chiều thì đường vẽ ra nằm ở Somalia mà không có lỗi nào.
+    """
+    if not isinstance(du_lieu, dict):
+        return None
+    routes = du_lieu.get("routes")
+    if not isinstance(routes, list) or not routes:
+        return None
+    geometry = routes[0].get("geometry") if isinstance(routes[0], dict) else None
+    if not isinstance(geometry, dict):
+        return None
+    coordinates = geometry.get("coordinates")
+    if not isinstance(coordinates, list) or len(coordinates) < 2:
+        return None
+
+    ket_qua: list[tuple[float, float]] = []
+    for diem in coordinates:
+        if not isinstance(diem, list) or len(diem) < 2:
+            return None
+        try:
+            lng, lat = float(diem[0]), float(diem[1])
+        except (TypeError, ValueError):
+            return None
+        ket_qua.append((lat, lng))
+    return ket_qua
+
+
 def ham_do_tu_ma_tran(
     ma_tran: list[list[float]], chi_so: dict[str, int]
 ) -> Callable[[Any, Any], float | None]:

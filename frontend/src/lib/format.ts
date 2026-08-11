@@ -65,12 +65,15 @@ export function conBaoLau(iso: string): string {
  *  nên mỗi trạng thái đều có icon riêng đi kèm. Icon lấy từ `@/lib/icons` để cả
  *  app dùng chung một bộ, không phải mỗi màn một kiểu ký hiệu. */
 export const TRANG_THAI_YEU_CAU: Record<string, { label: string; icon: LucideIcon; className: string }> = {
-  pending: { label: "Chờ duyệt", icon: IconChoDuyet, className: "bg-amber-soft text-amber" },
-  approved: { label: "Đã duyệt", icon: IconDuyet, className: "bg-leaf-soft text-leaf-dark" },
-  rejected: { label: "Bị từ chối", icon: IconTuChoi, className: "bg-[#eef1ec] text-muted-2" },
-  scheduled: { label: "Đã xếp tuyến", icon: IconXeThuGom, className: "bg-recycle-soft text-recycle" },
-  done: { label: "Đã thu xong", icon: IconDuyet, className: "bg-[#eef1ec] text-muted-2" },
-  cancelled: { label: "Đã huỷ", icon: IconCam, className: "bg-[#eef1ec] text-muted line-through" },
+  cho_duyet: { label: "Chờ duyệt", icon: IconChoDuyet, className: "bg-amber-soft text-amber" },
+  cho_nhan: { label: "Chờ nhận", icon: IconChoDuyet, className: "bg-amber-soft text-amber" },
+  da_nhan: { label: "Đã nhận", icon: IconXeThuGom, className: "bg-recycle-soft text-recycle" },
+  dang_van_chuyen: { label: "Đang vận chuyển", icon: IconXeThuGom, className: "bg-recycle-soft text-recycle" },
+  da_giao_don_vi: { label: "Đã giao đơn vị", icon: IconXeThuGom, className: "bg-recycle-soft text-recycle" },
+  tranh_chap: { label: "Tranh chấp", icon: IconTuChoi, className: "bg-amber-soft text-amber" },
+  hoan_tat: { label: "Hoàn tất", icon: IconDuyet, className: "bg-leaf-soft text-leaf-dark" },
+  tu_choi: { label: "Từ chối", icon: IconTuChoi, className: "bg-[#eef1ec] text-muted-2" },
+  da_huy: { label: "Đã huỷ", icon: IconCam, className: "bg-[#eef1ec] text-muted line-through" },
 };
 
 export const TRANG_THAI_TUYEN: Record<string, { label: string; className: string }> = {

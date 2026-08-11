@@ -234,19 +234,77 @@ def route_dict(session: Session, route: PickupRoute, *, full: bool = False) -> d
     }
 
     if full:
+        cac_diem = sorted(route.stops, key=lambda s: s.seq)
+        # Gom toàn bộ thực thể của điểm dừng TRƯỚC vòng lặp: mỗi bảng một câu IN
+        # thay cho một `session.get` cho từng điểm dừng, nên tuyến 30 điểm không
+        # phát ra 30 lượt hỏi CSDL mỗi lần mở màn hình.
+        ma_yeu_cau = [d.request_id for d in cac_diem if d.request_id]
+        ma_thung = [d.bin_id for d in cac_diem if d.bin_id]
+        cac_yeu_cau = (
+            {yc.id: yc for yc in session.scalars(select(PickupRequest).where(PickupRequest.id.in_(ma_yeu_cau)))}
+            if ma_yeu_cau
+            else {}
+        )
+        cac_can = (
+            {
+                can.id: can
+                for can in session.scalars(
+                    select(Unit).where(Unit.id.in_([yc.unit_id for yc in cac_yeu_cau.values() if yc.unit_id]))
+                )
+            }
+            if cac_yeu_cau
+            else {}
+        )
+        cac_toa = (
+            {
+                toa.id: toa
+                for toa in session.scalars(
+                    select(Building).where(Building.id.in_([can.building_id for can in cac_can.values()]))
+                )
+            }
+            if cac_can
+            else {}
+        )
+        cac_cu_dan = (
+            {
+                nd.id: nd
+                for nd in session.scalars(
+                    select(User).where(User.id.in_([yc.resident_id for yc in cac_yeu_cau.values()]))
+                )
+            }
+            if cac_yeu_cau
+            else {}
+        )
+        cac_thung = (
+            {thung.id: thung for thung in session.scalars(select(Bin).where(Bin.id.in_(ma_thung)))}
+            if ma_thung
+            else {}
+        )
+
         stops = []
-        for stop in sorted(route.stops, key=lambda s: s.seq):
-            # `session.get(Model, None)` ném lỗi chứ không trả None — điểm dừng
-            # loại "thung" không có request_id nên phải chặn trước khi tra.
-            request = session.get(PickupRequest, stop.request_id) if stop.request_id else None
-            unit = session.get(Unit, request.unit_id) if request else None
-            resident = session.get(User, request.resident_id) if request else None
-            thung = session.get(Bin, stop.bin_id) if stop.bin_id else None
+        for stop in cac_diem:
+            # Điểm dừng loại "thung" không có request_id nên phải chặn trước khi tra.
+            request = cac_yeu_cau.get(stop.request_id) if stop.request_id else None
+            unit = cac_can.get(request.unit_id) if request and request.unit_id else None
+            resident = cac_cu_dan.get(request.resident_id) if request else None
+            thung = cac_thung.get(stop.bin_id) if stop.bin_id else None
             # Toạ độ để vẽ điểm dừng lên bản đồ. Thùng mang toạ độ của chính nó;
             # yêu cầu của cư dân mượn toạ độ toà nhà. Hai cột đều cho phép NULL
             # nên frontend buộc phải chịu được `null`, không được coi là luôn có.
-            toa_nha = session.get(Building, unit.building_id) if unit else None
+            toa_nha = cac_toa.get(unit.building_id) if unit else None
             noi_dung = thung if thung is not None else toa_nha
+            # Địa chỉ để người cầm điện thoại đi thu gom biết đến chỗ nào: thùng
+            # dùng địa chỉ của chính nó; yêu cầu của cư dân ghép mã căn với địa
+            # chỉ toà nhà. Toà chưa có địa chỉ thì lui về mã căn — không phát ra
+            # chuỗi rỗng hay chuỗi "Căn S1-0805 · " cụt đuôi.
+            if thung is not None:
+                dia_chi = thung.address
+            elif unit is not None and toa_nha is not None and toa_nha.address:
+                dia_chi = f"Căn {unit.code} · {toa_nha.address}"
+            elif unit is not None:
+                dia_chi = unit.code
+            else:
+                dia_chi = ""
             stops.append(
                 {
                     "stop_id": stop.id,
@@ -257,7 +315,7 @@ def route_dict(session: Session, route: PickupRoute, *, full: bool = False) -> d
                     # Một dòng điểm dừng trên app phải đọc được mà không cần biết
                     # nó thuộc loại nào.
                     "diem_dung_vi": thung.name if thung else (unit.code if unit else ""),
-                    "dia_chi": noi_dung.address if noi_dung is not None else "",
+                    "dia_chi": dia_chi,
                     "lat": noi_dung.lat if noi_dung is not None else None,
                     "lng": noi_dung.lng if noi_dung is not None else None,
                     "fill_percent": thung.fill_percent if thung else None,

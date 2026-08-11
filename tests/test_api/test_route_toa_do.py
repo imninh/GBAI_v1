@@ -6,6 +6,7 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
+from src.api.routers.routes import get_route
 from src.api.serializers import route_dict
 from src.db.models import (
     STOP_KIND_THUNG,
@@ -75,7 +76,8 @@ def test_diem_dung_yeu_cau_muon_toa_do_toa_nha(db_session: Session) -> None:
     assert diem["stop_kind"] == STOP_KIND_YEU_CAU
     assert diem["lat"] == 21.0293
     assert diem["lng"] == 105.8542
-    assert diem["dia_chi"] == "9 Bà Triệu, Hoàn Kiếm"
+    # Gói P25: yêu cầu ghép mã căn với địa chỉ toà nhà, không còn địa chỉ trần.
+    assert diem["dia_chi"] == "Căn S9-0101 · 9 Bà Triệu, Hoàn Kiếm"
 
 
 def test_thung_khong_co_toa_do_thi_seri_hoa_thanh_null(db_session: Session) -> None:
@@ -100,3 +102,22 @@ def test_khong_full_thi_khong_co_khoa_stops(db_session: Session) -> None:
 
     data = route_dict(db_session, tuyen, full=False)
     assert "stops" not in data
+
+
+def test_payload_tuyen_co_khoa_duong_di(db_session: Session) -> None:
+    """Cờ tắt (mặc định) → khoá `duong_di` CÓ MẶT và bằng null; khoá cũ giữ nguyên.
+
+    Frontend phân biệt "chưa tính được" (null) với "không có trường này" — nên
+    khoá phải tồn tại chứ không được bỏ đi khi chưa bật đường đi thật.
+    """
+    tuyen = _them_tuyen(db_session)
+    quan_ly = User(email="ql-duong-di@test.vn", full_name="Quản lý", role="manager", password_hash="x")
+    db_session.add(quan_ly)
+    db_session.flush()
+
+    data = get_route(tuyen.id, db_session, quan_ly)
+
+    assert "duong_di" in data
+    assert data["duong_di"] is None
+    for khoa in ("id", "service_date", "window", "status", "total_weight_kg", "stop_count", "stops", "reasoning", "diff"):
+        assert khoa in data, f"Khoá cũ '{khoa}' phải còn nguyên trong payload"

@@ -214,7 +214,11 @@ export function RequestsScreen({ onOpen }: { onOpen: (id: number) => void }) {
         <EmptyState icon={IconMonDo} title="Chưa có yêu cầu nào" hint="Chụp món rác đầu tiên để bắt đầu nhé." />
       ) : (
         items.map((yc) => {
-          const tt = TRANG_THAI_YEU_CAU[yc.status];
+          const tt = TRANG_THAI_YEU_CAU[yc.status] ?? {
+            label: yc.status,
+            icon: IconChoDuyet,
+            className: "bg-[#eef1ec] text-muted",
+          };
           return (
             <Card key={yc.id} onClick={() => onOpen(yc.id)} className="mb-3 cursor-pointer p-4">
               <div className="mb-2 flex items-center justify-between">
@@ -249,7 +253,11 @@ export function RequestDetailScreen({ id, onBack }: { id: number; onBack: () => 
   if (loi) return <EmptyState icon={IconGapLoi} title="Không mở được yêu cầu" hint={loi} />;
   if (!yc) return <Skeleton className="m-4 h-64" />;
 
-  const tt = TRANG_THAI_YEU_CAU[yc.status];
+  const tt = TRANG_THAI_YEU_CAU[yc.status] ?? {
+    label: yc.status,
+    icon: IconChoDuyet,
+    className: "bg-[#eef1ec] text-muted",
+  };
 
   return (
     <div className="min-h-full bg-cream pb-10 pt-11">
