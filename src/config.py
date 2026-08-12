@@ -346,6 +346,15 @@ class Settings(BaseSettings):
     media_retention_days: int = Field(default=30, ge=1)
     face_blur_enabled: bool = True
 
+    # --- Supabase Storage cho ảnh ----------------------------------------
+    # MẶC ĐỊNH TẮT. Tắt thì ảnh vẫn nằm trên đĩa như hôm nay — không gãy gì.
+    storage_enabled: bool = False
+    supabase_url: str = ""
+    # Khoá BÍ MẬT (service role). Bỏ qua Row Level Security nên CHỈ dùng ở máy
+    # chủ; không bao giờ gửi xuống trình duyệt, không bao giờ ghi vào log.
+    supabase_secret_key: str = ""
+    supabase_bucket: str = "greenbin"
+
     # --- Kiểm soát chi phí ------------------------------------------------
     llm_batch_size: int = Field(default=25, ge=1, le=100)
     budget_limit_usd: float = Field(default=25.0, gt=0)

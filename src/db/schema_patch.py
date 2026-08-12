@@ -50,6 +50,10 @@ COT_CAN_VA: list[tuple[str, str, str]] = [
     ("bins", "deployment_status", "VARCHAR(20) NOT NULL DEFAULT ''"),
     ("bins", "coordinate_confidence", "VARCHAR(10) NOT NULL DEFAULT ''"),
     ("bins", "area_name", "VARCHAR(60) NOT NULL DEFAULT ''"),
+    # Gói P38 — khoá ảnh trên Supabase Storage. `NOT NULL` phải kèm `DEFAULT`
+    # (SQLite bắt buộc), và không khoá ngoại trong ALTER (SQLite không làm được).
+    ("media", "storage_key", "VARCHAR(1024) NOT NULL DEFAULT ''"),
+    ("media", "original_storage_key", "VARCHAR(1024) NOT NULL DEFAULT ''"),
 ]
 
 

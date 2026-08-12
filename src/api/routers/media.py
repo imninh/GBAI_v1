@@ -11,13 +11,14 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
 from src.api.deps import CurrentUser, DbSession, require
 from src.api.errors import ApiError, forbidden, not_found
 from src.api.serializers import media_privacy_dict
 from src.db.models import Media, User
 from src.services.auth import write_audit
+from src.services.luu_tru import tai_ve, xoa
 
 router = APIRouter(prefix="/media", tags=["media"])
 
@@ -35,13 +36,21 @@ def _can_see(user: User, media: Media) -> bool:
 
 
 @router.get("/{media_id}")
-def get_media(media_id: int, session: DbSession, user: CurrentUser) -> FileResponse:
+def get_media(media_id: int, session: DbSession, user: CurrentUser) -> Response:
     """Ảnh **đã xử lý** (đã tước EXIF, đã làm mờ mặt, đã nén)."""
     media = _load(session, media_id)
     if not _can_see(user, media):
         raise forbidden("Bạn chỉ xem được ảnh của chính mình.")
+    # Ưu tiên Storage: có khoá thì đọc từ đó; `tai_ve` trả `None` (tắt cờ / hỏng /
+    # quá hạn) thì rơi về đĩa y như hôm nay. Cả hai đều không có → 410 như cũ.
+    if media.storage_key:
+        noi_dung = tai_ve(media.storage_key)
+        if noi_dung is not None:
+            return Response(content=noi_dung, media_type="image/jpeg")
     path = Path(media.stored_path)
-    if not path.exists():
+    # `Path("")` trỏ về "." (tồn tại thật) nên phải chặn chuỗi rỗng trước khi
+    # kiểm tồn tại — nếu không `FileResponse(".")` nổ RuntimeError thay vì 410.
+    if not media.stored_path or not path.exists():
         raise ApiError(410, "IMG-410", "Ảnh đã hết hạn lưu trữ và được xoá tự động.")
     return FileResponse(path, media_type="image/jpeg")
 
@@ -60,11 +69,23 @@ def get_original(
     media_id: int,
     session: DbSession,
     user: Annotated[User, Depends(require("view_original_media"))],
-) -> FileResponse:
+) -> Response:
     """Ảnh gốc chưa xử lý — chỉ ban quản lý, và luôn ghi nhật ký kiểm toán."""
     media = _load(session, media_id)
-    if not media.original_path:
+    if not media.original_path and not media.original_storage_key:
         raise not_found("ảnh gốc của ảnh này")
+    if media.original_storage_key:
+        noi_dung = tai_ve(media.original_storage_key)
+        if noi_dung is not None:
+            write_audit(
+                session,
+                actor=user,
+                action="view_original_media",
+                entity="media",
+                entity_id=str(media.id),
+                detail={"uploader_id": media.uploader_id, "nguon": "storage"},
+            )
+            return Response(content=noi_dung, media_type="image/jpeg")
     path = Path(media.original_path)
     if not path.exists():
         raise ApiError(410, "IMG-410", "Ảnh gốc đã bị xoá theo hạn lưu trữ.")
@@ -75,7 +96,7 @@ def get_original(
         action="view_original_media",
         entity="media",
         entity_id=str(media.id),
-        detail={"uploader_id": media.uploader_id},
+        detail={"uploader_id": media.uploader_id, "nguon": "dia"},
     )
     return FileResponse(path, media_type="image/jpeg")
 
@@ -90,12 +111,18 @@ def delete_media(media_id: int, session: DbSession, user: CurrentUser) -> dict:
     if media.uploader_id != user.id and user.role != "manager":
         raise forbidden("Bạn chỉ xoá được ảnh của chính mình.")
 
-    for attribute in ("stored_path", "original_path"):
+    # Xoá file trên Storage (nếu có khoá). Storage xoá hỏng KHÔNG được làm hỏng
+    # cả lệnh xoá — `xoa` trả False rồi đi tiếp, không ném ngoại lệ.
+    for attribute, khoa in (("stored_path", media.storage_key), ("original_path", media.original_storage_key)):
         raw = getattr(media, attribute, "")
         if raw:
             Path(raw).unlink(missing_ok=True)
+        if khoa:
+            xoa(khoa)
     media.stored_path = ""
     media.original_path = ""
+    media.storage_key = ""
+    media.original_storage_key = ""
     session.flush()
 
     write_audit(session, actor=user, action="delete_media", entity="media", entity_id=str(media.id))

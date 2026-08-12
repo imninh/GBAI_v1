@@ -7,6 +7,8 @@ qua bước đó.
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
@@ -28,6 +30,7 @@ from src.models.schemas import ClassifyTextRequest, FeedbackRequest, VerifyReque
 from src.services import runs
 from src.services.auth import write_audit
 from src.services.image import preprocess_image
+from src.services.luu_tru import tai_len
 from src.services.safety import HARD_BLOCK_RULES
 
 router = APIRouter(tags=["classify"])
@@ -146,10 +149,20 @@ async def classify(
         except ValueError as exc:
             raise bad_request("Mình không đọc được file ảnh này.", code="IMG-415") from exc
 
+        # Cất lên Supabase Storage (nếu bật). Khoá theo ngày để dễ dọn về sau:
+        # uploads/YYYY/MM/DD/<tên file>. `tai_len` trả `None` (cờ tắt / hỏng /
+        # quá hạn) → giữ khoá rỗng, ảnh vẫn nằm trên đĩa — đĩa là đường lui.
+        hom_nay = datetime.now(UTC)
+        thu_muc_ngay = f"uploads/{hom_nay:%Y/%m/%d}"
+        khoa_da_xu_ly = f"{thu_muc_ngay}/{Path(processed.stored_path).name}"
+        khoa_goc = f"{thu_muc_ngay}/{Path(processed.original_path).name}" if processed.original_path else ""
+
         media = Media(
             uploader_id=user.id,
             stored_path=processed.stored_path,
             original_path=processed.original_path,
+            storage_key=tai_len(processed.stored_path, khoa_da_xu_ly) or "",
+            original_storage_key=tai_len(processed.original_path, khoa_goc) if processed.original_path else "",
             phash=processed.phash,
             width=processed.width,
             height=processed.height,

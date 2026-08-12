@@ -30,6 +30,10 @@ class Media(Base):
     stored_path: Mapped[str] = mapped_column(String(1024))
     # Ảnh gốc chưa xử lý. Chỉ BQL được mở, và mỗi lần mở đều ghi AuditLog.
     original_path: Mapped[str] = mapped_column(String(1024), default="")
+    # Khoá trong Supabase Storage. Rỗng nghĩa là ảnh này vẫn chỉ nằm trên đĩa —
+    # bản ghi cũ và mọi ảnh tạo ra khi cờ storage tắt đều rơi vào diện đó.
+    storage_key: Mapped[str] = mapped_column(String(1024), default="")
+    original_storage_key: Mapped[str] = mapped_column(String(1024), default="")
     # Băm tri giác — dùng làm cache tầng 0, ảnh trùng/gần trùng không gọi lại API.
     phash: Mapped[str] = mapped_column(String(32), index=True, default="")
     width: Mapped[int] = mapped_column(default=0)

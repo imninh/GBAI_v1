@@ -49,6 +49,15 @@ _INTERESTING_EXIF_TAGS = {
 _FACE_CASCADE_FILE = "haarcascade_frontalface_default.xml"
 _face_cascade: cv2.CascadeClassifier | None = None
 
+#: Cạnh dài của bản thu nhỏ dành riêng cho việc DÒ khuôn mặt. Haar chạy tỉ lệ
+#: thẳng với số điểm ảnh — dò trên ảnh 4000×3000 mất ~3,3 s trong khi cùng việc
+#: đó trên bản 1024px chỉ tốn vài chục ms. Dò trên bản thu nhỏ rồi NHÂN TOẠ ĐỘ
+#: NGƯỢC LÊN vừa nhanh vừa KHÔNG mất độ nhạy so với cách "thu nhỏ ảnh thật rồi
+#: mới dò" — cách đó bỏ sót mọi khuôn mặt dưới ~219px của ảnh gốc (bảng ở
+#: CONTEXT gói P37). Chọn 1024 để một khuôn mặt cỡ 60px trong ảnh điện thoại vẫn
+#: cao hơn ``minSize=(28, 28)`` của Haar trên bản dò.
+CANH_DO_MAT = 1024
+
 
 @dataclass
 class RemovedField:
@@ -162,22 +171,58 @@ def extract_removed_fields(image: Image.Image) -> list[RemovedField]:
 
 
 def blur_faces(image: Image.Image) -> tuple[Image.Image, int]:
-    """Làm mờ mọi khuôn mặt tìm được. Trả về ảnh mới và số mặt đã xử lý."""
+    """Làm mờ mọi khuôn mặt tìm được. Trả về ảnh mới và số mặt đã xử lý.
+
+    Dò khuôn mặt trên một BẢN THU NHỎ riêng (cạnh dài :data:`CANH_DO_MAT`) rồi
+    nhân toạ độ ngược lên hệ toạ độ ảnh gốc — Haar tốn tỉ lệ thẳng với số điểm
+    ảnh, còn việc làm mờ vẫn thực hiện trên ẢNH ĐẦY ĐỦ để chất lượng che không
+    đổi. Không bao giờ làm mờ trên bản thu nhỏ rồi phóng to lại: vùng mờ sẽ lệch
+    và mất chi tiết.
+    """
     cascade = _get_face_cascade()
     if cascade is None:
         return image, 0
 
-    rgb = np.array(image.convert("RGB"))
+    lon_nhat = max(image.size)
+    # Ảnh vốn đã nhỏ hơn CANH_DO_MAT thì không thu nhỏ — tỉ lệ bằng 1, đường chạy
+    # y hệt hôm nay. Bản thu nhỏ CHỈ dùng để dò; làm mờ vẫn trên ảnh đầy đủ, nên
+    # dùng BILINEAR cho nhanh — Haar là bộ dò thô, khác biệt LANCZOS/BILINEAR sau
+    # bước thu nhỏ là không đo được, còn thời gian thì chênh gấp đôi.
+    ty_le = 1.0 if lon_nhat <= CANH_DO_MAT else CANH_DO_MAT / lon_nhat
+    if ty_le < 1.0:
+        do_anh = image.resize(
+            (max(1, round(image.width * ty_le)), max(1, round(image.height * ty_le))),
+            Image.BILINEAR,
+        )
+    else:
+        do_anh = image
+
+    rgb = np.array(do_anh.convert("RGB"))
     gray = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
+    # Giữ NGUYÊN độ nhạy của Haar — scaleFactor / minNeighbors / minSize không đổi.
     faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(28, 28))
     if len(faces) == 0:
         return image, 0
 
+    # Nhân toạ độ mỗi hộp NGƯỢC về hệ toạ độ ẢNH GỐC. Nới hộp ra vài điểm ảnh để
+    # chặn sai số làm tròn của bước thu nhỏ: `int()` cắt xuống có thể làm hộp hụt
+    # mép (mặt vẫn hiện), nên đầu trái/trên dịch về 0 và đầu phải/dưới dịch ra
+    # ngoài đúng cỡ nới. Ảnh nhỏ (``phan_nguoc == 1``) thì không nới — hộp đúng
+    # như hôm nay.
+    phan_nguoc = 1.0 / ty_le
+    le = int(phan_nguoc) if phan_nguoc > 1 else 0
+
     result = image.convert("RGB")
     for x, y, w, h in faces:
-        box = (int(x), int(y), int(x + w), int(y + h))
-        # Bán kính theo kích thước mặt để mặt nhỏ cũng mờ hẳn, không chỉ nhoè nhẹ.
-        radius = max(8, int(max(w, h) / 4))
+        box = (
+            max(0, int(x * phan_nguoc) - le),
+            max(0, int(y * phan_nguoc) - le),
+            min(result.width, int((x + w) * phan_nguoc) + le),
+            min(result.height, int((y + h) * phan_nguoc) + le),
+        )
+        # Bán kính theo kích thước mặt ĐÃ NHÂN NGƯỢC để mặt nhỏ cũng mờ hẳn —
+        # đúng công thức cũ, chỉ thay cỡ hộp thật.
+        radius = max(8, int(max(box[2] - box[0], box[3] - box[1]) / 4))
         patch = result.crop(box).filter(ImageFilter.GaussianBlur(radius=radius))
         result.paste(patch, box)
     return result, len(faces)

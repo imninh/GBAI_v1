@@ -3,6 +3,7 @@
  */
 
 import type { Bin, BinReading, BinStats, DiemGui, NhanVien } from "./bins";
+import { nenAnh } from "./nen_anh";
 import type {
   AgentRunDetail,
   Classification,
@@ -154,9 +155,10 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ text_query: textQuery, building_id: buildingId ?? null }),
     }),
-  classifyImage: (file: File, buildingId?: number | null) => {
+  classifyImage: async (file: File, buildingId?: number | null) => {
     const form = new FormData();
-    form.append("image", file);
+    // Nén ngay trên máy người dùng trước khi gửi — ảnh 3–6 MB xuống ~250–400 KB.
+    form.append("image", await nenAnh(file));
     if (buildingId) form.append("building_id", String(buildingId));
     return request<Classification>("/classify", { method: "POST", body: form });
   },
