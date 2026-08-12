@@ -68,10 +68,17 @@ def get_vision_model():
             raise VisionProviderError("OPENAI_API_KEY is not configured")
         from langchain_openai import ChatOpenAI
 
+        # A base URL is only passed when one is configured, so the default path
+        # stays exactly what it was: plain OpenAI.
+        extra = {}
+        if settings.vision_base_url:
+            extra["base_url"] = settings.vision_base_url
+
         return ChatOpenAI(
             model=settings.vision_model_name,
             api_key=settings.openai_api_key,
             temperature=0,  # classification, not creative writing
+            **extra,
         )
 
     raise VisionProviderError(f"Unsupported vision provider: {provider!r}")

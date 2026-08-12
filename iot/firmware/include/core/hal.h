@@ -10,6 +10,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "core/waste.h"
+
 namespace greenbin {
 
 // ─── Distance ────────────────────────────────────────────────────────────────
@@ -117,6 +119,53 @@ enum class LedPattern {
     NetworkError,
     BinFull,
 };
+
+// ─── Sorter ──────────────────────────────────────────────────────────────────
+
+// The sorting mechanism, expressed in bins rather than angles (Checkpoint 1 §9).
+// Business logic names a BinTarget; only the driver knows what that is in
+// degrees, which is what makes calibration a config change.
+class SorterService {
+  public:
+    virtual ~SorterService() = default;
+
+    // Drives the flap to `target`. Returns false if the target could not be
+    // reached (unknown target, hardware absent), in which case the caller must
+    // treat the item as NOT sorted (§24).
+    virtual bool moveTo(BinTarget target) = 0;
+
+    // Where the flap is now, as last commanded.
+    virtual BinTarget position() const = 0;
+};
+
+// ─── Display ─────────────────────────────────────────────────────────────────
+
+// The user-facing screen (Checkpoint 1 §10). One method per screen the device
+// can show, so no caller ever composes display text inline and the OLED can be
+// swapped for a TFT or a serial stub without touching the state machine.
+class DisplayService {
+  public:
+    virtual ~DisplayService() = default;
+
+    virtual void showBoot(const char* version) = 0;
+    virtual void showIdle(bool binFull) = 0;
+    virtual void showUserDetected() = 0;
+    virtual void showCapturing() = 0;
+    virtual void showAnalyzing() = 0;
+    virtual void showSorting(BinTarget target) = 0;
+    // Shown when the device declines to sort: unknown material, low confidence,
+    // hazard. It states that nothing was sorted rather than naming a bin.
+    virtual void showRejected(const char* reason) = 0;
+    // End-of-transaction summary. `fillValid` false means the fill reading
+    // failed and the screen must say so instead of printing a number (§11, §24).
+    virtual void showComplete(WasteClass waste,
+                              bool sorted,
+                              bool fillValid,
+                              float fillPercent) = 0;
+    virtual void showError(const char* message) = 0;
+};
+
+// ─── LED ─────────────────────────────────────────────────────────────────────
 
 class LedService {
   public:

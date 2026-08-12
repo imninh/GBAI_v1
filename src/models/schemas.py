@@ -54,6 +54,26 @@ class IoTCaptureResponse(BaseModel):
     exif_stripped: bool = True
 
 
+# ─── Device heartbeat ────────────────────────────────────────────────────────
+
+
+class HeartbeatRequest(BaseModel):
+    """Liveness ping from a bin (IoT Checkpoint 1 §21).
+
+    Deliberately minimal: a heartbeat that carried sensor data would tempt
+    devices to report state on a schedule instead of on a change.
+    """
+
+    device_id: str = Field(..., min_length=1, max_length=64)
+    status: str = Field(default="online", max_length=32)
+
+
+class HeartbeatResponse(BaseModel):
+    status: str = "ok"
+    device_id: str
+    server_time: datetime
+
+
 # ─── Bin readings ────────────────────────────────────────────────────────────
 
 

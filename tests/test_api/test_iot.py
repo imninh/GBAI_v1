@@ -262,6 +262,41 @@ async def test_bin_reading_accepted(client, device_keys):
 
 
 @pytest.mark.asyncio
+async def test_heartbeat_confirms_backend_is_reachable(client, device_keys):
+    """IoT Checkpoint 1 §21 — the device's only way to prove the backend answers."""
+    response = await client.post(
+        "/api/v1/iot/heartbeat",
+        json={"device_id": DEVICE_ID, "status": "online"},
+        headers={"X-Device-Key": DEVICE_KEY},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["device_id"] == DEVICE_ID
+    assert body["server_time"]
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_requires_device_key(client, device_keys):
+    response = await client.post(
+        "/api/v1/iot/heartbeat",
+        json={"device_id": DEVICE_ID, "status": "online"},
+    )
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_heartbeat_rejects_a_device_impersonating_another(client, device_keys):
+    """A valid key for one bin must not let it report as a different bin."""
+    response = await client.post(
+        "/api/v1/iot/heartbeat",
+        json={"device_id": "GBIN-999", "status": "online"},
+        headers={"X-Device-Key": DEVICE_KEY},
+    )
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
 async def test_bin_reading_requires_device_key(client, device_keys):
     response = await client.post(
         "/api/v1/bins/BIN-001/readings",

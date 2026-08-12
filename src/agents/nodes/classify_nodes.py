@@ -84,7 +84,13 @@ async def vision_node(state: ClassifyState) -> dict:
         logger.exception("Vision call failed")
         return {"error": f"Vision call failed: {exc}"}
 
-    label, confidence = _parse_model_reply(str(response.content))
+    text = str(response.content)
+    label, confidence = _parse_model_reply(text)
+    if not label:
+        # An empty label becomes `refused` downstream, and the two reasons for it
+        # — the model declining to guess, versus a reply we could not parse —
+        # are indistinguishable without seeing what actually came back.
+        logger.warning("Vision returned no label; raw reply was: %r", text[:300])
     return {"label": label, "confidence": confidence}
 
 

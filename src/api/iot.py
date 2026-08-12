@@ -7,10 +7,17 @@ parsing, status codes. Every decision lives in ``src/services``.
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile
 
-from src.models.schemas import BinReading, BinReadingRequest, IoTCaptureResponse
+from src.models.schemas import (
+    BinReading,
+    BinReadingRequest,
+    HeartbeatRequest,
+    HeartbeatResponse,
+    IoTCaptureResponse,
+)
 from src.services import bin_readings
 from src.services.classification import classify_processed_image
 from src.services.device_auth import DeviceAuthError, authenticate
@@ -78,6 +85,27 @@ async def create_capture(
         image_bytes=processed.size_bytes,
         faces_blurred=processed.faces_blurred,
         exif_stripped=processed.exif_stripped,
+    )
+
+
+@router.post("/iot/heartbeat", response_model=HeartbeatResponse)
+async def heartbeat(
+    payload: HeartbeatRequest,
+    authenticated_device: str = Depends(require_device_key),
+) -> HeartbeatResponse:
+    """Confirm to a device that the backend is reachable (IoT Checkpoint 1 §21).
+
+    Stateless on purpose: it stores nothing. Its only job is to let a bin
+    distinguish "my Wi-Fi is up" from "the backend is actually answering", which
+    is the difference the device cannot work out on its own.
+    """
+    if payload.device_id != authenticated_device:
+        raise HTTPException(status_code=401, detail="Invalid device credentials")
+
+    return HeartbeatResponse(
+        status="ok",
+        device_id=authenticated_device,
+        server_time=datetime.now(UTC),
     )
 
 

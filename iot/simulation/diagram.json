@@ -32,6 +32,20 @@
       "attrs": {}
     },
     {
+      "type": "wokwi-ssd1306",
+      "id": "oled",
+      "top": -140,
+      "left": -230,
+      "attrs": { "i2cAddress": "0x3c" }
+    },
+    {
+      "type": "wokwi-servo",
+      "id": "servo",
+      "top": 130,
+      "left": -240,
+      "attrs": { "horn": "single" }
+    },
+    {
       "type": "wokwi-resistor",
       "id": "echo_series",
       "top": 155,
@@ -63,6 +77,15 @@
     [ "led:VDD", "esp:3V3", "red", [ "v0" ] ],
     [ "led:VSS", "esp:GND.3", "black", [ "v0" ] ],
     [ "led:DIN", "esp:15", "magenta", [ "v0" ] ],
+
+    [ "oled:VIN", "esp:3V3", "red", [ "v0" ] ],
+    [ "oled:GND", "esp:GND.3", "black", [ "v0" ] ],
+    [ "oled:DATA", "esp:21", "cyan", [ "v0" ] ],
+    [ "oled:CLK", "esp:22", "cyan", [ "v0" ] ],
+
+    [ "servo:V+", "esp:5V", "red", [ "v0" ] ],
+    [ "servo:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "servo:PWM", "esp:18", "orange", [ "v0" ] ],
 
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
     [ "esp:RX", "$serialMonitor:TX", "", [] ]

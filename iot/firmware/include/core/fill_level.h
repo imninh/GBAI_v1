@@ -30,6 +30,34 @@ FillResult computeFillPercent(const DistanceReading& reading,
                               float emptyDistanceCm,
                               float fullDistanceCm);
 
+// Coarse buckets for the user-facing display and the status LED (Checkpoint 1
+// §12). Distinct from BinFullTracker below, which answers the narrower
+// operational question "must this bin be collected?" with hysteresis.
+enum class FillState {
+    Normal,
+    Medium,
+    NearFull,
+    Full,
+};
+
+// Bucket boundaries, injected rather than hard-coded so a differently shaped bin
+// only needs a config change (§12).
+struct FillThresholds {
+    float mediumPercent = 60.0f;
+    float nearFullPercent = 80.0f;
+    float fullPercent = 95.0f;
+
+    FillThresholds() = default;
+    FillThresholds(float medium, float nearFull, float full)
+        : mediumPercent(medium), nearFullPercent(nearFull), fullPercent(full) {}
+};
+
+// An invalid reading has no bucket, so this takes a percentage the caller has
+// already established is valid. Callers must check FillResult::valid first.
+FillState fillStateFor(float percent, const FillThresholds& thresholds);
+
+const char* fillStateName(FillState state);
+
 // Tracks the full/not-full state with hysteresis so a bin hovering at the
 // threshold does not emit an endless stream of transition events (spec §14).
 class BinFullTracker {

@@ -65,6 +65,8 @@ struct Rig {
     FileCameraService camera;
     SimNetworkService network;
     ConsoleLedService led;
+    ConsoleSorter sorter;
+    ConsoleDisplay display;
     StateMachine machine;
     uint32_t now = 1000;
 
@@ -75,7 +77,7 @@ struct Rig {
         const std::string& deviceKey)
         : camera(fixture),
           network(baseUrl, deviceId, binCode, deviceKey, 5000),
-          machine(presence, distance, camera, network, led, simConfig()) {}
+          machine(presence, distance, camera, network, led, sorter, display, simConfig()) {}
 
     void advance(uint32_t ms) {
         now += ms;
@@ -166,6 +168,29 @@ int main(int argc, char** argv) {
            statusName(rig.machine.lastResult().status), rig.machine.lastResult().label,
            static_cast<double>(rig.machine.lastResult().confidence));
     printf("  LED showed  : %s\n", ConsoleLedService::name(rig.led.lastTemporary));
+
+    // ── Checkpoint 1: the sorting leg, driven by the real backend's answer ──
+    banner("Checkpoint 1 — sort, fill update, return HOME");
+    const int movesBefore = rig.sorter.moves;
+    rig.advance(1);  // WAIT_RESULT -> SORTING
+    rig.advance(1);  // SORTING     -> UPDATE_FILL
+    rig.advance(1);  // UPDATE_FILL -> SHOW_RESULT
+    check(rig.machine.state() == DeviceState::ShowResult, "reaches SHOW_RESULT");
+    const ClassificationResult& sorted = rig.machine.lastResult();
+    printf("  decision    : label=%s action=%s target=%s\n", wasteClassName(sorted.waste),
+           sortActionName(sorted.action), binTargetName(sorted.targetBin));
+    if (sorted.shouldSort()) {
+        check(rig.machine.sortsPerformed() == 1, "item sorted exactly once");
+        check(rig.sorter.moves >= movesBefore + 2, "flap moved to the bin and back");
+    } else {
+        // A backend that declined must leave the mechanism alone (§24).
+        check(rig.machine.sortsPerformed() == 0, "unsortable item was NOT sorted");
+    }
+    check(rig.sorter.position() == BinTarget::Home, "flap parked at HOME after the run");
+    check(rig.machine.lastFill().valid, "fill level measured after sorting");
+    printf("  fill        : %.1f%% (%s)\n",
+           static_cast<double>(rig.machine.lastFill().percent),
+           fillStateName(rig.machine.fillState()));
 
     banner("Scenario 7 — bin full, real reading POST");
     rig.settleToIdle();

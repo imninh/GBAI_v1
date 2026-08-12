@@ -1,0 +1,55 @@
+# Checkpoint 1 — full sorting flow, headless.
+#
+# NOT YET EXECUTED: running it needs a Wokwi CI token, which this machine does
+# not have. The step vocabulary matches wokwi-cli v0.26.1; the `distance`
+# control name for the HC-SR04 has not been confirmed against a live run.
+#
+#   export WOKWI_CLI_TOKEN=...            # https://wokwi.com/dashboard/ci
+#   cd iot/firmware && pio run -e wokwi
+#   cd ../simulation && wokwi-cli --scenario scenarios/checkpoint1-flow.yaml
+#
+# It drives the flow with the `r` console command rather than the PIR, because
+# a PIR click cannot be scripted and the point of this file is determinism.
+name: checkpoint1-flow
+version: 1
+author: GreenBinAI
+
+steps:
+  - name: wait for boot
+    wait-serial: 'HARDWARE TEST MODE'
+
+  # 26.2 cm with the simulation calibration (50 cm empty, 5 cm full) is ~52.9%.
+  - set-control:
+      part-id: ultrasonic
+      control: distance
+      value: 26.2
+  - delay: 500ms
+
+  - name: select PLASTIC as the mock AI answer
+    write-serial: '7'
+  - wait-serial: 'label=plastic'
+
+  - name: start a transaction
+    write-serial: 'r'
+  - wait-serial: 'IDLE -> PRESENCE_DETECTED'
+  - wait-serial: 'waste_confirmed (manual trigger)'
+  - wait-serial: 'Image captured successfully'
+  - wait-serial: 'action=SORT target=PLASTIC'
+  - wait-serial: 'WAIT_RESULT -> SORTING'
+  - wait-serial: '[SERVO] target=PLASTIC done'
+  - wait-serial: 'SORTING -> UPDATE_FILL'
+  - wait-serial: 'UPDATE_FILL -> SHOW_RESULT'
+  - name: flap must return to its rest position
+    wait-serial: '[SERVO] target=HOME done'
+  - wait-serial: 'SHOW_RESULT -> IDLE'
+
+  - take-screenshot:
+      part-id: oled
+      save-to: oled-idle.png
+
+  - name: an unrecognised item must not be sorted
+    write-serial: '0'
+  - wait-serial: 'label=unknown'
+  - write-serial: 'r'
+  - wait-serial: 'action=REJECT target=HOME'
+  - wait-serial: 'SHOW_RESULT -> IDLE'

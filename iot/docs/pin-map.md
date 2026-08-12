@@ -155,6 +155,28 @@ margin is zero, and that must be stated plainly rather than presented as comfort
   logging, PSRAM, or the flash LED.
 - Re-enabling microSD in a later phase reclaims 12/13/14/15 and **breaks this pin map entirely**.
 
+### 6.1 The IoT Checkpoint 1 sorter and OLED are simulation-only
+
+Checkpoint 1 adds a sorting servo and an SSD1306 to the **Wokwi** build on an
+ESP32 DevKit-C V4:
+
+| Signal | GPIO (simulation) | On the real ESP32-CAM this pin is… |
+|---|---|---|
+| `PIN_SERVO` | 18 | camera `Y3` |
+| `PIN_OLED_SDA` | 21 | camera `Y4` |
+| `PIN_OLED_SCL` | 22 | camera `PCLK` |
+
+All three are camera data lines on the AI Thinker board, so **the `esp32cam`
+build must never drive them** and it does not: `GREENBIN_HAS_SORTER` and
+`GREENBIN_HAS_DISPLAY` are defined only in the `wokwi` environment, and the real
+build compiles `NullSorter` / `NullDisplay` in their place. The sorting flow runs
+unchanged and the null sorter reports every move as failed, so the device says
+"not sorted" rather than claiming a move that no hardware performed.
+
+Putting a real sorter on real hardware therefore needs fallback **C** below
+(ESP32-S3) or a second MCU — it is exactly the "adding any Phase 2 peripheral"
+case above, and the simulation does not change that arithmetic.
+
 Fallbacks, in the order recommended:
 
 | | Option | When to take it |

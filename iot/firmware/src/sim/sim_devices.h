@@ -126,5 +126,49 @@ class ConsoleLedService : public LedService {
     }
 };
 
+// Prints every commanded position, so the simulator transcript shows the flap
+// path — including the return to HOME — without any hardware attached.
+class ConsoleSorter : public SorterService {
+  public:
+    BinTarget last = BinTarget::Home;
+    int moves = 0;
+
+    bool moveTo(BinTarget target) override {
+        ++moves;
+        last = target;
+        printf("[SERVO] target=%s\n", binTargetName(target));
+        return true;
+    }
+    BinTarget position() const override { return last; }
+};
+
+// Prints what the OLED would show. Same call sequence the real panel receives.
+class ConsoleDisplay : public DisplayService {
+  public:
+    void showBoot(const char* version) override { printf("[OLED] Booting %s\n", version); }
+    void showIdle(bool binFull) override {
+        printf("[OLED] %s\n", binFull ? "BIN FULL" : "Ready");
+    }
+    void showUserDetected() override { printf("[OLED] User detected\n"); }
+    void showCapturing() override { printf("[OLED] Capturing...\n"); }
+    void showAnalyzing() override { printf("[OLED] Analyzing...\n"); }
+    void showSorting(BinTarget target) override {
+        printf("[OLED] %s / Sorting...\n", binTargetName(target));
+    }
+    void showRejected(const char* reason) override {
+        printf("[OLED] NOT SORTED / %s\n", reason);
+    }
+    void showComplete(WasteClass waste, bool sorted, bool fillValid, float fillPercent) override {
+        if (fillValid) {
+            printf("[OLED] %s %s / Fill: %.0f%%\n", wasteClassName(waste),
+                   sorted ? "accepted" : "NOT sorted", static_cast<double>(fillPercent));
+        } else {
+            printf("[OLED] %s %s / Fill: unavailable\n", wasteClassName(waste),
+                   sorted ? "accepted" : "NOT sorted");
+        }
+    }
+    void showError(const char* message) override { printf("[OLED] ERROR / %s\n", message); }
+};
+
 }  // namespace sim
 }  // namespace greenbin

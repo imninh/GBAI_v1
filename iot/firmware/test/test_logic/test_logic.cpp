@@ -2,11 +2,13 @@
 // retry policy and classification mapping. Runs on the desktop, no hardware.
 //
 //     pio test -e native
+#include <string.h>
 #include <unity.h>
 
 #include "core/classification.h"
 #include "core/fill_level.h"
 #include "core/retry_policy.h"
+#include "core/waste.h"
 
 using namespace greenbin;
 
@@ -167,6 +169,109 @@ void test_conclusiveness(void) {
     TEST_ASSERT_FALSE(isConclusive(ClassificationStatus::Unknown));
 }
 
+// ─── Fill state buckets (Checkpoint 1 §12) ───────────────────────────────────
+
+void test_fill_state_buckets(void) {
+    const FillThresholds t;  // 60 / 80 / 95
+
+    TEST_ASSERT_EQUAL(FillState::Normal, fillStateFor(0.0f, t));
+    TEST_ASSERT_EQUAL(FillState::Normal, fillStateFor(59.9f, t));
+    // Boundaries belong to the higher bucket, so 60% is already MEDIUM.
+    TEST_ASSERT_EQUAL(FillState::Medium, fillStateFor(60.0f, t));
+    TEST_ASSERT_EQUAL(FillState::Medium, fillStateFor(79.9f, t));
+    TEST_ASSERT_EQUAL(FillState::NearFull, fillStateFor(80.0f, t));
+    TEST_ASSERT_EQUAL(FillState::NearFull, fillStateFor(94.9f, t));
+    TEST_ASSERT_EQUAL(FillState::Full, fillStateFor(95.0f, t));
+    TEST_ASSERT_EQUAL(FillState::Full, fillStateFor(100.0f, t));
+}
+
+void test_fill_state_thresholds_are_configurable(void) {
+    const FillThresholds t(40.0f, 70.0f, 90.0f);
+    TEST_ASSERT_EQUAL(FillState::Medium, fillStateFor(45.0f, t));
+    TEST_ASSERT_EQUAL(FillState::NearFull, fillStateFor(70.0f, t));
+    TEST_ASSERT_EQUAL(FillState::Full, fillStateFor(91.0f, t));
+}
+
+// ─── Waste class ↔ bin mapping (Checkpoint 1 §9, §16) ────────────────────────
+
+void test_labels_map_to_waste_classes(void) {
+    TEST_ASSERT_EQUAL(WasteClass::Plastic, wasteClassFromLabel("plastic"));
+    TEST_ASSERT_EQUAL(WasteClass::Paper, wasteClassFromLabel("paper"));
+    TEST_ASSERT_EQUAL(WasteClass::Metal, wasteClassFromLabel("metal"));
+    // Case is not the backend's contract to break us with.
+    TEST_ASSERT_EQUAL(WasteClass::Plastic, wasteClassFromLabel("PLASTIC"));
+    TEST_ASSERT_EQUAL(WasteClass::Paper, wasteClassFromLabel("Cardboard"));
+}
+
+void test_unrecognised_label_is_unknown_not_a_guess(void) {
+    TEST_ASSERT_EQUAL(WasteClass::Unknown, wasteClassFromLabel("plastique"));
+    TEST_ASSERT_EQUAL(WasteClass::Unknown, wasteClassFromLabel(""));
+    TEST_ASSERT_EQUAL(WasteClass::Unknown, wasteClassFromLabel(nullptr));
+}
+
+void test_unknown_waste_has_no_bin(void) {
+    TEST_ASSERT_EQUAL(BinTarget::Plastic, binTargetFor(WasteClass::Plastic));
+    TEST_ASSERT_EQUAL(BinTarget::Paper, binTargetFor(WasteClass::Paper));
+    TEST_ASSERT_EQUAL(BinTarget::Metal, binTargetFor(WasteClass::Metal));
+    // The one that matters: Unknown parks at HOME rather than picking a bin.
+    TEST_ASSERT_EQUAL(BinTarget::Home, binTargetFor(WasteClass::Unknown));
+}
+
+// ─── Sorting decision (Checkpoint 1 §16, §24) ────────────────────────────────
+
+static ClassificationResult make(ClassificationStatus status,
+                                 const char* label,
+                                 float confidence) {
+    ClassificationResult r;
+    r.status = status;
+    r.confidence = confidence;
+    strncpy(r.label, label, sizeof(r.label) - 1);
+    return r;
+}
+
+void test_confident_ok_result_is_sorted(void) {
+    ClassificationResult r = make(ClassificationStatus::Ok, "plastic", 0.93f);
+    resolveSorting(r, 0.60f);
+
+    TEST_ASSERT_EQUAL(SortAction::Sort, r.action);
+    TEST_ASSERT_EQUAL(BinTarget::Plastic, r.targetBin);
+    TEST_ASSERT_TRUE(r.shouldSort());
+}
+
+void test_low_confidence_is_rejected(void) {
+    ClassificationResult r = make(ClassificationStatus::Ok, "plastic", 0.59f);
+    resolveSorting(r, 0.60f);
+
+    TEST_ASSERT_EQUAL(SortAction::Reject, r.action);
+    TEST_ASSERT_EQUAL(BinTarget::Home, r.targetBin);
+    TEST_ASSERT_FALSE(r.shouldSort());
+}
+
+void test_non_ok_statuses_are_never_sorted(void) {
+    const ClassificationStatus statuses[] = {
+        ClassificationStatus::Warning, ClassificationStatus::Hazard,
+        ClassificationStatus::Refused, ClassificationStatus::Error,
+        ClassificationStatus::Unknown};
+
+    for (ClassificationStatus status : statuses) {
+        // High confidence and a perfectly good label — still not sorted,
+        // because the status did not say "ok".
+        ClassificationResult r = make(status, "metal", 0.99f);
+        resolveSorting(r, 0.60f);
+        TEST_ASSERT_EQUAL(SortAction::Reject, r.action);
+        TEST_ASSERT_EQUAL(BinTarget::Home, r.targetBin);
+    }
+}
+
+void test_unknown_label_is_never_sorted(void) {
+    ClassificationResult r = make(ClassificationStatus::Ok, "banana peel", 0.99f);
+    resolveSorting(r, 0.60f);
+
+    TEST_ASSERT_EQUAL(WasteClass::Unknown, r.waste);
+    TEST_ASSERT_EQUAL(SortAction::Reject, r.action);
+    TEST_ASSERT_EQUAL(BinTarget::Home, r.targetBin);
+}
+
 void setUp(void) {}
 void tearDown(void) {}
 
@@ -193,6 +298,18 @@ int main(int, char**) {
     RUN_TEST(test_unknown_status_never_becomes_ok);
     RUN_TEST(test_led_mapping);
     RUN_TEST(test_conclusiveness);
+
+    RUN_TEST(test_fill_state_buckets);
+    RUN_TEST(test_fill_state_thresholds_are_configurable);
+
+    RUN_TEST(test_labels_map_to_waste_classes);
+    RUN_TEST(test_unrecognised_label_is_unknown_not_a_guess);
+    RUN_TEST(test_unknown_waste_has_no_bin);
+
+    RUN_TEST(test_confident_ok_result_is_sorted);
+    RUN_TEST(test_low_confidence_is_rejected);
+    RUN_TEST(test_non_ok_statuses_are_never_sorted);
+    RUN_TEST(test_unknown_label_is_never_sorted);
 
     return UNITY_END();
 }

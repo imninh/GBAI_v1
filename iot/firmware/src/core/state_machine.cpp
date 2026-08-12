@@ -24,6 +24,10 @@ const char* stateName(DeviceState state) {
             return "UPLOAD";
         case DeviceState::WaitResult:
             return "WAIT_RESULT";
+        case DeviceState::Sorting:
+            return "SORTING";
+        case DeviceState::UpdateFill:
+            return "UPDATE_FILL";
         case DeviceState::ShowResult:
             return "SHOW_RESULT";
         case DeviceState::Error:
@@ -37,12 +41,16 @@ StateMachine::StateMachine(PresenceSensor& presence,
                            CameraService& camera,
                            NetworkService& network,
                            LedService& led,
+                           SorterService& sorter,
+                           DisplayService& display,
                            const StateMachineConfig& config)
     : presence_(presence),
       distance_(distance),
       camera_(camera),
       network_(network),
       led_(led),
+      sorter_(sorter),
+      display_(display),
       config_(config),
       fullTracker_(config.fullThresholdPercent, config.fullClearPercent),
       retry_(config.maxRetry, config.retryDelayMs, config.retryMaxDelayMs) {}
@@ -51,9 +59,55 @@ void StateMachine::transition(DeviceState next, uint32_t nowMs) {
     if (next == state_) {
         return;
     }
+    // Logged as a transition, not a destination, so a Serial trace reads as the
+    // flow of spec §18 rather than a list of unrelated states.
+    GB_LOG("STATE", "%s -> %s", stateName(state_), stateName(next));
     state_ = next;
     stateEnteredMs_ = nowMs;
-    GB_LOG("STATE", "%s", stateName(next));
+    applyScreenFor(next);
+}
+
+void StateMachine::applyScreenFor(DeviceState next) {
+    switch (next) {
+        case DeviceState::Boot:
+            display_.showBoot(FIRMWARE_VERSION);
+            break;
+        case DeviceState::Idle:
+            display_.showIdle(fullTracker_.isFull());
+            break;
+        case DeviceState::PresenceDetected:
+            display_.showUserDetected();
+            break;
+        case DeviceState::Capture:
+            display_.showCapturing();
+            break;
+        case DeviceState::Upload:
+            display_.showAnalyzing();
+            break;
+        case DeviceState::Sorting:
+            if (lastResult_.shouldSort()) {
+                display_.showSorting(lastResult_.targetBin);
+            } else {
+                display_.showRejected("Item not recognised");
+            }
+            break;
+        case DeviceState::ShowResult:
+            display_.showComplete(lastResult_.waste, lastSorted_, lastFill_.valid,
+                                  lastFill_.percent);
+            break;
+        case DeviceState::Error:
+            display_.showError(lastErrorMessage_[0] != '\0' ? lastErrorMessage_ : "System error");
+            break;
+        // WifiConnecting, VerifyObject, WaitResult and UpdateFill deliberately
+        // keep whatever screen is already up: they are sub-steps of a phase the
+        // user has already been told about, and repainting would flicker.
+        default:
+            break;
+    }
+}
+
+FillState StateMachine::fillState() const {
+    return fillStateFor(lastFill_.percent, config_.fillThresholds);
 }
 
 void StateMachine::releaseFrameIfHeld() {
@@ -72,11 +126,29 @@ void StateMachine::updateBackgroundLed() {
     led_.setBackground(fullTracker_.isFull() ? LedPattern::BinFull : LedPattern::Idle);
 }
 
-void StateMachine::failInto(ErrorKind kind, LedPattern pattern, uint32_t nowMs) {
+void StateMachine::returnSorterHome() {
+    // Called on every exit from a transaction, successful or not, so the flap is
+    // never left pointing at a bin (§24).
+    if (!sorter_.moveTo(BinTarget::Home)) {
+        GB_LOG_PLAIN("SERVO", "could not return to HOME");
+        lastError_ = ErrorKind::Sorter;
+    }
+}
+
+void StateMachine::failInto(ErrorKind kind,
+                            LedPattern pattern,
+                            const char* message,
+                            uint32_t nowMs) {
     lastError_ = kind;
+    manualEvent_ = false;
     releaseFrameIfHeld();
+    strncpy(lastErrorMessage_, message, sizeof(lastErrorMessage_) - 1);
+    lastErrorMessage_[sizeof(lastErrorMessage_) - 1] = '\0';
     led_.showTemporary(pattern, nowMs);
     transition(DeviceState::Error, nowMs);
+    // Safe state before anything else happens: an error must never leave the
+    // mechanism mid-travel (§24).
+    returnSorterHome();
 }
 
 void StateMachine::begin(uint32_t nowMs) {
@@ -85,14 +157,30 @@ void StateMachine::begin(uint32_t nowMs) {
     nextFillCheckMs_ = nowMs;  // take a first reading immediately
     GB_LOG("BOOT", "firmware=%s", FIRMWARE_VERSION);
     GB_LOG("STATE", "%s", stateName(state_));
+    applyScreenFor(state_);
 }
 
-void StateMachine::serviceFillLevel(uint32_t nowMs) {
-    if (static_cast<int32_t>(nowMs - nextFillCheckMs_) < 0) {
-        return;
+bool StateMachine::startManualEvent(uint32_t nowMs) {
+    if (state_ != DeviceState::Idle) {
+        GB_LOG("EVENT", "manual trigger ignored; busy in %s", stateName(state_));
+        return false;
     }
-    nextFillCheckMs_ = nowMs + config_.fillIntervalMs;
 
+    GB_LOG_PLAIN("EVENT", "manual trigger from serial console");
+    const DistanceReading baseline = distance_.read();
+    baselineCm_ = baseline.valid ? baseline.cm : 0.0f;
+    // Freshest fill evidence to ride along with the upload, exactly as the
+    // sensor-driven path does. Invalid stays invalid — never a guess.
+    lastFill_ = computeFillPercent(baseline, config_.emptyDistanceCm, config_.fullDistanceCm);
+    // The operator has asserted that an item went in, so the confirmation step
+    // has nothing left to verify.
+    manualEvent_ = true;
+    presenceAtMs_ = nowMs;
+    transition(DeviceState::PresenceDetected, nowMs);
+    return true;
+}
+
+FillResult StateMachine::measureFill(uint32_t nowMs, bool publish) {
     const DistanceReading reading = distance_.read();
     const FillResult fill =
         computeFillPercent(reading, config_.emptyDistanceCm, config_.fullDistanceCm);
@@ -101,13 +189,14 @@ void StateMachine::serviceFillLevel(uint32_t nowMs) {
         // Scenario 9: an unusable reading produces no fill value at all. The
         // previous known state is held rather than replaced with a guess.
         lastError_ = ErrorKind::Sensor;
-        GB_LOG_PLAIN("ULTRASONIC", "invalid reading; fill level not updated");
-        return;
+        GB_LOG_PLAIN("HC-SR04", "invalid reading; fill level not updated");
+        return fill;
     }
 
     lastFill_ = fill;
-    GB_LOG("FILL", "distance=%.1f percent=%.1f", static_cast<double>(reading.cm),
-           static_cast<double>(fill.percent));
+    GB_LOG("HC-SR04", "distance=%.1fcm fill=%.1f%% state=%s", static_cast<double>(reading.cm),
+           static_cast<double>(fill.percent),
+           fillStateName(fillStateFor(fill.percent, config_.fillThresholds)));
 
     if (fullTracker_.update(fill)) {
         // Only transitions are reported, never a repeating "still full" stream.
@@ -116,19 +205,28 @@ void StateMachine::serviceFillLevel(uint32_t nowMs) {
         updateBackgroundLed();
     }
 
-    if (pendingReading_) {
+    if (publish && pendingReading_) {
         const NetResult result =
             network_.sendBinReading(fill.percent, fullTracker_.isFull(), nowMs / 1000);
         if (result == NetResult::Ok) {
             ++readingsSent_;
             pendingReading_ = false;
-            GB_LOG_PLAIN("HTTP", "bin reading accepted");
+            GB_LOG_PLAIN("API", "bin reading accepted");
         } else {
             // Keep it pending; the next fill interval retries. No tight loop.
-            GB_LOG("HTTP", "bin reading failed result=%d, will retry",
+            GB_LOG("API", "bin reading failed result=%d, will retry",
                    static_cast<int>(result));
         }
     }
+    return fill;
+}
+
+void StateMachine::serviceFillLevel(uint32_t nowMs) {
+    if (static_cast<int32_t>(nowMs - nextFillCheckMs_) < 0) {
+        return;
+    }
+    nextFillCheckMs_ = nowMs + config_.fillIntervalMs;
+    measureFill(nowMs, true);
 }
 
 void StateMachine::tick(uint32_t nowMs) {
@@ -186,14 +284,14 @@ void StateMachine::tick(uint32_t nowMs) {
                 break;  // still within the post-event cool-down
             }
 
-            GB_LOG_PLAIN("PIR", "detected");
+            GB_LOG_PLAIN("PIR", "User detected");
             const DistanceReading baseline = distance_.read();
             if (!baseline.valid) {
                 // Without a baseline there is nothing to compare against, so no
                 // event can be confirmed. Back off briefly instead of retrying
                 // every loop.
                 lastError_ = ErrorKind::Sensor;
-                GB_LOG_PLAIN("ULTRASONIC", "baseline invalid; ignoring trigger");
+                GB_LOG_PLAIN("HC-SR04", "baseline invalid; ignoring trigger");
                 rearmAtMs_ = nowMs + config_.pirRearmMs;
                 break;
             }
@@ -213,10 +311,19 @@ void StateMachine::tick(uint32_t nowMs) {
         }
 
         case DeviceState::VerifyObject: {
+            if (manualEvent_) {
+                // Console-triggered run: nothing to confirm, go straight to
+                // capture so the demo does not depend on slider timing.
+                manualEvent_ = false;
+                GB_LOG_PLAIN("EVENT", "waste_confirmed (manual trigger)");
+                transition(DeviceState::Capture, nowMs);
+                break;
+            }
+
             const DistanceReading after = distance_.read();
             if (!after.valid) {
                 lastError_ = ErrorKind::Sensor;
-                GB_LOG_PLAIN("ULTRASONIC", "confirm reading invalid; treating as no event");
+                GB_LOG_PLAIN("HC-SR04", "confirm reading invalid; treating as no event");
                 rearmAtMs_ = nowMs + config_.pirRearmMs;
                 transition(DeviceState::Idle, nowMs);
                 break;
@@ -225,7 +332,7 @@ void StateMachine::tick(uint32_t nowMs) {
             // Waste deposited into a top-down bin makes the surface closer, so
             // a genuine event is a DROP in distance.
             const float delta = baselineCm_ - after.cm;
-            GB_LOG("ULTRASONIC", "before=%.1f after=%.1f delta=%.1f",
+            GB_LOG("HC-SR04", "before=%.1f after=%.1f delta=%.1f",
                    static_cast<double>(baselineCm_), static_cast<double>(after.cm),
                    static_cast<double>(delta));
 
@@ -253,12 +360,14 @@ void StateMachine::tick(uint32_t nowMs) {
                 camera_.releaseFrame();  // driver may hold a partial buffer
                 frameHeld_ = false;
                 rearmAtMs_ = nowMs + config_.pirRearmMs;
-                failInto(ErrorKind::Camera, LedPattern::NetworkError, nowMs);
+                // No image means no classification, so nothing may be sorted.
+                failInto(ErrorKind::Camera, LedPattern::NetworkError, "Camera failed", nowMs);
                 break;
             }
             frameHeld_ = true;
             ++capturesTaken_;
-            GB_LOG("CAMERA", "jpeg_bytes=%u", static_cast<unsigned>(frame_.length));
+            GB_LOG("CAMERA", "Image captured successfully bytes=%u",
+                   static_cast<unsigned>(frame_.length));
             retry_.reset();
             transition(DeviceState::Upload, nowMs);
             break;
@@ -280,9 +389,15 @@ void StateMachine::tick(uint32_t nowMs) {
         case DeviceState::WaitResult: {
             if (lastUpload_.result == NetResult::Ok) {
                 retry_.reset();
-                GB_LOG("AI", "status=%s label=%s confidence=%.2f",
-                       statusName(lastResult_.status), lastResult_.label,
-                       static_cast<double>(lastResult_.confidence));
+                // One place decides whether this item may be sorted, shared by
+                // the mock and the real backend (§16, §25).
+                resolveSorting(lastResult_, config_.minSortConfidence);
+                GB_LOG("AI", "transaction=%s status=%s label=%s confidence=%.2f action=%s target=%s",
+                       lastResult_.transactionId[0] != '\0' ? lastResult_.transactionId : "none",
+                       statusName(lastResult_.status),
+                       lastResult_.label[0] != '\0' ? lastResult_.label : "null",
+                       static_cast<double>(lastResult_.confidence),
+                       sortActionName(lastResult_.action), binTargetName(lastResult_.targetBin));
                 if (!isConclusive(lastResult_.status)) {
                     // The backend refused or errored. The device says so; it
                     // does not invent a label (spec §11, §26).
@@ -291,7 +406,7 @@ void StateMachine::tick(uint32_t nowMs) {
                 releaseFrameIfHeld();
                 led_.showTemporary(ledPatternFor(lastResult_.status), nowMs);
                 GB_LOG("LED", "%s", statusName(lastResult_.status));
-                transition(DeviceState::ShowResult, nowMs);
+                transition(DeviceState::Sorting, nowMs);
                 break;
             }
 
@@ -308,7 +423,53 @@ void StateMachine::tick(uint32_t nowMs) {
 
             GB_LOG_PLAIN("HTTP", "giving up after max retries");
             rearmAtMs_ = nowMs + config_.pirRearmMs;
-            failInto(ErrorKind::Network, LedPattern::NetworkError, nowMs);
+            failInto(ErrorKind::Network, LedPattern::NetworkError, "Backend unreachable", nowMs);
+            break;
+        }
+
+        case DeviceState::Sorting: {
+            lastSorted_ = false;
+
+            if (!lastResult_.shouldSort()) {
+                // Unknown, low confidence, hazard or warning: the flap does not
+                // move and the item is not directed into any bin (§16, §24).
+                GB_LOG("SERVO", "action=REJECT target=HOME reason=%s",
+                       statusName(lastResult_.status));
+                returnSorterHome();
+                transition(DeviceState::UpdateFill, nowMs);
+                break;
+            }
+
+            if (sorter_.moveTo(lastResult_.targetBin)) {
+                lastSorted_ = true;
+                ++sortsPerformed_;
+            } else {
+                // The mechanism did not move. The transaction still completes —
+                // the item is already in the bin — but nothing claims it was
+                // sorted, and the completion screen says so.
+                lastError_ = ErrorKind::Sorter;
+                GB_LOG("SERVO", "move to %s failed; item NOT sorted",
+                       binTargetName(lastResult_.targetBin));
+            }
+            transition(DeviceState::UpdateFill, nowMs);
+            break;
+        }
+
+        case DeviceState::UpdateFill: {
+            // Measure after sorting, so the reading reflects the item that was
+            // just deposited.
+            if (!measureFill(nowMs, true).valid) {
+                // Drop the previous reading rather than let the completion
+                // screen present a stale percentage as this transaction's
+                // result. Background monitoring keeps its last known value;
+                // a user-facing claim does not (§24).
+                lastFill_ = FillResult();
+                GB_LOG_PLAIN("HC-SR04", "post-sort reading failed; fill reported as unavailable");
+            }
+            transition(DeviceState::ShowResult, nowMs);
+            // Screen first, then park the flap: the user sees the outcome while
+            // the mechanism resets (§18 demo order).
+            returnSorterHome();
             break;
         }
 

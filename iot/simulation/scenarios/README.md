@@ -1,5 +1,11 @@
 # Simulation scenarios
 
+> **IoT Checkpoint 1** (servo sorter, OLED, mock AI, hardware test menu) is
+> documented separately in [iot-checkpoint-1.md](../../docs/iot-checkpoint-1.md).
+> `checkpoint1-flow.yaml` and `checkpoint1-selftest.yaml` in this directory drive
+> it headlessly — they need a `WOKWI_CLI_TOKEN` and **have not been executed
+> yet**, so treat their step names as unverified until someone runs them.
+
 Two layers of testing cover the nine scenarios in the specification (§19).
 
 | Layer | What it proves | How to run |
@@ -23,7 +29,7 @@ unit tests cannot show.
 | 6 | Backend timeout | `test_scenario6_timeout_retries_bounded_then_recovers` | Leave the backend unreachable — the default in Wokwi. Expect 3 upload attempts with growing gaps, orange LED, return to IDLE |
 | 7 | Bin full | `test_scenario7_bin_full_sends_reading_and_goes_solid` | Set HC-SR04 to 12 cm (96 %). Expect `[BIN] state_changed full=1` and **solid** red |
 | 8 | Bin emptied | `test_scenario8_bin_emptied_sends_changed_reading` | Then set 55 cm (10 %). Expect one further reading and the solid red clearing |
-| 9 | Invalid sensor reading | `test_scenario9_invalid_reading_produces_no_fill_value`, `test_invalid_baseline_blocks_capture` | Set HC-SR04 beyond 400 cm. Expect `[ULTRASONIC] invalid reading` and no fill value |
+| 9 | Invalid sensor reading | `test_scenario9_invalid_reading_produces_no_fill_value`, `test_invalid_baseline_blocks_capture` | Set HC-SR04 beyond 400 cm. Expect `[HC-SR04] invalid reading` and no fill value |
 
 ## Preparing a Wokwi run
 

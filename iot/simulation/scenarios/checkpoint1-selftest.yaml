@@ -1,0 +1,32 @@
+# Checkpoint 1 — hardware self test, headless.
+#
+# NOT YET EXECUTED: needs a Wokwi CI token (see checkpoint1-flow.yaml).
+#
+#   cd iot/simulation && wokwi-cli --scenario scenarios/checkpoint1-selftest.yaml
+#
+# Note what this can and cannot prove. The self test drives every peripheral and
+# reads back what it can, but the PIR cannot be asserted from software: it will
+# report "READY - waiting manual trigger" and the verdict line will say so. A
+# green run here therefore means "everything testable passed", not "the bin is
+# fully proven" — that still needs a human clicking the PIR.
+name: checkpoint1-selftest
+version: 1
+author: GreenBinAI
+
+steps:
+  - wait-serial: 'HARDWARE TEST MODE'
+  - delay: 500ms
+
+  - name: run all tests
+    write-serial: '6'
+  - wait-serial: 'GREENBINAI HARDWARE SELF TEST'
+  - wait-serial: 'OLED          : OK'
+  - wait-serial: 'SERVO         : OK'
+  - wait-serial: 'HC-SR04       : OK'
+  - wait-serial: 'NEOPIXEL      : OK'
+  - wait-serial: 'CAMERA MOCK   : OK'
+  - wait-serial: 'CHECKPOINT 1  : PASS'
+
+  - take-screenshot:
+      part-id: oled
+      save-to: oled-selftest.png

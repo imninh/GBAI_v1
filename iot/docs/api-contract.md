@@ -122,6 +122,42 @@ and again in the service, so an out-of-range value cannot reach storage.
 }
 ```
 
+## `POST /api/v1/iot/heartbeat`
+
+Liveness probe (IoT Checkpoint 1 §21). Stateless — it stores nothing. Its only
+purpose is to let a device tell "my Wi-Fi associated" apart from "the backend is
+actually answering", which the device cannot work out on its own.
+
+Deliberately carries no sensor data: a heartbeat that did would tempt devices to
+report state on a timer instead of on a change, which is what
+`POST /bins/{code}/readings` exists to avoid.
+
+**Request** — `application/json`
+
+```json
+{
+  "device_id": "GBIN-001",
+  "status": "online"
+}
+```
+
+**Response `200`**
+
+```json
+{
+  "status": "ok",
+  "device_id": "GBIN-001",
+  "server_time": "2026-08-12T05:07:28.521593Z"
+}
+```
+
+Authenticated like every other device endpoint: `X-Device-Key` must match
+`device_id`, so a valid key for one bin cannot report another bin as online.
+`401` otherwise.
+
+The firmware sends this only while `IDLE`, with a 3 s timeout, so a slow or
+missing backend can never stall a sorting transaction.
+
 ## `GET /api/v1/bins/{code}/readings?limit=50`
 
 Recent readings, oldest first. Unauthenticated — it is an operator/read view, not

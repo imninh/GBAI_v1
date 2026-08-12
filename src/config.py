@@ -36,6 +36,11 @@ class Settings(BaseSettings):
     # local testing only, never production. See services/vision.py.
     vision_provider: str = "openai"
     vision_model_name: str = "gpt-4o-mini"
+    # Any OpenAI-compatible endpoint. Empty means OpenAI itself. Set this to use
+    # a different vendor's compatibility layer (Google AI Studio, OpenRouter,
+    # Groq, a local server) without changing any code — the wire format is the
+    # same, only the host and the model name differ.
+    vision_base_url: str = ""
     stub_vision_label: str = "plastic"
     stub_vision_confidence: float = Field(default=0.91, ge=0.0, le=1.0)
     low_confidence_threshold: float = Field(default=0.6, ge=0.0, le=1.0)

@@ -67,4 +67,23 @@ bool isConclusive(ClassificationStatus status) {
            status == ClassificationStatus::Hazard;
 }
 
+void resolveSorting(ClassificationResult& result, float minConfidence) {
+    result.waste = wasteClassFromLabel(result.label);
+
+    // Only a confident "ok" earns a bin. A hazard is conclusive but must never
+    // be routed into a recycling stream, so it is deliberately not sortable.
+    const bool sortable = result.status == ClassificationStatus::Ok &&
+                          result.waste != WasteClass::Unknown &&
+                          result.confidence >= minConfidence;
+
+    if (!sortable) {
+        result.action = SortAction::Reject;
+        result.targetBin = BinTarget::Home;
+        return;
+    }
+
+    result.action = SortAction::Sort;
+    result.targetBin = binTargetFor(result.waste);
+}
+
 }  // namespace greenbin

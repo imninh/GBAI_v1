@@ -28,13 +28,24 @@ stateDiagram-v2
 
     UPLOAD --> WAIT_RESULT : request completed
 
-    WAIT_RESULT --> SHOW_RESULT : HTTP 200 + parsed
+    WAIT_RESULT --> SORTING : HTTP 200 + parsed
     WAIT_RESULT --> UPLOAD : failed, retries remain (backoff)
     WAIT_RESULT --> ERROR : retries exhausted
 
-    SHOW_RESULT --> IDLE : after result display
-    ERROR --> IDLE : after error display
+    SORTING --> UPDATE_FILL : flap moved, or REJECT (flap stays HOME)
+    UPDATE_FILL --> SHOW_RESULT : fill measured (or reported unavailable)
+
+    SHOW_RESULT --> IDLE : after result display, flap back at HOME
+    ERROR --> IDLE : after error display, flap back at HOME
 ```
+
+`SORTING` and `UPDATE_FILL` were added in IoT Checkpoint 1. `SORTING` asks
+`resolveSorting()` whether the item may be sorted at all and moves the flap only
+if the answer is yes; `UPDATE_FILL` re-reads the HC-SR04 *after* the item has
+landed, so the fill percentage on the completion screen belongs to this
+transaction. If that reading fails, no percentage is shown — the previous value
+is not reused as though it were fresh. Both are documented in
+[iot-checkpoint-1.md](iot-checkpoint-1.md).
 
 ## Why the flow looks like this
 

@@ -76,7 +76,7 @@ Real output:
 ```
 === Scenario 2/3 — valid waste event, real upload ===
 [PIR] detected
-[ULTRASONIC] before=50.0 after=44.0 delta=6.0
+[HC-SR04] before=50.0 after=44.0 delta=6.0
 [EVENT] waste_confirmed
 [CAMERA] jpeg_bytes=10223
 [PRIVACY] phash=ffe7e7e7e7c3c3ff exif_stripped=true faces_blurred=0 bytes=6577

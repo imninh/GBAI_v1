@@ -35,6 +35,33 @@ FillResult computeFillPercent(const DistanceReading& reading,
     return result;
 }
 
+FillState fillStateFor(float percent, const FillThresholds& thresholds) {
+    if (percent >= thresholds.fullPercent) {
+        return FillState::Full;
+    }
+    if (percent >= thresholds.nearFullPercent) {
+        return FillState::NearFull;
+    }
+    if (percent >= thresholds.mediumPercent) {
+        return FillState::Medium;
+    }
+    return FillState::Normal;
+}
+
+const char* fillStateName(FillState state) {
+    switch (state) {
+        case FillState::Medium:
+            return "MEDIUM";
+        case FillState::NearFull:
+            return "NEAR_FULL";
+        case FillState::Full:
+            return "FULL";
+        case FillState::Normal:
+        default:
+            return "NORMAL";
+    }
+}
+
 BinFullTracker::BinFullTracker(float fullThresholdPercent, float clearThresholdPercent)
     : fullThreshold_(fullThresholdPercent), clearThreshold_(clearThresholdPercent) {}
 

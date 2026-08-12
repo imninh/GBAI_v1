@@ -56,6 +56,7 @@ class FakeNetwork : public NetworkService {
     NetResult uploadResult = NetResult::Ok;
     NetResult readingResult = NetResult::Ok;
     ClassificationStatus status = ClassificationStatus::Ok;
+    const char* label = "plastic";
     float confidence = 0.91f;
     int uploads = 0;
     int readings = 0;
@@ -81,7 +82,8 @@ class FakeNetwork : public NetworkService {
         if (uploadResult == NetResult::Ok) {
             out.status = status;
             out.confidence = confidence;
-            strncpy(out.label, "plastic", sizeof(out.label) - 1);
+            strncpy(out.label, label, sizeof(out.label) - 1);
+            strncpy(out.transactionId, "TX-001", sizeof(out.transactionId) - 1);
         }
         return outcome;
     }
@@ -106,6 +108,78 @@ class FakeLed : public LedService {
         ++temporaryCount;
     }
     void tick(uint32_t) override {}
+};
+
+class FakeSorter : public SorterService {
+  public:
+    bool failMoves = false;
+    BinTarget last = BinTarget::Home;
+    int moves = 0;
+    // Every position the flap was commanded to, in order. Scenario assertions
+    // check the whole path, not just where it ended up.
+    BinTarget history[16] = {BinTarget::Home};
+    int historyCount = 0;
+
+    bool moveTo(BinTarget target) override {
+        ++moves;
+        if (historyCount < 16) {
+            history[historyCount++] = target;
+        }
+        if (failMoves) {
+            return false;
+        }
+        last = target;
+        return true;
+    }
+    BinTarget position() const override { return last; }
+};
+
+class FakeDisplay : public DisplayService {
+  public:
+    // Which screen was last painted. The state machine is the only caller, so
+    // this is how the tests assert the user was told the truth.
+    enum class Screen {
+        None,
+        Boot,
+        Idle,
+        UserDetected,
+        Capturing,
+        Analyzing,
+        Sorting,
+        Rejected,
+        Complete,
+        Error,
+    };
+
+    Screen screen = Screen::None;
+    BinTarget sortingTarget = BinTarget::Home;
+    WasteClass completeWaste = WasteClass::Unknown;
+    bool completeSorted = false;
+    bool completeFillValid = false;
+    float completeFillPercent = -1.0f;
+    bool idleBinFull = false;
+
+    void showBoot(const char*) override { screen = Screen::Boot; }
+    void showIdle(bool binFull) override {
+        screen = Screen::Idle;
+        idleBinFull = binFull;
+    }
+    void showUserDetected() override { screen = Screen::UserDetected; }
+    void showCapturing() override { screen = Screen::Capturing; }
+    void showAnalyzing() override { screen = Screen::Analyzing; }
+    void showSorting(BinTarget target) override {
+        screen = Screen::Sorting;
+        sortingTarget = target;
+    }
+    void showRejected(const char*) override { screen = Screen::Rejected; }
+    void showComplete(WasteClass waste, bool sorted, bool fillValid, float fillPercent) override {
+        screen = Screen::Complete;
+        completeWaste = waste;
+        completeSorted = sorted;
+        completeFillValid = fillValid;
+        completeFillPercent = fillPercent;
+    }
+    void showError(const char*) override { screen = Screen::Error; }
 };
 
 // ─── Harness ─────────────────────────────────────────────────────────────────
@@ -138,11 +212,13 @@ struct Harness {
     FakeCamera camera;
     FakeNetwork network;
     FakeLed led;
+    FakeSorter sorter;
+    FakeDisplay display;
     StateMachine sm;
     uint32_t now = 1000;
 
     explicit Harness(const StateMachineConfig& cfg)
-        : sm(presence, distance, camera, network, led, cfg) {}
+        : sm(presence, distance, camera, network, led, sorter, display, cfg) {}
 
     void tick() { sm.tick(now); }
     void advance(uint32_t ms) {
@@ -167,6 +243,16 @@ struct Harness {
         distance.next = DistanceReading{true, afterCm};
         advance(150);  // PRESENCE_DETECTED -> VERIFY_OBJECT
         advance(1);    // VERIFY_OBJECT decides
+    }
+    // From CAPTURE through to SHOW_RESULT: capture, upload, result, sort,
+    // fill. One tick per state, so a new state in the middle of the flow shows
+    // up here rather than silently changing what every scenario asserts.
+    void runToShowResult() {
+        advance(1);  // CAPTURE      -> UPLOAD
+        advance(1);  // UPLOAD       -> WAIT_RESULT
+        advance(1);  // WAIT_RESULT  -> SORTING
+        advance(1);  // SORTING      -> UPDATE_FILL
+        advance(1);  // UPDATE_FILL  -> SHOW_RESULT
     }
 };
 
@@ -212,9 +298,7 @@ void test_scenario3_ok_shows_green_and_returns_idle(void) {
     h.bootToIdle();
 
     h.triggerEvent(50.0f, 44.0f);
-    h.advance(1);  // CAPTURE
-    h.advance(1);  // UPLOAD
-    h.advance(1);  // WAIT_RESULT -> SHOW_RESULT
+    h.runToShowResult();
 
     TEST_ASSERT_EQUAL(DeviceState::ShowResult, h.sm.state());
     TEST_ASSERT_EQUAL(LedPattern::Ok, h.led.lastTemporary);
@@ -236,12 +320,14 @@ void test_scenario4_warning_is_not_presented_as_success(void) {
     h.bootToIdle();
 
     h.triggerEvent(50.0f, 44.0f);
-    h.advance(1);
-    h.advance(1);
-    h.advance(1);
+    h.runToShowResult();
 
     TEST_ASSERT_EQUAL(LedPattern::Warning, h.led.lastTemporary);
     TEST_ASSERT_NOT_EQUAL(LedPattern::Ok, h.led.lastTemporary);
+    // A warning is never sorted, whatever label came with it (§24).
+    TEST_ASSERT_FALSE(h.sm.lastResult().shouldSort());
+    TEST_ASSERT_EQUAL(BinTarget::Home, h.sorter.position());
+    TEST_ASSERT_EQUAL_UINT32(0, h.sm.sortsPerformed());
 }
 
 void test_scenario4_refused_is_not_presented_as_success(void) {
@@ -250,13 +336,12 @@ void test_scenario4_refused_is_not_presented_as_success(void) {
     h.bootToIdle();
 
     h.triggerEvent(50.0f, 44.0f);
-    h.advance(1);
-    h.advance(1);
-    h.advance(1);
+    h.runToShowResult();
 
     // A refusal must never render as the success pattern (spec §11).
     TEST_ASSERT_NOT_EQUAL(LedPattern::Ok, h.led.lastTemporary);
     TEST_ASSERT_FALSE(isConclusive(h.sm.lastResult().status));
+    TEST_ASSERT_FALSE(h.sm.lastResult().shouldSort());
 }
 
 // ─── Scenario 5 — hazardous waste ────────────────────────────────────────────
@@ -267,12 +352,14 @@ void test_scenario5_hazard_pattern(void) {
     h.bootToIdle();
 
     h.triggerEvent(50.0f, 44.0f);
-    h.advance(1);
-    h.advance(1);
-    h.advance(1);
+    h.runToShowResult();
 
     TEST_ASSERT_EQUAL(LedPattern::Hazard, h.led.lastTemporary);
     TEST_ASSERT_EQUAL(ClassificationStatus::Hazard, h.sm.lastResult().status);
+    // Hazardous waste is conclusive but must not be routed into a recycling
+    // stream, so the flap stays HOME (§24).
+    TEST_ASSERT_FALSE(h.sm.lastResult().shouldSort());
+    TEST_ASSERT_EQUAL(BinTarget::Home, h.sorter.position());
 }
 
 // ─── Scenario 6 — backend timeout ────────────────────────────────────────────
@@ -420,6 +507,210 @@ void test_failed_bin_reading_is_retried_not_lost(void) {
     TEST_ASSERT_EQUAL_UINT32(1, h.sm.readingsSent());
 }
 
+// ─── Checkpoint 1 — sorting flow ─────────────────────────────────────────────
+
+// Drives one full transaction and returns the harness, so the three material
+// flows differ only in the label the backend returns.
+static void runSortFlow(Harness& h, const char* label) {
+    h.network.status = ClassificationStatus::Ok;
+    h.network.label = label;
+    h.network.confidence = 0.93f;
+    h.bootToIdle();
+    h.triggerEvent(50.0f, 44.0f);
+    h.runToShowResult();
+}
+
+void test_plastic_flow_moves_sorter_then_returns_home(void) {
+    Harness h(testConfig());
+    runSortFlow(h, "plastic");
+
+    TEST_ASSERT_EQUAL(DeviceState::ShowResult, h.sm.state());
+    TEST_ASSERT_EQUAL(WasteClass::Plastic, h.sm.lastResult().waste);
+    TEST_ASSERT_EQUAL(SortAction::Sort, h.sm.lastResult().action);
+    TEST_ASSERT_EQUAL(BinTarget::Plastic, h.sm.lastResult().targetBin);
+    TEST_ASSERT_EQUAL_UINT32(1, h.sm.sortsPerformed());
+
+    // Commanded to PLASTIC and then parked back at HOME (§24).
+    TEST_ASSERT_EQUAL(BinTarget::Plastic, h.sorter.history[0]);
+    TEST_ASSERT_EQUAL(BinTarget::Home, h.sorter.position());
+
+    // The screen names the material and reports a fill level (§10).
+    TEST_ASSERT_EQUAL(FakeDisplay::Screen::Complete, h.display.screen);
+    TEST_ASSERT_TRUE(h.display.completeSorted);
+    TEST_ASSERT_TRUE(h.display.completeFillValid);
+    TEST_ASSERT_EQUAL(WasteClass::Plastic, h.display.completeWaste);
+}
+
+void test_paper_flow_targets_paper_bin(void) {
+    Harness h(testConfig());
+    runSortFlow(h, "paper");
+
+    TEST_ASSERT_EQUAL(BinTarget::Paper, h.sm.lastResult().targetBin);
+    TEST_ASSERT_EQUAL(BinTarget::Paper, h.sorter.history[0]);
+    TEST_ASSERT_EQUAL(BinTarget::Home, h.sorter.position());
+}
+
+void test_metal_flow_targets_metal_bin(void) {
+    Harness h(testConfig());
+    runSortFlow(h, "metal");
+
+    TEST_ASSERT_EQUAL(BinTarget::Metal, h.sm.lastResult().targetBin);
+    TEST_ASSERT_EQUAL(BinTarget::Metal, h.sorter.history[0]);
+    TEST_ASSERT_EQUAL(BinTarget::Home, h.sorter.position());
+}
+
+// The rule the whole checkpoint hangs on: an item the device cannot name is
+// never routed anywhere (§16, §24, §26).
+void test_unknown_label_never_moves_the_sorter(void) {
+    Harness h(testConfig());
+    runSortFlow(h, "something-we-have-never-seen");
+
+    TEST_ASSERT_EQUAL(WasteClass::Unknown, h.sm.lastResult().waste);
+    TEST_ASSERT_EQUAL(SortAction::Reject, h.sm.lastResult().action);
+    TEST_ASSERT_EQUAL(BinTarget::Home, h.sm.lastResult().targetBin);
+    TEST_ASSERT_EQUAL_UINT32(0, h.sm.sortsPerformed());
+    TEST_ASSERT_EQUAL(BinTarget::Home, h.sorter.position());
+    // Never claims an item was accepted when it was not.
+    TEST_ASSERT_FALSE(h.display.completeSorted);
+}
+
+void test_low_confidence_is_not_sorted(void) {
+    Harness h(testConfig());
+    h.network.status = ClassificationStatus::Ok;
+    h.network.label = "plastic";
+    h.network.confidence = 0.41f;  // below cfg.minSortConfidence
+    h.bootToIdle();
+    h.triggerEvent(50.0f, 44.0f);
+    h.runToShowResult();
+
+    // The label is recognised, but the device is not confident enough to act.
+    TEST_ASSERT_EQUAL(WasteClass::Plastic, h.sm.lastResult().waste);
+    TEST_ASSERT_EQUAL(SortAction::Reject, h.sm.lastResult().action);
+    TEST_ASSERT_EQUAL_UINT32(0, h.sm.sortsPerformed());
+}
+
+void test_sorter_failure_is_reported_not_hidden(void) {
+    Harness h(testConfig());
+    h.sorter.failMoves = true;
+    runSortFlow(h, "plastic");
+
+    // The mechanism refused, so nothing is counted as sorted and the completion
+    // screen says the item was not sorted.
+    TEST_ASSERT_EQUAL_UINT32(0, h.sm.sortsPerformed());
+    TEST_ASSERT_FALSE(h.display.completeSorted);
+    TEST_ASSERT_EQUAL(ErrorKind::Sorter, h.sm.lastError());
+    // Still recovers to IDLE — a stuck flap does not wedge the device.
+    h.advance(150);
+    TEST_ASSERT_EQUAL(DeviceState::Idle, h.sm.state());
+}
+
+void test_invalid_fill_after_sorting_shows_no_percentage(void) {
+    Harness h(testConfig());
+    h.network.status = ClassificationStatus::Ok;
+    h.network.label = "plastic";
+    h.network.confidence = 0.93f;
+    h.bootToIdle();
+    h.triggerEvent(50.0f, 44.0f);
+
+    h.advance(1);  // CAPTURE     -> UPLOAD
+    h.advance(1);  // UPLOAD      -> WAIT_RESULT
+    h.advance(1);  // WAIT_RESULT -> SORTING
+    h.advance(1);  // SORTING     -> UPDATE_FILL
+    h.distance.next = DistanceReading{};  // sensor fails at exactly this point
+    h.advance(1);  // UPDATE_FILL -> SHOW_RESULT
+
+    // Classification completed and the item was sorted...
+    TEST_ASSERT_EQUAL_UINT32(1, h.sm.sortsPerformed());
+    TEST_ASSERT_TRUE(h.display.completeSorted);
+    // ...but no fill number is invented for the screen (§11, §24).
+    TEST_ASSERT_FALSE(h.display.completeFillValid);
+    TEST_ASSERT_EQUAL(ErrorKind::Sensor, h.sm.lastError());
+}
+
+void test_display_follows_the_flow(void) {
+    Harness h(testConfig());
+    h.network.status = ClassificationStatus::Ok;
+    h.network.label = "plastic";
+    h.network.confidence = 0.93f;
+    h.bootToIdle();
+    TEST_ASSERT_EQUAL(FakeDisplay::Screen::Idle, h.display.screen);
+
+    h.triggerEvent(50.0f, 44.0f);
+    TEST_ASSERT_EQUAL(FakeDisplay::Screen::Capturing, h.display.screen);
+
+    h.advance(1);  // CAPTURE -> UPLOAD
+    TEST_ASSERT_EQUAL(FakeDisplay::Screen::Analyzing, h.display.screen);
+
+    h.advance(1);  // UPLOAD -> WAIT_RESULT
+    h.advance(1);  // WAIT_RESULT -> SORTING
+    TEST_ASSERT_EQUAL(FakeDisplay::Screen::Sorting, h.display.screen);
+    TEST_ASSERT_EQUAL(BinTarget::Plastic, h.display.sortingTarget);
+
+    h.advance(1);  // SORTING -> UPDATE_FILL
+    h.advance(1);  // UPDATE_FILL -> SHOW_RESULT
+    TEST_ASSERT_EQUAL(FakeDisplay::Screen::Complete, h.display.screen);
+
+    h.advance(150);  // back to idle
+    TEST_ASSERT_EQUAL(FakeDisplay::Screen::Idle, h.display.screen);
+}
+
+// ─── Checkpoint 1 — console-triggered run ────────────────────────────────────
+
+void test_manual_trigger_runs_the_same_flow(void) {
+    Harness h(testConfig());
+    h.network.status = ClassificationStatus::Ok;
+    h.network.label = "metal";
+    h.network.confidence = 0.9f;
+    h.bootToIdle();
+
+    TEST_ASSERT_TRUE(h.sm.startManualEvent(h.now));
+    TEST_ASSERT_EQUAL(DeviceState::PresenceDetected, h.sm.state());
+
+    h.advance(150);  // PRESENCE_DETECTED -> VERIFY_OBJECT
+    // No distance drop is staged, yet the manual run still reaches CAPTURE: the
+    // operator asserted the item, so there is nothing to confirm.
+    h.advance(1);
+    TEST_ASSERT_EQUAL(DeviceState::Capture, h.sm.state());
+
+    h.runToShowResult();
+    TEST_ASSERT_EQUAL_UINT32(1, h.sm.sortsPerformed());
+    TEST_ASSERT_EQUAL(BinTarget::Metal, h.sorter.history[0]);
+}
+
+void test_manual_trigger_is_refused_while_busy(void) {
+    Harness h(testConfig());
+    h.bootToIdle();
+
+    TEST_ASSERT_TRUE(h.sm.startManualEvent(h.now));
+    // One trigger, one transaction: a second request mid-flow is rejected
+    // rather than starting a parallel run (§14).
+    TEST_ASSERT_FALSE(h.sm.startManualEvent(h.now));
+    TEST_ASSERT_FALSE(h.sm.startManualEvent(h.now));
+}
+
+void test_pir_held_high_does_not_start_a_second_transaction(void) {
+    Harness h(testConfig());
+    h.network.status = ClassificationStatus::Ok;
+    h.bootToIdle();
+
+    // PIR stays asserted for the whole transaction, as a real HC-SR501 does
+    // while someone stands at the bin.
+    h.distance.next = DistanceReading{true, 50.0f};
+    h.presence.motion = true;
+    h.advance(10);  // IDLE -> PRESENCE_DETECTED
+    h.distance.next = DistanceReading{true, 44.0f};
+    h.advance(150);
+    h.advance(1);  // VERIFY_OBJECT -> CAPTURE
+    h.runToShowResult();
+    h.advance(150);  // SHOW_RESULT -> IDLE
+
+    // Still exactly one capture: the post-event cool-down suppresses the
+    // still-asserted PIR line (§14).
+    TEST_ASSERT_EQUAL_UINT32(1, h.sm.capturesTaken());
+    h.advance(10);
+    TEST_ASSERT_EQUAL_UINT32(1, h.sm.capturesTaken());
+}
+
 void setUp(void) {}
 void tearDown(void) {}
 
@@ -440,6 +731,18 @@ int main(int, char**) {
     RUN_TEST(test_invalid_baseline_blocks_capture);
     RUN_TEST(test_wifi_never_blocks_forever);
     RUN_TEST(test_failed_bin_reading_is_retried_not_lost);
+
+    RUN_TEST(test_plastic_flow_moves_sorter_then_returns_home);
+    RUN_TEST(test_paper_flow_targets_paper_bin);
+    RUN_TEST(test_metal_flow_targets_metal_bin);
+    RUN_TEST(test_unknown_label_never_moves_the_sorter);
+    RUN_TEST(test_low_confidence_is_not_sorted);
+    RUN_TEST(test_sorter_failure_is_reported_not_hidden);
+    RUN_TEST(test_invalid_fill_after_sorting_shows_no_percentage);
+    RUN_TEST(test_display_follows_the_flow);
+    RUN_TEST(test_manual_trigger_runs_the_same_flow);
+    RUN_TEST(test_manual_trigger_is_refused_while_busy);
+    RUN_TEST(test_pir_held_high_does_not_start_a_second_transaction);
 
     return UNITY_END();
 }

@@ -116,13 +116,29 @@ static const uint8_t kFixtureJpeg[] = {
 
 class MockCameraService : public CameraService {
   public:
+    // A real OV2640 needs a few hundred milliseconds to expose and encode an
+    // SVGA frame. Without the same pause the "Capturing..." screen would be
+    // replaced within one 10 ms loop and the demo would be unreadable.
+    explicit MockCameraService(uint32_t captureDelayMs = 400)
+        : captureDelayMs_(captureDelayMs) {}
+
     bool initialize() override {
         GB_LOG_PLAIN("CAMERA", "mock camera active — NOT real hardware");
         return true;
     }
 
+    // Forces the next capture to fail, so the camera-failure path of §24 can be
+    // exercised from the Serial console instead of only by unplugging hardware.
+    void setNextCaptureFails() { failNext_ = true; }
+
     CameraFrame captureJpeg() override {
         CameraFrame frame;
+        delay(captureDelayMs_);
+        if (failNext_) {
+            failNext_ = false;
+            GB_LOG_PLAIN("CAMERA", "mock capture failure (forced)");
+            return frame;  // invalid frame — no data, no length
+        }
         frame.data = kFixtureJpeg;
         frame.length = sizeof(kFixtureJpeg);
         frame.valid = true;
@@ -137,7 +153,9 @@ class MockCameraService : public CameraService {
     bool isHolding() const { return held_; }
 
   private:
+    uint32_t captureDelayMs_;
     bool held_ = false;
+    bool failNext_ = false;
 };
 
 }  // namespace greenbin

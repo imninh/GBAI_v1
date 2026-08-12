@@ -102,7 +102,7 @@ Mount the ultrasonic sensor in the lid pointing straight down, away from the wal
 
 `OBJECT_DELTA_CM` is the value to tune first. Too low and people leaning over the
 bin trigger captures; too high and small items are missed. Watch the
-`[ULTRASONIC] before=… after=… delta=…` log lines during real use and pick a
+`[HC-SR04] before=… after=… delta=…` log lines during real use and pick a
 threshold above the noise floor.
 
 ## Expected boot output

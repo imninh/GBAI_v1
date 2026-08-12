@@ -257,7 +257,7 @@ $ pio run -e sim
 $ ./.pio/build/sim/program --base-url http://127.0.0.1:8123 --device-key sim-test-key
 
 === Scenario 2/3 — valid waste event, real upload ===
-[ULTRASONIC] before=50.0 after=44.0 delta=6.0
+[HC-SR04] before=50.0 after=44.0 delta=6.0
 [EVENT] waste_confirmed
 [CAMERA] jpeg_bytes=10223
 [PRIVACY] phash=ffe7e7e7e7c3c3ff exif_stripped=true faces_blurred=0 bytes=6577

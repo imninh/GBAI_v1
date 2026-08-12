@@ -79,11 +79,19 @@ bool EspNetworkService::parseClassification(const String& payload,
 
     const char* status = doc["status"] | "";
     const char* label = doc["label"] | "";
+    const char* transactionId = doc["transaction_id"] | "";
     // Anything unrecognised lands on Unknown, never on Ok (spec §11).
     out.status = parseStatus(status);
     out.confidence = doc["confidence"] | 0.0f;
     strncpy(out.label, label, sizeof(out.label) - 1);
     out.label[sizeof(out.label) - 1] = '\0';
+    // Optional today; the response contract of Checkpoint 1 §25 carries it, and
+    // an absent field simply leaves the id empty rather than failing the parse.
+    strncpy(out.transactionId, transactionId, sizeof(out.transactionId) - 1);
+    out.transactionId[sizeof(out.transactionId) - 1] = '\0';
+    // `action` and `target_bin` from the response are deliberately ignored:
+    // resolveSorting() derives them locally so the device's own confidence floor
+    // and refusal rules always apply, whatever the backend says (§24).
     return true;
 }
 

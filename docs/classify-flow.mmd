@@ -1,0 +1,62 @@
+sequenceDiagram
+    autonumber
+
+    actor U as User
+    participant E as ESP32
+    participant C as Camera
+    participant API as FastAPI Backend
+    participant P as Image Preprocessing
+    participant A as LangGraph / Classifier
+    participant V as Vision Provider
+    participant S as Servo
+    participant H as HC-SR04
+    participant DB as PostgreSQL
+
+    U->>E: Đưa 1 vật vào
+
+    E->>C: Capture JPEG
+    C-->>E: JPEG bytes
+
+    Note over E,API: HTTPS REST + multipart/form-data<br/>X-Device-Key
+
+    E->>API: POST /devices/BIN-001/classify<br/>JPEG + transaction_id
+
+    API->>API: Verify X-Device-Key
+    API->>P: preprocess_image(JPEG)
+    P-->>API: sanitized 512px image + pHash
+
+    API->>A: agent.invoke(state)
+
+    A->>A: T0 pHash cache
+    A->>A: T0.5 CLIP local
+
+    opt Chưa đủ confidence
+        A->>V: HTTPS Vision API
+        V-->>A: label + items + confidence
+    end
+
+    A->>A: _finalize()
+
+    alt Confidence đủ + class hợp lệ
+        A-->>API: plastic, 0.94
+        API-->>E: 200 JSON<br/>action=SORT<br/>target_bin=PLASTIC
+
+        E->>S: Move to PLASTIC
+        S-->>E: Done
+
+        E->>H: Measure plastic compartment
+        H-->>E: distance
+
+        E->>E: Calculate fill_percent
+
+        Note over E,API: HTTPS REST + application/json<br/>X-Device-Key
+
+        E->>API: POST /bins/BIN-001/readings<br/>fill_percent=43
+        API->>DB: Save reading + transaction
+        DB-->>API: OK
+
+    else Low confidence / unsafe
+        A-->>API: refused / uncertain
+        API-->>E: 200 JSON<br/>action=REJECT
+        E->>E: Không điều khiển sorting servo
+    end

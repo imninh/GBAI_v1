@@ -8,14 +8,19 @@
 # Exits 0 silently if no Python is found — hooks must never block the AI tool.
 set -u
 
-if [ -f "./venv/Scripts/python.exe" ]; then
-  PY="./venv/Scripts/python.exe"
-elif [ -f "./.venv/Scripts/python.exe" ]; then
-  PY="./.venv/Scripts/python.exe"
-elif [ -f "./venv/bin/python" ]; then
-  PY="./venv/bin/python"
-elif [ -f "./.venv/bin/python" ]; then
-  PY="./.venv/bin/python"
+# Repo root is two levels up from this script (scripts/_pyrun.sh -> repo/).
+# Resolved absolutely so the hook works when invoked from any subdirectory —
+# the old relative "./venv" probes only matched when CWD was the repo root.
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [ -x "$REPO_ROOT/venv/Scripts/python.exe" ]; then
+  PY="$REPO_ROOT/venv/Scripts/python.exe"
+elif [ -x "$REPO_ROOT/.venv/Scripts/python.exe" ]; then
+  PY="$REPO_ROOT/.venv/Scripts/python.exe"
+elif [ -x "$REPO_ROOT/venv/bin/python" ]; then
+  PY="$REPO_ROOT/venv/bin/python"
+elif [ -x "$REPO_ROOT/.venv/bin/python" ]; then
+  PY="$REPO_ROOT/.venv/bin/python"
 elif command -v py >/dev/null 2>&1; then
   PY="py -3"
 elif command -v python3 >/dev/null 2>&1; then
