@@ -1,0 +1,601 @@
+resident_id,home_address_simulated,legacy_area,latitude,longitude,nearest_bin_id,distance_to_bin_m,household_size,waste_kg_day_est,data_status,privacy_note
+RES-0001,"165 120 Lê Duẩn, Hà Nội",Đống Đa,21.025679,105.841302,BIN-009,126.7,3,1.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0002,"155 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.011571,105.849201,BIN-013,94.2,3,1.35,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0003,"31 Đào Tấn, Hà Nội",Ba Đình,21.024935,105.808754,BIN-026,97.2,6,3.14,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0004,"199 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.027874,105.779091,BIN-031,114.5,4,2.06,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0005,"74 120 Lê Duẩn, Hà Nội",Đống Đa,21.024073,105.841552,BIN-009,60.4,3,1.89,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0006,"168 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.995823,105.867946,BIN-040,137.4,1,0.69,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0007,"80 Châu Long, Hà Nội",Ba Đình,21.043094,105.841998,BIN-045,103.9,2,1.47,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0008,"19 Đào Tấn, Hà Nội",Ba Đình,21.025961,105.808608,BIN-026,35.2,2,1.29,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0009,"19 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.040338,105.796162,BIN-050,116.5,4,2.61,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0010,"48 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.036098,105.78242,BIN-047,80.1,2,1.21,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0011,"20 Lê Duẩn / Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.016567,105.841878,BIN-012,75.1,4,1.68,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0012,"173 91 Chùa Láng, Hà Nội",Đống Đa,21.022592,105.804915,BIN-060,100.8,1,0.49,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0013,"76 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.0182,105.78474,BIN-049,47.4,2,1.18,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0014,"185 Lê Duẩn / Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.01506,105.841848,BIN-012,94.5,5,2.44,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0015,"78 Dương Nội, Hà Nội",Hà Đông,20.962769,105.744487,BIN-032,116.2,5,3.04,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0016,"169 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.021009,105.812235,BIN-056,107.9,3,1.05,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0017,"71 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.011365,105.849187,BIN-013,101.6,4,1.93,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0018,"123 Phạm Văn Đồng, Hà Nội",Bắc Từ Liêm,21.069621,105.77374,BIN-059,101.7,6,3.05,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0019,"205 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.994394,105.815209,BIN-037,62.7,5,2.2,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0020,"174 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.038513,105.795127,BIN-050,125.7,5,3.62,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0021,"56 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.028686,105.780017,BIN-031,87.9,5,3.39,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0022,"127 Trấn Vũ, Hà Nội",Ba Đình,21.042595,105.844295,BIN-044,127.5,2,1.02,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0023,"182 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.011157,105.849933,BIN-013,62.7,3,1.5,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0024,"86 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.039038,105.795167,BIN-050,91,4,2.75,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0025,"73 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.020316,105.845832,BIN-011,103.1,3,1.17,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0026,"185 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.029141,105.778906,BIN-031,40.5,3,2.23,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0027,"125 Trần Phú, Hà Nội",Hà Đông,20.97153,105.775564,BIN-033,44,5,2.79,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0028,"160 Đào Tấn, Hà Nội",Ba Đình,21.026777,105.807896,BIN-026,150.3,1,0.59,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0029,"32 272 Võ Chí Công, Hà Nội",Tây Hồ,21.076665,105.810194,BIN-021,134.4,4,1.58,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0030,"163 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.041289,105.826532,BIN-025,53.9,2,1.05,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0031,"4 91 Chùa Láng, Hà Nội",Đống Đa,21.023756,105.805605,BIN-060,78.4,3,2.19,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0032,"4 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.018285,105.78566,BIN-049,95.4,2,1.1,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0033,"61 120 Lê Duẩn, Hà Nội",Đống Đa,21.025458,105.841602,BIN-009,95.7,1,0.55,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0034,"213 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.038375,105.796467,BIN-050,113.5,3,2.01,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0035,"92 Trần Phú, Hà Nội",Hà Đông,20.970493,105.77669,BIN-033,121.1,2,0.8,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0036,"39 207 Giải Phóng, Hà Nội",Hai Bà Trưng,20.998703,105.840869,BIN-015,49.7,6,3.07,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0037,"186 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.020762,105.811872,BIN-056,71.3,4,2.41,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0038,"123 Yên Sở, Hà Nội",Hoàng Mai,20.97159,105.871638,BIN-052,57.3,2,0.88,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0039,"65 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.994326,105.813958,BIN-037,87.4,2,0.8,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0040,"125 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.004203,105.842772,BIN-016,11.1,3,1.45,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0041,"173 91 Chùa Láng, Hà Nội",Đống Đa,21.023253,105.804715,BIN-060,33.4,6,2.33,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0042,"64 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.010701,105.850113,BIN-013,110.9,6,2.95,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0043,"6 Đê La Thành / Cát Linh, Hà Nội",Đống Đa,21.028167,105.8291,BIN-034,127.1,3,1.3,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0044,"19 Giảng Võ, Hà Nội",Ba Đình,21.027974,105.81945,BIN-057,168.6,2,0.77,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0045,"94 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.991891,105.802706,BIN-039,54.7,4,1.94,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0046,"27 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.019745,105.846024,BIN-011,38.3,2,1.26,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0047,"92 Dương Nội, Hà Nội",Hà Đông,20.96359,105.745542,BIN-032,57.4,4,2.59,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0048,"158 78 Giải Phóng, Hà Nội",Đống Đa,20.99798,105.842388,BIN-015,152.1,2,1.32,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0049,"11 Yên Sở, Hà Nội",Hoàng Mai,20.972059,105.872126,BIN-052,96.2,5,1.88,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0050,"206 Hoàng Cầu, Hà Nội",Đống Đa,21.021612,105.824199,BIN-036,101.2,3,2.1,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0051,"73 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.04413,105.872079,BIN-043,114.6,3,2.11,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0052,"16 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.041624,105.827388,BIN-025,42.5,3,1.45,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0053,"6 Hoàng Cầu, Hà Nội",Đống Đa,21.019987,105.821384,BIN-035,28.2,4,2.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0054,"116 Châu Long, Hà Nội",Ba Đình,21.043516,105.841576,BIN-045,82.7,4,2.87,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0055,"220 Linh Đàm, Hà Nội",Hoàng Mai,20.976012,105.825417,BIN-051,86.5,4,2.4,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0056,"79 Giải Phóng, Hà Nội",Hoàng Mai,20.981568,105.843665,BIN-053,106.6,2,0.76,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0057,"81 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.042049,105.826847,BIN-025,63,1,0.69,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0058,"151 272 Võ Chí Công, Hà Nội",Tây Hồ,21.075466,105.81012,BIN-021,121.8,3,1.15,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0059,"8 Trần Phú, Hà Nội",Hà Đông,20.970433,105.776226,BIN-033,95.9,4,1.73,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0060,"135 27 Cổ Linh, Hà Nội",Long Biên,21.029438,105.892212,BIN-041,109,4,2.45,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0061,"202 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.994362,105.86762,BIN-040,65.2,3,1.76,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0062,"177 Mễ Trì, Hà Nội",Nam Từ Liêm,21.012235,105.788276,BIN-029,73.9,5,3.35,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0063,"11 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.011645,105.850928,BIN-013,86.1,6,3.92,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0064,"33 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.004444,105.842062,BIN-016,78.2,2,0.97,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0065,"146 Nghiêm Xuân Yêm, Hà Nội",Hoàng Mai,20.978043,105.797402,BIN-054,97,2,1.1,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0066,"89 Dương Nội, Hà Nội",Hà Đông,20.964777,105.745473,BIN-032,129.2,3,1.91,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0067,"151 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.994613,105.867686,BIN-040,54.5,5,3.22,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0068,"69 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.01822,105.784694,BIN-049,51.3,3,2.04,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0069,"192 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.036289,105.781467,BIN-047,130.4,6,2.28,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0070,"179 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.028176,105.779429,BIN-031,83.8,4,2.47,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0071,"183 Đồng Xuân, Hà Nội",Hoàn Kiếm,21.038365,105.848216,BIN-004,33.5,1,0.36,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0072,"29 Giải Phóng, Hà Nội",Hoàng Mai,20.981066,105.84268,BIN-053,92.7,1,0.4,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0073,"142 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.034772,105.789782,BIN-046,117.9,4,2.06,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0074,"169 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.994268,105.868115,BIN-040,111.7,5,2.95,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0075,"111 Linh Đàm, Hà Nội",Hoàng Mai,20.974404,105.825748,BIN-051,141.2,1,0.57,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0076,"86 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.026958,105.856075,BIN-006,110.1,3,1.39,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0077,"186 Hoàng Cầu, Hà Nội",Đống Đa,21.020908,105.823784,BIN-036,48.9,2,1.05,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0078,"39 Phố Huế, Hà Nội",Hai Bà Trưng,21.015917,105.850515,BIN-014,94.1,4,1.81,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0079,"123 27 Cổ Linh, Hà Nội",Long Biên,21.030868,105.892304,BIN-041,60.8,3,1.28,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0080,"48 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.011949,105.849884,BIN-013,35.6,4,2.11,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0081,"91 Đào Tấn, Hà Nội",Ba Đình,21.026107,105.808451,BIN-026,57.6,2,1.27,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0082,"194 Trấn Vũ, Hà Nội",Ba Đình,21.044235,105.8432,BIN-044,87.4,4,1.51,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0083,"108 54 Liễu Giai, Hà Nội",Ba Đình,21.030348,105.814256,BIN-027,110,3,1.54,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0084,"53 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.005221,105.843549,BIN-016,128.4,3,1.46,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0085,"184 78 Giải Phóng, Hà Nội",Đống Đa,20.99818,105.842184,BIN-015,121.6,3,1.54,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0086,"102 Trần Phú, Hà Nội",Hà Đông,20.970583,105.77511,BIN-033,99,6,3.41,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0087,"114 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.017159,105.78459,BIN-049,78,4,2.5,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0088,"35 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.038131,105.782569,BIN-048,116.7,6,3.04,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0089,"21 Đào Tấn, Hà Nội",Ba Đình,21.026189,105.809967,BIN-026,118.7,2,1.49,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0090,"61 54 Liễu Giai, Hà Nội",Ba Đình,21.031916,105.815401,BIN-027,101,4,1.41,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0091,"59 78 Giải Phóng, Hà Nội",Đống Đa,20.999739,105.841046,BIN-017,49,4,2.98,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0092,"89 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.012739,105.849886,BIN-013,117.4,4,2,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0093,"72 Dương Nội, Hà Nội",Hà Đông,20.962671,105.744704,BIN-032,118.2,4,2.37,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0094,"189 Trấn Vũ, Hà Nội",Ba Đình,21.043263,105.843815,BIN-044,39.2,3,1.7,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0095,"113 54 Liễu Giai, Hà Nội",Ba Đình,21.03175,105.814111,BIN-027,93.9,4,2.51,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0096,"102 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.017508,105.785303,BIN-049,52.9,4,2.56,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0097,"3 Đào Tấn, Hà Nội",Ba Đình,21.026594,105.809159,BIN-026,92.2,1,0.56,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0098,"67 54 Liễu Giai, Hà Nội",Ba Đình,21.031424,105.814895,BIN-027,26.7,3,1.66,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0099,"208 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.01709,105.784088,BIN-028,64,2,1.19,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0100,"42 Mễ Trì, Hà Nội",Nam Từ Liêm,21.011934,105.78905,BIN-029,44.6,4,1.83,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0101,"83 Mễ Trì, Hà Nội",Nam Từ Liêm,21.012624,105.787969,BIN-029,127.5,3,1.2,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0102,"197 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.028713,105.780061,BIN-031,91.6,5,2.09,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0103,"38 Trần Phú, Hà Nội",Hà Đông,20.970325,105.776262,BIN-033,108.3,6,2.59,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0104,"91 Hoàng Cầu, Hà Nội",Đống Đa,21.020473,105.825145,BIN-036,101.1,1,0.71,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0105,"17 Giảng Võ, Hà Nội",Ba Đình,21.028256,105.818688,BIN-058,126.4,3,1.08,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0106,"23 120 Lê Duẩn, Hà Nội",Đống Đa,21.023764,105.841576,BIN-009,93.7,3,1.57,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0107,"144 Hoàng Cầu, Hà Nội",Đống Đa,21.019684,105.820518,BIN-035,71.8,3,1.81,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0108,"151 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.004028,105.841652,BIN-016,122.7,4,2.73,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0109,"138 Đào Tấn, Hà Nội",Ba Đình,21.025784,105.808165,BIN-026,76.2,4,2.26,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0110,"202 Trấn Vũ, Hà Nội",Ba Đình,21.044655,105.842597,BIN-044,163.6,1,0.4,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0111,"57 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.016861,105.782691,BIN-028,141.2,4,2.51,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0112,"50 Trấn Vũ, Hà Nội",Ba Đình,21.043082,105.844445,BIN-044,96.2,5,3.64,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0113,"25 Đê La Thành / Cát Linh, Hà Nội",Đống Đa,21.027114,105.830214,BIN-034,38.5,2,0.89,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0114,"8 Hoàng Cầu, Hà Nội",Đống Đa,21.020172,105.820632,BIN-035,71.9,4,2.78,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0115,"107 27 Cổ Linh, Hà Nội",Long Biên,21.03089,105.891492,BIN-041,75.7,3,1.87,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0116,"69 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.993695,105.81402,BIN-037,131.9,5,2.2,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0117,"96 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.028066,105.77881,BIN-031,101,2,1.3,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0118,"128 Phố Huế, Hà Nội",Hai Bà Trưng,21.015133,105.851772,BIN-014,80.3,6,3.14,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0119,"189 Châu Long, Hà Nội",Ba Đình,21.043705,105.841657,BIN-045,103.7,3,2.21,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0120,"152 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.034746,105.788989,BIN-046,128.4,3,1.52,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0121,"59 Châu Long, Hà Nội",Ba Đình,21.043823,105.841087,BIN-045,91.8,1,0.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0122,"170 272 Võ Chí Công, Hà Nội",Tây Hồ,21.076651,105.811155,BIN-021,83.5,2,1.41,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0123,"188 Hoàng Cầu, Hà Nội",Đống Đa,21.019842,105.822125,BIN-035,95.9,1,0.66,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0124,"217 272 Võ Chí Công, Hà Nội",Tây Hồ,21.075628,105.810791,BIN-021,52,3,1.06,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0125,"156 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.020418,105.812084,BIN-056,106.1,2,1.47,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0126,"144 Hoàng Cầu, Hà Nội",Đống Đa,21.018751,105.822299,BIN-035,162.9,2,1.06,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0127,"171 54 Liễu Giai, Hà Nội",Ba Đình,21.031899,105.813676,BIN-027,139.9,4,1.85,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0128,"201 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.020252,105.845426,BIN-011,111.7,2,0.94,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0129,"29 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.026324,105.856262,BIN-006,59.9,2,1.2,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0130,"23 Trấn Vũ, Hà Nội",Ba Đình,21.044052,105.844064,BIN-044,62.8,4,2.14,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0131,"217 27 Cổ Linh, Hà Nội",Long Biên,21.030227,105.891031,BIN-041,102.2,6,2.35,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0132,"71 272 Võ Chí Công, Hà Nội",Tây Hồ,21.075278,105.810522,BIN-021,98.5,4,2.42,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0133,"130 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.036784,105.781396,BIN-048,113.3,5,3.61,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0134,"21 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.020066,105.811999,BIN-056,124.2,6,2.55,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0135,"4 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.035501,105.790549,BIN-046,113.6,4,1.87,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0136,"83 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.018736,105.784969,BIN-049,104.1,6,4.02,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0137,"76 Phố Huế, Hà Nội",Hai Bà Trưng,21.014509,105.851411,BIN-014,87.7,3,1.73,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0138,"80 Yên Sở, Hà Nội",Hoàng Mai,20.970571,105.872068,BIN-052,70.2,2,1.05,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0139,"201 27 Cổ Linh, Hà Nội",Long Biên,21.03078,105.891673,BIN-041,54.1,2,0.71,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0140,"150 Giảng Võ, Hà Nội",Ba Đình,21.027023,105.819805,BIN-057,83.5,3,1.64,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0141,"32 Phạm Văn Đồng, Hà Nội",Bắc Từ Liêm,21.070261,105.773531,BIN-059,100.6,5,2.83,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0142,"63 Trần Phú, Hà Nội",Hà Đông,20.97073,105.776418,BIN-033,82.6,3,2.16,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0143,"15 91 Chùa Láng, Hà Nội",Đống Đa,21.024516,105.805216,BIN-060,117.4,5,3.04,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0144,"67 54 Liễu Giai, Hà Nội",Ba Đình,21.031682,105.81414,BIN-027,86.8,2,1.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0145,"33 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.026333,105.856521,BIN-006,83.4,2,0.93,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0146,"129 Giải Phóng, Hà Nội",Hoàng Mai,20.982113,105.842557,BIN-053,27.9,4,1.72,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0147,"128 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.046181,105.871015,BIN-043,139.4,2,1.05,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0148,"201 Đào Tấn, Hà Nội",Ba Đình,21.02624,105.809427,BIN-026,73.3,4,1.42,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0149,"154 120 Lê Duẩn, Hà Nội",Đống Đa,21.024282,105.840954,BIN-009,85,4,1.91,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0150,"50 207 Giải Phóng, Hà Nội",Hai Bà Trưng,20.998458,105.840088,BIN-017,132.9,4,1.57,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0151,"56 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.025799,105.856344,BIN-006,60.6,3,1.8,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0152,"51 Chương Dương, Hà Nội",Hoàn Kiếm/Long Biên,21.032778,105.86368,BIN-055,104.5,4,2.72,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0153,"42 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.046002,105.872251,BIN-043,115.2,2,1.36,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0154,"72 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.02619,105.855304,BIN-006,55.5,3,1.47,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0155,"148 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.028327,105.779957,BIN-031,101,2,0.71,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0156,"40 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.018335,105.784309,BIN-049,85.3,5,3.6,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0157,"126 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.036276,105.789107,BIN-046,66.7,4,2.84,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0158,"87 120 Lê Duẩn, Hà Nội",Đống Đa,21.024455,105.841397,BIN-009,35.3,4,2.58,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0159,"154 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.992208,105.802819,BIN-039,21.4,3,1.79,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0160,"65 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.038621,105.795629,BIN-050,84.6,3,2,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0161,"206 Châu Long, Hà Nội",Ba Đình,21.043342,105.840487,BIN-045,65.3,5,2.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0162,"35 272 Võ Chí Công, Hà Nội",Tây Hồ,21.074905,105.811783,BIN-021,125.9,1,0.53,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0163,"175 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.045027,105.872559,BIN-043,89.4,2,0.88,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0164,"60 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.019546,105.84531,BIN-011,73.3,2,0.72,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0165,"24 Đê La Thành / Cát Linh, Hà Nội",Đống Đa,21.027986,105.830419,BIN-034,93.2,5,3.48,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0166,"31 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.993767,105.815194,BIN-037,115.6,4,2.98,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0167,"41 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.018577,105.784534,BIN-049,94.3,4,2.69,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0168,"6 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.003914,105.842667,BIN-016,45,1,0.56,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0169,"29 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.017629,105.783492,BIN-028,32.1,6,3.43,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0170,"36 54 Liễu Giai, Hà Nội",Ba Đình,21.030904,105.813969,BIN-027,92.2,6,2.69,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0171,"167 272 Võ Chí Công, Hà Nội",Tây Hồ,21.0762,105.810819,BIN-021,51.7,2,1.24,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0172,"33 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.037297,105.781935,BIN-048,71.8,3,1.08,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0173,"104 Phố Huế, Hà Nội",Hai Bà Trưng,21.016219,105.850343,BIN-014,132,4,1.67,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0174,"24 Yên Sở, Hà Nội",Hoàng Mai,20.971052,105.871406,BIN-052,63.7,6,2.78,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0175,"139 54 Liễu Giai, Hà Nội",Ba Đình,21.030621,105.814729,BIN-027,64.7,5,1.92,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0176,"89 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.036794,105.78178,BIN-047,85,5,3.15,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0177,"49 27 Cổ Linh, Hà Nội",Long Biên,21.03043,105.892678,BIN-041,70.3,4,1.85,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0178,"194 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.019903,105.846439,BIN-011,72,2,1.24,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0179,"100 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.012236,105.850687,BIN-013,85.1,4,2.78,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0180,"58 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.035811,105.790418,BIN-046,95.1,3,1.44,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0181,"209 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.044165,105.871231,BIN-043,114.6,2,0.81,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0182,"80 91 Chùa Láng, Hà Nội",Đống Đa,21.023132,105.804552,BIN-060,54.5,4,1.66,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0183,"117 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.038665,105.797062,BIN-050,130.6,3,1.16,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0184,"210 78 Giải Phóng, Hà Nội",Đống Đa,20.999466,105.841423,BIN-017,47.5,5,2.11,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0185,"85 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.01821,105.784631,BIN-049,53.3,4,2.64,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0186,"89 Phạm Văn Đồng, Hà Nội",Bắc Từ Liêm,21.069232,105.77528,BIN-059,134.4,6,3.82,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0187,"34 78 Giải Phóng, Hà Nội",Đống Đa,20.999901,105.840887,BIN-017,67.8,2,0.78,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0188,"58 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.026916,105.856642,BIN-006,134,3,2.08,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0189,"52 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.003517,105.843568,BIN-016,117.9,1,0.51,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0190,"81 Mễ Trì, Hà Nội",Nam Từ Liêm,21.012757,105.789295,BIN-029,132.5,6,3.54,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0191,"136 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.042459,105.826302,BIN-025,128.7,2,1.5,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0192,"128 54 Liễu Giai, Hà Nội",Ba Đình,21.030772,105.814629,BIN-027,50.7,3,1.82,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0193,"90 Mễ Trì, Hà Nội",Nam Từ Liêm,21.011869,105.789729,BIN-029,108.3,3,1.53,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0194,"46 Đê La Thành / Cát Linh, Hà Nội",Đống Đa,21.027646,105.829287,BIN-034,74.3,2,1.4,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0195,"44 Đào Tấn, Hà Nội",Ba Đình,21.025735,105.80918,BIN-026,29.9,6,4.43,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0196,"203 Đào Tấn, Hà Nội",Ba Đình,21.025047,105.809742,BIN-026,120.8,1,0.59,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0197,"177 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.041567,105.827396,BIN-025,41.7,5,2.1,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0198,"53 Trấn Vũ, Hà Nội",Ba Đình,21.043028,105.843084,BIN-044,90,4,2.69,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0199,"18 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.994405,105.867635,BIN-040,62.9,2,1.09,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0200,"147 Hoàng Cầu, Hà Nội",Đống Đa,21.018808,105.820584,BIN-035,127.3,2,1.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0201,"217 Phố Huế, Hà Nội",Hai Bà Trưng,21.014792,105.850648,BIN-014,58.2,4,2.22,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0202,"218 272 Võ Chí Công, Hà Nội",Tây Hồ,21.075339,105.811449,BIN-021,67.4,3,2.25,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0203,"133 54 Liễu Giai, Hà Nội",Ba Đình,21.031759,105.814812,BIN-027,62.1,4,2.16,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0204,"57 Đào Tấn, Hà Nội",Ba Đình,21.026152,105.809795,BIN-026,100.6,4,2.35,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0205,"97 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.04539,105.870696,BIN-043,108.9,2,1,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0206,"59 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.018146,105.784556,BIN-049,52.4,4,1.92,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0207,"75 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.994829,105.813969,BIN-037,77.1,3,1.09,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0208,"220 54 Liễu Giai, Hà Nội",Ba Đình,21.031052,105.815086,BIN-027,33.9,4,2.59,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0209,"172 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.995861,105.867116,BIN-040,118.1,1,0.69,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0210,"103 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.020504,105.812015,BIN-056,95.2,3,1.24,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0211,"65 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.042037,105.826489,BIN-025,79.7,5,2.33,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0212,"194 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.010961,105.849765,BIN-013,89.1,4,2.22,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0213,"35 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.040123,105.795581,BIN-050,101.2,3,1.22,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0214,"64 120 Lê Duẩn, Hà Nội",Đống Đa,21.023767,105.842064,BIN-009,99.9,2,1.3,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0215,"48 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.018204,105.784068,BIN-028,72.5,3,1.82,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0216,"19 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.042497,105.828096,BIN-025,158.6,2,0.94,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0217,"98 Yên Sở, Hà Nội",Hoàng Mai,20.970983,105.871076,BIN-052,98.7,5,1.86,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0218,"148 Phố Huế, Hà Nội",Hai Bà Trưng,21.01628,105.85044,BIN-014,133.2,1,0.42,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0219,"181 Đào Tấn, Hà Nội",Ba Đình,21.025974,105.808025,BIN-026,92.7,2,1.15,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0220,"118 Lê Duẩn / Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.016724,105.840855,BIN-012,149.8,5,2.48,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0221,"25 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.035339,105.789803,BIN-046,60,1,0.64,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0222,"194 Châu Long, Hà Nội",Ba Đình,21.042532,105.841841,BIN-045,101.4,3,1.23,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0223,"31 207 Giải Phóng, Hà Nội",Hai Bà Trưng,21.000108,105.840301,BIN-017,115.3,6,2.99,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0224,"91 Hoàng Cầu, Hà Nội",Đống Đa,21.020488,105.823425,BIN-036,83.7,4,1.86,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0225,"186 Trấn Vũ, Hà Nội",Ba Đình,21.044632,105.84321,BIN-044,125.3,5,1.75,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0226,"94 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.044666,105.870702,BIN-043,114.1,5,3.19,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0227,"64 Đồng Xuân, Hà Nội",Hoàn Kiếm,21.038736,105.848332,BIN-004,65.9,5,3.19,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0228,"163 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.995151,105.814248,BIN-037,68.6,4,1.93,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0229,"185 Dương Nội, Hà Nội",Hà Đông,20.962749,105.745431,BIN-032,114.6,3,1.65,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0230,"77 120 Lê Duẩn, Hà Nội",Đống Đa,21.025392,105.841055,BIN-009,110.4,1,0.43,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0231,"189 Đào Tấn, Hà Nội",Ba Đình,21.025245,105.807828,BIN-026,127,3,2.23,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0232,"198 54 Liễu Giai, Hà Nội",Ba Đình,21.032178,105.814215,BIN-027,124.3,3,1.95,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0233,"113 120 Lê Duẩn, Hà Nội",Đống Đa,21.024838,105.840988,BIN-009,78.4,5,2.57,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0234,"68 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.016883,105.783553,BIN-028,83.6,3,1.61,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0235,"159 Giảng Võ, Hà Nội",Ba Đình,21.025917,105.819613,BIN-057,149.6,4,2.66,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0236,"126 Đê La Thành / Cát Linh, Hà Nội",Đống Đa,21.027253,105.829994,BIN-034,11.1,2,1.15,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0237,"120 Trần Phú, Hà Nội",Hà Đông,20.971027,105.776605,BIN-033,85.6,4,2.71,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0238,"72 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.012203,105.851161,BIN-013,123.3,3,2.19,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0239,"128 Thanh Niên, Hà Nội",Tây Hồ,21.0463,105.837008,BIN-018,56.6,4,2.93,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0240,"162 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.994267,105.866611,BIN-040,85,5,2.18,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0241,"11 Mễ Trì, Hà Nội",Nam Từ Liêm,21.012249,105.788581,BIN-029,62.2,3,2.16,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0242,"204 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.019959,105.811708,BIN-056,117,3,2.25,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0243,"51 91 Chùa Láng, Hà Nội",Đống Đa,21.023658,105.80434,BIN-060,60.6,4,2.88,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0244,"120 Đào Tấn, Hà Nội",Ba Đình,21.026615,105.807913,BIN-026,136.5,6,4.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0245,"90 207 Giải Phóng, Hà Nội",Hai Bà Trưng,20.999025,105.840171,BIN-017,91.2,4,1.86,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0246,"177 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.026064,105.854799,BIN-006,103.9,4,3,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0247,"39 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.992894,105.803848,BIN-039,109.9,5,2.55,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0248,"215 Trần Phú, Hà Nội",Hà Đông,20.971504,105.776791,BIN-033,108.1,5,2.23,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0249,"44 272 Võ Chí Công, Hà Nội",Tây Hồ,21.076349,105.810773,BIN-021,66.7,3,2.05,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0250,"28 Giải Phóng, Hà Nội",Hoàng Mai,20.982539,105.842037,BIN-053,98.7,6,3.46,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0251,"55 Yên Sở, Hà Nội",Hoàng Mai,20.970227,105.872618,BIN-052,125.6,1,0.44,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0252,"151 207 Giải Phóng, Hà Nội",Hai Bà Trưng,20.998996,105.840309,BIN-017,79.2,1,0.44,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0253,"47 Phố Huế, Hà Nội",Hai Bà Trưng,21.014783,105.851362,BIN-014,59.6,6,3.49,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0254,"68 Mễ Trì, Hà Nội",Nam Từ Liêm,21.01071,105.788515,BIN-029,111.6,4,1.7,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0255,"43 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.019695,105.846067,BIN-011,33.5,4,2.03,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0256,"48 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.045376,105.871842,BIN-043,34,4,1.95,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0257,"3 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.993678,105.81357,BIN-037,163,4,2.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0258,"127 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.99418,105.86776,BIN-040,90,4,1.66,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0259,"215 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.036062,105.781569,BIN-047,134.6,4,1.62,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0260,"158 27 Cổ Linh, Hà Nội",Long Biên,21.031172,105.891785,BIN-041,88.5,2,1.26,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0261,"73 Lê Duẩn / Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.016403,105.842504,BIN-012,76.4,1,0.67,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0262,"94 Chương Dương, Hà Nội",Hoàn Kiếm/Long Biên,21.033978,105.86304,BIN-055,114.1,1,0.39,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0263,"83 Đê La Thành / Cát Linh, Hà Nội",Đống Đa,21.026343,105.829276,BIN-034,124.4,3,1.32,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0264,"154 Nghiêm Xuân Yêm, Hà Nội",Hoàng Mai,20.979198,105.798938,BIN-054,108.9,5,3.65,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0265,"129 Trấn Vũ, Hà Nội",Ba Đình,21.043323,105.844717,BIN-044,109.7,5,2.99,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0266,"135 Hoàng Cầu, Hà Nội",Đống Đa,21.018868,105.820737,BIN-035,114,3,1.7,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0267,"127 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.994947,105.867103,BIN-040,19.2,4,1.51,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0268,"167 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.029788,105.780333,BIN-031,153.3,4,2.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0269,"120 Trần Phú, Hà Nội",Hà Đông,20.970169,105.775878,BIN-033,114.7,2,1.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0270,"109 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.99327,105.802642,BIN-039,113.9,3,1.34,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0271,"148 78 Giải Phóng, Hà Nội",Đống Đa,20.99947,105.841449,BIN-017,50.3,4,2.81,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0272,"212 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.017521,105.783842,BIN-028,9.8,3,2.17,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0273,"68 Giảng Võ, Hà Nội",Ba Đình,21.026937,105.820772,BIN-057,18.3,1,0.67,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0274,"182 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.992471,105.802726,BIN-039,34.2,4,1.99,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0275,"181 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.019392,105.844965,BIN-011,107.3,4,1.54,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0276,"122 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.995272,105.815853,BIN-037,135.3,5,2.45,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0277,"59 Dương Nội, Hà Nội",Hà Đông,20.963153,105.744059,BIN-032,114.9,2,0.9,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0278,"64 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.020475,105.847031,BIN-011,160.1,4,2.2,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0279,"22 Lê Duẩn / Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.015547,105.84169,BIN-012,50.6,6,2.66,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0280,"80 Chương Dương, Hà Nội",Hoàn Kiếm/Long Biên,21.032967,105.863682,BIN-055,101.8,3,1.17,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0281,"105 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.020187,105.844952,BIN-011,139.4,5,3.17,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0282,"107 91 Chùa Láng, Hà Nội",Đống Đa,21.023806,105.804447,BIN-060,57.9,5,2,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0283,"119 Đào Tấn, Hà Nội",Ba Đình,21.026874,105.80789,BIN-026,158.7,3,1.83,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0284,"36 Giảng Võ, Hà Nội",Ba Đình,21.0265,105.820174,BIN-057,62.6,2,0.72,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0285,"95 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.029961,105.779529,BIN-031,122.6,2,1.33,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0286,"125 Phố Huế, Hà Nội",Hai Bà Trưng,21.014679,105.851661,BIN-014,89.6,4,2.8,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0287,"126 Trần Phú, Hà Nội",Hà Đông,20.970961,105.776743,BIN-033,101.3,4,1.45,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0288,"179 Đào Tấn, Hà Nội",Ba Đình,21.025858,105.807839,BIN-026,110.1,5,3.15,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0289,"180 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.028479,105.779456,BIN-031,53.8,5,2.44,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0290,"24 Đào Tấn, Hà Nội",Ba Đình,21.025391,105.807967,BIN-026,106.8,3,2.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0291,"156 91 Chùa Láng, Hà Nội",Đống Đa,21.024529,105.806056,BIN-060,165.5,3,2,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0292,"146 Dương Nội, Hà Nội",Hà Đông,20.963201,105.745103,BIN-032,56.3,3,2.17,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0293,"202 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.99162,105.802279,BIN-039,106.2,6,3.54,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0294,"88 Giảng Võ, Hà Nội",Ba Đình,21.026825,105.82113,BIN-057,55.5,5,3.56,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0295,"8 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.020178,105.812166,BIN-056,128.2,4,2.52,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0296,"217 Đào Tấn, Hà Nội",Ba Đình,21.024986,105.80788,BIN-026,139,5,3.42,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0297,"194 Giảng Võ, Hà Nội",Ba Đình,21.025964,105.820214,BIN-057,111.3,4,1.44,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0298,"101 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.028532,105.77887,BIN-031,53.2,2,0.86,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0299,"20 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.019916,105.810491,BIN-056,131.6,4,2.21,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0300,"183 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.035373,105.788777,BIN-046,88.6,4,2.64,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0301,"205 Chương Dương, Hà Nội",Hoàn Kiếm/Long Biên,21.032303,105.861746,BIN-055,125.5,3,2.21,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0302,"124 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.040218,105.797022,BIN-050,147,4,2.95,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0303,"165 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.018668,105.784516,BIN-049,104.2,3,2.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0304,"109 Nghiêm Xuân Yêm, Hà Nội",Hoàng Mai,20.978421,105.797333,BIN-054,90.3,4,1.78,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0305,"142 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.02144,105.810466,BIN-056,96.8,3,1.07,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0306,"150 Nghiêm Xuân Yêm, Hà Nội",Hoàng Mai,20.97905,105.798616,BIN-054,74.7,2,1.26,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0307,"12 Dương Nội, Hà Nội",Hà Đông,20.962763,105.74545,BIN-032,114,5,2.17,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0308,"134 Trấn Vũ, Hà Nội",Ba Đình,21.044143,105.844092,BIN-044,72.6,1,0.65,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0309,"29 Đồng Xuân, Hà Nội",Hoàn Kiếm,21.038226,105.847346,BIN-004,58,5,3.02,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0310,"96 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.993082,105.802777,BIN-039,89.8,4,2.65,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0311,"34 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.025003,105.854848,BIN-006,148.3,2,1.08,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0312,"24 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.036304,105.788825,BIN-046,89.6,4,2.37,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0313,"148 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.036774,105.780704,BIN-048,140.6,6,3.58,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0314,"89 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.027839,105.780213,BIN-031,157.8,2,0.97,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0315,"114 Thanh Niên, Hà Nội",Tây Hồ,21.04649,105.837795,BIN-018,120.3,4,2.93,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0316,"9 Thanh Niên, Hà Nội",Tây Hồ,21.045371,105.836402,BIN-018,70.2,4,2.56,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0317,"200 Giảng Võ, Hà Nội",Ba Đình,21.02698,105.821379,BIN-057,81.2,4,1.72,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0318,"27 Chương Dương, Hà Nội",Hoàn Kiếm/Long Biên,21.032749,105.861957,BIN-055,81.9,2,0.93,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0319,"49 Châu Long, Hà Nội",Ba Đình,21.042509,105.841737,BIN-045,93.8,6,2.37,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0320,"50 Trần Phú, Hà Nội",Hà Đông,20.970339,105.776024,BIN-033,98.3,4,1.4,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0321,"171 27 Cổ Linh, Hà Nội",Long Biên,21.031466,105.891095,BIN-041,150.9,5,3.54,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0322,"14 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.994577,105.868203,BIN-040,106.8,3,1.32,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0323,"200 Đê La Thành / Cát Linh, Hà Nội",Đống Đa,21.028001,105.829576,BIN-034,84.8,1,0.43,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0324,"147 Mễ Trì, Hà Nội",Nam Từ Liêm,21.011177,105.788867,BIN-029,60.6,3,1.22,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0325,"92 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.003863,105.843526,BIN-016,89.5,4,2.26,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0326,"171 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.99423,105.868016,BIN-040,105.6,4,2.6,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0327,"103 Đào Tấn, Hà Nội",Ba Đình,21.025096,105.809729,BIN-026,116.2,2,1.24,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0328,"105 Thanh Niên, Hà Nội",Tây Hồ,21.045888,105.836845,BIN-018,11.4,4,2.01,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0329,"18 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.017101,105.784981,BIN-049,78.1,4,1.43,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0330,"32 91 Chùa Láng, Hà Nội",Đống Đa,21.023605,105.80406,BIN-060,87.8,1,0.68,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0331,"115 Phạm Văn Đồng, Hà Nội",Bắc Từ Liêm,21.070497,105.77514,BIN-059,74,2,1.37,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0332,"187 Đào Tấn, Hà Nội",Ba Đình,21.025221,105.809633,BIN-026,99.5,3,1.49,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0333,"87 Trần Phú, Hà Nội",Hà Đông,20.97015,105.775493,BIN-033,120.8,5,3.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0334,"217 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.036325,105.782893,BIN-047,60.8,3,1.14,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0335,"206 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.004202,105.841849,BIN-016,99.1,3,2.02,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0336,"217 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.017405,105.785656,BIN-049,89.8,2,1.08,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0337,"44 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.017636,105.78443,BIN-049,52,4,2.55,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0338,"172 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.037546,105.781329,BIN-048,33.3,2,0.97,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0339,"33 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.028623,105.779759,BIN-031,65.6,4,1.76,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0340,"164 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.021384,105.811233,BIN-056,53.9,3,1.51,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0341,"72 Yên Sở, Hà Nội",Hoàng Mai,20.972155,105.872588,BIN-052,122.2,1,0.6,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0342,"145 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.995154,105.86833,BIN-040,123.5,5,2.74,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0343,"34 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.020535,105.810327,BIN-056,99.1,5,3.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0344,"87 Phố Huế, Hà Nội",Hai Bà Trưng,21.014633,105.8506,BIN-014,75.4,2,1.17,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0345,"31 91 Chùa Láng, Hà Nội",Đống Đa,21.023584,105.803775,BIN-060,116.9,5,2.01,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0346,"46 Đồng Xuân, Hà Nội",Hoàn Kiếm,21.037306,105.848362,BIN-004,120.3,4,1.6,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0347,"74 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.037264,105.783163,BIN-047,77.8,3,1.24,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0348,"74 Dương Nội, Hà Nội",Hà Đông,20.963318,105.744936,BIN-032,42.9,6,2.11,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0349,"213 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.017526,105.78471,BIN-049,36.2,4,2.4,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0350,"6 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.994142,105.814856,BIN-037,64,4,1.68,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0351,"44 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.018727,105.846358,BIN-011,83.4,4,2.57,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0352,"176 Phạm Văn Đồng, Hà Nội",Bắc Từ Liêm,21.069163,105.775524,BIN-059,156.5,4,1.67,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0353,"53 91 Chùa Láng, Hà Nội",Đống Đa,21.024529,105.805047,BIN-060,115.2,4,2.62,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0354,"75 Trần Phú, Hà Nội",Hà Đông,20.972087,105.775003,BIN-033,128.5,4,2.55,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0355,"31 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.038431,105.780962,BIN-048,89.5,4,1.57,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0356,"134 Đồng Xuân, Hà Nội",Hoàn Kiếm,21.038483,105.847003,BIN-004,95.1,4,2.21,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0357,"30 Giảng Võ, Hà Nội",Ba Đình,21.026289,105.82096,BIN-057,77.4,4,2.93,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0358,"218 Trần Phú, Hà Nội",Hà Đông,20.970888,105.77527,BIN-033,65,6,4.34,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0359,"2 Giải Phóng, Hà Nội",Hoàng Mai,20.981707,105.841823,BIN-053,93.3,3,1.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0360,"102 120 Lê Duẩn, Hà Nội",Đống Đa,21.024007,105.841048,BIN-009,94.4,2,1.33,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0361,"206 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.036892,105.782998,BIN-047,42.5,3,1.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0362,"51 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.020005,105.81048,BIN-056,124.2,1,0.63,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0363,"214 Linh Đàm, Hà Nội",Hoàng Mai,20.974365,105.825785,BIN-051,147,3,1.23,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0364,"28 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.018861,105.845225,BIN-011,100.1,5,2.11,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0365,"178 Đào Tấn, Hà Nội",Ba Đình,21.026046,105.809963,BIN-026,113.5,3,1.29,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0366,"209 Hoàng Cầu, Hà Nội",Đống Đa,21.019922,105.82342,BIN-036,118.3,2,1.25,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0367,"6 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.041143,105.82751,BIN-025,66,6,4.34,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0368,"159 Đồng Xuân, Hà Nội",Hoàn Kiếm,21.038868,105.848809,BIN-004,113.3,3,1.51,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0369,"186 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.038831,105.795462,BIN-050,76.2,6,3.63,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0370,"23 Đê La Thành / Cát Linh, Hà Nội",Đống Đa,21.028185,105.831039,BIN-034,153.6,6,2.65,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0371,"183 Giải Phóng, Hà Nội",Hoàng Mai,20.980895,105.842674,BIN-053,111.6,6,4.39,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0372,"69 78 Giải Phóng, Hà Nội",Đống Đa,20.999033,105.840259,BIN-017,82.3,3,1.8,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0373,"160 Trấn Vũ, Hà Nội",Ba Đình,21.04285,105.842649,BIN-044,137.1,4,2.52,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0374,"220 Giảng Võ, Hà Nội",Ba Đình,21.026083,105.819761,BIN-057,125.7,4,1.88,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0375,"4 Yên Sở, Hà Nội",Hoàng Mai,20.971565,105.870981,BIN-052,113.1,4,2.27,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0376,"188 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.992734,105.8023,BIN-039,87.1,2,0.84,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0377,"212 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.995077,105.81531,BIN-037,75.8,2,1.18,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0378,"37 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.019945,105.810651,BIN-056,120.3,3,1.88,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0379,"126 Hoàng Cầu, Hà Nội",Đống Đa,21.020529,105.824231,BIN-036,19.3,4,2.67,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0380,"126 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.994547,105.815644,BIN-037,99.3,4,2.62,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0381,"182 Phạm Văn Đồng, Hà Nội",Bắc Từ Liêm,21.069192,105.774413,BIN-059,112.2,4,2.17,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0382,"136 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.993782,105.867498,BIN-040,117.2,2,1.35,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0383,"16 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.045961,105.87173,BIN-043,95.6,2,1.23,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0384,"194 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.037497,105.780945,BIN-048,66.6,2,1.09,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0385,"116 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.037004,105.780977,BIN-048,103.7,4,2.4,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0386,"34 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.016587,105.783261,BIN-028,125.5,5,2.96,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0387,"15 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.037701,105.783226,BIN-047,119.2,2,1.22,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0388,"20 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.044989,105.870642,BIN-043,110.3,5,3.31,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0389,"92 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.01277,105.850543,BIN-013,127.4,2,1.33,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0390,"23 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.0182,105.78275,BIN-028,127.6,6,2.74,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0391,"146 78 Giải Phóng, Hà Nội",Đống Đa,20.997885,105.841239,BIN-015,112.9,6,3.05,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0392,"144 Yên Sở, Hà Nội",Hoàng Mai,20.972127,105.872185,BIN-052,104.7,5,2.6,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0393,"18 54 Liễu Giai, Hà Nội",Ba Đình,21.032141,105.815501,BIN-027,127.2,4,1.7,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0394,"43 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.995398,105.815593,BIN-037,120.7,4,1.48,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0395,"126 Đồng Xuân, Hà Nội",Hoàn Kiếm,21.038817,105.848352,BIN-004,74.1,1,0.5,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0396,"70 Phố Huế, Hà Nội",Hai Bà Trưng,21.014904,105.851361,BIN-014,49.8,4,2.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0397,"181 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.038251,105.795968,BIN-050,116.4,4,1.89,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0398,"213 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.993952,105.814527,BIN-037,84.9,5,1.83,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0399,"147 Nghiêm Xuân Yêm, Hà Nội",Hoàng Mai,20.979203,105.79812,BIN-054,78.5,3,1.85,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0400,"125 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.037858,105.781675,BIN-048,19.3,6,3.76,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0401,"189 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.018938,105.847124,BIN-011,127.3,5,1.91,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0402,"16 Dương Nội, Hà Nội",Hà Đông,20.964101,105.74419,BIN-032,95.1,4,1.93,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0403,"13 Dương Nội, Hà Nội",Hà Đông,20.963002,105.744128,BIN-032,119.1,5,2.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0404,"85 78 Giải Phóng, Hà Nội",Đống Đa,20.999239,105.842039,BIN-015,85.4,5,3.26,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0405,"20 Trấn Vũ, Hà Nội",Ba Đình,21.044295,105.842852,BIN-044,116.9,4,2.78,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0406,"174 Trấn Vũ, Hà Nội",Ba Đình,21.043352,105.843208,BIN-044,57.9,4,2.35,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0407,"7 Yên Sở, Hà Nội",Hoàng Mai,20.971844,105.871448,BIN-052,91.5,4,2.6,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0408,"102 Chương Dương, Hà Nội",Hoàn Kiếm/Long Biên,21.033361,105.861658,BIN-055,115.1,5,2.22,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0409,"216 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.0174,105.783837,BIN-028,22.6,3,2.11,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0410,"10 Giải Phóng, Hà Nội",Hoàng Mai,20.982775,105.842891,BIN-053,99.1,5,1.93,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0411,"70 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.025636,105.85488,BIN-006,103.5,5,3.48,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0412,"118 Giảng Võ, Hà Nội",Ba Đình,21.029376,105.818198,BIN-058,8.4,2,0.86,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0413,"214 Yên Sở, Hà Nội",Hoàng Mai,20.97031,105.872294,BIN-052,103.4,3,2.16,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0414,"43 Hoàng Cầu, Hà Nội",Đống Đa,21.021746,105.823667,BIN-036,128.5,3,1.71,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0415,"6 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.993964,105.866778,BIN-040,102.6,4,2.28,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0416,"154 Yên Sở, Hà Nội",Hoàng Mai,20.970843,105.870947,BIN-052,116.1,2,1.46,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0417,"7 Linh Đàm, Hà Nội",Hoàng Mai,20.974928,105.825879,BIN-051,114.1,2,0.8,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0418,"129 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.010823,105.849355,BIN-013,124.2,4,1.94,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0419,"95 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.005099,105.843875,BIN-016,142.4,3,1.79,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0420,"195 Yên Sở, Hà Nội",Hoàng Mai,20.972082,105.871852,BIN-052,99,6,4,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0421,"220 207 Giải Phóng, Hà Nội",Hai Bà Trưng,21.000187,105.841488,BIN-017,110.7,3,1.95,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0422,"149 Châu Long, Hà Nội",Ba Đình,21.043717,105.840146,BIN-045,119,5,1.97,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0423,"22 Giảng Võ, Hà Nội",Ba Đình,21.027666,105.820928,BIN-057,91.5,3,2.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0424,"19 Dương Nội, Hà Nội",Hà Đông,20.964278,105.74422,BIN-032,103.2,5,3.07,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0425,"67 Đồng Xuân, Hà Nội",Hoàn Kiếm,21.037319,105.848551,BIN-004,128,4,1.79,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0426,"202 Lê Duẩn / Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.016603,105.842672,BIN-012,104.6,4,2.99,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0427,"192 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.020876,105.810596,BIN-056,62.7,4,2.92,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0428,"110 Giải Phóng, Hà Nội",Hoàng Mai,20.981443,105.842287,BIN-053,66.3,4,2.35,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0429,"125 Giảng Võ, Hà Nội",Ba Đình,21.026613,105.82004,BIN-057,66.2,1,0.47,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0430,"148 Nghiêm Xuân Yêm, Hà Nội",Hoàng Mai,20.978006,105.797087,BIN-054,127.7,4,1.77,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0431,"149 Trần Phú, Hà Nội",Hà Đông,20.970237,105.77692,BIN-033,157.8,4,1.48,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0432,"69 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.03672,105.781029,BIN-048,129.4,2,0.73,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0433,"142 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.019356,105.846123,BIN-011,13.6,1,0.58,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0434,"140 Hoàng Cầu, Hà Nội",Đống Đa,21.021019,105.824041,BIN-036,39,3,1.24,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0435,"77 Trấn Vũ, Hà Nội",Ba Đình,21.043649,105.844584,BIN-044,91.8,4,2.33,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0436,"47 Trấn Vũ, Hà Nội",Ba Đình,21.043807,105.843357,BIN-044,42.3,2,1.14,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0437,"177 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.037782,105.781629,BIN-048,13.5,3,1.71,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0438,"78 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.038313,105.78073,BIN-048,98,4,2.27,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0439,"14 120 Lê Duẩn, Hà Nội",Đống Đa,21.024521,105.840601,BIN-009,114.2,3,1.94,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0440,"52 Lê Duẩn / Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.016178,105.842698,BIN-012,78.6,2,0.89,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0441,"81 78 Giải Phóng, Hà Nội",Đống Đa,20.999227,105.841154,BIN-017,17.9,3,2.05,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0442,"152 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.994089,105.81556,BIN-037,112,3,1.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0443,"213 Giải Phóng, Hà Nội",Hoàng Mai,20.981589,105.843572,BIN-053,96.7,1,0.73,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0444,"201 Đào Tấn, Hà Nội",Ba Đình,21.025428,105.809248,BIN-026,54.9,3,2.08,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0445,"63 Giảng Võ, Hà Nội",Ba Đình,21.026938,105.821229,BIN-057,65.3,4,2.25,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0446,"74 207 Giải Phóng, Hà Nội",Hai Bà Trưng,20.998319,105.841698,BIN-015,76.6,5,2.62,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0447,"17 Lê Duẩn / Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.016635,105.843102,BIN-012,140.3,4,1.62,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0448,"102 91 Chùa Láng, Hà Nội",Đống Đa,21.023715,105.804841,BIN-060,24.7,4,1.68,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0449,"86 Hoàng Cầu, Hà Nội",Đống Đa,21.019582,105.821669,BIN-035,54.3,4,2.04,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0450,"94 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.028866,105.779699,BIN-031,51.8,3,1.55,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0451,"13 91 Chùa Láng, Hà Nội",Đống Đa,21.023732,105.804719,BIN-060,31.8,2,0.75,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0452,"72 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.045773,105.872286,BIN-043,96.3,3,1.8,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0453,"121 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.003264,105.843481,BIN-016,134.9,3,1.71,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0454,"181 Mễ Trì, Hà Nội",Nam Từ Liêm,21.012638,105.788728,BIN-029,104.1,3,1.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0455,"175 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.035508,105.788811,BIN-046,78.4,4,1.81,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0456,"144 78 Giải Phóng, Hà Nội",Đống Đa,20.998098,105.840669,BIN-015,110.5,3,2.25,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0457,"169 27 Cổ Linh, Hà Nội",Long Biên,21.029926,105.893062,BIN-041,121.9,5,3.47,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0458,"194 Giảng Võ, Hà Nội",Ba Đình,21.027871,105.821718,BIN-057,158.2,4,2.57,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0459,"114 Hoàng Cầu, Hà Nội",Đống Đa,21.019152,105.822163,BIN-035,123,3,1.55,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0460,"138 Trần Phú, Hà Nội",Hà Đông,20.970657,105.775704,BIN-033,61.1,4,1.76,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0461,"24 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.004983,105.843091,BIN-016,81.6,3,1.67,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0462,"170 Phạm Văn Đồng, Hà Nội",Bắc Từ Liêm,21.069786,105.77448,BIN-059,46,4,2.57,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0463,"54 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.036828,105.783726,BIN-047,116.7,4,2.26,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0464,"218 207 Giải Phóng, Hà Nội",Hai Bà Trưng,20.998953,105.840421,BIN-017,71.3,3,1.33,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0465,"151 Dương Nội, Hà Nội",Hà Đông,20.963247,105.745112,BIN-032,51.6,3,1.63,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0466,"106 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.035183,105.788647,BIN-046,111.8,3,1.59,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0467,"40 Châu Long, Hà Nội",Ba Đình,21.042077,105.841914,BIN-045,139.5,5,2.73,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0468,"197 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.029669,105.778764,BIN-031,96.6,2,1.17,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0469,"14 Dương Nội, Hà Nội",Hà Đông,20.96403,105.744872,BIN-032,39,5,3.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0470,"31 Yên Sở, Hà Nội",Hoàng Mai,20.972082,105.870852,BIN-052,154.1,2,1.17,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0471,"82 120 Lê Duẩn, Hà Nội",Đống Đa,21.0238,105.841053,BIN-009,111.3,4,2.19,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0472,"124 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.019631,105.846634,BIN-011,70.5,1,0.36,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0473,"70 Yên Sở, Hà Nội",Hoàng Mai,20.971501,105.872552,BIN-052,66.2,3,2.15,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0474,"180 Giải Phóng, Hà Nội",Hoàng Mai,20.981334,105.84301,BIN-053,70.5,3,1.7,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0475,"125 Linh Đàm, Hà Nội",Hoàng Mai,20.975605,105.825616,BIN-051,77.7,6,2.54,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0476,"178 Nghiêm Xuân Yêm, Hà Nội",Hoàng Mai,20.978815,105.798489,BIN-054,46.1,4,2.29,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0477,"117 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.035825,105.790357,BIN-046,88.8,5,2.64,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0478,"126 Linh Đàm, Hà Nội",Hoàng Mai,20.975907,105.825801,BIN-051,109,4,1.68,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0479,"107 Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.020466,105.84573,BIN-011,121.5,4,2.7,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0480,"55 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.045489,105.87144,BIN-043,50.9,3,1.63,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0481,"130 Đê La Thành / Cát Linh, Hà Nội",Đống Đa,21.026449,105.829358,BIN-034,109.9,6,2.61,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0482,"36 Mễ Trì, Hà Nội",Nam Từ Liêm,21.011678,105.787575,BIN-029,116.6,4,2.68,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0483,"126 Giải Phóng, Hà Nội",Hoàng Mai,20.982199,105.843281,BIN-053,68.8,3,2.05,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0484,"11 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.016989,105.785729,BIN-049,124.5,4,2.27,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0485,"53 Yên Sở, Hà Nội",Hoàng Mai,20.971612,105.871174,BIN-052,97.1,3,1.84,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0486,"93 207 Giải Phóng, Hà Nội",Hai Bà Trưng,20.99861,105.839899,BIN-017,137.4,4,2.25,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0487,"85 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.992522,105.803841,BIN-039,90.5,4,1.61,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0488,"208 Châu Long, Hà Nội",Ba Đình,21.043644,105.841701,BIN-045,102,1,0.49,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0489,"57 Hoàng Cầu, Hà Nội",Đống Đa,21.019831,105.823404,BIN-036,126.9,5,1.84,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0490,"111 272 Võ Chí Công, Hà Nội",Tây Hồ,21.076671,105.81067,BIN-021,101.7,6,2.4,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0491,"207 Dương Nội, Hà Nội",Hà Đông,20.96347,105.746024,BIN-032,109.2,2,1.24,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0492,"218 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.02183,105.812125,BIN-056,140.9,3,1.84,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0493,"110 120 Lê Duẩn, Hà Nội",Đống Đa,21.025582,105.841132,BIN-009,123.9,4,2.71,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0494,"143 91 Chùa Láng, Hà Nội",Đống Đa,21.02435,105.805296,BIN-060,102.9,3,1.45,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0495,"164 120 Lê Duẩn, Hà Nội",Đống Đa,21.025504,105.842365,BIN-009,121.7,3,2.06,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0496,"31 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.044094,105.872497,BIN-043,138.9,4,1.48,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0497,"169 91 Chùa Láng, Hà Nội",Đống Đa,21.023694,105.805933,BIN-060,109.2,2,0.91,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0498,"171 Châu Long, Hà Nội",Ba Đình,21.043545,105.841937,BIN-045,114.4,2,1.15,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0499,"11 Chương Dương, Hà Nội",Hoàn Kiếm/Long Biên,21.033716,105.862393,BIN-055,85.6,5,2.78,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0500,"61 Châu Long, Hà Nội",Ba Đình,21.042186,105.840951,BIN-045,90.5,3,1.65,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0501,"21 Linh Đàm, Hà Nội",Hoàng Mai,20.975618,105.825272,BIN-051,45.5,2,0.76,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0502,"4 Nghiêm Xuân Yêm, Hà Nội",Hoàng Mai,20.978295,105.797294,BIN-054,96.6,3,2.25,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0503,"64 Phố Huế, Hà Nội",Hai Bà Trưng,21.015283,105.850356,BIN-014,67.4,4,1.8,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0504,"109 27 Cổ Linh, Hà Nội",Long Biên,21.030531,105.892135,BIN-041,20.2,3,1.1,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0505,"99 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.993167,105.801931,BIN-039,146.8,1,0.46,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0506,"187 78 Giải Phóng, Hà Nội",Đống Đa,20.999958,105.841062,BIN-017,73.3,5,2.27,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0507,"110 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.017141,105.785609,BIN-049,103.6,2,1.19,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0508,"79 91 Chùa Láng, Hà Nội",Đống Đa,21.024511,105.805571,BIN-060,132,4,2.18,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0509,"25 Hoàng Cầu, Hà Nội",Đống Đa,21.020742,105.824302,BIN-036,11.6,2,1.25,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0510,"194 Hoàng Cầu, Hà Nội",Đống Đa,21.019793,105.824447,BIN-036,103.9,6,2.43,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0511,"159 Châu Long, Hà Nội",Ba Đình,21.042536,105.841293,BIN-045,59.8,3,1.26,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0512,"56 91 Chùa Láng, Hà Nội",Đống Đa,21.024531,105.805793,BIN-060,147.1,1,0.44,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0513,"133 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.021002,105.811389,BIN-056,22.6,3,2.07,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0514,"178 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.995649,105.814681,BIN-037,105.3,3,1.32,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0515,"151 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.993977,105.867735,BIN-040,106.9,4,2.21,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0516,"40 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.039742,105.79586,BIN-050,51.1,3,2.04,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0517,"202 Hoàng Cầu, Hà Nội",Đống Đa,21.019733,105.824722,BIN-036,120.2,4,2.89,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0518,"201 Dương Nội, Hà Nội",Hà Đông,20.962648,105.744348,BIN-032,134.9,5,3.47,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0519,"19 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.011434,105.850389,BIN-013,42.1,6,2.49,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0520,"74 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.011444,105.850379,BIN-013,40.5,5,2.28,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0521,"140 Giảng Võ, Hà Nội",Ba Đình,21.027659,105.820891,BIN-057,89.5,4,1.78,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0522,"57 Phạm Hùng, Hà Nội",Cầu Giấy/Nam Từ Liêm,21.01719,105.783747,BIN-028,45.8,3,1.29,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0523,"124 144 Xuân Thủy, Hà Nội",Cầu Giấy,21.037413,105.780393,BIN-048,122.5,2,1.27,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0524,"132 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.03605,105.783048,BIN-047,95.3,3,1.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0525,"171 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.025599,105.854715,BIN-006,120.9,6,4.37,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0526,"60 78 Giải Phóng, Hà Nội",Đống Đa,20.997892,105.84191,BIN-015,128.4,4,2.65,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0527,"208 27 Cổ Linh, Hà Nội",Long Biên,21.030506,105.891512,BIN-041,51.9,4,2.24,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0528,"80 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.995054,105.867708,BIN-040,59.7,1,0.46,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0529,"183 Giảng Võ, Hà Nội",Ba Đình,21.029894,105.819126,BIN-058,116.4,2,1.46,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0530,"164 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.994381,105.814421,BIN-037,45.7,4,2.23,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0531,"165 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.042352,105.827934,BIN-025,135.3,1,0.47,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0532,"41 207 Giải Phóng, Hà Nội",Hai Bà Trưng,20.99945,105.83989,BIN-017,116.2,4,2.19,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0533,"203 Giảng Võ, Hà Nội",Ba Đình,21.029329,105.817902,BIN-058,31,4,2.16,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0534,"72 Giải Phóng, Hà Nội",Hoàng Mai,20.980982,105.843021,BIN-053,107.1,5,2.98,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0535,"14 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.025873,105.856913,BIN-006,116.1,1,0.57,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0536,"62 Phố Huế, Hà Nội",Hai Bà Trưng,21.015637,105.851157,BIN-014,51.1,6,3.01,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0537,"202 Lê Duẩn / Trần Nhân Tông, Hà Nội",Hai Bà Trưng,21.016776,105.841054,BIN-012,138,2,1.24,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0538,"208 Hoàng Cầu, Hà Nội",Đống Đa,21.02081,105.821193,BIN-035,112.1,4,1.43,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0539,"139 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.025473,105.856051,BIN-006,64,5,2.7,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0540,"182 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.994419,105.813693,BIN-037,109,3,1.21,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0541,"45 120 Lê Duẩn, Hà Nội",Đống Đa,21.024154,105.841643,BIN-009,49.8,4,2.8,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0542,"52 Phố Huế, Hà Nội",Hai Bà Trưng,21.015487,105.850241,BIN-014,84.8,3,1.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0543,"70 Đồng Xuân, Hà Nội",Hoàn Kiếm,21.038195,105.847067,BIN-004,87.1,2,1.15,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0544,"52 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.010621,105.849884,BIN-013,121.8,5,2.97,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0545,"60 Nghiêm Xuân Yêm, Hà Nội",Hoàng Mai,20.978794,105.798931,BIN-054,82.5,3,2.23,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0546,"216 207 Giải Phóng, Hà Nội",Hai Bà Trưng,20.999865,105.840965,BIN-017,62.8,2,1.48,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0547,"41 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.003673,105.842194,BIN-016,93.7,2,1.33,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0548,"136 Đê La Thành / Cát Linh, Hà Nội",Đống Đa,21.028346,105.830401,BIN-034,127.2,2,1.31,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0549,"64 78 Giải Phóng, Hà Nội",Đống Đa,20.998134,105.841376,BIN-015,85.4,2,1.23,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0550,"167 Đào Tấn, Hà Nội",Ba Đình,21.026152,105.808386,BIN-026,66.1,3,1.74,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0551,"104 241 Xuân Thủy, Hà Nội",Cầu Giấy,21.036608,105.783523,BIN-047,98,1,0.59,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0552,"38 54 Liễu Giai, Hà Nội",Ba Đình,21.031954,105.815712,BIN-027,126.2,1,0.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0553,"95 Trấn Vũ, Hà Nội",Ba Đình,21.043607,105.844563,BIN-044,89.4,2,1.19,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0554,"208 458 Minh Khai, Hà Nội",Hai Bà Trưng,20.994874,105.866749,BIN-040,47.5,2,1.47,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0555,"3 Đê La Thành / Cát Linh, Hà Nội",Đống Đa,21.027176,105.829934,BIN-034,14.2,5,2.1,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0556,"114 207 Giải Phóng, Hà Nội",Hai Bà Trưng,20.999562,105.842113,BIN-015,111.8,2,1.18,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0557,"44 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.025695,105.85503,BIN-006,86.7,5,2.58,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0558,"18 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.992876,105.80307,BIN-039,64.4,6,4.11,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0559,"21 207 Giải Phóng, Hà Nội",Hai Bà Trưng,20.999428,105.840719,BIN-017,32.4,5,1.99,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0560,"29 Phố Huế, Hà Nội",Hai Bà Trưng,21.016047,105.850048,BIN-014,136.3,2,0.98,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0561,"31 Tràng Tiền, Hà Nội",Hoàn Kiếm,21.025209,105.856374,BIN-006,106.1,5,2.99,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0562,"128 191 Bà Triệu, Hà Nội",Hai Bà Trưng,21.010838,105.850482,BIN-013,103.5,3,1.13,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0563,"16 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.041086,105.82612,BIN-025,102,2,1.29,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0564,"116 Phố Huế, Hà Nội",Hai Bà Trưng,21.014692,105.850122,BIN-014,107.1,1,0.63,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0565,"105 Giải Phóng, Hà Nội",Hoàng Mai,20.981038,105.84253,BIN-053,97.3,6,3.52,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0566,"220 Yên Sở, Hà Nội",Hoàng Mai,20.970419,105.872731,BIN-052,115.2,4,1.72,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0567,"41 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.004554,105.842024,BIN-016,85.3,3,1.22,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0568,"167 Trần Phú, Hà Nội",Hà Đông,20.971208,105.7758,BIN-033,0.9,4,2.18,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0569,"94 Trần Phú, Hà Nội",Hà Đông,20.971373,105.774663,BIN-033,119.4,6,3.03,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0570,"142 54 Liễu Giai, Hà Nội",Ba Đình,21.030821,105.813815,BIN-027,110.4,4,2.38,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0571,"122 Thanh Niên, Hà Nội",Tây Hồ,21.044824,105.836486,BIN-018,116.5,3,2.08,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0572,"20 120 Lê Duẩn, Hà Nội",Đống Đa,21.024993,105.842164,BIN-009,64.9,4,1.65,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0573,"191 Nguyễn Xiển, Hà Nội",Thanh Xuân,20.992831,105.803143,BIN-039,60.8,2,1.39,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0574,"216 272 Võ Chí Công, Hà Nội",Tây Hồ,21.075843,105.810597,BIN-021,62.7,6,4.42,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0575,"110 Mễ Trì, Hà Nội",Nam Từ Liêm,21.012205,105.788475,BIN-029,60.7,4,1.65,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0576,"27 Giảng Võ, Hà Nội",Ba Đình,21.02695,105.819922,BIN-057,70.5,3,1.09,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0577,"204 Phố Huế, Hà Nội",Hai Bà Trưng,21.015573,105.851964,BIN-014,108.1,6,3.22,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0578,"134 207 Giải Phóng, Hà Nội",Hai Bà Trưng,21.000302,105.841509,BIN-017,123,4,2.58,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0579,"43 272 Võ Chí Công, Hà Nội",Tây Hồ,21.076031,105.811263,BIN-021,16,2,0.79,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0580,"140 Mễ Trì, Hà Nội",Nam Từ Liêm,21.012776,105.787805,BIN-029,151.2,2,0.95,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0581,"7 120 Lê Duẩn, Hà Nội",Đống Đa,21.024407,105.841251,BIN-009,51.2,5,2.82,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0582,"57 Nguyễn Chí Thanh, Hà Nội",Đống Đa,21.019992,105.811836,BIN-056,120.4,2,1.35,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0583,"4 Nghiêm Xuân Yêm, Hà Nội",Hoàng Mai,20.979533,105.797577,BIN-054,131.6,3,2.08,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0584,"91 Giảng Võ, Hà Nội",Ba Đình,21.027196,105.820209,BIN-057,52.1,4,1.95,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0585,"73 272 Võ Chí Công, Hà Nội",Tây Hồ,21.07657,105.811898,BIN-021,103.8,2,0.76,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0586,"181 Nguyễn Văn Cừ, Hà Nội",Long Biên,21.045968,105.870754,BIN-043,137.4,5,2.55,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0587,"108 20 Phạm Hùng, Hà Nội",Nam Từ Liêm,21.029388,105.779095,BIN-031,55.2,4,2.63,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0588,"26 272 Võ Chí Công, Hà Nội",Tây Hồ,21.075756,105.811148,BIN-021,16.8,2,0.87,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0589,"181 72A Nguyễn Trãi, Hà Nội",Thanh Xuân,20.993754,105.815843,BIN-037,158.4,3,1.75,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0590,"136 Hoàng Cầu, Hà Nội",Đống Đa,21.021527,105.823622,BIN-036,109.6,4,2.67,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0591,"37 Giảng Võ, Hà Nội",Ba Đình,21.026373,105.820477,BIN-057,59.8,3,1.28,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0592,"205 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.041456,105.826445,BIN-025,57.7,3,1.12,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0593,"61 3 Hoàng Hoa Thám, Hà Nội",Ba Đình,21.042554,105.827862,BIN-025,147.2,3,1.71,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0594,"140 Nguyễn Văn Huyên, Hà Nội",Cầu Giấy,21.03902,105.795008,BIN-050,107.4,4,2.16,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0595,"219 78 Giải Phóng, Hà Nội",Đống Đa,20.997975,105.84057,BIN-015,127.5,2,0.76,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0596,"31 Đào Tấn, Hà Nội",Ba Đình,21.025924,105.808009,BIN-026,93.3,1,0.41,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0597,"12 1 Đại Cồ Việt, Hà Nội",Hai Bà Trưng,21.004171,105.842086,BIN-016,75.3,2,1.08,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0598,"69 Giải Phóng, Hà Nội",Hoàng Mai,20.981743,105.841594,BIN-053,115.9,6,4,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0599,"215 Dương Đình Nghệ, Hà Nội",Cầu Giấy,21.034792,105.790003,BIN-046,123.5,4,2.9,SYNTHETIC,No real person/household PII; address is a simulation anchor.
+RES-0600,"39 Trần Phú, Hà Nội",Hà Đông,20.972196,105.774693,BIN-033,159.3,3,1.61,SYNTHETIC,No real person/household PII; address is a simulation anchor.

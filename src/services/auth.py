@@ -40,6 +40,7 @@ PERMISSIONS: dict[str, tuple[str, ...]] = {
     "edit_catalog": ("manager",),
     "view_bins": ("cleaner", "manager"),
     "assign_bin": ("manager",),
+    "manage_bins": ("manager",),
     "view_diem_gui": ("resident", "cleaner", "manager"),
     "edit_own_profile": ("resident", "cleaner", "manager"),
     "view_original_media": ("manager",),
@@ -57,6 +58,7 @@ PERMISSION_DENIED_HINTS: dict[str, str] = {
     "view_eval": "Trang chất lượng AI dành cho ban quản lý",
     "view_bins": "Bản đồ thùng thu gom dành cho đội vệ sinh và ban quản lý",
     "assign_bin": "Chỉ ban quản lý được giao thùng cho nhân viên vệ sinh",
+    "manage_bins": "Chỉ ban quản lý được thêm, sửa và ngừng dùng thùng thu gom",
     "view_runs": "Trang trace agent dành cho ban quản lý",
     "create_pickup": "Đội vệ sinh không tạo yêu cầu thay cư dân",
 }

@@ -44,4 +44,13 @@
 
     <!-- Máy không có camera vẫn cài được: người dùng chọn ảnh có sẵn thay vì chụp. -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <!-- Sắp điểm gửi theo khoảng cách từ chỗ người dùng đang đứng. App KHÔNG
+         theo dõi vị trí nền: chỉ đọc đúng một lần, và chỉ khi người dùng chạm
+         vào chip "Vị trí hiện tại". -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Máy không có phần cứng định vị vẫn cài được: app lui về nơi ở đã đăng ký. -->
+    <uses-feature android:name="android.hardware.location" android:required="false" />
 </manifest>

@@ -7,7 +7,8 @@ import * as React from "react";
 import { CaiAppCard } from "@/components/pwa/cai-app";
 import { Button, Card, EmptyState, Skeleton } from "@/components/ui/primitives";
 import { ScreenHeader } from "@/components/ui/shell";
-import { api, mediaUrl } from "@/lib/api";
+import { api } from "@/lib/api";
+import { AnhCoToken } from "@/lib/anh-co-token";
 import { dungLuong, kg, ngayVn, TRANG_THAI_YEU_CAU } from "@/lib/format";
 import { useSession } from "@/lib/session";
 import {
@@ -60,8 +61,7 @@ export function PrivacyScreen({ mediaId, onBack }: { mediaId: number; onBack: ()
                 <div className="mb-1.5 text-[11px] font-bold text-leaf">Đã gửi cho AI</div>
                 <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[repeating-linear-gradient(135deg,#dfeadf,#dfeadf_8px,#d5e2d5_8px,#d5e2d5_16px)]">
                   {!daXoa && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={mediaUrl(bao.media_id)} alt="Ảnh đã xử lý" className="h-full w-full object-cover" />
+                    <AnhCoToken mediaId={bao.media_id} alt="Ảnh đã xử lý" className="h-full w-full object-cover" />
                   )}
                 </div>
               </div>
@@ -285,7 +285,7 @@ export function RequestDetailScreen({ id, onBack }: { id: number; onBack: () => 
               </div>
             </div>
           ))}
-          {yc.status === "pending" && (
+          {yc.status === "cho_duyet" && (
             <div className="flex items-start gap-3">
               <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-amber-line text-amber">
                 <IconChoDuyet className="h-3.5 w-3.5" />
@@ -310,7 +310,7 @@ export function RequestDetailScreen({ id, onBack }: { id: number; onBack: () => 
           </div>
         )}
 
-        {!["scheduled", "done", "cancelled"].includes(yc.status) && (
+        {["cho_duyet", "cho_nhan"].includes(yc.status) && (
           <Button
             block
             variant="danger"

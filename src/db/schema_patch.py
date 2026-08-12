@@ -42,6 +42,14 @@ COT_CAN_VA: list[tuple[str, str, str]] = [
     # chạy y hệt trên cả SQLite lẫn PostgreSQL.
     ("users", "organization_id", "INTEGER"),
     ("bins", "organization_id", "INTEGER"),
+    # Gói P30 — dữ liệu GIS Hà Nội (60 vị trí thùng đề xuất). `NOT NULL` bắt buộc
+    # đi kèm `DEFAULT` để SQLite chấp nhận; chỉ số `index=True` chỉ khai ở model
+    # (bảng dựng mới), đường vá này không cần thêm chỉ số cho bảng cũ.
+    ("bins", "site_type", "VARCHAR(40) NOT NULL DEFAULT ''"),
+    ("bins", "priority", "VARCHAR(8) NOT NULL DEFAULT ''"),
+    ("bins", "deployment_status", "VARCHAR(20) NOT NULL DEFAULT ''"),
+    ("bins", "coordinate_confidence", "VARCHAR(10) NOT NULL DEFAULT ''"),
+    ("bins", "area_name", "VARCHAR(60) NOT NULL DEFAULT ''"),
 ]
 
 

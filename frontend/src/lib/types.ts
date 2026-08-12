@@ -1,7 +1,9 @@
 /** Kiểu dữ liệu khớp hợp đồng API ở `docs/FRONTEND_SPEC.md` mục 7.
  *
- * Đổi tên trường ở đây thì phải sửa cả backend — hai bên là một bản cam kết.
+ *  Đổi tên trường ở đây thì phải sửa cả backend — hai bên là một bản cam kết.
  */
+
+import type { TrangThaiYeuCau } from "./pickup-states";
 
 export type Role = "resident" | "cleaner" | "manager";
 
@@ -127,9 +129,14 @@ export interface PickupRequest {
   note: string;
   requires_hitl: boolean;
   threshold_hit: ThresholdHit[];
-  status: "pending" | "approved" | "rejected" | "scheduled" | "done" | "cancelled";
+  status: TrangThaiYeuCau;
   reject_reason: string;
   review_note: string;
+  // Khối lượng THẬT do đội vệ sinh cân — backend trả từ gói P29/P32
+  // (serializers.pickup_dict). Tuỳ chọn vì bản rút gọn có thể thiếu.
+  weight_confirmed_kg?: number | null;
+  confirmed_by?: number | null;
+  confirmed_at?: string | null;
   is_seed: boolean;
   created_at: string;
   message_vi?: string;
@@ -210,6 +217,10 @@ export interface PickupRoute {
   reasoning?: RouteReasoning;
   proposed_stop_order?: number[];
   diff?: RouteDiff;
+  /** Hình đường đi thật từ OSRM, `[lat, lng]` theo đúng thứ tự ghé.
+   *  `null` khi cờ `ROUTE_REAL_DISTANCE` tắt hoặc chưa tính được — khi đó bản
+   *  đồ vẽ nét đứt như cũ. Khoá LUÔN có mặt trong payload (gói P26). */
+  duong_di?: [number, number][] | null;
   message_vi?: string;
 }
 

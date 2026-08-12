@@ -29,7 +29,7 @@ from sqlalchemy.orm import Session
 from src.config import get_settings
 from src.services import safety
 from src.services.classifier_helpers import _category_by_code, _refuse, load_category_options
-from src.services.classifier_stages import chay_t0_cache, chay_t05_local, chay_t1_t2
+from src.services.classifier_stages import chay_t0_cache, chay_t05_local, chay_t05_yolo, chay_t1_t2
 from src.services.classifier_types import (
     TIER_LABELS_VI,
     TIER_T0_CACHE,
@@ -109,6 +109,9 @@ def classify_waste(
         return outcome
 
     # --- Bước 3: T0.5 — model local, chỉ chốt khi rất chắc và không nguy hại ---
+    # Chạy YOLO TRƯỚC CLIP: rẻ hơn việc phát hiện muộn, và cờ này còn phải đi
+    # tiếp tới T1/T2 dù CLIP có chốt được hay không.
+    nghi_dien_tu = chay_t05_yolo(outcome, image_bytes=image_bytes)
     if chay_t05_local(
         session,
         outcome,
@@ -117,6 +120,9 @@ def classify_waste(
         text_query=text_query,
         started=started,
         classify_image_local=classify_image_local,
+        # Cờ YOLO chặn CLIP chốt: model local không được chốt khi có nghi ngờ
+        # nguy hại, và đồ điện tử là nghi ngờ nguy hại.
+        nghi_nguy_hai_local=nghi_dien_tu,
     ):
         return outcome
 
@@ -131,4 +137,5 @@ def classify_waste(
         get_vision_client=get_vision_client,
         get_tier_model=get_tier_model,
         get_tier_provider=get_tier_provider,
+        nghi_nguy_hai_local=nghi_dien_tu,
     )

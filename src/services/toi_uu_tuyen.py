@@ -39,6 +39,13 @@ NGUONG_CAI_THIEN_KM = 1e-9
 # số này gần như luôn phủ hết, mà trường hợp xấu vẫn có trần.
 SO_DIEM_DAU_TOI_DA = 8
 
+# Trên ngưỡng này, số điểm xuất phát tụt về 1. Lý do bằng số đo thật (12/08):
+# 10 điểm 0,005 s · 30 điểm 0,102 s · 60 điểm 2,47 s với hàm đo rẻ, và 14,4 s
+# với haversine thật. `hai_opt` là O(n³) mỗi vòng, nhân thêm số điểm xuất phát,
+# nên tuyến 60 điểm treo request hàng chục giây. Bộ GIS Hà Nội có 60 thùng nên
+# đây không còn là ca giả định.
+NGUONG_NHIEU_DIEM = 25
+
 
 def do_dai(thu_tu: Sequence[T], khoang_cach: Callable[[T, T], float]) -> float:
     """Tổng quãng đường của một thứ tự ghé. **Đường mở** — không quay về điểm đầu."""
@@ -114,7 +121,13 @@ def sap_thu_tu(diem: Sequence[T], khoang_cach: Callable[[T, T], float]) -> list[
     tot_nhat = goc
     dai_tot_nhat = do_dai(goc, khoang_cach)
 
-    for k in range(min(len(goc), SO_DIEM_DAU_TOI_DA)):
+    # Nhiều điểm thì chỉ chạy MỘT điểm xuất phát — vẫn qua nearest-neighbour và
+    # vẫn qua 2-opt, chỉ bỏ phần thử nhiều chỗ khởi hành. Thà hơi kém tối ưu còn
+    # hơn treo một request HTTP. `goc` vẫn đứng làm đương kim ngay từ đầu
+    # (`tot_nhat = goc` ở trên), nên dù bản `k = 0` có tệ hơn thứ tự gốc thì
+    # lời hứa "không bao giờ dài hơn thứ tự đưa vào" vẫn giữ nguyên.
+    so_diem_dau = 1 if len(goc) > NGUONG_NHIEU_DIEM else SO_DIEM_DAU_TOI_DA
+    for k in range(min(len(goc), so_diem_dau)):
         # Xoay phần tử k lên đầu, giữ nguyên thứ tự tương đối của phần còn lại
         # để kết quả không phụ thuộc thứ tự duyệt.
         xoay = [goc[k]] + goc[:k] + goc[k + 1 :]

@@ -8,6 +8,7 @@ Các hàm ở đây nhận hàm vision qua **tham số** thay vì import trực 
 
 from __future__ import annotations
 
+import logging
 import time
 
 from sqlalchemy.orm import Session
@@ -32,7 +33,9 @@ from src.services.classifier_types import (
     NodeMetric,
 )
 from src.services.safety import RefusalReason
-from src.services.vision import CategoryOption, VisionUnavailableError
+from src.services.vision import CategoryOption, VisionUnavailableError, local_yolo
+
+logger = logging.getLogger(__name__)
 
 
 def chay_t0_cache(
@@ -75,6 +78,34 @@ def chay_t0_cache(
     return True
 
 
+def chay_t05_yolo(outcome: ClassifyOutcome, *, image_bytes: bytes | None) -> bool:
+    """Tầng T0.5b — YOLO giơ cờ đồ điện tử. Trả về ``True`` nếu NGHI.
+
+    Hàm này **không bao giờ chốt nhãn**. Nó chỉ trả một cờ, và cờ đó được mang
+    tới tận ``should_escalate_to_t2`` để ép hỏi model mạnh hơn. Xem ADR-0011.
+    """
+    settings = get_settings()
+    if image_bytes is None or not settings.yolo_enabled:
+        return False
+    step = time.perf_counter()
+    nghi = False
+    cac_lop: list[str] = []
+    try:
+        nghi, cac_vat = local_yolo.nghi_do_dien_tu(image_bytes)
+        cac_lop = [v.get("lop", "?") for v in cac_vat]
+    except Exception as exc:
+        logger.warning("Tầng YOLO lỗi không ngờ: %s. Không giơ cờ.", exc)
+    duration = int((time.perf_counter() - step) * 1000)
+    outcome.nodes.append(
+        NodeMetric(
+            node="local_yolo",
+            duration_ms=duration,
+            meta={"nghi_do_dien_tu": nghi, "cac_lop_phat_hien": cac_lop},
+        )
+    )
+    return nghi
+
+
 def chay_t05_local(
     session: Session,
     outcome: ClassifyOutcome,
@@ -84,6 +115,7 @@ def chay_t05_local(
     text_query: str,
     started: float,
     classify_image_local: object,
+    nghi_nguy_hai_local: bool = False,
 ) -> bool:
     """Tầng T0.5 — model local. Trả về ``True`` nếu đã chốt được (outcome đã finalize)."""
     settings = get_settings()
@@ -101,7 +133,14 @@ def chay_t05_local(
     category = _category_by_code(session, local.category_code)
     is_hazard_related = local.suspect_hazardous or bool(category and category.is_hazardous)
     blocked_by_policy = is_hazard_related and settings.local_never_decides_hazardous
-    accepted = local.confidence >= settings.clip_accept_confidence and not blocked_by_policy
+    # Cờ YOLO nghi đồ điện tử chặn CLIP chốt: model local không được chốt khi có
+    # nghi ngờ nguy hại, và đồ điện tử là nghi ngờ nguy hại. Để CLIP chốt "giấy"
+    # trong khi YOLO nghi có laptop là vứt đi cờ vừa tốn 100 ms dựng lên.
+    accepted = (
+        local.confidence >= settings.clip_accept_confidence
+        and not blocked_by_policy
+        and not nghi_nguy_hai_local
+    )
     outcome.nodes.append(
         NodeMetric(
             node="local_model",
@@ -111,6 +150,7 @@ def chay_t05_local(
                 "nguong_chap_nhan": settings.clip_accept_confidence,
                 "chot_nhan": accepted,
                 "chan_vi_nghi_nguy_hai": blocked_by_policy,
+                "chan_vi_yolo_nghi_dien_tu": nghi_nguy_hai_local,
             },
         )
     )
@@ -134,6 +174,7 @@ def chay_t1_t2(
     get_vision_client: object,
     get_tier_model: object,
     get_tier_provider: object,
+    nghi_nguy_hai_local: bool = False,
 ) -> ClassifyOutcome:
     """Tầng T1 → (nếu cần) T2, trả về outcome đã finalize hoặc đã từ chối.
 
@@ -241,7 +282,10 @@ def chay_t1_t2(
     escalation = safety.should_escalate_to_t2(
         outcome.confidence,
         outcome.min_confidence,
-        result.suspect_hazardous,
+        # Sự nghi ngờ của T0.5 phải sống tới đây. T1 là tầng MÙ đồ điện tử, nên
+        # nếu chỉ hỏi `result.suspect_hazardous` thì đúng ca cần leo T2 nhất lại
+        # im lặng — xem CONTEXT của gói P33.
+        result.suspect_hazardous or nghi_nguy_hai_local,
         result.quality_issue,
         items=result.items,
         co_anh=image_bytes is not None,

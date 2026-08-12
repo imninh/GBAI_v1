@@ -11,7 +11,7 @@ from src.api.deps import CurrentUser, DbSession, require
 from src.api.errors import ApiError, bad_request, not_found
 from src.api.serializers import user_dict
 from src.config import get_settings
-from src.db.models import Classification, PickupRequest, Unit, User, WasteCategory
+from src.db.models import Classification, DiemThuongLog, PickupRequest, Unit, User, WasteCategory
 from src.db.seed_data import DEMO_PASSWORD, USERS
 from src.models.schemas import LoginRequest, LoginResponse, RegisterRequest, UpdateProfileRequest
 from src.services.auth import (
@@ -22,7 +22,9 @@ from src.services.auth import (
     permission_matrix,
     write_audit,
 )
+from src.services.diem_thuong import DIEM_MOI_KG, DIEM_MOI_MON
 from src.services.gioi_han_tan_suat import cho_phep
+from src.services.pickup_lifecycle import DA_HUY, HOAN_TAT, TU_CHOI, chuan_hoa
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -159,14 +161,22 @@ def me_history(user: CurrentUser, session: DbSession) -> dict:
     Yêu cầu bị huỷ hoặc bị từ chối không tính vào lịch sử — chúng không phản
     ánh rác đã thực sự được giao.
     """
-    bo_qua = {"cancelled", "rejected"}
+    # So qua `chuan_hoa` để chịu CẢ HAI từ vựng trong lúc di trú: hàng cũ còn
+    # giữ "cancelled"/"rejected"/"done" vẫn phải được loại / đếm đúng. Trước đây
+    # so chuỗi cũ bằng tay (`{"cancelled","rejected"}`) nên ca `da_huy`/`tu_choi`
+    # lọt vào tổng và ca `hoan_tat` không bao giờ được đếm là "đã thu".
+    # So qua `chuan_hoa` để chịu CẢ HAI từ vựng trong lúc di trú: hàng cũ còn
+    # giữ "cancelled"/"rejected"/"done" vẫn phải được loại / đếm đúng. Trước đây
+    # so chuỗi cũ bằng tay (`{"cancelled","rejected"}`) nên ca `da_huy`/`tu_choi`
+    # lọt vào tổng và ca `hoan_tat` không bao giờ được đếm là "đã thu".
+    bo_qua = {DA_HUY, TU_CHOI}
 
     tinh = [
         y
         for y in session.scalars(
             select(PickupRequest).where(PickupRequest.resident_id == user.id)
         ).all()
-        if y.status not in bo_qua
+        if chuan_hoa(y.status) not in bo_qua
     ]
 
     nhom = {c.code: c for c in session.scalars(select(WasteCategory)).all()}
@@ -212,7 +222,7 @@ def me_history(user: CurrentUser, session: DbSession) -> dict:
     return {
         "tong": {
             "so_yeu_cau": len(tinh),
-            "so_yeu_cau_da_thu": sum(1 for y in tinh if y.status == "done"),
+            "so_yeu_cau_da_thu": sum(1 for y in tinh if chuan_hoa(y.status) == HOAN_TAT),
             "khoi_luong_min_kg": round(sum(y.weight_min_kg for y in tinh), 1),
             "khoi_luong_max_kg": round(sum(y.weight_max_kg for y in tinh), 1),
         },
@@ -220,6 +230,50 @@ def me_history(user: CurrentUser, session: DbSession) -> dict:
         "ghi_chu": (
             "Khối lượng chỉ tổng hợp ở mức yêu cầu vì hệ thống ước lượng cân nặng cho cả "
             "yêu cầu, không cho từng món. Đây là số ước lượng, không phải số cân thật."
+        ),
+    }
+
+
+@router.get("/me/diem")
+def me_diem(user: CurrentUser, session: DbSession) -> dict:
+    """Điểm thưởng của chính mình, kèm sổ cái — nguồn gốc của từng điểm.
+
+    ``tong_diem`` là ``users.green_points``; ``lich_su`` là sổ cái
+    (``diem_thuong_log``), mỗi dòng một lần trao điểm. Không có sổ cái thì con
+    số tổng không kiểm toán được — đây là lý do sổ cái phải có trước.
+    """
+    so_cai = session.scalars(
+        select(DiemThuongLog)
+        .where(DiemThuongLog.user_id == user.id)
+        .order_by(DiemThuongLog.created_at.desc(), DiemThuongLog.id.desc())
+    ).all()
+
+    nhom = {c.code: c for c in session.scalars(select(WasteCategory)).all()}
+    bang_thang = [
+        {"category_code": ma, "category_name": nhom[ma].name if ma in nhom else ma, "diem": diem}
+        for ma, diem in sorted(DIEM_MOI_MON.items(), key=lambda kv: kv[1], reverse=True)
+    ]
+
+    return {
+        "tong_diem": user.green_points,
+        "lich_su": [
+            {
+                "request_id": d.request_id,
+                "diem": d.diem,
+                "diem_khoi_luong": d.diem_khoi_luong,
+                "diem_vat_lieu": d.diem_vat_lieu,
+                "weight_confirmed_kg": d.weight_confirmed_kg,
+                "chi_tiet": d.chi_tiet,
+                "ly_do": d.ly_do,
+                "created_at": d.created_at.isoformat(),
+            }
+            for d in so_cai
+        ],
+        "bang_thang": {"moi_kg": DIEM_MOI_KG, "moi_mon": bang_thang},
+        "ghi_chu": (
+            "Phần theo khối lượng chỉ tính trên số cân do người xác nhận, không tính trên "
+            "ước lượng của AI. Phần theo vật liệu tính theo SỐ MÓN chứ không chia khối lượng "
+            "theo từng loại — hệ thống không có dữ liệu cân riêng từng món."
         ),
     }
 

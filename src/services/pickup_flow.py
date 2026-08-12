@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from src.config import get_settings
 from src.db.models import PickupEvent, PickupRequest, User
+from src.services.diem_thuong import trao_diem
 from src.services.pickup_lifecycle import (
     DA_GIAO_DON_VI,
     HOAN_TAT,
@@ -120,5 +121,9 @@ def xac_nhan_khoi_luong(
             detail={"weight_confirmed_kg": weight_confirmed_kg, "dispute_reason": request.dispute_reason},
         )
     )
+    # Điểm chỉ trao khi kiện thật sự hoàn tất. Rơi vào tranh chấp thì KHÔNG trao
+    # điểm nào — con số còn đang bị nghi ngờ thì chưa được biến thành tài sản.
+    if den == HOAN_TAT:
+        trao_diem(session, request)
     session.flush()
     return request

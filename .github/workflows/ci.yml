@@ -2,7 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    # Nhánh `feature/**` PHẢI có mặt: toàn bộ công việc từ 10/08 tới nay nằm
+    # trên một nhánh feature chưa mở PR, nên CI chưa kiểm một dòng nào trong 32
+    # gói. Cổng kiểm chỉ có tác dụng nếu nó chạy TRƯỚC lúc mở PR.
+    branches: [main, develop, "feature/**"]
   pull_request:
     # `develop` PHẢI có mặt: quy trình nhóm đưa nhánh feature vào `develop` qua
     # Pull Request, nên đây mới là chỗ CI cần chặn. Thiếu dòng này thì đúng

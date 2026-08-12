@@ -147,6 +147,13 @@ export function NearbyBinsScreen() {
       setLoiViTri("Trình duyệt này không hỗ trợ định vị. Đang tính theo nơi ở đã đăng ký.");
       return;
     }
+    if (typeof window !== "undefined" && !window.isSecureContext) {
+      setLoiViTri(
+        "Trình duyệt chặn định vị vì trang đang mở qua kết nối không bảo mật (http). " +
+          "Mở bằng địa chỉ https rồi thử lại. Đang tính theo nơi ở đã đăng ký.",
+      );
+      return;
+    }
     setDangXinViTri(true);
     setLoiViTri("");
     navigator.geolocation.getCurrentPosition(
@@ -155,17 +162,29 @@ export function NearbyBinsScreen() {
         setMoc("gps");
         setDangXinViTri(false);
       },
-      () => {
+      (err) => {
         // Từ chối quyền KHÔNG được làm chết màn hình — lui về nơi ở đã đăng ký.
         setDangXinViTri(false);
         setMoc("nha");
+        // Ba nguyên nhân này cần ba cách xử lý khác hẳn nhau. Gộp chung thành
+        // một câu là lý do lỗi này sống sót qua nhiều lần thử.
+        const viSao =
+          err.code === err.PERMISSION_DENIED
+            ? "Bạn đã từ chối quyền vị trí, hoặc trình duyệt đang chặn sẵn."
+            : err.code === err.POSITION_UNAVAILABLE
+              ? "Máy không xác định được vị trí lúc này."
+              : "Quá lâu không lấy được vị trí.";
         setLoiViTri(
           coNha
-            ? "Chưa lấy được vị trí. Đang tính khoảng cách theo nơi ở đã đăng ký."
-            : "Chưa lấy được vị trí, và tài khoản chưa gắn căn hộ nên chưa tính được khoảng cách.",
+            ? `${viSao} Đang tính khoảng cách theo nơi ở đã đăng ký.`
+            : `${viSao} Tài khoản cũng chưa gắn căn hộ nên chưa tính được khoảng cách.`,
         );
       },
-      { enableHighAccuracy: true, timeout: 10000 },
+      // `enableHighAccuracy: true` bắt máy đợi định vị vệ tinh; laptop không có
+      // GPS nên nó chỉ dẫn tới TIMEOUT sau 10 giây dù người dùng đã Cho phép.
+      // Định vị theo Wi-Fi/di động sai vài trăm mét là thừa đủ để XẾP THỨ TỰ
+      // điểm gửi. `maximumAge` cho phép dùng lại bản đọc còn mới, khỏi đo lại.
+      { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 },
     );
   }
 

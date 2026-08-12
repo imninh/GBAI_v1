@@ -1,0 +1,88 @@
+GREENBIN AI — BỘ DỮ LIỆU GIS HÀ NỘI (mô phỏng)
+================================================
+
+Hai file CSV cạnh đây được chuyển từ `GreenBin_Hanoi_GIS_Simulation.xlsx` do
+nhóm chuẩn bị. Chuyển sang CSV để đọc được bằng thư viện chuẩn của Python —
+repo cố ý không thêm phụ thuộc `openpyxl` chỉ để đọc một file một lần.
+
+  gis_hanoi_thung.csv    60 vị trí thùng đề xuất
+  gis_hanoi_cu_dan.csv   600 hộ cư dân mô phỏng
+
+TÍNH CHẤT CỦA DỮ LIỆU — ĐỌC TRƯỚC KHI TRÍCH VÀO BÁO CÁO
+--------------------------------------------------------
+
+Đây KHÔNG phải dữ liệu thùng rác hiện hữu của Hà Nội, và KHÔNG phải địa chỉ hộ
+gia đình thật. Chính file gốc khai như vậy:
+
+  - Mọi dòng thùng đều mang `deployment_status = PROPOSED` và
+    `coordinate_confidence = MEDIUM`. Toạ độ là "map anchor" ước lượng theo POI
+    công khai, chưa đủ cơ sở để coi là toạ độ thi công.
+  - Mọi dòng cư dân đều mang `data_status = SYNTHETIC` và ghi rõ
+    "No real person/household PII; address is a simulation anchor."
+
+Vì vậy câu đúng khi trình bày là:
+
+  "Chúng em dựng 60 vị trí ĐỀ XUẤT trên nền POI công khai của Hà Nội và 600 hộ
+   mô phỏng đặt tại các tuyến phố có thật, để đo thuật toán xếp tuyến ở quy mô
+   thật. Chưa khảo sát thực địa vị trí nào."
+
+Câu SAI, đừng nói: "hệ thống em đang quản lý 60 thùng rác ở Hà Nội".
+
+BỐN CHỖ CẦN BIẾT TRƯỚC KHI DÙNG
+-------------------------------
+
+1. `legacy_area` dùng tên quận CŨ. Hà Nội đã tổ chức lại đơn vị cấp xã từ
+   01/07/2025 thành 126 đơn vị (51 phường, 75 xã). Chính file gốc khuyến cáo
+   KHÔNG hard-code quận/huyện cũ làm khoá hành chính — cột này chỉ dùng để
+   HIỂN THỊ và gom nhóm, không bao giờ làm khoá.
+
+2. Một số địa chỉ cư dân có hai số nhà dính nhau, ví dụ
+   "165 120 Lê Duẩn, Hà Nội" hay "199 20 Phạm Hùng, Hà Nội". Đây là dấu vết của
+   khâu sinh địa chỉ tự động. Toạ độ vẫn dùng được; riêng chuỗi địa chỉ thì nên
+   hiểu là nhãn mô phỏng, đừng đem đi geocode ngược rồi tin kết quả.
+
+3. README của file gốc có nhắc một sheet tên `PUBLIC_ADDRESS_ANCHORS` —
+   sheet đó KHÔNG tồn tại trong workbook. Workbook chỉ có 4 sheet:
+   README, BIN_CANDIDATES, RESIDENT_SIMULATION, SOURCES.
+
+4. 15 trên 60 thùng không được hộ nào chọn làm thùng gần nhất. Không phải lỗi:
+   chúng nằm ở điểm du lịch, công viên, đầu mối giao thông — nơi phục vụ người
+   qua đường chứ không phục vụ hộ dân.
+
+SỐ ĐO CỦA BỘ DỮ LIỆU
+--------------------
+
+Thùng (60):
+  site_type   commercial 15 · park 8 · tourist/culture 6 · lake/park 6 ·
+              university 5 · transport 4 · tourist/pedestrian 2 · market 2 ·
+              metro 2 · lake/public-space 1 · nightlife/tourist 1 · hospital 1
+  priority    P1 40 · P2 20
+  dung tích   240 L: 40 thùng · 120 L: 20 thùng
+  phạm vi     lat 20,9637–21,0759 · lng 105,7450–105,8920 (rộng ~12 km × ~15 km)
+
+Cư dân (600):
+  khoảng cách tới thùng gần nhất   0,9 m – 168,6 m · trung bình 92,1 m
+  quy mô hộ                        1–6 người, phổ biến nhất là 4 người (173 hộ)
+  rác ước tính                     0,36–4,43 kg/ngày · tổng 1.144,7 kg/ngày
+  khu vực                          Ba Đình 102 · Hai Bà Trưng 101 · Đống Đa 100 ·
+                                   Cầu Giấy 48 · Hoàng Mai 48 · Nam Từ Liêm 41 ·
+                                   Hà Đông 35 · Thanh Xuân 30 · Long Biên 25 ·
+                                   Hoàn Kiếm 23
+
+VÌ SAO CON SỐ NÀY ĐÁNG GIÁ
+--------------------------
+
+Bộ demo cũ có 10 thùng nằm gọn trong bán kính ~1 km, nên "đường đi thật gấp 4,3
+lần đường chim bay" là chuyện bình thường và phép xếp tuyến gần như vô nghĩa ở
+mật độ đó. Bộ này trải trên ~12 km × ~15 km — đây mới là quy mô mà nearest-
+neighbour + 2-opt và số đo OSRM nói lên điều gì đó.
+
+NGUỒN THAM KHẢO (chép từ sheet SOURCES)
+---------------------------------------
+
+  OpenStreetMap / Nominatim          geocoding + reverse geocoding
+                                     https://nominatim.org/
+  Geofabrik Vietnam OSM extract      dữ liệu GIS gốc cho Việt Nam
+                                     https://download.geofabrik.de/asia/vietnam.html
+  Cổng TTĐT Chính phủ                126 đơn vị hành chính Hà Nội từ 01/07/2025
+                                     Nghị quyết 1656/NQ-UBTVQH15

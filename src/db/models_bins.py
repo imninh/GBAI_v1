@@ -31,6 +31,17 @@ class Bin(Base):
     # Mã nhóm rác thùng này nhận, ví dụ ["recyclable_plastic", "recyclable_paper"].
     category_codes: Mapped[list] = mapped_column(JSON, default=list)
     capacity_liters: Mapped[float] = mapped_column(Float, default=0.0)
+    # Bộ dữ liệu GIS Hà Nội (gói P30) mang theo năm thông tin của một vị trí đề
+    # xuất — thùng còn là ứng viên chứ chưa phải hạ tầng đã triển khai.
+    site_type: Mapped[str] = mapped_column(String(40), default="")
+    priority: Mapped[str] = mapped_column(String(8), default="")
+    deployment_status: Mapped[str] = mapped_column(String(20), default="")
+    coordinate_confidence: Mapped[str] = mapped_column(String(10), default="")
+    # Tên khu vực để hiển thị và gom nhóm. Hà Nội đã tổ chức lại đơn vị cấp xã
+    # từ 01/07/2025 thành 126 đơn vị (51 phường, 75 xã), nên cột này CHỈ để
+    # hiển thị và gom nhóm, KHÔNG BAO GIỜ làm khoá hành chính. Chính nguồn dữ
+    # liệu cũng khuyến cáo đúng điều đó.
+    area_name: Mapped[str] = mapped_column(String(60), default="", index=True)
     fill_percent: Mapped[float] = mapped_column(Float, default=0.0)
     battery_percent: Mapped[float] = mapped_column(Float, default=0.0)
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

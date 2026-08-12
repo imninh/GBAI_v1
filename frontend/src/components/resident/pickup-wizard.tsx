@@ -291,7 +291,7 @@ export function PickupWizard({
                   </div>
                 </div>
               ))}
-              {ketQua.status === "pending" && (
+              {ketQua.status === "cho_duyet" && (
                 <div className="flex gap-3">
                   <span className="flex h-[22px] w-[22px] flex-none items-center justify-center rounded-full bg-amber-line text-amber">
                     <IconChoDuyet className="h-3 w-3" />

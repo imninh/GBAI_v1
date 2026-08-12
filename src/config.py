@@ -294,6 +294,16 @@ class Settings(BaseSettings):
     # tầng có khả năng suy luận. Xem CLAUDE.md mục 5.
     local_never_decides_hazardous: bool = True
 
+    # --- Tầng T0.5b: YOLO phát hiện đồ điện tử ---------------------------
+    # MẶC ĐỊNH TẮT. Bật lên thì mỗi ảnh chạy thêm ~100 ms trên CPU, đổi lại bịt
+    # được chỗ mù đồ điện tử của T1 (đo 03/08: llama-90b 0/6, YOLO11n 4/4).
+    yolo_enabled: bool = False
+    yolo_assets_url: str = ""
+    yolo_onnx_dir: str = "./assets/yolo"
+    # Ngưỡng điểm của một hộp phát hiện. Thấp quá thì báo động giả, cao quá thì
+    # bỏ sót — 0,35 là mức khởi điểm, CHƯA chuẩn lại trên ảnh rác thật.
+    yolo_confidence: float = Field(default=0.35, ge=0.0, le=1.0)
+
     # --- Tầng T0: cache pHash --------------------------------------------
     # Khoảng cách Hamming tối đa giữa 2 pHash để coi là cùng một món rác.
     phash_max_distance: int = Field(default=6, ge=0, le=64)

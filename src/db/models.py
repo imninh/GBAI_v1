@@ -23,6 +23,7 @@ from __future__ import annotations
 from src.db.models_base import Base, utcnow  # noqa: F401
 from src.db.models_bins import Bin, BinReading  # noqa: F401
 from src.db.models_classify import Classification, ClassificationFeedback, Media  # noqa: F401
+from src.db.models_diem import DiemThuongLog  # noqa: F401
 from src.db.models_eval import EvalRun, FailureCase  # noqa: F401
 from src.db.models_knowledge import KnowledgeChunk, KnowledgeDoc  # noqa: F401
 from src.db.models_ops import AgentRun, AuditLog, RunNodeMetric  # noqa: F401

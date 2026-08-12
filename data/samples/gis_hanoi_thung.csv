@@ -1,0 +1,61 @@
+bin_id,anchor_name,address_anchor,legacy_area,latitude,longitude,site_type,priority,suggested_capacity_l,suggested_distance_m,deployment_status,coordinate_confidence,notes
+BIN-001,Hồ Hoàn Kiếm,"Đinh Tiên Hoàng / Lê Thái Tổ, Hoàn Kiếm",Hoàn Kiếm,21.0288,105.8525,lake/public-space,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-002,Quảng trường Đông Kinh Nghĩa Thục,Đinh Tiên Hoàng / Hàng Đào,Hoàn Kiếm,21.0338,105.8512,tourist/pedestrian,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-003,Phố đi bộ Hàng Đào,Hàng Đào,Hoàn Kiếm,21.0335,105.8501,tourist/pedestrian,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-004,Chợ Đồng Xuân,Đồng Xuân,Hoàn Kiếm,21.0383,105.8479,market,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-005,Nhà hát Lớn Hà Nội,Tràng Tiền,Hoàn Kiếm,21.0245,105.8572,tourist/culture,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-006,Phố Tràng Tiền,Tràng Tiền,Hoàn Kiếm,21.026,105.8558,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-007,Nhà thờ Lớn Hà Nội,Nhà Chung,Hoàn Kiếm,21.0287,105.8481,tourist/culture,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-008,Phố Tạ Hiện,Tạ Hiện,Hoàn Kiếm,21.0341,105.8518,nightlife/tourist,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-009,Ga Hà Nội,120 Lê Duẩn,Đống Đa,21.0246,105.8417,transport,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-010,Văn Miếu - Quốc Tử Giám,58 Quốc Tử Giám,Đống Đa,21.0298,105.8356,tourist/culture,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-011,Hồ Thiền Quang,Trần Nhân Tông,Hai Bà Trưng,21.0194,105.846,lake/park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-012,Công viên Thống Nhất,Lê Duẩn / Trần Nhân Tông,Hai Bà Trưng,21.0159,105.842,park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-013,Vincom Center Bà Triệu,191 Bà Triệu,Hai Bà Trưng,21.0117,105.8501,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-014,Phố Huế,Phố Huế,Hai Bà Trưng,21.0152,105.851,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-015,Bệnh viện Bạch Mai,78 Giải Phóng,Đống Đa,20.9989,105.8413,hospital,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-016,Đại học Bách khoa Hà Nội,1 Đại Cồ Việt,Hai Bà Trưng,21.0043,105.8428,university,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-017,Đại học Kinh tế Quốc dân,207 Giải Phóng,Hai Bà Trưng,20.9993,105.841,university,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-018,Hồ Tây - đường Thanh Niên,Thanh Niên,Tây Hồ,21.0458,105.8369,lake/park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-019,Phủ Tây Hồ,Đặng Thai Mai,Tây Hồ,21.0619,105.8186,tourist/culture,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-020,Công viên nước Hồ Tây,614 Lạc Long Quân,Tây Hồ,21.0674,105.8155,recreation,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-021,Lotte Mall West Lake Hanoi,272 Võ Chí Công,Tây Hồ,21.0759,105.8112,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-022,Hoàng thành Thăng Long,19C Hoàng Diệu,Ba Đình,21.0358,105.8398,tourist/culture,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-023,Quảng trường Ba Đình,Hùng Vương,Ba Đình,21.0369,105.8348,public-space,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-024,Lăng Chủ tịch Hồ Chí Minh,2 Hùng Vương,Ba Đình,21.0368,105.833,tourist/culture,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-025,Vườn Bách Thảo Hà Nội,3 Hoàng Hoa Thám,Ba Đình,21.0415,105.827,park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-026,Công viên Thủ Lệ,Đào Tấn,Ba Đình,21.0258,105.8089,park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-027,Lotte Center Hanoi,54 Liễu Giai,Ba Đình,21.0312,105.8148,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-028,Keangnam Landmark 72,Phạm Hùng,Nam Từ Liêm,21.0176,105.7838,commercial/office,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-029,The Garden Mall,Mễ Trì,Nam Từ Liêm,21.0117,105.7887,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-030,Mỹ Đình National Stadium,Lê Đức Thọ,Nam Từ Liêm,21.0207,105.7645,stadium,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-031,Bến xe Mỹ Đình,20 Phạm Hùng,Nam Từ Liêm,21.0289,105.7792,transport,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-032,AEON Mall Hà Đông,Dương Nội,Hà Đông,20.9637,105.745,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-033,Hà Đông - Trần Phú,Trần Phú,Hà Đông,20.9712,105.7758,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-034,Ga Cát Linh,Đê La Thành / Cát Linh,Đống Đa,21.0273,105.8299,metro,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-035,Ga La Thành,Hoàng Cầu,Đống Đa,21.0198,105.8212,metro,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-036,Hồ Hoàng Cầu,Hoàng Cầu,Đống Đa,21.0207,105.8242,lake/park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-037,Royal City,72A Nguyễn Trãi,Thanh Xuân,20.9947,105.8147,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-038,Ngã Tư Sở,Trường Chinh / Nguyễn Trãi,Thanh Xuân,20.9992,105.8159,transport/commercial,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-039,Công viên Thanh Xuân,Nguyễn Xiển,Thanh Xuân,20.9923,105.803,park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-040,Vincom Mega Mall Times City,458 Minh Khai,Hai Bà Trưng,20.9948,105.8672,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-041,AEON Mall Long Biên,27 Cổ Linh,Long Biên,21.0304,105.892,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-042,Cầu Long Biên,Long Biên,Long Biên,21.0437,105.8509,tourist/transport,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-043,Bồ Đề - Nguyễn Văn Cừ,Nguyễn Văn Cừ,Long Biên,21.0451,105.8717,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-044,Hồ Trúc Bạch,Trấn Vũ,Ba Đình,21.0436,105.8437,lake/park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-045,Chợ Châu Long,Châu Long,Ba Đình,21.043,105.841,market,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-046,Công viên Cầu Giấy,Dương Đình Nghệ,Cầu Giấy,21.0358,105.7895,park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-047,Indochina Plaza Hanoi,241 Xuân Thủy,Cầu Giấy,21.0368,105.7826,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-048,Đại học Quốc gia Hà Nội,144 Xuân Thủy,Cầu Giấy,21.0378,105.7815,university,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-049,Keangnam - Phạm Hùng,Phạm Hùng,Cầu Giấy/Nam Từ Liêm,21.0178,105.7849,office/transport,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-050,Công viên Nghĩa Đô,Nguyễn Văn Huyên,Cầu Giấy,21.0393,105.796,park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-051,Hồ Linh Đàm,Linh Đàm,Hoàng Mai,20.9754,105.8249,lake/park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-052,Công viên Yên Sở,Yên Sở,Hoàng Mai,20.9712,105.872,park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-053,Bến xe Giáp Bát,Giải Phóng,Hoàng Mai,20.9819,105.8427,transport,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-054,Đại học Thăng Long,Nghiêm Xuân Yêm,Hoàng Mai,20.9785,105.7982,university,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-055,Cầu Chương Dương,Chương Dương,Hoàn Kiếm/Long Biên,21.033,105.8627,transport,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-056,Phố Nguyễn Chí Thanh,Nguyễn Chí Thanh,Đống Đa,21.0209,105.8112,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-057,Phố Giảng Võ,Giảng Võ,Ba Đình,21.0269,105.8206,commercial,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-058,Hồ Giảng Võ,Giảng Võ,Ba Đình,21.0293,105.8182,lake/park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-059,Công viên Hòa Bình,Phạm Văn Đồng,Bắc Từ Liêm,21.0702,105.7745,park,P2,120,250,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.
+BIN-060,Đại học Ngoại thương,91 Chùa Láng,Đống Đa,21.0235,105.8049,university,P1,240,150,PROPOSED,MEDIUM,Candidate generated from public POI/urban-demand logic; verify exact curb/sidewalk position.

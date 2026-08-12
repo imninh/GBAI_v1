@@ -19,7 +19,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from src.config import get_settings
-from src.db.models import Bin, BinReading, User
+from src.db.models import Bin, BinReading, PickupRoute, RouteStop, User, WasteCategory
+from src.services.auth import write_audit
 
 
 def _ve_naive_utc(value: datetime) -> datetime:
@@ -372,3 +373,230 @@ def danh_sach_nhan_vien(session: Session, *, cua_to_chuc: int | None = None) -> 
         }
         for nv in nhan_vien
     ]
+
+
+# --- Gói P31: ban quản lý thêm / sửa / ngừng dùng thùng ------------------------
+
+# Trường người quản lý được sửa qua PATCH. CỐ TÌNH không nằm trong danh sách:
+# `code` (khoá mọi nơi khác đang tham chiếu), số đo của thiết bị
+# (`fill_percent`/`battery_percent`/`last_seen_at`/`device_key_hash` — người sửa
+# tay là bịa số đo), `is_seed` (cờ nguồn dữ liệu) và `organization_id` (đơn vị
+# sở hữu).
+#
+# Ba trường GIS được gói P30 thêm vào `models_bins.py` SAU khi gói P31 dựng xong
+# bốn endpoint này, nên chúng bị bỏ sót khỏi danh sách trắng. Bổ sung ở đây.
+# `coordinate_confidence` và `priority` CỐ Ý không có mặt: cái đầu là mức tin cậy
+# của phép khảo sát, cái sau là mức ưu tiên triển khai — cả hai thuộc về quy
+# trình khảo sát thực địa, không phải thứ người trực console sửa tay.
+CAC_TRUONG_SUA_DUOC = frozenset(
+    {
+        "name",
+        "address",
+        "lat",
+        "lng",
+        "category_codes",
+        "capacity_liters",
+        "site_type",
+        "area_name",
+        "deployment_status",
+    }
+)
+
+# Trạng thái tuyến chưa hoàn tất: thùng đang là điểm dừng của một tuyến như thế
+# thì không được ngừng dùng. `done` và `cancelled` là kết thúc, không giữ thùng.
+TRANG_THAI_TUYEN_CHUA_XONG = frozenset({"proposed", "approved", "in_progress"})
+
+
+def _tra_thung(session: Session, code: str) -> Bin:
+    """Tìm thùng theo mã. Raises ``ValueError`` khi không có — cùng câu với lỗi
+    của các endpoint đọc, không lộ mã nào có thật cho người đang dò."""
+    thung = session.scalar(select(Bin).where(Bin.code == code))
+    if thung is None:
+        raise ValueError(f"Không tìm thấy thùng có mã '{code}'.")
+    return thung
+
+
+def _kiem_toa_do(lat: float | None, lng: float | None) -> None:
+    """Toạ độ cho phép NULL (thùng chưa xác định vị trí), nhưng nếu có thì phải
+    nằm trong khoảng hợp lệ — một thùng ớ vĩ độ 200 là dữ liệu hỏng ngay."""
+    if lat is not None and not -90 <= lat <= 90:
+        raise ValueError(f"Toạ độ vĩ độ {lat} nằm ngoài khoảng cho phép (-90..90).")
+    if lng is not None and not -180 <= lng <= 180:
+        raise ValueError(f"Toạ độ kinh độ {lng} nằm ngoài khoảng cho phép (-180..180).")
+
+
+def _kiem_nhom_rac(session: Session, cac_ma: list[str]) -> list[str]:
+    """Mọi mã nhóm rác phải tồn tại trong bảng ``waste_categories``. Không tự
+    tạo danh mục mới — tạo thùng kéo theo danh mục là thay đổi hệ thống trộm lén."""
+    cac_ma = list(cac_ma)
+    ma_rac = {ma for (ma,) in session.execute(select(WasteCategory.code)).all()}
+    sai = [ma for ma in cac_ma if ma not in ma_rac]
+    if sai:
+        raise ValueError(f"Nhóm rác không tồn tại: {', '.join(sai)}.")
+    return cac_ma
+
+
+def tao_thung(session: Session, du_lieu: dict[str, Any], nguoi_tao: User) -> Bin:
+    """Ban quản lý tạo một thùng thu gom mới.
+
+    Thùng do người nhập (``is_seed=False``) — khác hẳn 60 điểm đề xuất của gói
+    P30. Đơn vị thu gom lấy theo đơn vị của người tạo, không nhận từ client:
+    người ta không được tạo thùng cho đơn vị khác.
+
+    Raises:
+        ValueError: khi `code` thiếu/trùng, tên thiếu, toạ độ ngoài khoảng, hay
+            nhóm rác không tồn tại.
+    """
+    code = (du_lieu.get("code") or "").strip().upper()
+    if not code:
+        raise ValueError("Cần mã thùng để tạo — mã không được để trống.")
+    if session.scalar(select(Bin).where(Bin.code == code)) is not None:
+        raise ValueError(f"Đã có thùng mã '{code}' — mã thùng phải là duy nhất.")
+
+    ten = (du_lieu.get("name") or "").strip()
+    if not ten:
+        raise ValueError("Cần tên thùng để tạo — tên không được để trống.")
+
+    lat = du_lieu.get("lat")
+    lng = du_lieu.get("lng")
+    _kiem_toa_do(lat, lng)
+
+    cac_ma = _kiem_nhom_rac(session, du_lieu.get("category_codes") or [])
+
+    thung = Bin(
+        code=code,
+        name=ten,
+        address=(du_lieu.get("address") or "").strip(),
+        lat=lat,
+        lng=lng,
+        category_codes=cac_ma,
+        capacity_liters=du_lieu.get("capacity_liters") or 0.0,
+        building_id=du_lieu.get("building_id"),
+        is_active=True,
+        is_seed=False,
+        organization_id=nguoi_tao.organization_id,
+    )
+    session.add(thung)
+    session.flush()
+
+    write_audit(
+        session,
+        actor=nguoi_tao,
+        action="create_bin",
+        entity="bin",
+        entity_id=thung.code,
+        detail={"name": thung.name, "category_codes": thung.category_codes},
+    )
+    return thung
+
+
+def sua_thung(session: Session, code: str, du_lieu: dict[str, Any], nguoi_sua: User) -> Bin:
+    """Sửa các trường người quản lý được phép của một thùng (PATCH đúng nghĩa).
+
+    Trường không có trong ``du_lieu`` thì không đổi; body không có trường nào
+    sửa được thì trả về nguyên trạng, không ghi nhật ký.
+
+    Raises:
+        ValueError: khi thùng không tồn tại, ngoài phạm vi người xem, toạ độ
+            ngoài khoảng, hay nhóm rác không tồn tại.
+    """
+    thung = _tra_thung(session, code)
+    if not xem_duoc_thung(thung, loc_theo_nguoi_xem(nguoi_sua), to_chuc_cua_nguoi_xem(nguoi_sua)):
+        raise ValueError(f"Không tìm thấy thùng có mã '{code}'.")
+
+    # Lọc lại một lần ở lớp nghiệp vụ: dù router gửi gì, chỉ trường trong danh
+    # sách trắng mới được chạm. Cấm sửa code / số đo thiết bị nằm ngay ở đây.
+    cac_truong = {k: v for k, v in du_lieu.items() if k in CAC_TRUONG_SUA_DUOC}
+    if not cac_truong:
+        return thung
+
+    _kiem_toa_do(
+        cac_truong.get("lat", thung.lat),
+        cac_truong.get("lng", thung.lng),
+    )
+    if "category_codes" in cac_truong:
+        cac_truong["category_codes"] = _kiem_nhom_rac(session, cac_truong["category_codes"] or [])
+
+    # Chụp giá trị TRƯỚC của đúng các trường sẽ đổi — chụp sau là ghi vào nhật
+    # ký hai giá trị giống hệt nhau, nhật ký thành vô dụng.
+    truoc = {k: getattr(thung, k) for k in cac_truong}
+    for k, v in cac_truong.items():
+        setattr(thung, k, v)
+    session.flush()
+
+    write_audit(
+        session,
+        actor=nguoi_sua,
+        action="update_bin",
+        entity="bin",
+        entity_id=thung.code,
+        detail={"truoc": truoc, "sau": cac_truong},
+    )
+    return thung
+
+
+def ngung_dung_thung(session: Session, code: str, nguoi_xoa: User) -> Bin:
+    """Ngừng dùng một thùng — tắt cờ ``is_active``, KHÔNG xoá hàng.
+
+    ⛔ Không dùng ``session.delete``: quan hệ ``readings`` có ``cascade="all,
+    delete-orphan"`` nên xoá một thùng là xoá sạch toàn bộ lịch sử mức rác/pin
+    (dữ liệu nuôi quyết định điều phối), và ``RouteStop`` còn tham chiếu
+    ``bin_id`` — xoá thùng từng nằm trong tuyến đã chạy là làm hỏng hồ sơ tuyến
+    cũ. ``is_active`` có sẵn trong model là để dành cho việc này.
+
+    Thùng đang là điểm dừng của một tuyến chưa hoàn tất thì từ chối.
+
+    Raises:
+        ValueError: khi thùng không tồn tại, ngoài phạm vi, hoặc đang trong tuyến.
+    """
+    thung = _tra_thung(session, code)
+    if not xem_duoc_thung(thung, loc_theo_nguoi_xem(nguoi_xoa), to_chuc_cua_nguoi_xem(nguoi_xoa)):
+        raise ValueError(f"Không tìm thấy thùng có mã '{code}'.")
+
+    tuyen_giu = session.scalar(
+        select(PickupRoute)
+        .join(RouteStop, RouteStop.route_id == PickupRoute.id)
+        .where(RouteStop.bin_id == thung.id, PickupRoute.status.in_(TRANG_THAI_TUYEN_CHUA_XONG))
+        .order_by(PickupRoute.service_date.desc(), PickupRoute.id.desc())
+    )
+    if tuyen_giu is not None:
+        raise ValueError(
+            f"Thùng '{code}' đang là điểm dừng của tuyến #{tuyen_giu.id} chưa hoàn tất — không ngừng dùng được."
+        )
+
+    thung.is_active = False
+    session.flush()
+
+    write_audit(
+        session,
+        actor=nguoi_xoa,
+        action="deactivate_bin",
+        entity="bin",
+        entity_id=thung.code,
+        detail={"is_active": False},
+    )
+    return thung
+
+
+def kich_hoat_lai_thung(session: Session, code: str, nguoi_bat: User) -> Bin:
+    """Đưa một thùng đã ngừng dùng trở lại hoạt động.
+
+    Raises:
+        ValueError: khi thùng không tồn tại, hoặc ngoài phạm vi người xem.
+    """
+    thung = _tra_thung(session, code)
+    if not xem_duoc_thung(thung, loc_theo_nguoi_xem(nguoi_bat), to_chuc_cua_nguoi_xem(nguoi_bat)):
+        raise ValueError(f"Không tìm thấy thùng có mã '{code}'.")
+
+    thung.is_active = True
+    session.flush()
+
+    write_audit(
+        session,
+        actor=nguoi_bat,
+        action="reactivate_bin",
+        entity="bin",
+        entity_id=thung.code,
+        detail={"is_active": True},
+    )
+    return thung

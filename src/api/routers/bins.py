@@ -13,6 +13,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from src.api.deps import DbSession, require
 from src.api.errors import ApiError, bad_request, not_found
@@ -41,6 +42,38 @@ class AssignPayload(BaseModel):
     cleaner_id: int | None = None
 
 
+class TaoThungPayload(BaseModel):
+    """Body tạo thùng mới (gói P31). Mã và tên bắt buộc, toạ độ tuỳ chọn.
+
+    Đơn vị sở hữu của thùng không nhận từ client — lấy theo người tạo, không để
+    ai tạo thùng cho đơn vị khác.
+    """
+
+    code: str
+    name: str
+    address: str = ""
+    lat: float | None = None
+    lng: float | None = None
+    category_codes: list[str] = []
+    capacity_liters: float = 0.0
+    building_id: int | None = None
+
+
+class CapNhatThungPayload(BaseModel):
+    """Body sửa thùng (gói P31) — mọi trường tuỳ chọn, không truyền là không đổi.
+
+    Đọc bằng ``model_dump(exclude_unset=True)`` để phân biệt "không gửi" với "gửi
+    null" (ví dụ gửi ``lat: null`` là cố ý xoá toạ độ).
+    """
+
+    name: str | None = None
+    address: str | None = None
+    lat: float | None = None
+    lng: float | None = None
+    category_codes: list[str] | None = None
+    capacity_liters: float | None = None
+
+
 def _serialize_row(row: dict[str, Any]) -> dict[str, Any]:
     """Bản sao JSON-safe của một thùng, đúng khối mà ``/bins`` trả về."""
     return {
@@ -59,6 +92,35 @@ def _serialize_row(row: dict[str, Any]) -> dict[str, Any]:
         "last_seen_at": row["last_seen_at"].isoformat() if row["last_seen_at"] else None,
         "status": row["status"],
     }
+
+
+def _phan_hoi_thung(session: Session, thung: Bin, readings_limit: int = 20) -> dict[str, Any]:
+    """Khuôn chi tiết thùng đúng ``GET /bins/{code}`` — một hình dạng duy nhất
+    cho mọi endpoint chạm thùng, không đẻ ra dạng thứ hai cho cùng một thực thể.
+    """
+    now = utcnow()
+    phan_hoi = _serialize_row(
+        {
+            "id": thung.id,
+            "code": thung.code,
+            "name": thung.name,
+            "building_id": thung.building_id,
+            "address": thung.address,
+            "category_codes": thung.category_codes or [],
+            "lat": thung.lat,
+            "lng": thung.lng,
+            "fill_percent": thung.fill_percent,
+            "battery_percent": thung.battery_percent,
+            "last_seen_at": thung.last_seen_at,
+            "assigned_cleaner_id": thung.assigned_cleaner_id,
+            "status": bins.trang_thai_thung(thung, now),
+        }
+    )
+    phan_hoi["readings"] = [
+        {**dong, "created_at": dong["created_at"].isoformat() if dong["created_at"] else None}
+        for dong in bins.lich_su_readings(session, thung.id, limit=readings_limit)
+    ]
+    return phan_hoi
 
 
 @router.get("/bins")
@@ -144,29 +206,7 @@ def get_bin(
         thung, bins.loc_theo_nguoi_xem(user), bins.to_chuc_cua_nguoi_xem(user)
     ):
         raise not_found(f"thùng có mã '{code}'")
-    now = utcnow()
-    phan_hoi = _serialize_row(
-        {
-            "id": thung.id,
-            "code": thung.code,
-            "name": thung.name,
-            "building_id": thung.building_id,
-            "address": thung.address,
-            "category_codes": thung.category_codes or [],
-            "lat": thung.lat,
-            "lng": thung.lng,
-            "fill_percent": thung.fill_percent,
-            "battery_percent": thung.battery_percent,
-            "last_seen_at": thung.last_seen_at,
-            "assigned_cleaner_id": thung.assigned_cleaner_id,
-            "status": bins.trang_thai_thung(thung, now),
-        }
-    )
-    phan_hoi["readings"] = [
-        {**dong, "created_at": dong["created_at"].isoformat() if dong["created_at"] else None}
-        for dong in bins.lich_su_readings(session, thung.id, limit=readings_limit)
-    ]
-    return phan_hoi
+    return _phan_hoi_thung(session, thung, readings_limit=readings_limit)
 
 
 @router.post("/bins/{code}/readings")
@@ -283,3 +323,87 @@ def gan_nhan_vien(
         "assigned_cleaner_id": thung.assigned_cleaner_id,
         "assigned_cleaner_name": nhan_vien.full_name if nhan_vien is not None else "",
     }
+
+
+# --- Gói P31: ban quản lý thêm / sửa / ngừng dùng thùng ------------------------
+#
+# Bốn route dưới đây đặt cuối file. Không route nào bị `/bins/{code}` nuốt: nó
+# có đúng MỘT đoạn đường dẫn, còn `/bins/{code}/kich-hoat` và `/bins/{code}/readings`
+# có HAI đoạn với hậu tố khác nhau — FastAPI khớp theo số đoạn, nên không có
+# chuyện literal bị tham số hút về. `POST /bins` không tham số nên cũng vô hại.
+
+
+@router.post("/bins", status_code=201)
+def tao_bin(
+    payload: TaoThungPayload,
+    session: DbSession,
+    user: Annotated[User, Depends(require("manage_bins"))],
+) -> dict:
+    """Ban quản lý tạo một thùng thu gom mới (gói P31)."""
+    try:
+        thung = bins.tao_thung(session, payload.model_dump(), user)
+    except ValueError as exc:
+        raise bad_request(str(exc), code="BIN-400") from exc
+    return _phan_hoi_thung(session, thung)
+
+
+@router.patch("/bins/{code}")
+def sua_bin(
+    code: str,
+    payload: CapNhatThungPayload,
+    session: DbSession,
+    user: Annotated[User, Depends(require("manage_bins"))],
+) -> dict:
+    """Ban quản lý sửa các trường cho phép của một thùng.
+
+    PATCH đúng nghĩa: trường không gửi thì không đổi. `code` và số đo thiết bị
+    nằm ngoài danh sách trắng của `bins.sua_thung` nên không bao giờ chạm được.
+    """
+    thung = session.scalar(select(Bin).where(Bin.code == code))
+    if thung is None:
+        raise not_found(f"thùng có mã '{code}'")
+    try:
+        thung = bins.sua_thung(session, code, payload.model_dump(exclude_unset=True), user)
+    except ValueError as exc:
+        raise bad_request(str(exc), code="BIN-400") from exc
+    return _phan_hoi_thung(session, thung)
+
+
+@router.delete("/bins/{code}")
+def ngung_dung_bin(
+    code: str,
+    session: DbSession,
+    user: Annotated[User, Depends(require("manage_bins"))],
+) -> dict:
+    """Ban quản lý ngừng dùng một thùng — tắt hoạt động, GIỮ nguyên lịch sử.
+
+    Là "ngừng dùng" chứ không phải "xoá": thùng ngừng dùng biến mất khỏi danh
+    sách điều phối và điểm gửi của cư dân, nhưng hàng `bins` và toàn bộ
+    `bin_readings` vẫn còn — xoá hàng là xoá luôn lịch sử mức rác/pin (cascade
+    delete-orphan) và làm hỏng hồ sơ tuyến cũ còn tham chiếu `bin_id`.
+    """
+    thung = session.scalar(select(Bin).where(Bin.code == code))
+    if thung is None:
+        raise not_found(f"thùng có mã '{code}'")
+    try:
+        thung = bins.ngung_dung_thung(session, code, user)
+    except ValueError as exc:
+        raise bad_request(str(exc), code="BIN-400") from exc
+    return _phan_hoi_thung(session, thung)
+
+
+@router.post("/bins/{code}/kich-hoat")
+def kich_hoat_bin(
+    code: str,
+    session: DbSession,
+    user: Annotated[User, Depends(require("manage_bins"))],
+) -> dict:
+    """Ban quản lý đưa một thùng đã ngừng dùng trở lại hoạt động."""
+    thung = session.scalar(select(Bin).where(Bin.code == code))
+    if thung is None:
+        raise not_found(f"thùng có mã '{code}'")
+    try:
+        thung = bins.kich_hoat_lai_thung(session, code, user)
+    except ValueError as exc:
+        raise bad_request(str(exc), code="BIN-400") from exc
+    return _phan_hoi_thung(session, thung)
