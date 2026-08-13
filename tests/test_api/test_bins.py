@@ -190,7 +190,8 @@ async def test_stats_bon_chi_so_dung(api: AsyncClient, api_session: Session) -> 
     response = await api.get("/api/v1/bins/stats", headers=_auth(token))
 
     assert response.status_code == 200, response.text
-    assert response.json() == {"tong": 4, "can_gom": 1, "mat_ket_noi": 1, "het_pin": 1}
+    # Gói P42 thêm `chua_trien_khai` — 4 thùng này không PROPOSED nên bằng 0.
+    assert response.json() == {"tong": 4, "can_gom": 1, "mat_ket_noi": 1, "het_pin": 1, "chua_trien_khai": 0}
 
 
 @pytest.mark.asyncio

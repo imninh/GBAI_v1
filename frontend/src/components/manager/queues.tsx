@@ -147,7 +147,13 @@ export function PickupQueue() {
                 <div className="mb-3.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {dangChon.items.map((m, i) => (
                     <div key={i}>
-                      <div className="mb-1 aspect-square rounded-xl bg-[repeating-linear-gradient(135deg,#ece7f6,#ece7f6_6px,#e3daf3_6px,#e3daf3_12px)]" />
+                      <div className="mb-1 aspect-square overflow-hidden rounded-xl">
+                        <AnhCoToken
+                          mediaId={m.media_id}
+                          alt={m.name}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
                       <div className="text-[10px] font-bold">
                         {m.name}
                         {m.qty > 1 ? ` ×${m.qty}` : ""}

@@ -186,7 +186,9 @@ def test_thong_ke_thung_dem_du_bon_loai(db_session: Session) -> None:
 
     ket_qua = bins.thong_ke_thung(db_session, NOW)
 
-    assert ket_qua == {"tong": 4, "can_gom": 1, "mat_ket_noi": 1, "het_pin": 1}
+    # Gói P42 thêm `chua_trien_khai` vào dict thống kê — 4 thùng này không PROPOSED
+    # nên nhóm mới bằng 0, còn các nhóm cũ giữ nguyên.
+    assert ket_qua == {"tong": 4, "can_gom": 1, "mat_ket_noi": 1, "het_pin": 1, "chua_trien_khai": 0}
 
 
 def test_danh_sach_chi_can_gom_loc_va_sap_xep_giam_dan(db_session: Session) -> None:

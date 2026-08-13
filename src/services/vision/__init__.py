@@ -72,7 +72,7 @@ def build_client_for(provider: str) -> VisionClient:
     """
     if provider == "gemini":
         return build_gemini_client()
-    if provider in {"openai", "openrouter", "nvidia", "deepseek", "groq"}:
+    if provider in {"openai", "openrouter", "nvidia", "deepseek", "groq", "mistral"}:
         return build_openai_compatible_client(provider)
     if provider == "local_only":
         raise VisionUnavailableError(

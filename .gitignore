@@ -105,6 +105,14 @@ frontend/android/app/src/main/assets/capacitor.plugins.json
 *.pyc
 *.pyo
 
+# Model YOLO tầng T0.5 — không commit. Sinh lại bằng
+# `scripts/xuat_yolo_onnx.py` (hoặc tải từ nguồn gốc), rồi đính GitHub Release
+# và trỏ YOLO_ASSETS_URL. Quy ước y hệt CLIP ONNX ở ADR-0007.
+yolo11n.onnx
+yolo11n.pt
+*.onnx
+*.pt
+
 # AI logs — tracked structure, ignored content
 .ai-log/*.jsonl
 .ai-log/archive/

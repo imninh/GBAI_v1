@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, Marker, Polyline, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Bin } from "@/lib/bins";
@@ -16,11 +16,17 @@ const MARKER_STYLE: Record<Bin["status"], string> = {
     "background:var(--stale-soft);color:var(--stale);border:1.5px dashed var(--stale);font-weight:400;opacity:.75",
   binh_thuong:
     "background:oklch(1 0 0);color:var(--ok);border:1px solid var(--ok);font-weight:500",
+  // Xám nhạt nét CHẤM — khác hẳn nét ĐỨT của "mất kết nối": chưa triển khai là
+  // trạng thái bình thường, không báo động.
+  chua_trien_khai:
+    "background:#eef1ec;color:#5a6b5f;border:1.5px dotted #c3cbc2;font-weight:400;opacity:.8",
 };
 
 function icon(bin: Bin) {
   const label =
-    bin.status === "mat_ket_noi" ? "?" : `${Math.round(bin.fill_percent)}%`;
+    bin.status === "mat_ket_noi" || bin.status === "chua_trien_khai"
+      ? "?"
+      : `${Math.round(bin.fill_percent)}%`;
   return L.divIcon({
     className: "bin-marker-icon",
     iconSize: [46, 30],
@@ -47,6 +53,15 @@ const ICON_DANH_DAU = L.divIcon({
   html: `<div style="width:18px;height:18px;margin:2px;border-radius:999px 999px 999px 0;transform:rotate(-45deg);background:var(--color-ink);border:2px solid oklch(1 0 0);box-shadow:0 2px 6px oklch(0 0 0 / .35)"></div>`,
 });
 
+// Chấm "vị trí của bạn" — xanh dương có vòng sáng, khác hẳn marker thùng và chấm mốc
+// tự đặt, để người dùng nhận ra ngay đâu là mình.
+const ICON_VI_TRI_TOI = L.divIcon({
+  className: "bin-marker-icon",
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+  html: `<div style="width:14px;height:14px;margin:3px;border-radius:999px;background:#1f6feb;border:3px solid oklch(1 0 0);box-shadow:0 0 0 4px oklch(0.55 0.2 255 / .35)"></div>`,
+});
+
 /** Bắt cú chạm lên nền bản đồ. Chỉ được gắn khi cha truyền `onMapClick`, nên
  *  bản đồ điều phối không đăng ký listener nào và hành vi của nó không đổi. */
 function BatSuKienCham({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
@@ -62,6 +77,8 @@ export default function BinMap({
   onSelect,
   onMapClick,
   diemDanhDau = null,
+  viTriNguoiDung = null,
+  tuMoc = null,
 }: {
   bins: Bin[];
   selected: Bin | null;
@@ -71,6 +88,10 @@ export default function BinMap({
   onMapClick?: (lat: number, lng: number) => void;
   /** Chấm người dùng vừa đặt. KHÔNG phải một cái thùng, chỉ là một điểm. */
   diemDanhDau?: { lat: number; lng: number } | null;
+  /** Vị trí GPS của người dùng — chấm "bạn ở đây". Chỉ hiện khi có. */
+  viTriNguoiDung?: { lat: number; lng: number } | null;
+  /** Điểm gốc để nối đường tới thùng đang chọn (nơi ở / GPS / mốc tự thêm). */
+  tuMoc?: { lat: number; lng: number } | null;
 }) {
   return (
     <MapContainer
@@ -94,6 +115,18 @@ export default function BinMap({
       ))}
       {diemDanhDau && (
         <Marker position={[diemDanhDau.lat, diemDanhDau.lng]} icon={ICON_DANH_DAU} />
+      )}
+      {viTriNguoiDung && (
+        <Marker position={[viTriNguoiDung.lat, viTriNguoiDung.lng]} icon={ICON_VI_TRI_TOI} />
+      )}
+      {tuMoc && selected && hasCoords(selected) && (
+        <Polyline
+          positions={[
+            [tuMoc.lat, tuMoc.lng],
+            [selected.lat, selected.lng],
+          ]}
+          pathOptions={{ color: "#1f6feb", weight: 4, opacity: 0.7, dashArray: "1 8" }}
+        />
       )}
       {onMapClick && <BatSuKienCham onMapClick={onMapClick} />}
       <Recenter bin={selected} />

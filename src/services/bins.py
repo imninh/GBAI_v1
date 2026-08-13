@@ -77,9 +77,22 @@ def trang_thai_thung(bin: Bin, now: datetime) -> str:
     """Trạng thái điều phối của một thùng.
 
     Returns:
-        ``mat_ket_noi`` · ``het_pin`` · ``can_gom`` · ``binh_thuong``.
+        ``chua_trien_khai`` · ``mat_ket_noi`` · ``het_pin`` · ``can_gom`` ·
+        ``binh_thuong``.
     """
     settings = get_settings()
+
+    # Thùng ở trạng thái ĐỀ XUẤT (PROPOSED) là vị trí trên bản đồ chưa lắp thiết
+    # bị — nó KHÔNG "mất kết nối", nó "chưa triển khai". Gộp hai cái làm ban quản
+    # lý không phân biệt được "chưa lắp" (bình thường) với "đã lắp mà hỏng" (phải
+    # đi sửa). `deployment_status` rỗng nghĩa là thùng demo/thật đang vận hành —
+    # giữ nguyên đường cũ cho chúng.
+    #
+    # Phải đứng ĐẦU TIÊN, trước phép kiểm `last_seen_at is None`: thùng PROPOSED
+    # chưa có reading nào nên `last_seen_at=None` — đặt nhánh này sau phép kiểm
+    # đó thì nó trả `mat_ket_noi` và thoát trước khi nhánh mới kịp chạy.
+    if bin.deployment_status == "PROPOSED":
+        return "chua_trien_khai"
 
     # THỨ TỰ ƯU TIÊN LÀ BẮT BUỘC: mất kết nối phải thắng mọi trạng thái khác.
     # Một thùng offline 3 ngày vẫn còn lưu con số 85% của lần báo cuối; nếu xét
@@ -209,11 +222,22 @@ def thong_ke_thung(
     Bốn con số trên dashboard phải đếm **đúng tập thùng mà người đang xem nhìn
     thấy trong danh sách**. Thẻ thống kê nói 10 trong khi danh sách chỉ có 6 là
     hai màn hình nói hai chuyện khác nhau, và người dùng sẽ tin con số to hơn.
+
+    `chua_trien_khai` (gói P39/P42): thùng `deployment_status="PROPOSED"` vẫn nằm
+    trong danh sách nhưng trước đây bị rơi khỏi mọi thẻ — 70 thùng (60 PROPOSED
+    + 10 demo) cho `tong = 70` mà bốn nhóm cộng lại chỉ ~10. Thêm khoá vào `dem`
+    là đủ: vòng `if dong["status"] in dem` phía dưới tự đếm nhóm mới.
     """
     danh_sach = danh_sach_thung(
         session, now, cua_nhan_vien=cua_nhan_vien, cua_to_chuc=cua_to_chuc
     )
-    dem: dict[str, int] = {"tong": len(danh_sach), "can_gom": 0, "mat_ket_noi": 0, "het_pin": 0}
+    dem: dict[str, int] = {
+        "tong": len(danh_sach),
+        "can_gom": 0,
+        "mat_ket_noi": 0,
+        "het_pin": 0,
+        "chua_trien_khai": 0,
+    }
     for dong in danh_sach:
         if dong["status"] in dem:
             dem[dong["status"]] += 1

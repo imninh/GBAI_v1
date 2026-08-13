@@ -366,6 +366,8 @@ export function NearbyBinsScreen() {
           }}
           onMapClick={dangThem ? (lat, lng) => setDiemMoi({ lat, lng }) : undefined}
           diemDanhDau={dangThem ? diemMoi : null}
+          viTriNguoiDung={viTriGps}
+          tuMoc={mocToaDo}
         />
       </div>
 

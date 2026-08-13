@@ -18,7 +18,7 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VisionProvider = Literal["gemini", "groq", "openai", "openrouter", "nvidia", "local_only"]
+VisionProvider = Literal["gemini", "groq", "openai", "openrouter", "nvidia", "deepseek", "mistral", "local_only"]
 
 # Ba tầng có gọi model đám mây. T0 (cache pHash) và T0.5 (CLIP local) không gọi
 # nên không nằm ở đây.
@@ -33,6 +33,7 @@ OPENAI_COMPATIBLE_BASE_URLS: dict[str, str] = {
     "nvidia": "https://integrate.api.nvidia.com/v1",
     "deepseek": "https://api.deepseek.com/v1",
     "groq": "https://api.groq.com/openai/v1",
+    "mistral": "https://api.mistral.ai/v1",
 }
 
 # Phiên bản prompt phân loại. **Một nguồn sự thật duy nhất** — nâng ở đây mỗi khi
@@ -130,6 +131,10 @@ PROVIDER_DEFAULT_MODELS: dict[str, tuple[str, str, str]] = {
     # tên; thực tế T2 vẫn để ở Gemini (xem .env) để mất một nhà cung cấp thì chỉ
     # mất một tầng — ADR-0006.
     "groq": ("qwen/qwen3.6-27b", "qwen/qwen3.6-27b", "openai/gpt-oss-120b"),
+    # Mistral — model vision "pixtral", KHÔNG phải reasoning nên nhanh hơn qwen.
+    # ⚠️ Tên dưới đây là ứng viên, PHẢI đối chiếu trang model của Mistral trước
+    # khi chạy thật — tên model đổi thường xuyên.
+    "mistral": ("pixtral-12b-2409", "pixtral-large-latest", "mistral-small-latest"),
     "local_only": ("", "", ""),
 }
 
@@ -216,6 +221,7 @@ class Settings(BaseSettings):
     nvidia_api_key: str = ""
     deepseek_api_key: str = ""
     groq_api_key: str = ""
+    mistral_api_key: str = ""
 
     # Tên model từng tầng. Mặc định điền theo provider trong ``resolve_models``
     # nếu để trống, nên thường không cần đụng tới.
@@ -231,6 +237,12 @@ class Settings(BaseSettings):
     # trần vào khối `<think>` rồi mới tới JSON. Để chỉnh được bằng .env thay vì
     # phải sửa code khi đổi model.
     vision_max_output_tokens: int = 2000
+    # Timeout (giây) cho MỘT lệnh gọi model đám mây qua httpx. Trước đây hardcode
+    # 60s trong openai_compat.py — trace production 13/08 cho thấy T1 treo hết 60s
+    # rồi mới rơi xuống T2, ăn ~60s vào đường nóng. 15s đủ cho ảnh 512px detail=low;
+    # ca treo thì fail-fast để leo tầng ngay. ⚠️ KHÔNG hạ dưới ~10s — T2 (reasoning)
+    # cần vài giây thật để sinh JSON.
+    vision_timeout_seconds: float = Field(default=15.0, gt=0)
 
     # Giữ tên cũ để code/template cũ không gãy.
     model_name: str = "gpt-4o-mini"
@@ -389,6 +401,7 @@ class Settings(BaseSettings):
             "gemini": self.gemini_api_key,
             "deepseek": self.deepseek_api_key,
             "groq": self.groq_api_key,
+            "mistral": self.mistral_api_key,
             "local_only": "",
         }
         return keys.get(provider, "")

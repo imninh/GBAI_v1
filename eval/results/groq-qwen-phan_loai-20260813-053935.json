@@ -1,0 +1,144 @@
+{
+  "chay_luc": "2026-08-13T05:39:35.324131+00:00",
+  "nhan": [
+    "recyclable",
+    "recyclable_paper",
+    "recyclable_plastic",
+    "recyclable_metal",
+    "recyclable_glass",
+    "organic",
+    "other",
+    "hazardous",
+    "bulky"
+  ],
+  "cau_hinh": {
+    "tang": {
+      "t1": {
+        "provider": "groq",
+        "model": "qwen/qwen3.6-27b"
+      },
+      "t2": {
+        "provider": "gemini",
+        "model": "gemini-3.6-flash"
+      },
+      "text": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b"
+      }
+    },
+    "local_model_enabled": true,
+    "dung_cache_phash": false,
+    "nghi_giay": 0.0,
+    "limit": 1,
+    "ten_cau_hinh": "groq-qwen"
+  },
+  "tong_hop": {
+    "cong_khai": {
+      "so_anh": 5,
+      "so_tra_loi": 5,
+      "so_tu_choi": 0,
+      "so_loi": 1,
+      "ty_le_tra_loi": 1.0,
+      "accuracy_khi_tra_loi": 1.0,
+      "accuracy_toan_bo": 1.0,
+      "macro_f1": 1.0,
+      "recall_nguy_hai": 0.0,
+      "ty_le_nguy_hai_thanh_thuong": 0.0,
+      "latency_p50_ms": 8901,
+      "latency_p95_ms": 20730,
+      "tong_chi_phi_usd": 0.0,
+      "du_gia": false,
+      "theo_tier": {
+        "t1_mini": 2,
+        "t2_full": 3
+      },
+      "ly_do_tu_choi": {}
+    }
+  },
+  "tung_anh": [
+    {
+      "duong_dan": "data\\eval\\cong_khai\\organic\\Food_Organics__Food Organics_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "organic",
+      "nhan_du_doan": "organic",
+      "tu_choi": false,
+      "ly_do_tu_choi": "",
+      "tier": "t1_mini",
+      "model": "qwen/qwen3.6-27b",
+      "latency_ms": 8901,
+      "cost_usd": 0.0,
+      "price_known": false,
+      "loi": ""
+    },
+    {
+      "duong_dan": "data\\eval\\cong_khai\\other\\Miscellaneous_Trash__Miscellaneous Trash_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "other",
+      "nhan_du_doan": "other",
+      "tu_choi": false,
+      "ly_do_tu_choi": "",
+      "tier": "t2_full",
+      "model": "gemini-3.6-flash",
+      "latency_ms": 6693,
+      "cost_usd": 0.0,
+      "price_known": false,
+      "loi": ""
+    },
+    {
+      "duong_dan": "data\\eval\\cong_khai\\recyclable_glass\\Glass__Glass_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "recyclable_glass",
+      "nhan_du_doan": "",
+      "tu_choi": true,
+      "ly_do_tu_choi": "model_loi",
+      "tier": "",
+      "model": "",
+      "latency_ms": 64046,
+      "cost_usd": 0.0,
+      "price_known": true,
+      "loi": "model_loi: Model đang quá tải (rate limit). Thử lại sau ít phút."
+    },
+    {
+      "duong_dan": "data\\eval\\cong_khai\\recyclable_metal\\Metal__Metal_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "recyclable_metal",
+      "nhan_du_doan": "recyclable_metal",
+      "tu_choi": false,
+      "ly_do_tu_choi": "",
+      "tier": "t1_mini",
+      "model": "qwen/qwen3.6-27b",
+      "latency_ms": 4556,
+      "cost_usd": 0.0,
+      "price_known": false,
+      "loi": ""
+    },
+    {
+      "duong_dan": "data\\eval\\cong_khai\\recyclable_paper\\Cardboard__Cardboard_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "recyclable_paper",
+      "nhan_du_doan": "recyclable_paper",
+      "tu_choi": false,
+      "ly_do_tu_choi": "",
+      "tier": "t2_full",
+      "model": "gemini-3.6-flash",
+      "latency_ms": 15968,
+      "cost_usd": 0.0,
+      "price_known": false,
+      "loi": ""
+    },
+    {
+      "duong_dan": "data\\eval\\cong_khai\\recyclable_plastic\\Plastic__Plastic_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "recyclable_plastic",
+      "nhan_du_doan": "recyclable_plastic",
+      "tu_choi": false,
+      "ly_do_tu_choi": "",
+      "tier": "t2_full",
+      "model": "gemini-3.6-flash",
+      "latency_ms": 20730,
+      "cost_usd": 0.0,
+      "price_known": false,
+      "loi": ""
+    }
+  ]
+}

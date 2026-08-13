@@ -67,9 +67,26 @@ TRAN_TOKEN_GROQ_MOI_PHUT = 8000
 #: quota cho các cấu hình trước. KHÔNG được đoán tên.
 CAC_CAU_HINH: list[dict[str, object]] = [
     {"ten": "hien-tai-t1", "provider": "nvidia", "model": "meta/llama-3.2-90b-vision-instruct"},
-    {"ten": "hien-tai-t2", "provider": "groq", "model": "qwen/qwen3.6-27b"},
-    # {"ten": "mistral-...", "provider": "openrouter", "model": "...", "max_output_tokens": 4000},
+    {"ten": "groq-qwen", "provider": "groq", "model": "qwen/qwen3.6-27b", "max_output_tokens": 4000},
+    # --- ứng viên, PHẢI đối chiếu tên trên trang model trước khi chạy --dong-y ---
+    {"ten": "groq-llama4-scout", "provider": "groq", "model": "meta-llama/llama-4-scout-17b-16e-instruct"},
+    {"ten": "groq-llama4-maverick", "provider": "groq", "model": "meta-llama/llama-4-maverick-17b-128e-instruct"},
+    {"ten": "mistral-pixtral-12b", "provider": "mistral", "model": "pixtral-12b-2409"},
+    {"ten": "mistral-pixtral-large", "provider": "mistral", "model": "pixtral-large-latest"},
 ]
+
+
+def _tong_token(outcome) -> tuple[int, int]:
+    """Gộp (token_vào, token_ra) qua các node của một lần phân loại.
+
+    ``ClassifyOutcome`` KHÔNG có ``tokens_in``/``tokens_out`` ở cấp outcome — token nằm
+    trên từng ``NodeMetric`` trong ``outcome.nodes`` (T1, T2, advise…). Trước đây
+    ``chay_mot_anh`` đọc thẳng ``outcome.tokens_in`` → ``AttributeError`` mọi lần chạy
+    ``--dong-y`` model thật (bug có sẵn từ P34, chỉ lộ khi chạy thật).
+    """
+    token_vao = sum(node.tokens_in for node in outcome.nodes)
+    token_ra = sum(node.tokens_out for node in outcome.nodes)
+    return token_vao, token_ra
 
 
 def chay_mot_anh(
@@ -115,7 +132,8 @@ def chay_mot_anh(
     kq.latency_ms = outcome.latency_ms
     kq.cost_usd = outcome.cost_usd
     kq.price_known = outcome.price_known
-    return kq, outcome.tokens_in, outcome.tokens_out
+    token_vao, token_ra = _tong_token(outcome)
+    return kq, token_vao, token_ra
 
 
 def _ap_dung_cau_hinh(cau_hinh: dict) -> None:
@@ -191,6 +209,8 @@ def chay_mot_cau_hinh(
         "token_vao": token_vao,
         "token_ra": token_ra,
         "so_loi": sum(1 for kq in ket_qua if kq.loi),
+        "ty_le_leo_t2": _ty_le_leo_t2(ket_qua),
+        "p95_ms": _p95_ms(ket_qua),
         "file": file_ket_qua,
         "loi": "",
     }
@@ -251,6 +271,8 @@ def chay_luot_do(
                     "token_vao": 0,
                     "token_ra": 0,
                     "so_loi": 0,
+                    "ty_le_leo_t2": 0.0,
+                    "p95_ms": 0,
                     "file": "",
                     "loi": f"LỖI: {type(exc).__name__}: {exc}",
                 }
@@ -262,31 +284,95 @@ def _pt(x: float) -> str:
     return f"{x * 100:.1f}%"
 
 
+def _ty_le_leo_t2(cac_ket_qua: list[KetQuaAnh]) -> float:
+    """Tỉ lệ ảnh leo T2 — đếm trên ``tier`` CUỐI CÙNG của từng ảnh.
+
+    ``kq.tier`` được ``chay_mot_anh`` ghi là tier sau cùng: ca leo T2 rồi T2
+    chốt → ``t2_full``; ca T1 chốt luôn → ``t1_mini``. Đây là cột quyết định
+    "model T1 nào ít leo T2" — model tự tin đúng thì nhanh và rẻ. Ảnh lỗi
+    (``tier=""``) nằm ở mẫu số nhưng không tính là leo.
+    """
+    if not cac_ket_qua:
+        return 0.0
+    so_leo = sum(1 for kq in cac_ket_qua if kq.tier == "t2_full")
+    return so_leo / len(cac_ket_qua)
+
+
+def _p95_ms(cac_ket_qua: list[KetQuaAnh]) -> int:
+    """p95 độ trễ (ms) của các ảnh — lộ đuôi treo mà p50 giấu đi.
+
+    Ca T1 treo tới hết timeout rồi mới leo T2 sẽ có latency_ms rất lớn; p95 ≈ 60000
+    (hoặc ≈ ``vision_timeout_seconds`` sau P43a) tố cáo cấu hình hay timeout. Ảnh lỗi
+    vẫn có ``latency_ms`` (được ghi trước khi return) nên vẫn vào mẫu.
+    """
+    do_tre = sorted(kq.latency_ms for kq in cac_ket_qua)
+    if not do_tre:
+        return 0
+    # Chỉ số p95 theo kiểu "nearest-rank": phần tử ở vị trí ceil(0.95*n) - 1.
+    import math
+
+    vi_tri = math.ceil(0.95 * len(do_tre)) - 1
+    return do_tre[vi_tri]
+
+
 def in_bang(cac_dong: list[dict]) -> None:
-    """Bảng so sánh các cấu hình: ten · provider · model · acc · F1 · p50 · token · $ · lỗi."""
-    print("\n" + "=" * 110)
+    """Bảng so sánh: cấu hình · provider/model · acc · F1 · p50 · % leo T2 · token · $ · lỗi."""
+    print("\n" + "=" * 130)
     print("SO SÁNH CẤU HÌNH MODEL")
-    print("=" * 110)
+    print("=" * 130)
+    print(
+        f"{'cấu hình':<16} {'provider/model':<44} {'acc':>7} {'F1':>6} {'p50 ms':>8} "
+        f"{'p95 ms':>8} {'% leo T2':>9} {'token vào/ra':>22} {'$ ước tính':>12} {'lỗi':>5}"
+    )
+    print("-" * 130)
     for dong in cac_dong:
         ten = dong["ten"]
         mo_ta = f"{dong['provider']}/{dong['model']}"
         if dong.get("loi"):
-            print(f"{ten:<12} {mo_ta:<48} LỖI — {dong['loi']}")
+            print(f"{ten:<16} {mo_ta:<44} LỖI — {dong['loi']}")
             continue
         tong = dong["tong"]
         acc = _pt(tong.accuracy_khi_tra_loi) if tong and tong.so_tra_loi else "—"
         f1 = f"{tong.macro_f1:.3f}" if tong else "—"
-        p50 = f"{tong.latency_p50_ms} ms" if tong else "—"
+        p50 = f"{tong.latency_p50_ms}" if tong else "—"
+        p95 = f"{dong.get('p95_ms', 0)}"
+        ty_le = dong.get("ty_le_leo_t2")
+        leo = f"{_pt(ty_le)}" if ty_le is not None else "—"
         chi_phi = (
             f"${tong.tong_chi_phi_usd:.4f}" + ("" if tong.du_gia else " (thiếu giá)")
             if tong
             else "—"
         )
         print(
-            f"{ten:<12} {mo_ta:<48} acc {acc:>8} · F1 {f1:>6} · p50 {p50:>9} · "
-            f"token vào {dong['token_vao']} / ra {dong['token_ra']} · $ {chi_phi} · lỗi {dong['so_loi']}"
+            f"{ten:<16} {mo_ta:<44} {acc:>7} {f1:>6} {p50:>8} {p95:>8} {leo:>9} "
+            f"{dong['token_vao']}/{dong['token_ra']:>9} {chi_phi:>12} {dong['so_loi']:>5}"
         )
-    print("=" * 110)
+    _in_ket_luan(cac_dong)
+    print("=" * 130)
+
+
+def _in_ket_luan(cac_dong: list[dict]) -> None:
+    """Gợi ý cấu hình dùng được — accuracy cao nhất trong nhóm p50 < 3000 ms.
+
+    Đây là GỢI Ý cho người đọc, không phải quyết định: nó không đổi gì, chỉ
+    giúp đọc bảng nhanh. Ưu tiên accuracy, hoà thì chọn cái % leo T2 thấp hơn.
+    """
+    ung_vien: list[tuple[float, str, float]] = []
+    for dong in cac_dong:
+        if dong.get("loi") or dong.get("tong") is None:
+            continue
+        tong = dong["tong"]
+        if tong.latency_p50_ms < 3000 and tong.so_tra_loi:
+            ung_vien.append((tong.accuracy_khi_tra_loi, dong["ten"], float(dong.get("ty_le_leo_t2", 0.0) or 0.0)))
+    if not ung_vien:
+        print("\nKhông có cấu hình nào đạt p50 < 3000 ms và có ảnh trả lời — xem bảng để quyết định.")
+        return
+    ung_vien.sort(key=lambda dong: (-dong[0], dong[2]))
+    acc_tot, ten_tot, leo_tot = ung_vien[0]
+    print(
+        f"\nGợi ý: '{ten_tot}' — accuracy cao nhất ({_pt(acc_tot)}) trong nhóm p50 < 3000 ms, "
+        f"% leo T2 = {_pt(leo_tot)}. Kiểm số liệu thô rồi quyết định."
+    )
 
 
 def main(argv: list[str] | None = None) -> int:

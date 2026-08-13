@@ -25,8 +25,6 @@ from src.services.vision.base import (
     result_from_json,
 )
 
-_TIMEOUT_SECONDS = 60.0
-
 
 class OpenAICompatibleClient:
     """Gọi model qua endpoint kiểu OpenAI."""
@@ -81,7 +79,7 @@ class OpenAICompatibleClient:
         if not self._api_key or not texts:
             return []
         try:
-            with httpx.Client(timeout=_TIMEOUT_SECONDS) as client:
+            with httpx.Client(timeout=get_settings().vision_timeout_seconds) as client:
                 response = client.post(
                     f"{self._base_url}/embeddings",
                     json={"model": model, "input": texts},
@@ -107,7 +105,7 @@ class OpenAICompatibleClient:
             headers["X-Title"] = "GreenBin AI"
 
         try:
-            with httpx.Client(timeout=_TIMEOUT_SECONDS) as client:
+            with httpx.Client(timeout=get_settings().vision_timeout_seconds) as client:
                 response = client.post(f"{self._base_url}/chat/completions", json=payload, headers=headers)
         except httpx.HTTPError as exc:
             raise VisionUnavailableError(

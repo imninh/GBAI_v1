@@ -5,7 +5,7 @@
  *  sửa cả hai nơi cùng lúc.
  */
 
-export type BinStatus = "can_gom" | "het_pin" | "mat_ket_noi" | "binh_thuong";
+export type BinStatus = "can_gom" | "het_pin" | "mat_ket_noi" | "binh_thuong" | "chua_trien_khai";
 
 export type Bin = {
   id: number;
@@ -37,6 +37,8 @@ export type BinStats = {
   can_gom: number;
   mat_ket_noi: number;
   het_pin: number;
+  /** Thùng `deployment_status="PROPOSED"` chưa lắp thiết bị — gói P39/P42. */
+  chua_trien_khai: number;
 };
 
 /** Nhân viên vệ sinh có thể nhận thùng — khớp `GET /bins/nhan-vien`.
@@ -71,6 +73,7 @@ export const STATUS_LABEL: Record<BinStatus, string> = {
   het_pin: "Hết pin",
   mat_ket_noi: "Mất kết nối",
   binh_thuong: "Bình thường",
+  chua_trien_khai: "Chưa triển khai",
 };
 
 export function computeStats(bins: Bin[]): BinStats {
@@ -79,6 +82,7 @@ export function computeStats(bins: Bin[]): BinStats {
     can_gom: bins.filter((b) => b.status === "can_gom").length,
     mat_ket_noi: bins.filter((b) => b.status === "mat_ket_noi").length,
     het_pin: bins.filter((b) => b.status === "het_pin").length,
+    chua_trien_khai: bins.filter((b) => b.status === "chua_trien_khai").length,
   };
 }
 
@@ -104,6 +108,9 @@ export function sortForCollection(bins: Bin[]): Bin[] {
     het_pin: 1,
     binh_thuong: 2,
     mat_ket_noi: 3,
+    // Chưa triển khai không có dữ liệu để xếp — để xuống cuối, cùng nhóm với
+    // mất kết nối (cả hai đều không phải việc của chuyến xe hôm nay).
+    chua_trien_khai: 3,
   };
   return [...bins].sort((a, b) => rank[a.status] - rank[b.status] || b.fill_percent - a.fill_percent);
 }

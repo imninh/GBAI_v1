@@ -1,6 +1,6 @@
 "use client";
 
-import { Battery, Boxes, Trash2, WifiOff } from "lucide-react";
+import { Battery, Boxes, HelpCircle, Trash2, WifiOff } from "lucide-react";
 import type { BinStats } from "@/lib/bins";
 import { Skeleton } from "@/components/ui/primitives";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,10 @@ const CARDS: CardDef[] = [
   { key: "can_gom", label: "Cần gom", icon: Trash2, tone: "text-warn" },
   { key: "mat_ket_noi", label: "Mất kết nối", icon: WifiOff, tone: "text-stale" },
   { key: "het_pin", label: "Hết pin", icon: Battery, tone: "text-power" },
+  // Chưa triển khai = xám nhạt, trung tính, KHÔNG báo động — đúng token P39 đặt
+  // trong status.tsx (HelpCircle / text-muted). Ban quản lý cần THẤY con số này
+  // để biết còn bao nhiêu thùng chờ lắp thiết bị, không phải để giật mình.
+  { key: "chua_trien_khai", label: "Chưa triển khai", icon: HelpCircle, tone: "text-muted-foreground" },
 ];
 
 export function StatCards({

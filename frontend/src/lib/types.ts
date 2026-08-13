@@ -120,7 +120,7 @@ export interface PickupRequest {
   unit: string;
   building: string;
   building_code: string;
-  items: { name: string; category_code: string; qty: number }[];
+  items: { name: string; category_code: string; qty: number; media_id: number | null }[];
   weight_min_kg: number;
   weight_max_kg: number;
   est_weight_kg: number;
