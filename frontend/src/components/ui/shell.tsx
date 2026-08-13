@@ -70,8 +70,9 @@ export function TabBar({
             className="relative flex flex-1 cursor-pointer flex-col items-center gap-1.5 bg-transparent"
             style={{ color: isActive ? accent : "#a8b0a7" }}
             aria-current={isActive ? "page" : undefined}
+            aria-label={`Điều hướng ${item.label}`}
           >
-            {item.icon}
+            <span aria-hidden="true">{item.icon}</span>
             {item.badge ? (
               <span className="absolute -top-1 right-5 flex h-4 min-w-4 items-center justify-center rounded-lg bg-hazard px-1 text-[10px] font-extrabold text-white">
                 {item.badge}

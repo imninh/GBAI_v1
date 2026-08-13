@@ -113,7 +113,14 @@ export function AskScreen({
             placeholder="VD: hộp sữa giấy có lớp bạc bên trong"
             className="flex-1 rounded-2xl border-[1.5px] border-line-2 bg-white px-4 py-3 text-sm font-semibold outline-none focus:border-leaf"
           />
-          <Button type="submit" variant="leaf" disabled={!moTa.trim()}>
+          <Button
+            type="submit"
+            variant="leaf"
+            disabled={!moTa.trim()}
+            aria-label="Gửi câu hỏi phân loại"
+            aria-disabled={!moTa.trim()}
+            title={moTa.trim() ? undefined : "Vui lòng nhập mô tả vật phẩm trước khi gửi"}
+          >
             Hỏi
           </Button>
         </form>
