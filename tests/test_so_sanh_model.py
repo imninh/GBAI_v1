@@ -64,6 +64,18 @@ def _cac_nhan(db_session) -> tuple[list[str], set[str]]:
     return nhan_list, ma_nguy_hai
 
 
+def _quet_anh_gia(bo: str, nhan_hop_le: set[str], limit: int) -> tuple[list[tuple[Path, str]], list[str]]:
+    """Thay ``_quet_anh`` bằng ảnh giả — test không phụ thuộc ``data/eval`` thật.
+
+    ``data/eval`` nằm trong ``.gitignore`` nên CI không có ảnh; nếu để quét thật,
+    ``main()`` thấy 0 ảnh, trả về 1 và test fail. Các test ở đây chỉ kiểm tra
+    luồng điều khiển (liệt kê / dự toán / một cấu hình hỏng), không kiểm tra
+    bước quét ảnh — nên ảnh giả là đủ.
+    """
+    nhan = next(iter(sorted(nhan_hop_le)), "organic")
+    return [(Path(f"{bo}-{nhan}.jpg"), nhan)], []
+
+
 def test_liet_ke_khong_goi_model(db_session, monkeypatch, capsys, _giu_moi_truong) -> None:
     """``--liet-ke`` chỉ đếm ảnh + liệt kê cấu hình, không gọi model một lần nào."""
     so_goi: list[str] = []
@@ -74,6 +86,7 @@ def test_liet_ke_khong_goi_model(db_session, monkeypatch, capsys, _giu_moi_truon
 
     monkeypatch.setattr(so_sanh_model, "classify_waste", _cam_goi)
     monkeypatch.setattr(so_sanh_model, "session_scope", lambda: _mo_phong_session_scope(db_session))
+    monkeypatch.setattr(so_sanh_model, "_quet_anh", _quet_anh_gia)
 
     ket = so_sanh_model.main(["--liet-ke"])
 
@@ -94,6 +107,7 @@ def test_khong_co_dong_y_thi_khong_goi_model(db_session, monkeypatch, capsys, _g
 
     monkeypatch.setattr(so_sanh_model, "classify_waste", _cam_goi)
     monkeypatch.setattr(so_sanh_model, "session_scope", lambda: _mo_phong_session_scope(db_session))
+    monkeypatch.setattr(so_sanh_model, "_quet_anh", _quet_anh_gia)
 
     ket = so_sanh_model.main(["--limit", "5"])
 
@@ -119,6 +133,7 @@ def test_mot_cau_hinh_hong_khong_giet_ca_luot(db_session, monkeypatch, capsys, _
         return kq, 100, 50
 
     monkeypatch.setattr(so_sanh_model, "chay_mot_anh", _gia_chay_mot_anh)
+    monkeypatch.setattr(so_sanh_model, "_quet_anh", _quet_anh_gia)
     nhan_list, ma_nguy_hai = _cac_nhan(db_session)
 
     cac_dong = so_sanh_model.chay_luot_do(

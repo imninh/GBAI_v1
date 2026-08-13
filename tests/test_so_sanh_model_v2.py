@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from contextlib import contextmanager
+from pathlib import Path
 
 import pytest
 
@@ -89,7 +90,14 @@ def test_liet_ke_khong_goi_model(db_session, monkeypatch: pytest.MonkeyPatch, ca
     def _phien_gia(*args, **kwargs) -> Iterator:
         yield db_session
 
+    def _quet_anh_gia(bo: str, nhan_hop_le: set[str], limit: int) -> tuple[list[tuple[Path, str]], list[str]]:
+        # `data/eval` nằm trong .gitignore nên CI không có ảnh thật — ảnh giả là đủ
+        # cho test luồng điều khiển của --liet-ke.
+        nhan = next(iter(sorted(nhan_hop_le)), "organic")
+        return [(Path(f"{bo}-{nhan}.jpg"), nhan)], []
+
     monkeypatch.setattr(so_sanh_model, "session_scope", _phien_gia)
+    monkeypatch.setattr(so_sanh_model, "_quet_anh", _quet_anh_gia)
 
     def _cam_goi_model(*args, **kwargs):
         dem[0] += 1
