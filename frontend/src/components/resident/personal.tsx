@@ -198,7 +198,7 @@ export function ScheduleScreen({ buildingId, buildingName }: { buildingId: numbe
   );
 }
 
-export function RequestsScreen({ onOpen }: { onOpen: (id: number) => void }) {
+export function RequestsScreen({ onOpen, onCreate }: { onOpen: (id: number) => void; onCreate: () => void }) {
   const [items, setItems] = React.useState<PickupRequest[] | null>(null);
 
   React.useEffect(() => {
@@ -206,7 +206,7 @@ export function RequestsScreen({ onOpen }: { onOpen: (id: number) => void }) {
   }, []);
 
   return (
-    <div className="min-h-full bg-cream px-[18px] pb-[108px] pt-[54px]">
+    <div className="relative min-h-full bg-cream px-[18px] pb-[108px] pt-[54px]">
       <h1 className="m-0 mb-4 font-[family-name:var(--font-display)] text-[28px] font-bold">Yêu cầu của tôi</h1>
       {items === null ? (
         <Skeleton className="h-24 w-full" />
@@ -237,6 +237,18 @@ export function RequestsScreen({ onOpen }: { onOpen: (id: number) => void }) {
           );
         })
       )}
+
+      <button
+        type="button"
+        onClick={onCreate}
+        aria-label="Tạo yêu cầu thu gom mới"
+        title="Tạo yêu cầu thu gom mới"
+        className="absolute bottom-5 right-[18px] flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-leaf text-white shadow-[0_8px_20px_-4px_rgba(47,174,102,.55)] transition-transform active:scale-95"
+      >
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </button>
     </div>
   );
 }

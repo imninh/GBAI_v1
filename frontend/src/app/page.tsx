@@ -179,6 +179,9 @@ function ResidentApp() {
   const [cacBuoc, setCacBuoc] = React.useState(BUOC_MAC_DINH);
   const [loi, setLoi] = React.useState<{ message: string; code: string } | null>(null);
   const [yeuCauId, setYeuCauId] = React.useState<number | null>(null);
+  // Nguồn mở PickupWizard: "result" (sau khi phân loại) hay "requests" (nút + ở tab Yêu cầu).
+  // Khác nguồn thì nút Quay lại phải về đúng chỗ, không về nhầm màn phân loại.
+  const [nguonPickup, setNguonPickup] = React.useState<"result" | "requests">("result");
   const huyRef = React.useRef(false);
 
   async function chay(goi: () => Promise<Classification>, coAnh: boolean) {
@@ -275,13 +278,13 @@ function ResidentApp() {
             onAskManager={() => api.feedback(ketQua.classification_id, false).catch(() => undefined)}
           />
         ) : ketQua.category?.is_hazardous ? (
-          <HazardResultScreen ketQua={ketQua} onBack={() => setMan("ask")} onPickup={() => setMan("pickup")} />
+          <HazardResultScreen ketQua={ketQua} onBack={() => setMan("ask")} onPickup={() => { setNguonPickup("result"); setMan("pickup"); }} />
         ) : (
           <ResultScreen
             ketQua={ketQua}
             onBack={() => setMan("ask")}
             onPrivacy={() => setMan("privacy")}
-            onPickup={() => setMan("pickup")}
+            onPickup={() => { setNguonPickup("result"); setMan("pickup"); }}
             onFeedback={(ok) => api.feedback(ketQua.classification_id, ok).catch(() => undefined)}
           />
         )
@@ -293,9 +296,9 @@ function ResidentApp() {
 
       {man === "pickup" && (
         <PickupWizard
-          goiYTuKetQua={ketQua}
-          scheduleHint={ketQua?.schedule_hint}
-          onBack={() => setMan(ketQua ? "result" : "ask")}
+          goiYTuKetQua={nguonPickup === "result" ? ketQua : null}
+          scheduleHint={nguonPickup === "result" ? ketQua?.schedule_hint : undefined}
+          onBack={() => setMan(nguonPickup === "result" ? (ketQua ? "result" : "ask") : "requests")}
           onDone={() => setMan("requests")}
         />
       )}
@@ -305,6 +308,10 @@ function ResidentApp() {
           onOpen={(id) => {
             setYeuCauId(id);
             setMan("requestDetail");
+          }}
+          onCreate={() => {
+            setNguonPickup("requests");
+            setMan("pickup");
           }}
         />
       )}
@@ -346,7 +353,7 @@ function CleanerApp() {
       bg="#eef2f6"
       tabBar={<TabBar items={tabs} active={man} onChange={setMan} accent="#2f7fe0" />}
     >
-      {man === "route" && <RouteTodayScreen />}
+      {man === "route" && <RouteTodayScreen onXemLichSu={() => setMan("history")} />}
       {man === "verify" && <VerifyLabelScreen />}
       {man === "history" && <CleanerHistoryScreen />}
       {man === "me" && <CleanerMeScreen user={user!} onLogout={dangXuat} />}

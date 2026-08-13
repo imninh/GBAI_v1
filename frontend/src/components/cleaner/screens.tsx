@@ -30,7 +30,7 @@ import {
 } from "@/lib/pickup-states";
 import type { Classification, PickupRequest, PickupRoute, User, WasteCategory } from "@/lib/types";
 
-export function RouteTodayScreen() {
+export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) {
   const [tuyen, setTuyen] = React.useState<PickupRoute | null>(null);
   const [dsSuCo, setDsSuCo] = React.useState<{ code: string; label_vi: string }[]>([]);
   const [loi, setLoi] = React.useState("");
@@ -68,7 +68,18 @@ export function RouteTodayScreen() {
   return (
     <div className="min-h-full bg-crew-bg px-4 pb-[108px] pt-[52px]">
       {!tuyen ? (
-        <EmptyState icon={IconXeThuGom} title="Hôm nay chưa có tuyến nào" hint="Tuyến sẽ hiện ở đây sau khi ban quản lý duyệt." />
+        <EmptyState
+          icon={IconXeThuGom}
+          title="Hôm nay chưa có tuyến nào"
+          hint="Tuyến sẽ hiện ở đây sau khi ban quản lý duyệt."
+          action={
+            onXemLichSu ? (
+              <Button variant="outline" onClick={onXemLichSu}>
+                Xem lịch sử ca trước
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         (() => {
           const stops = tuyen.stops ?? [];
