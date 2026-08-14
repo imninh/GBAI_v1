@@ -176,6 +176,15 @@ def _load() -> Any | None:
         return session
 
 
+def is_loaded() -> bool:
+    """True nếu phiên YOLO đã nạp sẵn — CHỈ ĐỌC, không kích hoạt tải.
+
+    Khác ``_load()``: hàm này chỉ đọc biến module ``_session``, không bao giờ tải model
+    hay dựng InferenceSession. Dùng cho ``/ops/metrics`` (endpoint chỉ đọc).
+    """
+    return _session is not None
+
+
 def _tien_xu_ly_anh(image: Image.Image, size: int = 640):
     """Đưa ảnh về tensor (1, 3, 640, 640) theo kiểu letterbox của YOLO."""
     import numpy as np

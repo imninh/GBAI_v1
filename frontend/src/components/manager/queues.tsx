@@ -58,6 +58,8 @@ export function PickupQueue() {
 
   React.useEffect(() => {
     tai();
+    const id = setInterval(tai, 30000);
+    return () => clearInterval(id);
   }, [tai]);
 
   async function duyet(action: string, reason = "") {

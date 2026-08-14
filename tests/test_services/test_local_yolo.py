@@ -170,7 +170,7 @@ def test_co_gio_thi_ep_leo_t2(db_session, monkeypatch: pytest.MonkeyPatch) -> No
     )
 
     assert outcome.escalation_reason != "", "Cờ YOLO phải ép ra chuỗi lý do leo T2"
-    assert khach.so_lan == 2, "T2 phải được hỏi thêm đúng một lần (T1 1 lần + T2 1 lần)"
+    assert khach.so_lan == 1, "Đồ điện tử đi THẲNG T2 (P46) — chỉ hỏi T2 đúng một lần, bỏ qua T1 mù"
 
 
 def test_yolo_khong_bao_gio_chot_nhan() -> None:

@@ -49,7 +49,7 @@ export function PickupWizard({
             est_weight_kg: 30,
           },
         ]
-      : [{ name: "Tủ gỗ nhỏ", category_code: "bulky", qty: 1, est_weight_kg: 30 }],
+      : [],
   );
   const [ngay, setNgay] = React.useState("");
   const [khungGio, setKhungGio] = React.useState("");

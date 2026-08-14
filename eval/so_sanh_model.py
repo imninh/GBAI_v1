@@ -68,11 +68,15 @@ TRAN_TOKEN_GROQ_MOI_PHUT = 8000
 CAC_CAU_HINH: list[dict[str, object]] = [
     {"ten": "hien-tai-t1", "provider": "nvidia", "model": "meta/llama-3.2-90b-vision-instruct"},
     {"ten": "groq-qwen", "provider": "groq", "model": "qwen/qwen3.6-27b", "max_output_tokens": 4000},
-    # --- ứng viên, PHẢI đối chiếu tên trên trang model trước khi chạy --dong-y ---
+    # --- Cập nhật 13/08/2026: tên lấy từ /v1/models SỐNG của tài khoản (docs trễ hơn
+    #     thực tế). ĐÃ BỎ: llama-4-maverick (Groq khai tử 09/03/2026 → 404),
+    #     pixtral-12b & pixtral-large (Mistral gỡ hẳn, không còn trong list model sống).
+    #     Ministral 3b/8b + Medium 3.5 là dòng vision hiện hành — dùng --limit 1 xác
+    #     nhận chúng nhận ảnh (không "từ chối hết" như pixtral-12b). ---
     {"ten": "groq-llama4-scout", "provider": "groq", "model": "meta-llama/llama-4-scout-17b-16e-instruct"},
-    {"ten": "groq-llama4-maverick", "provider": "groq", "model": "meta-llama/llama-4-maverick-17b-128e-instruct"},
-    {"ten": "mistral-pixtral-12b", "provider": "mistral", "model": "pixtral-12b-2409"},
-    {"ten": "mistral-pixtral-large", "provider": "mistral", "model": "pixtral-large-latest"},
+    {"ten": "mistral-medium-3.5", "provider": "mistral", "model": "mistral-medium-latest"},
+    {"ten": "ministral-8b", "provider": "mistral", "model": "ministral-8b-latest"},
+    {"ten": "ministral-3b", "provider": "mistral", "model": "ministral-3b-latest"},
 ]
 
 

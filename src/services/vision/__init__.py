@@ -33,6 +33,9 @@ from src.services.vision.local_clip import (
 from src.services.vision.local_clip import (
     warm_up as warm_up_local_model,
 )
+from src.services.vision.local_yolo import (
+    is_loaded as yolo_loaded,
+)
 from src.services.vision.openai_compat import OpenAICompatibleClient, build_openai_compatible_client
 
 __all__ = [
@@ -53,6 +56,7 @@ __all__ = [
     "local_model_runtime",
     "provider_status",
     "warm_up_local_model",
+    "yolo_loaded",
 ]
 
 # Nhãn tiếng Việt của từng tầng, dùng cho trang Vận hành.

@@ -232,7 +232,7 @@ def _trang_thai_truy_hoi(session: Session) -> dict[str, Any]:
 def ops_metrics(session: Session, *, days: int = 30) -> dict[str, Any]:
     """Gói toàn bộ số liệu cho trang Vận hành."""
     from src.db.seed_data import KNOWN_LIMITATIONS
-    from src.services.vision import local_model_loaded, provider_status
+    from src.services.vision import local_model_loaded, provider_status, yolo_loaded
 
     since = datetime.now() - timedelta(days=days)
     seed_count = session.scalar(select(func.count(Classification.id)).where(Classification.is_seed.is_(True))) or 0
@@ -244,7 +244,12 @@ def ops_metrics(session: Session, *, days: int = 30) -> dict[str, Any]:
         "routing": routing_metrics(session),
         # Cố tình dùng bản không có tác dụng phụ: endpoint chỉ đọc không được
         # kích hoạt việc tải model 350MB.
-        "provider": {**provider_status(), "local_model_loaded": local_model_loaded()},
+        "provider": {
+            **provider_status(),
+            "local_model_loaded": local_model_loaded(),
+            "yolo_enabled": get_settings().yolo_enabled,
+            "yolo_loaded": yolo_loaded(),
+        },
         "retrieval": _trang_thai_truy_hoi(session),
         "known_limitations": KNOWN_LIMITATIONS,
         "has_seed_data": seed_count > 0,

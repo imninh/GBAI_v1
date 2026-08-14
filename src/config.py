@@ -244,6 +244,11 @@ class Settings(BaseSettings):
     # cần vài giây thật để sinh JSON.
     vision_timeout_seconds: float = Field(default=15.0, gt=0)
 
+    # T0.5 (YOLO) đã giơ cờ đồ điện tử thì hỏi T1 (mù đồ điện tử — đo 03/08 0/6; và
+    # đo 13/08: p50 ~25s, 94% vẫn leo T2) chỉ tốn một lượt gọi chậm. Bật cờ này để đi
+    # THẲNG T2 khi T0.5 đã nghi nguy hại — cắt lượt T1 vô ích. Tắt để về hành vi cũ.
+    route_electronics_to_t2: bool = True
+
     # Giữ tên cũ để code/template cũ không gãy.
     model_name: str = "gpt-4o-mini"
     model_fast: str = "gpt-4o-mini"

@@ -157,6 +157,12 @@ def create_pickup_request(
     if resident.unit_id is None:
         raise ValueError("Tài khoản chưa gắn với căn hộ nào nên không tạo được yêu cầu thu gom")
 
+    co_khoang_ro = (
+        weight_min_kg is not None and weight_max_kg is not None and weight_max_kg >= weight_min_kg > 0
+    )
+    if not co_khoang_ro and est_weight_kg <= 0:
+        raise ValueError("Yêu cầu thu gom phải có khối lượng ước tính lớn hơn 0 kg")
+
     low, high, mid = weight_range_from_estimate(est_weight_kg, weight_min_kg, weight_max_kg)
     hits = evaluate_thresholds(session, items, high)
 

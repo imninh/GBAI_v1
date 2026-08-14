@@ -226,6 +226,11 @@ export const api = {
     request<{ items: PickupRequest[]; total: number; reject_reasons: { code: string; label_vi: string }[] }>(
       `/pickups?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)]))}`,
     ),
+  /** Yêu cầu đã duyệt, đang chờ xếp tuyến — nguyên liệu của màn Xếp tuyến. */
+  pickupsChoNhan: () =>
+    request<{ items: PickupRequest[]; total: number; reject_reasons: { code: string; label_vi: string }[] }>(
+      "/pickups?status=cho_nhan",
+    ),
   pickup: (id: number) => request<PickupRequest>(`/pickups/${id}`),
   reviewPickup: (id: number, payload: Record<string, unknown>) =>
     request<PickupRequest>(`/pickups/${id}/review`, { method: "POST", body: JSON.stringify(payload) }),
@@ -242,10 +247,17 @@ export const api = {
     }),
 
   // --- Tuyến ---
-  proposeRoute: (serviceDate: string, window: string) =>
+  /** Gộp các yêu cầu chờ xếp tuyến thành một tuyến đề xuất. Kết quả luôn ở
+   *  trạng thái ``proposed`` — màn Duyệt tuyến mới có quyền chốt. */
+  proposeRoute: (payload: {
+    service_date: string;
+    window: string;
+    team_id?: number | null;
+    capacity_kg?: number | null;
+  }) =>
     request<PickupRoute>("/routes/propose", {
       method: "POST",
-      body: JSON.stringify({ service_date: serviceDate, window }),
+      body: JSON.stringify(payload),
     }),
   routes: (params: Record<string, string> = {}) =>
     request<{ items: PickupRoute[] }>(`/routes?${new URLSearchParams(params)}`),

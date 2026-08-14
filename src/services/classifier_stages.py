@@ -183,7 +183,15 @@ def chay_t1_t2(
     tầng, không dùng chung một client cho cả hai — cạn quota một nhà cung cấp
     thì tầng còn lại vẫn sống.
     """
-    first_tier: ModelTier = "t1" if image_bytes is not None else ("text" if get_tier_model("text") else "t1")
+    di_thang_t2 = (
+        get_settings().route_electronics_to_t2
+        and nghi_nguy_hai_local
+        and image_bytes is not None
+        and bool(get_tier_model("t2"))
+    )
+    first_tier: ModelTier = (
+        "t2" if di_thang_t2 else ("t1" if image_bytes is not None else ("text" if get_tier_model("text") else "t1"))
+    )
     model_first = get_tier_model(first_tier)
     provider_first = get_tier_provider(first_tier)
     model_t2 = get_tier_model("t2")
@@ -201,7 +209,9 @@ def chay_t1_t2(
     # đường độc lập, vẫn đáng gọi.
     t2_khac_t1 = (provider_t2, model_t2) != (provider_first, model_first)
     t2_da_dung_de_cuu = False
-    tier_ket_qua = TIER_T1
+    tier_ket_qua = TIER_T2 if di_thang_t2 else TIER_T1
+    if di_thang_t2:
+        outcome.escalation_reason = "T0.5 nghi đồ điện tử — đi thẳng T2, bỏ T1 (mù đồ điện tử)"
 
     step = time.perf_counter()
     try:

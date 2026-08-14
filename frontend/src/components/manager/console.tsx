@@ -14,6 +14,7 @@ import Link from "next/link";
 
 import { AgentRunScreen, OpsScreen, OverviewScreen, QualityScreen } from "@/components/manager/insights";
 import { PickupQueue, RouteApproval, VerifyQueue, WeightConfirmQueue } from "@/components/manager/queues";
+import { XepTuyen } from "@/components/manager/xep-tuyen";
 import { BrowserFrame } from "@/components/ui/shell";
 import { api } from "@/lib/api";
 import { IconKhoa } from "@/lib/icons";
@@ -37,7 +38,7 @@ function useDuRong(): boolean | null {
   return duRong;
 }
 
-type Nav = "duyet" | "baocao" | "overview" | "runs";
+type Nav = "duyet" | "xep_tuyen" | "baocao" | "overview" | "runs";
 type TabDuyet = "pickup" | "verify" | "route" | "weight";
 type TabBaoCao = "ops" | "quality";
 
@@ -46,6 +47,7 @@ type Muc = { key: string; label: string; permission: string; href?: string };
 const MUC_CHINH: Muc[] = [
   { key: "homnay", label: "Hôm nay đi đâu", permission: "view_bins", href: "/dieu-phoi" },
   { key: "duyet", label: "Chờ tôi duyệt", permission: "review_pickup" },
+  { key: "xep_tuyen", label: "Xếp tuyến", permission: "review_route" },
   { key: "baocao", label: "Báo cáo", permission: "view_ops" },
 ];
 
@@ -78,10 +80,14 @@ export function ManagerConsole() {
   const [dem, setDem] = React.useState({ pickup: 0, labels: 0, routes: 0 });
 
   React.useEffect(() => {
-    api
-      .overview()
-      .then((d) => setDem({ pickup: d.queues.pickup, labels: d.queues.labels, routes: d.queues.routes }))
-      .catch(() => setDem({ pickup: 0, labels: 0, routes: 0 }));
+    const lay = () =>
+      api
+        .overview()
+        .then((d) => setDem({ pickup: d.queues.pickup, labels: d.queues.labels, routes: d.queues.routes }))
+        .catch(() => setDem({ pickup: 0, labels: 0, routes: 0 }));
+    lay();
+    const id = setInterval(lay, 30000);
+    return () => clearInterval(id);
   }, [nav, tabDuyet]);
 
   const demTab: Record<string, number> = { pickup: dem.pickup, verify: dem.labels, route: dem.routes };
@@ -204,6 +210,8 @@ export function ManagerConsole() {
               {tabBaoCao === "quality" && <QualityScreen />}
             </>
           )}
+
+          {nav === "xep_tuyen" && <XepTuyen />}
 
           {/* Tổng quan chỉ có một đích nhảy duy nhất là hàng đợi thu gom. */}
           {nav === "overview" && (
