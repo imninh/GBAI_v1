@@ -140,3 +140,24 @@ class RouteStop(Base):
     actual_weight_kg: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     route: Mapped[PickupRoute] = relationship(back_populates="stops")
+
+
+class GPSLog(Base):
+    """Bản ghi toạ độ GPS thu thập từ phương tiện thu gom khi đang chạy tuyến."""
+
+    __tablename__ = "gps_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    route_id: Mapped[int] = mapped_column(ForeignKey("pickup_routes.id"), index=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    lat: Mapped[float] = mapped_column(Float)
+    lng: Mapped[float] = mapped_column(Float)
+    snapped_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    snapped_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
+    accuracy_m: Mapped[float | None] = mapped_column(Float, nullable=True)
+    speed_mps: Mapped[float | None] = mapped_column(Float, nullable=True)
+    heading: Mapped[float | None] = mapped_column(Float, nullable=True)
+    recorded_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    route: Mapped[PickupRoute] = relationship()

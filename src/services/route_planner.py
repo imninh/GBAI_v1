@@ -36,7 +36,7 @@ from src.db.models import (
     User,
 )
 from src.db.models_base import utcnow
-from src.services import bins, duong_di_that
+from src.services import bins, duong_di_that, vrp_solver
 from src.services.auth import write_audit
 from src.services.pickup_lifecycle import (
     CHO_NHAN,
@@ -233,28 +233,19 @@ def _ma_ung_vien(candidate: Candidate) -> str:
     return str(candidate.request.id) if candidate.request is not None else "?"
 
 
-def propose_route(
+def _propose_routes_legacy(
     session: Session,
+    matched: list[Candidate],
+    excluded: list[Candidate],
     *,
     service_date: date,
     window: str,
     team_id: int | None = None,
-    capacity_kg: float | None = None,
+    capacity: float,
     run_id: int | None = None,
-) -> PickupRoute:
-    """Agent đề xuất một tuyến gộp. Kết quả luôn ở trạng thái ``proposed``.
-
-    Raises:
-        ValueError: khi không có yêu cầu nào đã duyệt cho ngày/khung giờ đó.
-    """
-    settings = get_settings()
-    capacity = capacity_kg or settings.vehicle_capacity_kg
-    matched, excluded = _load_candidates(session, service_date, window)
-    if not matched:
-        raise ValueError("Không có yêu cầu nào đã duyệt và không có thùng nào cần gom cho ngày và khung giờ này")
-
-    # Gộp theo cụm toà: bắt đầu từ toà của yêu cầu đầu tiên, thêm dần các yêu
-    # cầu ở toà nằm trong bán kính cụm, dừng khi chạm tải trọng.
+    settings: Any,
+) -> list[PickupRoute]:
+    """Thuật toán gom cụm greedy + nearest-neighbour + 2-opt truyền thống."""
     neo = matched[0]
     selected: list[Candidate] = []
     over_capacity: list[Candidate] = []
@@ -276,19 +267,6 @@ def propose_route(
         over_capacity = [c for c in matched[1:]]
         total_weight = selected[0].weight_kg
 
-    # Thứ tự ghé: nearest-neighbour rồi 2-opt trên ma trận khoảng cách đường chim
-    # bay (gói G2). Đây là TSP đường mở — "ghé N điểm theo thứ tự nào cho ngắn",
-    # KHÔNG phải Dijkstra/A* vốn trả lời "đi từ A tới B đường nào".
-    #
-    # Các điểm cùng toà có khoảng cách 0 nên vẫn tự đứng cạnh nhau, không cần
-    # gom thủ công như bản cũ. Hoà thì `nearest_neighbour` chọn chỉ số nhỏ hơn,
-    # nên cùng đầu vào luôn cho cùng thứ tự.
-    #
-    # Gói G3 (mặc định TẮT) nâng phần đo lên đường đi thật qua một dịch vụ ngoài:
-    # lấy nguyên ma trận MỘT lần cho cả tuyến rồi tra bảng trong vòng lặp — gọi
-    # mạng bên trong 2-opt (O(n³)) là treo máy chủ. Hỏng hay tắt cờ thì rơi về
-    # `_khoang_cach` y như trước; điểm thiếu toạ độ không nằm trong bảng nên vẫn
-    # được xếp bằng đường chim bay.
     chi_so: dict[str, int] = {}
     toa_do: list[tuple[float, float]] = []
     for candidate in selected:
@@ -319,11 +297,7 @@ def propose_route(
         f"{sum(1 for c in selected if c.la_thung)} thùng đang đầy + "
         f"{sum(1 for c in selected if not c.la_thung)} yêu cầu của cư dân — gộp chung một chuyến",
         "Thứ tự ghé tối ưu bằng nearest-neighbour + 2-opt trên "
-        + (
-            "khoảng cách đường đi thật lấy từ OSRM"
-            if dung_duong_di_that
-            else "khoảng cách đường chim bay"
-        ),
+        + ("khoảng cách đường đi thật lấy từ OSRM" if dung_duong_di_that else "khoảng cách đường chim bay"),
     ]
 
     excluded_notes: list[dict[str, str]] = []
@@ -402,7 +376,219 @@ def propose_route(
                 )
             )
     session.flush()
-    return route
+    return [route]
+
+
+def propose_routes(
+    session: Session,
+    *,
+    service_date: date,
+    window: str,
+    team_id: int | None = None,
+    capacity_kg: float | None = None,
+    run_id: int | None = None,
+) -> list[PickupRoute]:
+    """Agent đề xuất danh sách tuyến gộp. Kết quả luôn ở trạng thái ``proposed``.
+
+    Nếu ``settings.vrp_enabled`` bật, giải bài toán VRP đồng thời cho toàn bộ
+    ứng viên bằng PyVRP (HGS). Nếu tắt hoặc PyVRP không khả dụng/kết quả rỗng,
+    rơi êm về thuật toán greedy + NN + 2-opt.
+
+    Raises:
+        ValueError: khi không có yêu cầu nào đã duyệt cho ngày/khung giờ đó.
+    """
+    settings = get_settings()
+    capacity = capacity_kg or settings.vehicle_capacity_kg
+    matched, excluded = _load_candidates(session, service_date, window)
+    if not matched:
+        raise ValueError("Không có yêu cầu nào đã duyệt và không có thùng nào cần gom cho ngày và khung giờ này")
+
+    if not settings.vrp_enabled:
+        return _propose_routes_legacy(
+            session,
+            matched,
+            excluded,
+            service_date=service_date,
+            window=window,
+            team_id=team_id,
+            capacity=capacity,
+            run_id=run_id,
+            settings=settings,
+        )
+
+    # Khi bật PyVRP: chuẩn bị ma trận khoảng cách & thời gian
+    chi_so: dict[str, int] = {}
+    toa_do: list[tuple[float, float]] = []
+    for candidate in matched:
+        if candidate.toa_do is not None:
+            chi_so[candidate.diem_id] = len(toa_do)
+            toa_do.append(candidate.toa_do)
+    ma_tran_res = duong_di_that.ma_tran_osrm(toa_do) if toa_do else None
+    dung_duong_di_that = ma_tran_res is not None
+    duration_fn = None
+
+    if ma_tran_res is not None:
+        do_that = duong_di_that.ham_do_tu_ma_tran(ma_tran_res.distances_km, chi_so)
+        do_thoi_gian = duong_di_that.ham_do_thoi_gian_tu_ma_tran(ma_tran_res.durations_s, chi_so)
+
+        def _do_moi(a: Candidate, b: Candidate) -> float:
+            khoang = do_that(a, b)
+            return _khoang_cach(a, b) if khoang is None else khoang
+
+        def _do_tg(a: Candidate, b: Candidate) -> float:
+            tg = do_thoi_gian(a, b)
+            return tg if tg is not None else 0.0
+
+        dist_fn = _do_moi
+        duration_fn = _do_tg
+    else:
+        dist_fn = _khoang_cach
+
+    try:
+        sol = vrp_solver.solve(
+            matched,
+            capacity_kg=capacity,
+            num_vehicles=settings.vrp_num_vehicles,
+            max_runtime_seconds=settings.vrp_max_runtime_seconds,
+            depot_lat=settings.vrp_depot_lat,
+            depot_lng=settings.vrp_depot_lng,
+            distance_fn=dist_fn,
+            duration_fn=duration_fn,
+        )
+    except Exception:
+        sol = None
+
+    if sol is None or not sol.routes:
+        return _propose_routes_legacy(
+            session,
+            matched,
+            excluded,
+            service_date=service_date,
+            window=window,
+            team_id=team_id,
+            capacity=capacity,
+            run_id=run_id,
+            settings=settings,
+        )
+
+    created_routes: list[PickupRoute] = []
+    for selected in sol.routes:
+        total_weight = sum(c.weight_kg for c in selected)
+        est_km = estimate_route_km(selected)
+        baseline_km = round(len(selected) * settings.baseline_km_per_standalone_trip, 2)
+        building_names = sorted({c.nhan_nhom for c in selected if c.nhan_nhom})
+
+        criteria = [
+            f"Cùng ngày {service_date.strftime('%d/%m/%Y')}" + (f" và khung giờ {window}" if window else ""),
+            f"Cùng cụm toà {', '.join(building_names)}" if building_names else "Cùng cụm toà",
+            f"Tổng {total_weight:.0f} kg — trong tải trọng {capacity:.0f} kg của xe",
+            f"{sum(1 for c in selected if c.la_thung)} thùng đang đầy + "
+            f"{sum(1 for c in selected if not c.la_thung)} yêu cầu của cư dân — gộp chung một chuyến",
+            "Tối ưu bằng PyVRP (Hybrid Genetic Search) trên ma trận N×N "
+            + ("khoảng cách đường đi thật lấy từ OSRM" if dung_duong_di_that else "khoảng cách đường chim bay"),
+        ]
+
+        excluded_notes: list[dict[str, str]] = []
+        for candidate in excluded:
+            ly_do = []
+            if candidate.request.preferred_date != service_date:
+                ly_do.append(f"lệch ngày ({candidate.request.preferred_date})")
+            elif candidate.request.preferred_window != window:
+                ly_do.append(f"lệch khung giờ ({candidate.request.preferred_window})")
+            excluded_notes.append(
+                {
+                    "request_id": _ma_ung_vien(candidate),
+                    "unit": candidate.unit_code,
+                    "ly_do": " · ".join(ly_do) or "không khớp điều kiện",
+                }
+            )
+        for candidate in matched:
+            if candidate not in selected:
+                if total_weight + candidate.weight_kg > capacity:
+                    ly_do_loai = f"vượt tải trọng còn lại của xe ({_so(capacity)} kg)"
+                else:
+                    ly_do_loai = "vượt tải trọng hoặc ngoài khả năng phục vụ của chuyến này"
+                excluded_notes.append(
+                    {
+                        "request_id": _ma_ung_vien(candidate),
+                        "unit": candidate.unit_code,
+                        "ly_do": ly_do_loai,
+                    }
+                )
+
+        route = PickupRoute(
+            service_date=service_date,
+            window=window,
+            team_id=team_id,
+            status="proposed",
+            total_weight_kg=round(total_weight, 1),
+            est_distance_km=est_km,
+            run_id=run_id,
+            reasoning={
+                "criteria": criteria,
+                "excluded": excluded_notes,
+                "baseline_km": baseline_km,
+                "saved_km": round(max(0.0, baseline_km - est_km), 2),
+                "saved_trips": max(0, len(selected) - 1),
+                "capacity_kg": capacity,
+                "vrp_runtime_seconds": sol.runtime_seconds,
+                "note": "Quãng đường là ước tính theo đường chim bay giữa các toà, không phải quãng đường thực tế.",
+            },
+            proposed_stop_order=[c.request.id for c in selected if c.request is not None],
+        )
+        session.add(route)
+        session.flush()
+
+        for index, candidate in enumerate(selected, start=1):
+            if candidate.thung is not None:
+                session.add(
+                    RouteStop(
+                        route_id=route.id,
+                        stop_kind=STOP_KIND_THUNG,
+                        bin_id=candidate.thung.id,
+                        seq=index,
+                    )
+                )
+            else:
+                session.add(
+                    RouteStop(
+                        route_id=route.id,
+                        stop_kind=STOP_KIND_YEU_CAU,
+                        request_id=candidate.request.id,
+                        seq=index,
+                    )
+                )
+        session.flush()
+        created_routes.append(route)
+
+    return created_routes
+
+
+def propose_route(
+    session: Session,
+    *,
+    service_date: date,
+    window: str,
+    team_id: int | None = None,
+    capacity_kg: float | None = None,
+    run_id: int | None = None,
+) -> PickupRoute:
+    """Agent đề xuất một tuyến gộp. Kết quả luôn ở trạng thái ``proposed``.
+
+    Gọi ``propose_routes`` và trả về tuyến đầu tiên để giữ tương thích ngược.
+
+    Raises:
+        ValueError: khi không có yêu cầu nào đã duyệt cho ngày/khung giờ đó.
+    """
+    routes = propose_routes(
+        session,
+        service_date=service_date,
+        window=window,
+        team_id=team_id,
+        capacity_kg=capacity_kg,
+        run_id=run_id,
+    )
+    return routes[0]
 
 
 def review_route(

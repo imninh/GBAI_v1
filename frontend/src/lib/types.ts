@@ -221,7 +221,22 @@ export interface PickupRoute {
    *  `null` khi cờ `ROUTE_REAL_DISTANCE` tắt hoặc chưa tính được — khi đó bản
    *  đồ vẽ nét đứt như cũ. Khoá LUÔN có mặt trong payload (gói P26). */
   duong_di?: [number, number][] | null;
+  /** Metadata chi tiết lộ trình đường thật từ OSRM (tổng km, tổng phút, từng chặng). */
+  lo_trinh_meta?: LoTrinhMeta | null;
   message_vi?: string;
+}
+
+export interface LoTrinhLeg {
+  from_seq: number;
+  to_seq: number;
+  distance_km: number;
+  duration_minutes: number;
+}
+
+export interface LoTrinhMeta {
+  total_km: number;
+  total_minutes: number;
+  legs: LoTrinhLeg[];
 }
 
 /** Trạng thái thật của ba cơ chế mới — trang Vận hành nói thật về giới hạn. */

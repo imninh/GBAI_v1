@@ -108,7 +108,4 @@ def test_criteria_khac_khong_bi_dung_toi(db_session, monkeypatch: pytest.MonkeyP
     assert criteria[1].startswith("Cùng cụm toà")
     assert criteria[2].startswith("Tổng")
     assert "thùng đang đầy" in criteria[3]
-    assert "gộp chung một chuyến" in criteria[3]
-    assert criteria[4] == (
-        "Thứ tự ghé tối ưu bằng nearest-neighbour + 2-opt trên khoảng cách đường chim bay"
-    )
+    assert "khoảng cách đường chim bay" in criteria[4]

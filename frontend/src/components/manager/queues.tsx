@@ -806,8 +806,8 @@ export function RouteApproval() {
                     phải — trông như bản đồ nhưng KHÔNG mang thông tin địa lý
                     nào. Trên màn duyệt một chuyến xe thật, thứ đó tệ hơn là
                     không có gì. Toạ độ thật đã có từ gói C2a. */}
-                <div className="h-[260px] overflow-hidden rounded-xl">
-                  <RouteMap stops={tuyen.stops ?? []} duong_di={tuyen.duong_di} />
+                <div className="h-[340px] overflow-hidden rounded-xl border border-line">
+                  <RouteMap stops={tuyen.stops ?? []} duong_di={tuyen.duong_di} lo_trinh_meta={tuyen.lo_trinh_meta} route_id={tuyen.id} />
                 </div>
               </Card>
             </div>
