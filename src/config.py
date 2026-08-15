@@ -194,8 +194,7 @@ class Settings(BaseSettings):
     register_rate_window_seconds: int = Field(default=600, ge=1)
 
     # --- Khoảng cách đường đi thật (G3) ----------------------------------
-    # Mặc định TẮT: bật lên là mỗi lần xếp tuyến sẽ gọi một dịch vụ ngoài. Tắt
-    # thì thứ tự ghé vẫn tính trên đường chim bay như từ trước tới nay.
+    # Mặc định TẮT. Bật qua biến môi trường ROUTE_REAL_DISTANCE=true trong .env.
     route_real_distance: bool = False
     osrm_base_url: str = "https://router.project-osrm.org"
     osrm_timeout_seconds: float = Field(default=3.0, gt=0)

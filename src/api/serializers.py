@@ -334,4 +334,26 @@ def route_dict(session: Session, route: PickupRoute, *, full: bool = False) -> d
         data["stops"] = stops
         data["reasoning"] = route.reasoning or {}
         data["proposed_stop_order"] = route.proposed_stop_order or []
+
+        # Tải hình đường đi thật OSRM và metadata lộ trình
+        from src.services import duong_di_that
+        toa_do = [(float(s["lat"]), float(s["lng"])) for s in stops if s.get("lat") is not None and s.get("lng") is not None]
+        if len(toa_do) >= 2:
+            lt = duong_di_that.lo_trinh(toa_do)
+            if lt:
+                data["duong_di"] = [[lat, lng] for lat, lng in lt.polyline]
+                data["lo_trinh_meta"] = {
+                    "total_km": lt.total_km,
+                    "total_minutes": lt.total_minutes,
+                    "legs": [
+                        {
+                            "from_seq": stops[i].get("seq", i + 1),
+                            "to_seq": stops[i + 1].get("seq", i + 2),
+                            "distance_km": leg.distance_km,
+                            "duration_minutes": leg.duration_minutes,
+                        }
+                        for i, leg in enumerate(lt.legs)
+                    ],
+                }
     return data
+

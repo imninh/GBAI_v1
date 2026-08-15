@@ -416,24 +416,31 @@ def propose_routes(
             settings=settings,
         )
 
-    # Khi bật PyVRP: chuẩn bị ma trận khoảng cách
+    # Khi bật PyVRP: chuẩn bị ma trận khoảng cách & thời gian
     chi_so: dict[str, int] = {}
     toa_do: list[tuple[float, float]] = []
     for candidate in matched:
         if candidate.toa_do is not None:
             chi_so[candidate.diem_id] = len(toa_do)
             toa_do.append(candidate.toa_do)
-    ma_tran = duong_di_that.ma_tran_km(toa_do) if toa_do else None
-    dung_duong_di_that = ma_tran is not None
+    ma_tran_res = duong_di_that.ma_tran_osrm(toa_do) if toa_do else None
+    dung_duong_di_that = ma_tran_res is not None
+    duration_fn = None
 
-    if ma_tran is not None:
-        do_that = duong_di_that.ham_do_tu_ma_tran(ma_tran, chi_so)
+    if ma_tran_res is not None:
+        do_that = duong_di_that.ham_do_tu_ma_tran(ma_tran_res.distances_km, chi_so)
+        do_thoi_gian = duong_di_that.ham_do_thoi_gian_tu_ma_tran(ma_tran_res.durations_s, chi_so)
 
         def _do_moi(a: Candidate, b: Candidate) -> float:
             khoang = do_that(a, b)
             return _khoang_cach(a, b) if khoang is None else khoang
 
+        def _do_tg(a: Candidate, b: Candidate) -> float:
+            tg = do_thoi_gian(a, b)
+            return tg if tg is not None else 0.0
+
         dist_fn = _do_moi
+        duration_fn = _do_tg
     else:
         dist_fn = _khoang_cach
 
@@ -446,6 +453,7 @@ def propose_routes(
             depot_lat=settings.vrp_depot_lat,
             depot_lng=settings.vrp_depot_lng,
             distance_fn=dist_fn,
+            duration_fn=duration_fn,
         )
     except Exception:
         sol = None
@@ -494,14 +502,19 @@ def propose_routes(
                     "ly_do": " · ".join(ly_do) or "không khớp điều kiện",
                 }
             )
-        for candidate in sol.unassigned:
-            excluded_notes.append(
-                {
-                    "request_id": _ma_ung_vien(candidate),
-                    "unit": candidate.unit_code,
-                    "ly_do": "vượt tải trọng hoặc ngoài khả năng phục vụ của đội xe",
-                }
-            )
+        for candidate in matched:
+            if candidate not in selected:
+                if total_weight + candidate.weight_kg > capacity:
+                    ly_do_loai = f"vượt tải trọng còn lại của xe ({_so(capacity)} kg)"
+                else:
+                    ly_do_loai = "vượt tải trọng hoặc ngoài khả năng phục vụ của chuyến này"
+                excluded_notes.append(
+                    {
+                        "request_id": _ma_ung_vien(candidate),
+                        "unit": candidate.unit_code,
+                        "ly_do": ly_do_loai,
+                    }
+                )
 
         route = PickupRoute(
             service_date=service_date,

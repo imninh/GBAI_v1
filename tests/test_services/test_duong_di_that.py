@@ -147,3 +147,73 @@ def test_duoi_hai_diem_thi_tra_none_va_khong_goi_mang(monkeypatch: pytest.Monkey
 
     assert ket_qua is None
     assert so_lan[0] == 0, "Một điểm thì không có gì để đo, không gọi mạng"
+
+
+def test_ma_tran_osrm_tra_ca_distance_va_duration(monkeypatch: pytest.MonkeyPatch) -> None:
+    _bat_co(monkeypatch)
+    _gia_http(
+        monkeypatch,
+        du_lieu={
+            "distances": [[0, 2000], [2000, 0]],
+            "durations": [[0, 180], [180, 0]],
+        },
+    )
+
+    kq = duong_di_that.ma_tran_osrm(HAI_DIEM)
+
+    assert kq is not None
+    assert kq.distances_km == [[0.0, 2.0], [2.0, 0.0]]
+    assert kq.durations_s == [[0.0, 180.0], [180.0, 0.0]]
+
+
+def test_ham_do_thoi_gian_tra_dung_gia_tri() -> None:
+    durations = [[0.0, 120.0], [120.0, 0.0]]
+    chi_so = {"diem_1": 0, "diem_2": 1}
+    fn = duong_di_that.ham_do_thoi_gian_tu_ma_tran(durations, chi_so)
+
+    class Diem:
+        def __init__(self, diem_id: str):
+            self.diem_id = diem_id
+
+    assert fn(Diem("diem_1"), Diem("diem_2")) == 120.0
+    assert fn(Diem("diem_1"), Diem("diem_khong_co")) is None
+
+
+def test_snap_gps_voi_tracepoints(monkeypatch: pytest.MonkeyPatch) -> None:
+    _bat_co(monkeypatch)
+    _gia_http(
+        monkeypatch,
+        du_lieu={
+            "tracepoints": [
+                {"location": [105.8345, 21.0280]},
+                {"location": [105.8510, 21.0315]},
+            ]
+        },
+    )
+
+    raw_points = [(21.0278, 105.8342), (21.0312, 105.8507)]
+    snapped = duong_di_that.snap_gps(raw_points, timestamps=[1000, 1005])
+
+    assert snapped is not None
+    assert len(snapped) == 2
+    assert snapped[0] == (21.0280, 105.8345)
+    assert snapped[1] == (21.0315, 105.8510)
+
+
+def test_snap_gps_co_tat_tra_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    _tat_co(monkeypatch)
+    so_lan, _ = _gia_http(monkeypatch)
+
+    raw_points = [(21.0278, 105.8342), (21.0312, 105.8507)]
+    assert duong_di_that.snap_gps(raw_points) is None
+    assert so_lan[0] == 0
+
+
+def test_snap_gps_loi_mang_fallback_raw(monkeypatch: pytest.MonkeyPatch) -> None:
+    _bat_co(monkeypatch)
+    _gia_http(monkeypatch, loi=OSError("disconnect"))
+
+    raw_points = [(21.0278, 105.8342), (21.0312, 105.8507)]
+    snapped = duong_di_that.snap_gps(raw_points)
+
+    assert snapped == raw_points, "Hỏng thì fallback toạ độ thô ban đầu, không mất dữ liệu"

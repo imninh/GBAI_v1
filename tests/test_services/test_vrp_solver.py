@@ -215,3 +215,34 @@ def test_pyvrp_not_installed_fallback(monkeypatch: pytest.MonkeyPatch):
     assert sol.algorithm == "fallback"
     assert sol.routes == []
     assert sol.unassigned == [c]
+
+
+def test_solve_with_custom_distance_and_duration_fn():
+    """Kiểm tra truyền distance_fn và duration_fn tuỳ biến."""
+    b1 = FakeBuilding(id=1, code="TOA-1", lat=21.0285, lng=105.8542)
+    b2 = FakeBuilding(id=2, code="TOA-2", lat=21.0295, lng=105.8552)
+    b3 = FakeBuilding(id=3, code="TOA-3", lat=21.0305, lng=105.8562)
+
+    c1 = FakeCandidate(request=FakeRequest(id=1, est_weight_kg=30.0), building=b1)
+    c2 = FakeCandidate(request=FakeRequest(id=2, est_weight_kg=40.0), building=b2)
+    c3 = FakeCandidate(request=FakeRequest(id=3, est_weight_kg=50.0), building=b3)
+
+    called_duration = [0]
+
+    def my_dist(a, b):
+        return 1.5
+
+    def my_duration(a, b):
+        called_duration[0] += 1
+        return 180.0
+
+    sol = vrp_solver.solve(
+        [c1, c2, c3],
+        capacity_kg=200.0,
+        distance_fn=my_dist,
+        duration_fn=my_duration,
+        max_runtime_seconds=0.5,
+    )
+    assert len(sol.routes) >= 1
+    assert called_duration[0] > 0
+

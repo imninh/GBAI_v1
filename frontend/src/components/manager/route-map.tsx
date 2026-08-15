@@ -19,7 +19,8 @@ import { MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } fro
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import type { RouteStop } from "@/lib/types";
+import type { LoTrinhMeta, RouteStop } from "@/lib/types";
+import LiveTracking from "./live-tracking";
 
 /** Backend C2a trả thêm ``lat``/``lng`` cho từng điểm dừng, nhưng interface
  *  ``RouteStop`` dùng chung chưa khai báo hai trường đó. Đọc qua kiểu mở rộng
@@ -75,9 +76,13 @@ function VuaKhung({ cacDiem }: { cacDiem: (StopToaDo & { lat: number; lng: numbe
 export default function RouteMap({
   stops,
   duong_di,
+  lo_trinh_meta,
+  route_id,
 }: {
   stops: RouteStop[];
   duong_di?: ToaDoDuongDi[] | null;
+  lo_trinh_meta?: LoTrinhMeta | null;
+  route_id?: number | null;
 }) {
   const cacDiem = [...stops].sort((a, b) => a.seq - b.seq).filter(coToaDo);
   // Không có toạ độ nào thì vẽ hộp trống, không vẽ một bản đồ rỗng.
@@ -145,11 +150,16 @@ export default function RouteMap({
             </Marker>
           );
         })}
+        {route_id != null && <LiveTracking routeId={route_id} />}
       </MapContainer>
       {/* Chú giải ngay dưới bản đồ — nét thẳng mà không nói gì là để người xem
           tự hiểu nhầm xe chạy được như thế. */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000] rounded-t-lg bg-white/85 px-2 py-0.5 text-center text-[11px] font-semibold text-muted">
-        {coDuongThat ? "Đường đi thật theo dữ liệu OSRM." : "Nối thẳng giữa các điểm — chưa phải quãng đường thực tế."}
+        {coDuongThat
+          ? lo_trinh_meta
+            ? `Đường đi thật theo dữ liệu OSRM · ${lo_trinh_meta.total_km} km · ~${lo_trinh_meta.total_minutes} phút`
+            : "Đường đi thật theo dữ liệu OSRM."
+          : "Nối thẳng giữa các điểm — chưa phải quãng đường thực tế."}
       </div>
     </div>
   );

@@ -158,3 +158,33 @@ def test_duoi_hai_diem_thi_tra_none_va_khong_goi_mang(monkeypatch: pytest.Monkey
 
     assert ket_qua is None
     assert so_lan[0] == 0, "Một điểm thì không có đường nào để vẽ, không gọi mạng"
+
+
+def test_lo_trinh_tra_metadata_va_legs(monkeypatch: pytest.MonkeyPatch) -> None:
+    _bat_co(monkeypatch)
+    _gia_http(
+        monkeypatch,
+        du_lieu={
+            "routes": [
+                {
+                    "distance": 3200,
+                    "duration": 540,
+                    "geometry": {"coordinates": [[105.85, 21.03], [105.86, 21.04]]},
+                    "legs": [
+                        {"distance": 3200, "duration": 540},
+                    ],
+                }
+            ]
+        },
+    )
+
+    lt = duong_di_that.lo_trinh(HAI_DIEM)
+
+    assert lt is not None
+    assert lt.total_km == 3.2
+    assert lt.total_minutes == 9.0
+    assert len(lt.legs) == 1
+    assert lt.legs[0].distance_km == 3.2
+    assert lt.legs[0].duration_minutes == 9.0
+    assert lt.polyline == [(21.03, 105.85), (21.04, 105.86)]
+

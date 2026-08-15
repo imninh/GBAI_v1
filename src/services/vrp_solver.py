@@ -68,6 +68,7 @@ def solve(
     depot_lng: float = 105.854,
     seed: int = 42,
     distance_fn: Callable[[Any, Any], float] | None = None,
+    duration_fn: Callable[[Any, Any], float] | None = None,
 ) -> VRPSolution:
     """Giải bài toán gom tuyến và sắp thứ tự bằng PyVRP.
 
@@ -80,6 +81,7 @@ def solve(
         depot_lng: Kinh độ khu tập kết (depot).
         seed: Random seed đảm bảo kết quả deterministic.
         distance_fn: Hàm tính khoảng cách tuỳ biến giữa 2 candidate (km).
+        duration_fn: Hàm tính thời gian di chuyển tuỳ biến giữa 2 candidate (giây).
 
     Returns:
         VRPSolution chứa danh sách các tuyến và các candidate bị loại.
@@ -165,7 +167,8 @@ def solve(
                     else:
                         d_km = 0.6
                     dist_meters = max(1, int(round(d_km * 1000)))
-                    model.add_edge(u, v, distance=dist_meters, duration=0)
+                    dur_seconds = max(1, int(round((d_km * 1000.0) / (30.0 / 3.6))))
+                    model.add_edge(u, v, distance=dist_meters, duration=dur_seconds)
                 elif u_idx > 0 and v_idx == 0:
                     cand = valid_candidates[u_idx - 1]
                     toa_do = getattr(cand, "toa_do", None)
@@ -174,18 +177,28 @@ def solve(
                     else:
                         d_km = 0.6
                     dist_meters = max(1, int(round(d_km * 1000)))
-                    model.add_edge(u, v, distance=dist_meters, duration=0)
+                    dur_seconds = max(1, int(round((d_km * 1000.0) / (30.0 / 3.6))))
+                    model.add_edge(u, v, distance=dist_meters, duration=dur_seconds)
                 else:
                     cand_u = valid_candidates[u_idx - 1]
                     cand_v = valid_candidates[v_idx - 1]
                     d_km = calc_dist(cand_u, cand_v)
                     dist_meters = int(round(d_km * 1000))
-                    model.add_edge(u, v, distance=dist_meters, duration=0)
+                    dur_s = None
+                    if duration_fn is not None:
+                        dur_val = duration_fn(cand_u, cand_v)
+                        if dur_val is not None:
+                            dur_s = int(round(dur_val))
+                    if dur_s is None:
+                        dur_s = int(round((d_km * 1000.0) / (30.0 / 3.6)))
+                    model.add_edge(u, v, distance=dist_meters, duration=dur_s)
 
         model.add_vehicle_type(
             num_available=max(1, num_vehicles),
             capacity=[scaled_capacity],
+            fixed_cost=50_000,
         )
+
 
         t0 = time.perf_counter()
         stop_criterion = stop.MaxRuntime(max(0.001, max_runtime_seconds))

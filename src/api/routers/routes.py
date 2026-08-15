@@ -21,12 +21,10 @@ from src.services.pickup_lifecycle import CHO_NHAN, DA_NHAN, chuan_hoa
 router = APIRouter(prefix="/routes", tags=["routes"])
 
 
-def _duong_di_tu_stops(cac_diem: list[dict]) -> list[list[float]] | None:
-    """Hình đường đi thật theo đúng thứ tự ``seq``, từ dữ liệu điểm dừng đã seri hoá.
+def _lo_trinh_tu_stops(cac_diem: list[dict]) -> tuple[list[list[float]] | None, dict | None]:
+    """Hình đường đi thật và metadata lộ trình từ dữ liệu điểm dừng đã seri hoá.
 
-    Trả về ``None`` khi chưa đủ 2 toạ độ hoặc ``hinh_duong_di`` không tính được
-    (cờ tắt / hỏng / quá hạn). Khoá vẫn luôn được thêm vào payload — frontend
-    phân biệt "chưa tính được" với "không có trường này" dễ hơn.
+    Trả về (duong_di, lo_trinh_meta) hoặc (None, None) khi không tính được.
     """
     toa_do = [
         (float(diem["lat"]), float(diem["lng"]))
@@ -34,11 +32,32 @@ def _duong_di_tu_stops(cac_diem: list[dict]) -> list[list[float]] | None:
         if diem.get("lat") is not None and diem.get("lng") is not None
     ]
     if len(toa_do) < 2:
-        return None
-    hinh = duong_di_that.hinh_duong_di(toa_do)
-    if hinh is None:
-        return None
-    return [[lat, lng] for lat, lng in hinh]
+        return None, None
+    lt = duong_di_that.lo_trinh(toa_do)
+    if lt is None:
+        return None, None
+
+    duong_di = [[lat, lng] for lat, lng in lt.polyline]
+    meta = {
+        "total_km": lt.total_km,
+        "total_minutes": lt.total_minutes,
+        "legs": [
+            {
+                "from_seq": cac_diem[i].get("seq", i + 1) if i < len(cac_diem) else i + 1,
+                "to_seq": cac_diem[i + 1].get("seq", i + 2) if i + 1 < len(cac_diem) else i + 2,
+                "distance_km": leg.distance_km,
+                "duration_minutes": leg.duration_minutes,
+            }
+            for i, leg in enumerate(lt.legs)
+        ],
+    }
+    return duong_di, meta
+
+
+def _duong_di_tu_stops(cac_diem: list[dict]) -> list[list[float]] | None:
+    """Hình đường đi thật theo đúng thứ tự ``seq`` (backward compatible)."""
+    dd, _ = _lo_trinh_tu_stops(cac_diem)
+    return dd
 
 
 @router.post("/propose")
@@ -167,7 +186,9 @@ def get_route(route_id: int, session: DbSession, user: CurrentUser) -> dict:
 
     data = route_dict(session, route, full=True)
     data["diff"] = route_planner.route_diff(route)
-    data["duong_di"] = _duong_di_tu_stops(data.get("stops", []))
+    duong_di, lo_trinh_meta = _lo_trinh_tu_stops(data.get("stops", []))
+    data["duong_di"] = duong_di
+    data["lo_trinh_meta"] = lo_trinh_meta
     return data
 
 
@@ -224,7 +245,9 @@ def review_route(
 
     data = route_dict(session, route, full=True)
     data["diff"] = route_planner.route_diff(route)
-    data["duong_di"] = _duong_di_tu_stops(data.get("stops", []))
+    duong_di, lo_trinh_meta = _lo_trinh_tu_stops(data.get("stops", []))
+    data["duong_di"] = duong_di
+    data["lo_trinh_meta"] = lo_trinh_meta
     data["message_vi"] = (
         f"Đã thông báo cho {len(route.stops)} cư dân" + (" và tổ vệ sinh." if route.team_id else ".")
         if payload.action != "cancel"
