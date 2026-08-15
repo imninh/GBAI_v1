@@ -79,6 +79,7 @@ export default function BinMap({
   diemDanhDau = null,
   viTriNguoiDung = null,
   tuMoc = null,
+  duongDi = null,
 }: {
   bins: Bin[];
   selected: Bin | null;
@@ -92,6 +93,8 @@ export default function BinMap({
   viTriNguoiDung?: { lat: number; lng: number } | null;
   /** Điểm gốc để nối đường tới thùng đang chọn (nơi ở / GPS / mốc tự thêm). */
   tuMoc?: { lat: number; lng: number } | null;
+  /** Hình đường đi thật để vẽ; null thì vẽ đoạn thẳng mốc→thùng như cũ. */
+  duongDi?: [number, number][] | null;
 }) {
   return (
     <MapContainer
@@ -119,14 +122,20 @@ export default function BinMap({
       {viTriNguoiDung && (
         <Marker position={[viTriNguoiDung.lat, viTriNguoiDung.lng]} icon={ICON_VI_TRI_TOI} />
       )}
-      {tuMoc && selected && hasCoords(selected) && (
-        <Polyline
-          positions={[
-            [tuMoc.lat, tuMoc.lng],
-            [selected.lat, selected.lng],
-          ]}
-          pathOptions={{ color: "#1f6feb", weight: 4, opacity: 0.7, dashArray: "1 8" }}
-        />
+      {duongDi && duongDi.length >= 2 ? (
+        <Polyline positions={duongDi} pathOptions={{ color: "#1f6feb", weight: 4, opacity: 0.85 }} />
+      ) : (
+        tuMoc &&
+        selected &&
+        hasCoords(selected) && (
+          <Polyline
+            positions={[
+              [tuMoc.lat, tuMoc.lng],
+              [selected.lat, selected.lng],
+            ]}
+            pathOptions={{ color: "#1f6feb", weight: 4, opacity: 0.7, dashArray: "1 8" }}
+          />
+        )
       )}
       {onMapClick && <BatSuKienCham onMapClick={onMapClick} />}
       <Recenter bin={selected} />

@@ -112,7 +112,7 @@ def classify_waste(
     # Chạy YOLO TRƯỚC CLIP: rẻ hơn việc phát hiện muộn, và cờ này còn phải đi
     # tiếp tới T1/T2 dù CLIP có chốt được hay không.
     nghi_dien_tu = chay_t05_yolo(outcome, image_bytes=image_bytes)
-    if chay_t05_local(
+    chot_local, nghi_nguy_hai_clip = chay_t05_local(
         session,
         outcome,
         image_bytes=image_bytes,
@@ -123,8 +123,13 @@ def classify_waste(
         # Cờ YOLO chặn CLIP chốt: model local không được chốt khi có nghi ngờ
         # nguy hại, và đồ điện tử là nghi ngờ nguy hại.
         nghi_nguy_hai_local=nghi_dien_tu,
-    ):
+    )
+    if chot_local:
         return outcome
+    # Nghi ngờ nguy hại đến từ HAI nguồn local: YOLO (đồ điện tử) HOẶC CLIP
+    # (cosine rơi vào nhóm nguy hại). Trước đây chỉ YOLO được mang xuống, nên ca
+    # CLIP nghi mà YOLO trượt vẫn vào T1 mù rồi timeout. Gộp cả hai xuống T1/T2.
+    nghi_nguy_hai = nghi_dien_tu or nghi_nguy_hai_clip
 
     # --- Bước 4: T1 → (nếu cần) T2 ---
     return chay_t1_t2(
@@ -137,5 +142,5 @@ def classify_waste(
         get_vision_client=get_vision_client,
         get_tier_model=get_tier_model,
         get_tier_provider=get_tier_provider,
-        nghi_nguy_hai_local=nghi_dien_tu,
+        nghi_nguy_hai_local=nghi_nguy_hai,
     )

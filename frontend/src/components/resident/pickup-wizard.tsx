@@ -13,9 +13,10 @@
 import * as React from "react";
 
 import { Button, Card } from "@/components/ui/primitives";
+import { AnhCoToken } from "@/lib/anh-co-token";
 import { api } from "@/lib/api";
 import { kg, ngayVn } from "@/lib/format";
-import { IconAi, IconChoDuyet, IconDuyet, IconQuayLai, IconTuChoi, IconXeThuGom } from "@/lib/icons";
+import { IconChoDuyet, IconDuyet, IconQuayLai, IconTuChoi, IconXeThuGom } from "@/lib/icons";
 import type { Classification, PickupRequest, ScheduleHint } from "@/lib/types";
 
 interface MonRac {
@@ -23,9 +24,13 @@ interface MonRac {
   category_code: string;
   qty: number;
   est_weight_kg: number;
+  media_id: number | null;
 }
 
 const NGUONG_KG_MAC_DINH = 30;
+
+// Giờ tự chọn nằm trong 06:00–22:00. Chọn giờ ngoài lịch của toà → cần BQL duyệt.
+const KHUNG_TU_CHON = ["06:00-08:00", "08:00-10:00", "10:00-12:00", "13:00-15:00", "15:00-17:00", "17:00-19:00", "19:00-22:00"];
 
 export function PickupWizard({
   goiYTuKetQua,
@@ -47,49 +52,45 @@ export function PickupWizard({
             category_code: goiYTuKetQua.category.code,
             qty: 1,
             est_weight_kg: 30,
+            media_id: goiYTuKetQua?.media_id ?? null,
           },
         ]
       : [],
   );
   const [ngay, setNgay] = React.useState("");
   const [khungGio, setKhungGio] = React.useState("");
+  const [laGioNgoaiLich, setLaGioNgoaiLich] = React.useState(false);
   const [ghiChu, setGhiChu] = React.useState("");
   const [daTick, setDaTick] = React.useState(false);
   const [dangGui, setDangGui] = React.useState(false);
   const [loi, setLoi] = React.useState("");
   const [ketQua, setKetQua] = React.useState<PickupRequest | null>(null);
+  const [dangTaiAnh, setDangTaiAnh] = React.useState<number | null>(null);
 
   const tongKg = mon.reduce((s, m) => s + m.est_weight_kg * m.qty, 0);
   const vuotNguong = tongKg * 1.4 > NGUONG_KG_MAC_DINH;
 
-  const khungGoiY = React.useMemo(() => {
-    // `?? []` phải nằm TRONG useMemo: đặt ở ngoài thì mỗi lần render lại sinh
-    // một mảng rỗng mới, dependency đổi liên tục và useMemo mất tác dụng.
+  const khungBQL = React.useMemo(() => {
+    // Chỉ lấy khung có chuyến thật của toà. Bỏ 2 khung cứng cũ — giờ ngoài lịch
+    // do cư dân tự chọn ở phần "Chọn giờ khác" bên dưới.
     const chuyenDaCo = scheduleHint?.khung_gio_da_co_chuyen ?? [];
-    const tuChuyen = chuyenDaCo.map((c) => ({
+    return chuyenDaCo.map((c) => ({
       key: `${c.service_date}|${c.window}`,
       ngay: c.service_date,
       window: c.window,
-      daCoChuyen: true,
       ghiChu: c.ghi_chu,
     }));
-    const homSau = new Date();
-    homSau.setDate(homSau.getDate() + 3);
-    const macDinh = ["08:00-10:00", "14:00-16:00"].map((w) => ({
-      key: `${homSau.toISOString().slice(0, 10)}|${w}`,
-      ngay: homSau.toISOString().slice(0, 10),
-      window: w,
-      daCoChuyen: false,
-      ghiChu: "",
-    }));
-    const gop = [...tuChuyen, ...macDinh];
-    return gop.filter((g, i) => gop.findIndex((x) => x.key === g.key) === i);
   }, [scheduleHint?.khung_gio_da_co_chuyen]);
 
   async function gui() {
     setDangGui(true);
     setLoi("");
     try {
+      if (ngay && ngay < new Date().toISOString().slice(0, 10)) {
+        setLoi("Ngày mong muốn không thể ở quá khứ, chọn lại giúp mình nhé.");
+        setDangGui(false);
+        return;
+      }
       const yeuCau = await api.createPickup({
         items: mon,
         est_weight_kg: tongKg,
@@ -97,6 +98,7 @@ export function PickupWizard({
         preferred_window: khungGio,
         note: ghiChu,
         confirmed_no_hazardous: daTick,
+        ngoai_lich: laGioNgoaiLich,
       });
       setKetQua(yeuCau);
       setBuoc(4);
@@ -104,6 +106,19 @@ export function PickupWizard({
       setLoi(e instanceof Error ? e.message : "Không gửi được yêu cầu.");
     } finally {
       setDangGui(false);
+    }
+  }
+
+  async function dinhAnh(i: number, file: File) {
+    setDangTaiAnh(i);
+    setLoi("");
+    try {
+      const { media_id } = await api.uploadMedia(file);
+      setMon((cu) => cu.map((x, j) => (j === i ? { ...x, media_id } : x)));
+    } catch {
+      setLoi("Không tải được ảnh, thử lại giúp mình nhé.");
+    } finally {
+      setDangTaiAnh(null);
     }
   }
 
@@ -133,11 +148,30 @@ export function PickupWizard({
             <div className="mb-1 text-[13px] font-bold text-bulky">Bước 1/3</div>
             <h1 className="m-0 mb-1 font-[family-name:var(--font-display)] text-[26px] font-bold">Món cần thu gom</h1>
             <p className="m-0 mb-4 text-[13px] font-semibold text-muted">
-              AI điền sẵn tên, nhóm và ước lượng khối lượng — bạn kiểm tra lại giúp mình.
+              AI gợi ý tên và nhóm rác — khối lượng do bạn tự nhập, kiểm tra lại giúp mình.
             </p>
             {mon.map((m, i) => (
               <Card key={i} className="mb-2.5 flex gap-3 p-3.5">
-                <div className="h-16 w-16 flex-none rounded-xl bg-[repeating-linear-gradient(135deg,#ece7f6,#ece7f6_7px,#e3daf3_7px,#e3daf3_14px)]" />
+                <label className="relative h-16 w-16 flex-none cursor-pointer overflow-hidden rounded-xl">
+                  {m.media_id ? (
+                    <AnhCoToken mediaId={m.media_id} alt={m.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-[repeating-linear-gradient(135deg,#ece7f6,#ece7f6_7px,#e3daf3_7px,#e3daf3_14px)] text-[10px] font-bold text-bulky-dark">
+                      {dangTaiAnh === i ? "Đang tải…" : "+ Ảnh"}
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) dinhAnh(i, f);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
                 <div className="flex-1">
                   <input
                     value={m.name}
@@ -159,24 +193,21 @@ export function PickupWizard({
                     />
                     <span className="text-[11px] font-bold text-[#8a7a5a]">kg</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#b58a2a]">
-                    <IconAi className="h-3.5 w-3.5" />
-                    AI ước lượng — kiểm tra lại giúp mình
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#8a7a5a]">
+                    Khối lượng bạn tự nhập — sửa lại nếu chưa đúng
                   </div>
                 </div>
-                {mon.length > 1 && (
-                  <button
-                    onClick={() => setMon((cu) => cu.filter((_, j) => j !== i))}
-                    className="cursor-pointer text-muted"
-                    aria-label={`Bỏ món ${m.name}`}
-                  >
-                    <IconTuChoi className="h-4 w-4" />
-                  </button>
-                )}
+                <button
+                  onClick={() => setMon((cu) => cu.filter((_, j) => j !== i))}
+                  className="cursor-pointer text-muted"
+                  aria-label={`Bỏ món ${m.name}`}
+                >
+                  <IconTuChoi className="h-4 w-4" />
+                </button>
               </Card>
             ))}
             <button
-              onClick={() => setMon((cu) => [...cu, { name: "Món mới", category_code: "bulky", qty: 1, est_weight_kg: 10 }])}
+              onClick={() => setMon((cu) => [...cu, { name: "Món mới", category_code: "bulky", qty: 1, est_weight_kg: 10, media_id: null }])}
               className="w-full cursor-pointer rounded-2xl border-[1.5px] border-dashed border-[#cbb8ee] bg-white p-3.5 text-sm font-bold text-bulky-dark"
             >
               + Thêm món
@@ -192,41 +223,70 @@ export function PickupWizard({
           <>
             <div className="mb-1 text-[13px] font-bold text-bulky">Bước 2/3</div>
             <h1 className="m-0 mb-4 font-[family-name:var(--font-display)] text-[26px] font-bold">Chọn thời gian</h1>
-            <div className="mb-2 text-[13px] font-bold text-muted">Khung giờ khả dụng</div>
-            {khungGoiY.map((k) => {
-              const dangChon = khungGio === k.window && ngay === k.ngay;
-              return (
-                <button
-                  key={k.key}
-                  onClick={() => {
-                    setKhungGio(k.window);
-                    setNgay(k.ngay);
-                  }}
-                  className="mb-2.5 w-full cursor-pointer rounded-2xl p-4 text-left"
-                  style={{
-                    background: dangChon ? "#e6f4ea" : "#fff",
-                    border: dangChon ? "2px solid #2fae66" : "1.5px solid #e0ded4",
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[15px] font-extrabold">
-                      {ngayVn(k.ngay)} · {k.window}
-                    </span>
-                    {dangChon && (
-                      <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-leaf text-white">
-                        <IconDuyet className="h-3.5 w-3.5" strokeWidth={3} />
-                      </span>
-                    )}
-                  </div>
-                  {k.daCoChuyen && (
-                    <div className="mt-2 flex items-center gap-1.5 text-xs font-bold text-leaf-dark">
-                      <IconXeThuGom className="h-4 w-4 flex-none" />
-                      {k.ghiChu}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
+
+            {khungBQL.length > 0 && (
+              <>
+                <div className="mb-2 text-[13px] font-bold text-muted">Khung theo lịch của toà</div>
+                {khungBQL.map((k) => {
+                  const dangChon = khungGio === k.window && ngay === k.ngay && !laGioNgoaiLich;
+                  return (
+                    <button
+                      key={k.key}
+                      onClick={() => { setKhungGio(k.window); setNgay(k.ngay); setLaGioNgoaiLich(false); }}
+                      className="mb-2.5 w-full cursor-pointer rounded-2xl p-4 text-left"
+                      style={{ background: dangChon ? "#e6f4ea" : "#fff", border: dangChon ? "2px solid #2fae66" : "1.5px solid #e0ded4" }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[15px] font-extrabold">{ngayVn(k.ngay)} · {k.window}</span>
+                        {dangChon && (
+                          <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-leaf text-white">
+                            <IconDuyet className="h-3.5 w-3.5" strokeWidth={3} />
+                          </span>
+                        )}
+                      </div>
+                      {k.ghiChu && (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs font-bold text-leaf-dark">
+                          <IconXeThuGom className="h-4 w-4 flex-none" />
+                          {k.ghiChu}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </>
+            )}
+
+            <div className="mb-2 mt-3 text-[13px] font-bold text-muted">Chọn giờ khác</div>
+            <div className="mb-2.5 rounded-2xl border-[1.5px] border-line-2 bg-white p-4">
+              <input
+                type="date"
+                value={laGioNgoaiLich ? ngay : ""}
+                min={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => { setNgay(e.target.value); setLaGioNgoaiLich(true); if (!khungGio) setKhungGio(KHUNG_TU_CHON[0]); }}
+                className="mb-2.5 w-full rounded-xl border border-line-3 px-3 py-2 text-[14px] font-semibold outline-none focus:border-leaf"
+              />
+              <div className="flex flex-wrap gap-2">
+                {KHUNG_TU_CHON.map((w) => {
+                  const chon = laGioNgoaiLich && khungGio === w;
+                  return (
+                    <button
+                      key={w}
+                      onClick={() => { setKhungGio(w); setLaGioNgoaiLich(true); if (!ngay) { const d = new Date(); d.setDate(d.getDate() + 1); setNgay(d.toISOString().slice(0, 10)); } }}
+                      className="cursor-pointer rounded-full px-3 py-1.5 text-[13px] font-bold"
+                      style={{ background: chon ? "#ede8fb" : "#f2ede2", color: chon ? "#5b3fbf" : "#8a7a5a", border: chon ? "1.5px solid #7c5cdf" : "1.5px solid transparent" }}
+                    >
+                      {w}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            {laGioNgoaiLich && (
+              <div className="mb-2.5 rounded-2xl border-[1.5px] border-amber-line bg-amber-soft p-3.5 text-[13px] font-semibold leading-relaxed text-[#7a5c14]">
+                Giờ này nằm ngoài lịch thu gom của toà — ban quản lý sẽ duyệt trước khi nhận yêu cầu.
+              </div>
+            )}
+
             <textarea
               value={ghiChu}
               onChange={(e) => setGhiChu(e.target.value)}

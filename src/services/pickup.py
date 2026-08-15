@@ -148,6 +148,7 @@ def create_pickup_request(
     preferred_date: date | None = None,
     preferred_window: str = "",
     note: str = "",
+    ngoai_lich: bool = False,
 ) -> PickupRequest:
     """Tạo yêu cầu thu gom và ghi hai mốc đầu tiên trên timeline.
 
@@ -165,6 +166,16 @@ def create_pickup_request(
 
     low, high, mid = weight_range_from_estimate(est_weight_kg, weight_min_kg, weight_max_kg)
     hits = evaluate_thresholds(session, items, high)
+
+    if ngoai_lich and preferred_window:
+        hits.append(
+            ThresholdHit(
+                rule="gio_ngoai_lich",
+                label_vi="Giờ đề xuất nằm ngoài lịch thu gom của toà — cần ban quản lý duyệt",
+                value=0.0,
+                threshold=0.0,
+            )
+        )
 
     request = PickupRequest(
         resident_id=resident.id,
