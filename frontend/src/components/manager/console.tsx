@@ -161,7 +161,7 @@ export function ManagerConsole() {
             aria-expanded={moThem}
             className="mb-0.5 flex w-full cursor-pointer items-center rounded-xl px-3 py-2.5 text-left text-[13px] font-bold text-muted"
           >
-            Xem thêm
+            <span>Xem thêm</span>
             <span className="flex-1" />
             <span className="text-[10px] leading-none">{moThem ? "▲" : "▼"}</span>
           </button>
@@ -262,7 +262,7 @@ function SubTabs({
               cursor: allowed ? "pointer" : "not-allowed",
             }}
           >
-            {m.label}
+            <span>{m.label}</span>
             {!allowed && <IconKhoa className="h-3.5 w-3.5" />}
             {allowed && dem[m.key] ? (
               <span className="rounded-md bg-hazard px-1.5 py-0.5 text-[10px] font-extrabold text-white">
@@ -311,7 +311,7 @@ function NavButton({
         className={className}
         style={style}
       >
-        {muc.label}
+        <span>{muc.label}</span>
         <span className="flex-1" />
         {!allowed && <IconKhoa className="h-3.5 w-3.5" />}
       </Link>
@@ -326,7 +326,7 @@ function NavButton({
       className={className}
       style={style}
     >
-      {muc.label}
+      <span>{muc.label}</span>
       <span className="flex-1" />
       {!allowed && <IconKhoa className="h-3.5 w-3.5" />}
       {allowed && badge ? (
