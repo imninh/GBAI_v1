@@ -116,11 +116,11 @@ def chay_t05_local(
     started: float,
     classify_image_local: object,
     nghi_nguy_hai_local: bool = False,
-) -> bool:
-    """Tầng T0.5 — model local. Trả về ``True`` nếu đã chốt được (outcome đã finalize)."""
+) -> tuple[bool, bool]:
+    """Tầng T0.5 — model local. Trả về ``(chot, nghi_nguy_hai_clip)``: chốt được chưa, và CLIP có nghi nguy hại không (mang xuống T1/T2 kể cả khi không chốt)."""
     settings = get_settings()
     if image_bytes is None or not settings.local_model_enabled:
-        return False
+        return (False, False)
     step = time.perf_counter()
     local = classify_image_local(image_bytes, categories)  # type: ignore[operator]
     duration = int((time.perf_counter() - step) * 1000)
@@ -128,7 +128,7 @@ def chay_t05_local(
         outcome.nodes.append(
             NodeMetric(node="local_model", status="skipped", duration_ms=duration, meta={"reason": "khong_san_sang"})
         )
-        return False
+        return (False, False)
 
     category = _category_by_code(session, local.category_code)
     is_hazard_related = local.suspect_hazardous or bool(category and category.is_hazardous)
@@ -155,12 +155,12 @@ def chay_t05_local(
         )
     )
     if not accepted:
-        return False
+        return (False, is_hazard_related)
 
     _apply_vision_result(session, outcome, local, TIER_T05_LOCAL)
     outcome.latency_ms = int((time.perf_counter() - started) * 1000)
     _finalize(outcome, text_query, categories=categories)
-    return True
+    return (True, is_hazard_related)
 
 
 def chay_t1_t2(

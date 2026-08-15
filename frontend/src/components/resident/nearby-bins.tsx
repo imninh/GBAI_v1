@@ -93,6 +93,9 @@ export function NearbyBinsScreen() {
   const [dangThem, setDangThem] = React.useState(false);
   const [tenMoi, setTenMoi] = React.useState("");
   const [diemMoi, setDiemMoi] = React.useState<{ lat: number; lng: number } | null>(null);
+  const [duongDi, setDuongDi] = React.useState<[number, number][] | null>(null);
+  // Giữ id của watchPosition để dừng theo dõi khi rời màn.
+  const watchIdRef = React.useRef<number | null>(null);
 
   // localStorage chỉ có ở trình duyệt. Đọc nó ngay trong `useState` sẽ cho kết
   // quả khác nhau giữa lần dựng trên server và lần dựng ở client → React báo
@@ -101,17 +104,47 @@ export function NearbyBinsScreen() {
     setDiaChi(docDiaChi());
   }, []);
 
+  // Ngừng theo dõi vị trí khi rời màn — watchPosition chạy nền, bỏ quên là rò.
+  React.useEffect(() => {
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, []);
+
   const coNha = user?.building_lat != null && user?.building_lng != null;
   // `moc` nhận ba loại giá trị: "nha", "gps", hoặc id một mốc đã lưu. Mọi id do
   // `themDiaChi` sinh ra đều bắt đầu bằng "dc-" nên không đụng hai chuỗi kia.
   const mocLuu = diaChi.find((d) => d.id === moc) ?? null;
-  const mocToaDo = mocLuu
-    ? { lat: mocLuu.lat, lng: mocLuu.lng }
-    : moc === "gps"
-      ? viTriGps
-      : coNha
-        ? { lat: user!.building_lat as number, lng: user!.building_lng as number }
-        : null;
+  // `mocToaDo` phải là tham chiếu ổn định (useMemo): effect đường đi thật phụ
+  // thuộc nó, mà dựng object mới mỗi render thì effect chạy lại vô hạn lần.
+  const mocToaDo = React.useMemo(
+    () =>
+      mocLuu
+        ? { lat: mocLuu.lat, lng: mocLuu.lng }
+        : moc === "gps"
+          ? viTriGps
+          : coNha
+            ? { lat: user!.building_lat as number, lng: user!.building_lng as number }
+            : null,
+    [mocLuu, moc, viTriGps, coNha, user],
+  );
+
+  // Có mốc + thùng đang chọn thì hỏi đường đi thật; đổi lựa chọn thì bỏ đường cũ.
+  React.useEffect(() => {
+    if (!mocToaDo || !dangChon || dangChon.lat == null || dangChon.lng == null) {
+      setDuongDi(null);
+      return;
+    }
+    let huy = false;
+    api
+      .duongDiToiDiem([mocToaDo, { lat: dangChon.lat, lng: dangChon.lng }])
+      .then((r) => { if (!huy) setDuongDi(r.duong_di); })
+      .catch(() => { if (!huy) setDuongDi(null); });
+    return () => { huy = true; };
+  }, [mocToaDo, dangChon]);
 
   /** Đóng bảng thêm mốc và dọn bản nháp — mở lại là tờ giấy trắng. */
   function dongThem() {
@@ -137,7 +170,8 @@ export function NearbyBinsScreen() {
     if (moc === id) setMoc("nha");
   }
 
-  /** Xin quyền vị trí — chỉ chạy khi người dùng tự chạm, không bao giờ tự động. */
+  /** Xin quyền vị trí — chỉ chạy khi người dùng tự chạm, không bao giờ tự động.
+   *  Dùng watchPosition để chấm bám theo khi người dùng di chuyển. */
   function xinViTri() {
     if (viTriGps) {
       setMoc("gps");
@@ -154,31 +188,41 @@ export function NearbyBinsScreen() {
       );
       return;
     }
+    // Đã theo dõi rồi thì chỉ cần đưa mốc về GPS, không mở watcher thứ hai.
+    if (watchIdRef.current !== null) {
+      setMoc("gps");
+      return;
+    }
     setDangXinViTri(true);
     setLoiViTri("");
-    navigator.geolocation.getCurrentPosition(
+    watchIdRef.current = navigator.geolocation.watchPosition(
       (v) => {
         setViTriGps({ lat: v.coords.latitude, lng: v.coords.longitude });
         setMoc("gps");
         setDangXinViTri(false);
       },
       (err) => {
-        // Từ chối quyền KHÔNG được làm chết màn hình — lui về nơi ở đã đăng ký.
         setDangXinViTri(false);
-        setMoc("nha");
-        // Ba nguyên nhân này cần ba cách xử lý khác hẳn nhau. Gộp chung thành
-        // một câu là lý do lỗi này sống sót qua nhiều lần thử.
-        const viSao =
-          err.code === err.PERMISSION_DENIED
-            ? "Bạn đã từ chối quyền vị trí, hoặc trình duyệt đang chặn sẵn."
-            : err.code === err.POSITION_UNAVAILABLE
-              ? "Máy không xác định được vị trí lúc này."
-              : "Quá lâu không lấy được vị trí.";
-        setLoiViTri(
-          coNha
-            ? `${viSao} Đang tính khoảng cách theo nơi ở đã đăng ký.`
-            : `${viSao} Tài khoản cũng chưa gắn căn hộ nên chưa tính được khoảng cách.`,
-        );
+        // Lỗi khi CHƯA có lần đọc nào mới lui về nơi ở; lỗi chập chờn giữa chừng
+        // (đã có toạ độ) thì giữ nguyên chấm cũ, đừng giật người dùng khỏi GPS.
+        if (!viTriGps) {
+          if (watchIdRef.current !== null) {
+            navigator.geolocation.clearWatch(watchIdRef.current);
+            watchIdRef.current = null;
+          }
+          setMoc("nha");
+          const viSao =
+            err.code === err.PERMISSION_DENIED
+              ? "Bạn đã từ chối quyền vị trí, hoặc trình duyệt đang chặn sẵn."
+              : err.code === err.POSITION_UNAVAILABLE
+                ? "Máy không xác định được vị trí lúc này."
+                : "Quá lâu không lấy được vị trí.";
+          setLoiViTri(
+            coNha
+              ? `${viSao} Đang tính khoảng cách theo nơi ở đã đăng ký.`
+              : `${viSao} Tài khoản cũng chưa gắn căn hộ nên chưa tính được khoảng cách.`,
+          );
+        }
       },
       // `enableHighAccuracy: true` bắt máy đợi định vị vệ tinh; laptop không có
       // GPS nên nó chỉ dẫn tới TIMEOUT sau 10 giây dù người dùng đã Cho phép.
@@ -368,6 +412,7 @@ export function NearbyBinsScreen() {
           diemDanhDau={dangThem ? diemMoi : null}
           viTriNguoiDung={viTriGps}
           tuMoc={mocToaDo}
+          duongDi={duongDi}
         />
       </div>
 

@@ -6,6 +6,7 @@ from datetime import date as date_type
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 from sqlalchemy import select
 
 from src.api.deps import CurrentUser, DbSession, require
@@ -304,3 +305,27 @@ def complete_stop(
 
     route = session.get(PickupRoute, route_id)
     return route_dict(session, route, full=True)
+
+
+class DuongDiRequest(BaseModel):
+    """Các điểm cần nối, theo thứ tự (mốc của cư dân → điểm gửi)."""
+
+    diem: list[dict]
+
+
+@router.post("/duong-di")
+def duong_di_toi_diem(payload: DuongDiRequest, user: CurrentUser) -> dict:
+    """Hình đường đi thật nối các điểm cư dân chọn (mốc → điểm gửi).
+
+    Trả ``{"duong_di": [[lat,lng]…] | null}``. ``null`` = OSRM tắt/hỏng/hết giờ →
+    client vẽ đường thẳng như cũ. Không đụng CSDL, chỉ hỏi dịch vụ định tuyến.
+    """
+    toa_do = [
+        (float(d["lat"]), float(d["lng"]))
+        for d in payload.diem
+        if d.get("lat") is not None and d.get("lng") is not None
+    ]
+    if len(toa_do) < 2:
+        return {"duong_di": None}
+    hinh = duong_di_that.hinh_duong_di(toa_do)
+    return {"duong_di": [[lat, lng] for lat, lng in hinh] if hinh else None}

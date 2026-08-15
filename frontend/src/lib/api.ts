@@ -183,6 +183,13 @@ export const api = {
   // --- Ảnh ---
   privacy: (mediaId: number) => request<PrivacyReport>(`/media/${mediaId}/privacy`),
   deleteMedia: (mediaId: number) => request<{ ok: boolean }>(`/media/${mediaId}`, { method: "DELETE" }),
+  /** Tải một ảnh (server tước EXIF + làm mờ mặt + nén), trả media_id để đính vào
+   *  món của yêu cầu thu gom. Nén sẵn trên máy trước khi gửi. */
+  uploadMedia: async (file: File) => {
+    const form = new FormData();
+    form.append("image", await nenAnh(file));
+    return request<{ media_id: number }>("/media", { method: "POST", body: form });
+  },
 
   // --- Danh mục ---
   categories: () => request<{ items: WasteCategory[] }>("/categories"),
@@ -258,6 +265,13 @@ export const api = {
     request<PickupRoute>("/routes/propose", {
       method: "POST",
       body: JSON.stringify(payload),
+    }),
+  /** Hình đường đi thật (OSRM) nối mốc → điểm gửi. `duong_di` null khi backend
+   *  tắt OSRM hoặc gọi hỏng — khi đó vẽ đường thẳng như cũ. */
+  duongDiToiDiem: (diem: { lat: number; lng: number }[]) =>
+    request<{ duong_di: [number, number][] | null }>("/routes/duong-di", {
+      method: "POST",
+      body: JSON.stringify({ diem }),
     }),
   routes: (params: Record<string, string> = {}) =>
     request<{ items: PickupRoute[] }>(`/routes?${new URLSearchParams(params)}`),

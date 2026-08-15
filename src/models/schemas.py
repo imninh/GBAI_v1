@@ -120,6 +120,7 @@ class CreatePickupRequest(BaseModel):
     weight_max_kg: float | None = None
     preferred_date: date | None = None
     preferred_window: str = ""
+    ngoai_lich: bool = False
     note: str = ""
     # Bắt buộc tick ở bước 3 của wizard (spec 4.7).
     confirmed_no_hazardous: bool = False

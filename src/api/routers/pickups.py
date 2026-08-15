@@ -64,6 +64,7 @@ def create_pickup(payload: CreatePickupRequest, session: DbSession, user: Curren
             preferred_date=payload.preferred_date,
             preferred_window=payload.preferred_window,
             note=payload.note,
+            ngoai_lich=payload.ngoai_lich,
         )
     except ValueError as exc:
         raise bad_request(str(exc), code="PU-400") from exc

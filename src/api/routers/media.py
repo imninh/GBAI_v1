@@ -7,20 +7,24 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.responses import FileResponse, Response
 
 from src.api.deps import CurrentUser, DbSession, require
-from src.api.errors import ApiError, forbidden, not_found
+from src.api.errors import ApiError, bad_request, forbidden, not_found
 from src.api.serializers import media_privacy_dict
 from src.db.models import Media, User
 from src.services.auth import write_audit
-from src.services.luu_tru import tai_ve, xoa
+from src.services.image import preprocess_image
+from src.services.luu_tru import tai_len, tai_ve, xoa
 
 router = APIRouter(prefix="/media", tags=["media"])
+
+MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 
 
 def _load(session, media_id: int) -> Media:
@@ -33,6 +37,55 @@ def _load(session, media_id: int) -> Media:
 def _can_see(user: User, media: Media) -> bool:
     """Chủ ảnh xem được ảnh mình; đội vệ sinh và BQL xem được để làm việc."""
     return media.uploader_id == user.id or user.role in {"cleaner", "manager"}
+
+
+@router.post("")
+async def upload_media(
+    session: DbSession,
+    user: CurrentUser,
+    image: Annotated[UploadFile, File()],
+) -> dict:
+    """Tải một ảnh, tiền xử lý (tước EXIF · làm mờ mặt · nén 512px), trả ``media_id``.
+
+    Dùng cho wizard thu gom đính ảnh từng món — KHÔNG chạy phân loại. Cùng pipeline
+    ẩn danh với ``/classify`` để ảnh nào vào hệ thống cũng đã được làm sạch.
+    """
+    raw = await image.read()
+    if not raw:
+        raise bad_request("File ảnh rỗng.", code="IMG-400")
+    if len(raw) > MAX_UPLOAD_BYTES:
+        raise bad_request("Ảnh quá lớn, tối đa 12 MB.", code="IMG-413")
+    try:
+        processed = preprocess_image(raw)
+    except ValueError as exc:
+        raise bad_request("Mình không đọc được file ảnh này.", code="IMG-415") from exc
+
+    hom_nay = datetime.now(UTC)
+    thu_muc_ngay = f"uploads/{hom_nay:%Y/%m/%d}"
+    khoa_da_xu_ly = f"{thu_muc_ngay}/{Path(processed.stored_path).name}"
+    khoa_goc = f"{thu_muc_ngay}/{Path(processed.original_path).name}" if processed.original_path else ""
+
+    media = Media(
+        uploader_id=user.id,
+        stored_path=processed.stored_path,
+        original_path=processed.original_path,
+        storage_key=tai_len(processed.stored_path, khoa_da_xu_ly) or "",
+        original_storage_key=tai_len(processed.original_path, khoa_goc) if processed.original_path else "",
+        phash=processed.phash,
+        width=processed.width,
+        height=processed.height,
+        bytes_size=processed.bytes_size,
+        original_width=processed.original_width,
+        original_height=processed.original_height,
+        original_bytes_size=processed.original_bytes_size,
+        exif_stripped=processed.exif_stripped,
+        faces_blurred=processed.faces_blurred,
+        removed_fields=processed.removed_fields_as_json(),
+        expires_at=processed.expires_at,
+    )
+    session.add(media)
+    session.flush()
+    return {"media_id": media.id}
 
 
 @router.get("/{media_id}")

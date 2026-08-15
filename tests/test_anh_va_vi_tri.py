@@ -10,7 +10,7 @@ nhìn vào frontend. Test này quét **dưới dạng văn bản** (đúng khuô
 3. mọi trạng thái trong điều kiện nút "Huỷ yêu cầu" đều là trạng thái có thật;
 4. AndroidManifest khai quyền vị trí (và không khai quyền nền);
 5. không còn ``enableHighAccuracy: true`` mà thiếu ``maximumAge``;
-6. nhánh lỗi của ``getCurrentPosition`` phải nhận tham số lỗi.
+6. nhánh lỗi của ``watchPosition`` phải nhận tham số lỗi.
 """
 
 from __future__ import annotations
@@ -110,17 +110,19 @@ def test_manifest_android_co_quyen_vi_tri() -> None:
     assert 'android.permission.ACCESS_BACKGROUND_LOCATION' not in noi_dung, "Có ACCESS_BACKGROUND_LOCATION — cấm"
 
 
-def _doan_goi_get_current_position(noi_dung: str) -> str:
-    """Thân lời gọi ``getCurrentPosition(...)``, đếm ngoặc để lấy TRỌN khối.
+def _doan_goi_watch_position(noi_dung: str) -> str:
+    """Thân lời gọi ``watchPosition(...)``, đếm ngoặc để lấy TRỌN khối.
 
+    Màn này theo dõi vị trí realtime bằng ``watchPosition`` (đổi từ
+    ``getCurrentPosition`` ở gói P49b) — cùng object tuỳ chọn, cùng nhánh lỗi.
     Lời gọi chứa các lệnh gọi con lồng nhau (``setViTriGps({ ... })`` kết thúc
     bằng ``);``), nên tìm ``);`` đầu tiên là cắt cụt giữa chừng — phải đếm độ
-    sâu ngoặc từ ``(`` của ``getCurrentPosition``.
+    sâu ngoặc từ ``(`` của ``watchPosition``.
     """
-    bat = noi_dung.find("getCurrentPosition(")
+    bat = noi_dung.find("watchPosition(")
     if bat == -1:
         return ""
-    bat += len("getCurrentPosition")
+    bat += len("watchPosition")
     do_sau = 0
     for i in range(bat, len(noi_dung)):
         ky_tu = noi_dung[i]
@@ -140,12 +142,12 @@ def test_khong_dung_enable_high_accuracy() -> None:
     định vị vệ tinh rồi hết giờ → TIMEOUT dù người dùng đã Cho phép. Định vị
     Wi-Fi/di động sai vài trăm mét là đủ để xếp thứ tự điểm gửi.
 
-    Chỉ quét THÂN lời gọi ``getCurrentPosition``, không quét comment — chú thích
+    Chỉ quét THÂN lời gọi ``watchPosition``, không quét comment — chú thích
     giải thích tại sao cấm cũng nhắc đúng chuỗi bị cấm.
     """
     tep = GOC_DU_AN / "frontend" / "src" / "components" / "resident" / "nearby-bins.tsx"
-    doan = _doan_goi_get_current_position(tep.read_text(encoding="utf-8"))
-    assert doan, "Không tìm thấy lời gọi getCurrentPosition trong nearby-bins.tsx"
+    doan = _doan_goi_watch_position(tep.read_text(encoding="utf-8"))
+    assert doan, "Không tìm thấy lời gọi watchPosition trong nearby-bins.tsx"
     # Lọc comment: chú thích giải thích tại sao cấm cũng nhắc đúng chuỗi bị cấm.
     khong_comment = "\n".join(dong for dong in doan.splitlines() if not dong.strip().startswith("//"))
     assert "enableHighAccuracy: true" not in khong_comment, "Còn enableHighAccuracy: true — laptop sẽ TIMEOUT"
@@ -153,14 +155,14 @@ def test_khong_dung_enable_high_accuracy() -> None:
 
 
 def test_nhanh_loi_vi_tri_nhan_tham_so() -> None:
-    """Nhánh lỗi của ``getCurrentPosition`` phải nhận tham số lỗi.
+    """Nhánh lỗi của ``watchPosition`` phải nhận tham số lỗi.
 
     Ba nguyên nhân hoàn toàn khác nhau (từ chối quyền · không có nguồn định vị ·
     quá hạn) cần ba câu báo khác nhau. Nhánh ``() =>`` vứt tham số sẽ gộp chúng
     thành một câu mơ hồ, không ai chẩn được.
     """
     tep = GOC_DU_AN / "frontend" / "src" / "components" / "resident" / "nearby-bins.tsx"
-    doan = _doan_goi_get_current_position(tep.read_text(encoding="utf-8"))
-    assert doan, "Không tìm thấy lời gọi getCurrentPosition trong nearby-bins.tsx"
+    doan = _doan_goi_watch_position(tep.read_text(encoding="utf-8"))
+    assert doan, "Không tìm thấy lời gọi watchPosition trong nearby-bins.tsx"
     assert re.search(r"\(\s*err\s*\)\s*=>", doan), "Nhánh lỗi phải nhận tham số (err)"
     assert not re.search(r"},\s*\(\s*\)\s*=>", doan), "Nhánh lỗi vẫn còn dạng () => vứt tham số"
