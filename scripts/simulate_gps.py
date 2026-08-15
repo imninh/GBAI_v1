@@ -13,10 +13,11 @@ from __future__ import annotations
 
 import argparse
 import math
-from pathlib import Path
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from pathlib import Path
+
 import requests
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
@@ -29,10 +30,9 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-
-from src.db.models import PickupRoute, User
-from src.db.session import get_session_factory
-from src.services import auth, duong_di_that
+from src.db.models import PickupRoute, User  # noqa: E402
+from src.db.session import get_session_factory  # noqa: E402
+from src.services import auth  # noqa: E402
 
 
 def _tinh_heading(p1: tuple[float, float], p2: tuple[float, float]) -> float:
@@ -149,7 +149,7 @@ def main() -> None:
                 "accuracy_m": 5.0,
                 "speed_mps": speed_mps,
                 "heading": heading,
-                "recorded_at": datetime.now(timezone.utc).isoformat(),
+                "recorded_at": datetime.now(UTC).isoformat(),
             }
 
             try:
