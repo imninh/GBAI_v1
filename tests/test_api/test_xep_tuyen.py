@@ -185,3 +185,27 @@ async def test_list_cho_nhan_loc_dung(api: AsyncClient) -> None:
     assert any(item["id"] == yeu_cau["id"] for item in items), "Yêu cầu vừa tạo phải nằm trong danh sách"
     nhom = trang_thai_tuong_duong(CHO_NHAN)
     assert all(item["status"] in nhom for item in items), "Mọi mục phải thuộc nhóm cho_nhan"
+
+
+@pytest.mark.asyncio
+async def test_propose_multi_endpoint(api: AsyncClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    """``POST /routes/propose-multi`` trả về danh sách các tuyến đề xuất."""
+    monkeypatch.setenv("VRP_ENABLED", "true")
+    reset_settings_cache()
+
+    resident = await _dang_nhap(api, "resident@demo.vn")
+    manager = await _dang_nhap(api, "manager@demo.vn")
+    ngay = (date.today() + timedelta(days=3)).isoformat()
+
+    await _tao_yeu_cau_cho_nhan(api, resident)
+
+    response = await api.post(
+        "/api/v1/routes/propose-multi",
+        json={"service_date": ngay, "window": "08:00-10:00"},
+        headers=_auth(manager),
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert "items" in data
+    assert len(data["items"]) >= 1
+    assert data["items"][0]["status"] == "proposed"

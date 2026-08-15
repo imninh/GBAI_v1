@@ -170,9 +170,7 @@ class Settings(BaseSettings):
     # ``https://localhost`` và ``capacitor://localhost`` là origin mà app Android
     # đóng gói bằng Capacitor tự dùng khi phục vụ giao diện từ trong máy. Thiếu
     # hai dòng này thì app cài về gọi API bị CORS chặn.
-    cors_origins: str = (
-        "http://localhost:3000,http://localhost:3001,https://localhost,capacitor://localhost"
-    )
+    cors_origins: str = "http://localhost:3000,http://localhost:3001,https://localhost,capacitor://localhost"
 
     # Máy chủ tự nạp dữ liệu nền khi khởi động. Bật trên Render vì ở đó không có
     # chỗ chạy tay ``scripts/seed.py``; để tắt khi dev cho khỏi bất ngờ.
@@ -344,6 +342,11 @@ class Settings(BaseSettings):
     # Quãng đường ước tính cho một chuyến đi lẻ tới một điểm, dùng làm baseline
     # để tính phần tiết kiệm. Con số minh hoạ, có ghi rõ trên UI.
     baseline_km_per_standalone_trip: float = Field(default=3.6, gt=0)
+    vrp_enabled: bool = False
+    vrp_num_vehicles: int = Field(default=3, gt=0)
+    vrp_max_runtime_seconds: float = Field(default=5.0, gt=0)
+    vrp_depot_lat: float = 21.0285
+    vrp_depot_lng: float = 105.854
 
     # --- Thùng thu gom thông minh ------------------------------------------
     # Ngưỡng quyết định trạng thái điều phối của thùng đặt ngoài hiện trường

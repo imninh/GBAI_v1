@@ -91,6 +91,51 @@ def propose_route(
     return route_dict(session, route, full=True)
 
 
+@router.post("/propose-multi")
+def propose_routes(
+    payload: ProposeRouteRequest,
+    session: DbSession,
+    user: Annotated[User, Depends(require("review_route"))],
+) -> dict:
+    """Agent gộp các yêu cầu đã duyệt thành một hoặc nhiều tuyến đề xuất."""
+    run = runs.start_run(session, kind="schedule", trigger="manager")
+    try:
+        routes = route_planner.propose_routes(
+            session,
+            service_date=payload.service_date,
+            window=payload.window,
+            team_id=payload.team_id,
+            capacity_kg=payload.capacity_kg,
+            run_id=run.id,
+        )
+    except ValueError as exc:
+        runs.finish_run(
+            session,
+            run,
+            nodes=[NodeMetric(node="propose_routes", status="error", error_type="NO_CANDIDATE")],
+            items_processed=0,
+            error=str(exc),
+        )
+        raise bad_request(str(exc), code="ROUTE-404") from exc
+
+    total_stops = sum(len(r.stops) for r in routes)
+    runs.finish_run(
+        session,
+        run,
+        nodes=[
+            NodeMetric(
+                node="propose_routes",
+                meta={
+                    "so_tuyen": len(routes),
+                    "so_diem_dung": total_stops,
+                },
+            )
+        ],
+        items_processed=total_stops,
+    )
+    return {"items": [route_dict(session, r, full=True) for r in routes]}
+
+
 @router.get("")
 def list_routes(
     session: DbSession,
