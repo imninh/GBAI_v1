@@ -79,46 +79,108 @@ export function Mascot({
   );
 }
 
+/** Bốn beat onboarding — kể chuyện, mỗi màn MỘT ý như prototype redesign.
+ *  Mỗi beat: tint nền + blob khác nhau, Mun một tư thế, chữ khổng lồ, CTA duy nhất.
+ *  Không phải form, không xin quyền — chỉ dẫn dắt người dùng tới màn đăng nhập.
+ */
+const ONBOARDING_BEATS = [
+  {
+    over: "Cùng Mun bắt đầu",
+    h1: "Bỏ rác\ndúng thùng",
+    body: "Chai dầu, hộp sữa, pin cũ… ai cũng từng phân vân bỏ vào đâu.",
+    cta: "Tiếp tục",
+    tuThe: "mascot" as const,
+    tint: "linear-gradient(180deg,#e6f4ea,#f4f1ea)",
+    blob: "#d6efe0",
+    kick: "#1f8a4f",
+  },
+  {
+    over: "Đơn giản thôi",
+    h1: "Chụp một\ntấm là xong",
+    body: "AI nhận ra món rác ngay, mách bạn bỏ thùng nào và để ở đâu.",
+    cta: "Tiếp tục",
+    tuThe: "magnify" as const,
+    tint: "linear-gradient(180deg,#e2eefb,#f4f1ea)",
+    blob: "#cfe0f7",
+    kick: "#2f7fe0",
+  },
+  {
+    over: "Chào bạn nhé",
+    h1: "Mình là\nMun 🦝",
+    body: "Gấu mèo đồng hành của bạn — mình sẽ khen khi bạn phân loại đúng.",
+    cta: "Tiếp tục",
+    tuThe: "hello" as const,
+    tint: "linear-gradient(180deg,#efe9f9,#f4f1ea)",
+    blob: "#e0d6f4",
+    kick: "#7c5cdf",
+  },
+  {
+    over: "Sẵn sàng chưa?",
+    h1: "Mỗi món\nđúng chỗ",
+    body: "là một lần bạn cứu hành tinh — và cây xanh của bạn lớn thêm.",
+    cta: "Bắt đầu",
+    tuThe: "mascot" as const,
+    tint: "linear-gradient(180deg,#e6f4ea,#f4f1ea)",
+    blob: "#d6efe0",
+    kick: "#1f8a4f",
+  },
+];
+
 export function OnboardingScreen({ onNext }: { onNext: () => void }) {
+  const [beat, setBeat] = React.useState(0);
+  const b = ONBOARDING_BEATS[beat];
+
+  const tiep = () => (beat >= ONBOARDING_BEATS.length - 1 ? onNext() : setBeat((i) => i + 1));
+
   return (
-    <div className="relative flex min-h-full flex-col overflow-hidden bg-[linear-gradient(180deg,#dbeafb_0%,#e6f0fb_46%,#eef4fb_100%)] px-[26px] pb-7 pt-[60px]">
-      <div className="animate-gbfloat absolute left-[22px] top-[44px] flex h-[118px] w-[118px] items-end justify-center rounded-3xl bg-[repeating-linear-gradient(135deg,#cfe6d5,#cfe6d5_9px,#c4dfcb_9px,#c4dfcb_18px)] pb-2 shadow-[0_14px_30px_-8px_rgba(30,60,40,.28)]">
-        <span className="rounded-md bg-white/80 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-[#3a5a44]">ảnh rác</span>
-      </div>
-      <div className="animate-gbfloat absolute left-[34px] top-[150px] flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-[0_6px_16px_rgba(20,40,25,.14)]">
-        <span className="h-[11px] w-[11px] rounded-[3px] bg-recycle" />
-        <span className="text-xs font-extrabold">Thùng xanh dương</span>
-      </div>
-      <div className="animate-gbfloat absolute right-1 top-[70px] flex h-[132px] w-[132px] items-center justify-center overflow-hidden rounded-full border-[3px] border-white bg-[radial-gradient(circle_at_45%_40%,#eafaf0,#cfeeda)] shadow-[0_14px_28px_-8px_rgba(30,80,50,.35)]">
-        <Mascot size={112} />
-      </div>
-      <div className="absolute right-[120px] top-[214px] -rotate-6 text-center text-[15px] font-semibold text-[#5a6b5f]">
-        Cùng Mun
-        <br />
-        phân loại
+    <div
+      key={beat}
+      className="animate-gbfade relative flex min-h-full flex-col overflow-hidden px-[26px] pb-7 pt-[60px]"
+      style={{ background: b.tint }}
+    >
+      {/* chấm tiến trình + bỏ qua */}
+      <div className="relative z-10 flex items-center justify-between">
+        <div className="flex gap-1.5">
+          {ONBOARDING_BEATS.map((_, i) => (
+            <span
+              key={i}
+              className="h-[6px] rounded-full transition-all"
+              style={{
+                width: i === beat ? "20px" : "6px",
+                background: i <= beat ? b.kick : "rgba(22,33,26,.18)",
+              }}
+            />
+          ))}
+        </div>
+        <button onClick={onNext} className="cursor-pointer bg-transparent text-[14px] font-bold text-ink-soft">
+          Bỏ qua
+        </button>
       </div>
 
-      <div className="flex-1" />
-      <h1 className="relative z-10 mb-2.5 font-[family-name:var(--font-display)] text-[54px] font-bold leading-[0.92] tracking-tight">
-        Bỏ rác
-        <br />
-        đúng
-        <br />
-        <span className="text-leaf">thùng</span>
-      </h1>
-      <p className="relative z-10 mb-6 max-w-[270px] text-[15px] font-semibold leading-snug text-[#4a564d]">
-        Chụp một tấm — mình mách bạn bỏ thùng nào, để ở đâu, thu gom lúc mấy giờ.
-      </p>
-      <Button block size="lg" onClick={onNext} className="relative z-10 text-lg">
-        Bắt đầu
-      </Button>
-      <button onClick={onNext} className="relative z-10 w-full cursor-pointer py-4 text-[15px] font-bold text-ink">
-        Tôi đã có tài khoản
-      </button>
-      <p className="relative z-10 m-0 text-center text-[11px] font-semibold leading-snug text-muted">
-        Tiếp tục nghĩa là bạn đồng ý với <span className="underline">Điều khoản</span> &{" "}
-        <span className="underline">Chính sách riêng tư</span>
-      </p>
+      {/* cảnh minh hoạ: blob + Mun + lá bay */}
+      <div className="relative z-0 mt-8 flex flex-1 items-center justify-center">
+        <div className="absolute h-[290px] w-[290px] rounded-full" style={{ background: b.blob, filter: "blur(2px)" }} />
+        <span className="animate-gbfloat absolute left-[8%] top-[6%] text-[22px]">🍃</span>
+        <span className="animate-gbfloat absolute bottom-[12%] right-[6%] text-[17px] [animation-delay:.6s]">✦</span>
+        <Mascot size={264} tuThe={b.tuThe} className="animate-gbfloat relative z-10 drop-shadow-[0_20px_26px_rgba(24,20,15,.22)]" />
+      </div>
+
+      {/* nội dung + CTA */}
+      <div className="relative z-10">
+        <div className="mb-2.5 text-[11px] font-extrabold uppercase tracking-[.1em]" style={{ color: b.kick }}>
+          {b.over}
+        </div>
+        <h1 className="mb-3 whitespace-pre-line font-[family-name:var(--font-display)] text-[46px] font-bold leading-[.98] tracking-tight text-ink">
+          {b.h1}
+        </h1>
+        <p className="mb-6 max-w-[300px] text-[15.5px] font-medium leading-relaxed text-ink-soft">{b.body}</p>
+        <Button block size="lg" onClick={tiep} className="text-[17px]">
+          {b.cta}
+        </Button>
+        <button onClick={onNext} className="mt-1.5 w-full cursor-pointer py-3 text-[14px] font-bold text-ink">
+          Tôi đã có tài khoản
+        </button>
+      </div>
     </div>
   );
 }

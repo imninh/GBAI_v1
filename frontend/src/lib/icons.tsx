@@ -63,6 +63,7 @@ import {
   Wine,
   X,
   Zap,
+  Bell,
   type LucideIcon,
   type LucideProps,
 } from "lucide-react";
@@ -163,6 +164,7 @@ export const IconChao = defineIcon(Hand, "IconChao");
 export const IconChucMung = defineIcon(PartyPopper, "IconChucMung");
 export const IconGapLoi = defineIcon(Frown, "IconGapLoi");
 export const IconChuaChac = defineIcon(HelpCircle, "IconChuaChac");
+export const IconChuong = defineIcon(Bell, "IconChuong");
 
 /** "Chưa tìm thấy bản ghi nào" — cùng hình với `IconSoiKy` nhưng khác ý nghĩa,
  *  nên tách tên: đổi hình cho một trong hai sau này không kéo theo cái còn lại. */

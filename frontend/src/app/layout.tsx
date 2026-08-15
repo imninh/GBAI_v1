@@ -1,15 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Nunito } from "next/font/google";
+import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
 
 import { RegisterSW } from "@/components/pwa/register-sw";
 
-// Fredoka chưa có subset tiếng Việt trên Google Fonts — dùng latin-ext để phủ
-// phần lớn dấu, còn chữ thân bài dùng Nunito (có subset vietnamese đầy đủ).
-const fredoka = Fredoka({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-fredoka",
+// Baloo 2 có subset tiếng Việt đầy đủ trên Google Fonts — thay Fredoka (chỉ có
+// latin-ext nên một số tổ hợp dấu tiếng Việt hiển thị sai). Cùng tính cách
+// tròn trịa, vui vẻ, đúng thương hiệu. Chữ thân bài vẫn dùng Nunito.
+const baloo = Baloo_2({
+  subsets: ["latin", "vietnamese"],
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-baloo",
 });
 
 const nunito = Nunito({
@@ -46,7 +47,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={`${fredoka.variable} ${nunito.variable}`}>
+    <html lang="vi" className={`${baloo.variable} ${nunito.variable}`}>
       <body>
         <RegisterSW />
         {children}

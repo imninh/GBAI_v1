@@ -46,6 +46,8 @@ export interface TabItem {
   label: string;
   icon: React.ReactNode;
   badge?: number;
+  /** Nút chụp nổi giữa — tròn, nhô lên khỏi thanh, không có nhãn chữ. */
+  raised?: boolean;
 }
 
 export function TabBar({
@@ -60,9 +62,28 @@ export function TabBar({
   accent?: string;
 }) {
   return (
-    <div className="z-30 flex h-[76px] flex-none items-start border-t border-[rgba(20,40,25,.06)] bg-white/95 px-3 pt-3 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+    <div className="z-30 flex h-[84px] flex-none items-start border-t border-[rgba(20,40,25,.06)] bg-white/95 px-3 pb-[env(safe-area-inset-bottom)] backdrop-blur">
       {items.map((item) => {
         const isActive = item.key === active;
+        if (item.raised) {
+          return (
+            <button
+              key={item.key}
+              onClick={() => onChange(item.key)}
+              aria-label="Chụp món rác"
+              className="relative flex flex-1 cursor-pointer items-start justify-center bg-transparent"
+            >
+              {/* Nút nổi: tròn, màu xanh, nhô lên khỏi thanh để dễ chạm bằng ngón cái. */}
+              <span
+                className="animate-gbpop flex h-[58px] w-[58px] items-center justify-center rounded-full bg-leaf text-white shadow-[0_10px_22px_-6px_rgba(47,174,102,.7)] transition-transform active:scale-95"
+                style={{ marginTop: "-18px" }}
+                aria-hidden="true"
+              >
+                {item.icon}
+              </span>
+            </button>
+          );
+        }
         return (
           <button
             key={item.key}
@@ -72,9 +93,17 @@ export function TabBar({
             aria-current={isActive ? "page" : undefined}
             aria-label={`Điều hướng ${item.label}`}
           >
-            <span aria-hidden="true">{item.icon}</span>
+            {/* Trạng thái chọn: pill mềm nở ra sau icon, icon đậm màu hơn. */}
+            <span
+              aria-hidden="true"
+              className={`flex h-8 items-center justify-center rounded-full transition-all ${
+                isActive ? "w-[52px] bg-leaf-soft" : "w-8"
+              }`}
+            >
+              {item.icon}
+            </span>
             {item.badge ? (
-              <span className="absolute -top-1 right-5 flex h-4 min-w-4 items-center justify-center rounded-lg bg-hazard px-1 text-[10px] font-extrabold text-white">
+              <span className="absolute right-5 top-0 flex h-4 min-w-4 items-center justify-center rounded-lg bg-hazard px-1 text-[10px] font-extrabold text-white">
                 {item.badge}
               </span>
             ) : null}

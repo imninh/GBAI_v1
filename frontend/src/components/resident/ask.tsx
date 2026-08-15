@@ -1,6 +1,6 @@
 "use client";
 
-/** Màn hỏi phân loại + màn đang xử lý.
+/** Màn Trang chủ (Hỏi phân loại) + màn đang xử lý.
  *
  * Màn xử lý là **màn ăn điểm về minh bạch AI**: nó cho người xem thấy quyền
  * riêng tư được xử lý *trước khi* ảnh rời máy, chứ không phải một lời hứa suông.
@@ -12,8 +12,10 @@ import * as React from "react";
 
 import { Mascot } from "@/components/resident/onboarding";
 import { Button } from "@/components/ui/primitives";
-import { IconChonAnh, IconDuyet, IconMoTaChu } from "@/lib/icons";
+import { tinhCap, tinhStreak, homNay } from "@/lib/gamification";
+import { IconChonAnh, IconDuyet, IconMoTaChu, IconChuong } from "@/lib/icons";
 import { chonAnh, chupAnh } from "@/lib/platform";
+import { useSession } from "@/lib/session";
 import type { Classification } from "@/lib/types";
 
 const GOI_Y_NHANH = [
@@ -24,15 +26,35 @@ const GOI_Y_NHANH = [
   { label: "Chai hoá chất", query: "chai nước tẩy bồn cầu còn nửa", tone: "unsure" },
 ];
 
+/** Lời chào theo giờ — "Chào buổi sáng/chiều/tối". */
+function loiChao(): string {
+  const gio = new Date().getHours();
+  if (gio < 11) return "Chào buổi sáng,";
+  if (gio < 18) return "Chào buổi chiều,";
+  return "Chào buổi tối,";
+}
+
+/** Ngày thứ trong tuần tiếng Việt ngắn — dùng cho thẻ lịch gom. */
+function tenThu(): string {
+  const THU = ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"];
+  return THU[new Date().getDay()];
+}
+
 export function AskScreen({
   unit,
+  lanChup = 0,
+  onXemLich,
   onAskText,
   onPickImage,
 }: {
   unit: string;
+  /** Nút Chụp nổi ở tab bar tăng con số này → mở camera ngay khi mount/đổi. */
+  lanChup?: number;
+  onXemLich: () => void;
   onAskText: (query: string) => void;
   onPickImage: (file: File) => void;
 }) {
+  const { user } = useSession();
   const [moTa, setMoTa] = React.useState("");
   const [dangGoMoTa, setDangGoMoTa] = React.useState(false);
   const [loiAnh, setLoiAnh] = React.useState("");
@@ -48,59 +70,88 @@ export function AskScreen({
     }
   }
 
+  // Nút Chụp nổi giữa (tab bar) tăng `lanChup` → tự mở camera. Chỉ chạy khi
+  // người dùng chủ động bấm nút Chụp, không tự mở khi màn vừa dựng (lanChup = 0).
+  const lanChupRef = React.useRef(0);
+  React.useEffect(() => {
+    if (lanChup > 0 && lanChup !== lanChupRef.current) {
+      lanChupRef.current = lanChup;
+      void layAnh("camera");
+    }
+  }, [lanChup]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Điểm và cấp độ tính từ số thật `green_points`; streak từ hoạt động thật.
+  const diem = user?.green_points ?? 0;
+  const cap = tinhCap(diem);
+  const streak = tinhStreak();
+
   return (
-    <div className="flex min-h-full flex-col bg-[linear-gradient(180deg,#eaf6ee_0%,#f2f4ec_40%)] px-5 pb-[108px] pt-[54px]">
-      <div className="mb-0.5 flex items-center justify-between">
-        <div className="whitespace-nowrap font-[family-name:var(--font-display)] text-[22px] font-bold tracking-tight">
-          GreenBin<span className="text-leaf"> AI</span>
+    <div className="relative flex min-h-full flex-col overflow-hidden bg-[linear-gradient(180deg,#e7f5ec_0%,#f4f1ea_40%)] px-5 pb-[120px] pt-[54px]">
+      {/* ── header: lời chào + chuông ── */}
+      <div className="flex items-center justify-between">
+        <div className="min-w-0">
+          <div className="text-[13px] font-semibold text-ink-soft">{loiChao()}</div>
+          <div className="mt-0.5 truncate font-[family-name:var(--font-display)] text-[26px] font-bold leading-none tracking-tight">
+            {user?.full_name?.split(" ").pop() ?? "Bạn"} <span className="text-leaf">🌿</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-white py-1.5 pl-1.5 pr-3 shadow-[0_2px_8px_rgba(20,40,25,.06)]">
-          <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-leaf-soft">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2fae66" strokeWidth="2.4">
-              <path d="M3 21V9l9-6 9 6v12" strokeLinejoin="round" />
-            </svg>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-white px-3 py-1.5 text-[13px] font-bold text-ink-soft shadow-[0_2px_8px_rgba(20,40,25,.06)]">
+            {unit || "Chưa gắn căn hộ"}
           </span>
-          <span className="text-[13px] font-bold">{unit || "Chưa gắn căn hộ"}</span>
+          <button
+            type="button"
+            aria-label="Thông báo"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white shadow-[0_2px_8px_rgba(20,40,25,.06)]"
+          >
+            <IconChuong className="h-5 w-5" />
+            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-hazard ring-2 ring-white" />
+          </button>
         </div>
       </div>
 
-      <div className="relative mt-3.5 flex flex-col items-center">
-        <div className="absolute top-0.5 z-10 rounded-[20px_20px_20px_6px] bg-white px-4 py-2.5 font-[family-name:var(--font-display)] text-[15px] font-bold shadow-[0_6px_18px_-6px_rgba(20,40,25,.2)]">
-          Đưa mình xem món rác nhé!
-        </div>
-        <div className="mt-9 flex h-[190px] w-[250px] items-end justify-center bg-[radial-gradient(circle_at_50%_60%,#d8f0e0_0%,rgba(216,240,224,0)_68%)]">
-          <Mascot size={180} tuThe="hello" className="animate-gbfloat drop-shadow-[0_16px_20px_rgba(30,80,50,.22)]" />
-        </div>
+      {/* ── Mun tràn viền phải — "bleeding off edge" như prototype ── */}
+      <div className="pointer-events-none absolute right-[-26px] top-[92px] z-0 h-[170px] w-[170px] rounded-full bg-[radial-gradient(circle_at_46%_40%,#e9faf0,rgba(233,250,240,0))]" />
+      <div className="pointer-events-none absolute right-[-14px] top-[104px] z-0 w-[138px]">
+        <Mascot size={138} tuThe="hello" className="animate-gbfloat drop-shadow-[0_16px_22px_rgba(30,80,50,.22)]" />
       </div>
 
-      {loiAnh && (
-        <div className="mt-2 rounded-2xl border-[1.5px] border-[#f6cdb8] bg-hazard-soft px-4 py-3 text-[13px] font-bold text-hazard-dark">
-          {loiAnh}
+      {/* ── hero: scan chính ── */}
+      <div className="relative z-10 mt-14">
+        <h1 className="mb-4 max-w-[240px] font-[family-name:var(--font-display)] text-[34px] font-bold leading-[1.04] tracking-tight">
+          Không biết bỏ
+          <br />
+          vào thùng nào?
+        </h1>
+        <Button block size="lg" className="rounded-[26px] p-0 py-6 text-left" onClick={() => void layAnh("camera")}>
+          <span className="flex w-full items-center gap-4 px-6">
+            <span className="flex h-[54px] w-[54px] flex-none items-center justify-center rounded-[18px] bg-white/20">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z" />
+                <circle cx="12" cy="13" r="3.5" />
+              </svg>
+            </span>
+            <span>
+              <span className="block font-[family-name:var(--font-display)] text-[20px] font-bold leading-none">Chụp món rác</span>
+              <span className="mt-1.5 block text-[13px] font-semibold opacity-85">Mun nhận ra ngay trong 3 giây</span>
+            </span>
+          </span>
+        </Button>
+        <div className="mt-3 flex gap-2.5">
+          <Button variant="outline" className="flex-1 rounded-2xl border-line bg-white" onClick={() => void layAnh("thu-vien")}>
+            <IconChonAnh className="h-4 w-4" />
+            Chọn ảnh
+          </Button>
+          <Button variant="outline" className="flex-1 rounded-2xl border-line bg-white" onClick={() => setDangGoMoTa((v) => !v)}>
+            <IconMoTaChu className="h-4 w-4" />
+            Mô tả chữ
+          </Button>
         </div>
-      )}
-
-      <Button block size="lg" className="mt-1.5 rounded-[20px] text-lg" onClick={() => layAnh("camera")}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 8a2 2 0 0 1 2-2h1l1.2-2h5.6L16 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" transform="translate(1 0)" />
-          <circle cx="12" cy="13" r="3.4" />
-        </svg>
-        Chụp món rác
-      </Button>
-
-      <div className="mt-2.5 flex gap-2.5">
-        <Button variant="outline" className="flex-1 rounded-2xl border-leaf-soft" onClick={() => layAnh("thu-vien")}>
-          <IconChonAnh className="h-4 w-4" />
-          Chọn ảnh
-        </Button>
-        <Button variant="outline" className="flex-1 rounded-2xl border-leaf-soft" onClick={() => setDangGoMoTa((v) => !v)}>
-          <IconMoTaChu className="h-4 w-4" />
-          Mô tả chữ
-        </Button>
       </div>
 
       {dangGoMoTa && (
         <form
-          className="mt-3 flex gap-2"
+          className="relative z-10 mt-3 flex gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             if (moTa.trim()) onAskText(moTa.trim());
@@ -113,36 +164,94 @@ export function AskScreen({
             placeholder="VD: hộp sữa giấy có lớp bạc bên trong"
             className="flex-1 rounded-2xl border-[1.5px] border-line-2 bg-white px-4 py-3 text-sm font-semibold outline-none focus:border-leaf"
           />
-          <Button
-            type="submit"
-            variant="leaf"
-            disabled={!moTa.trim()}
-            aria-label="Gửi câu hỏi phân loại"
-            aria-disabled={!moTa.trim()}
-            title={moTa.trim() ? undefined : "Vui lòng nhập mô tả vật phẩm trước khi gửi"}
-          >
+          <Button type="submit" variant="leaf" disabled={!moTa.trim()} aria-label="Gửi câu hỏi phân loại">
             Hỏi
           </Button>
         </form>
       )}
 
-      <div className="mx-0.5 mb-2.5 mt-6 text-[13px] font-bold text-muted">Hỏi nhanh không cần chụp</div>
-      <div className="flex flex-wrap gap-2">
-        {GOI_Y_NHANH.map((g) => (
-          <button
-            key={g.label}
-            onClick={() => onAskText(g.query)}
-            className={
-              g.tone === "hazard"
-                ? "cursor-pointer rounded-full border-[1.5px] border-[#f6cdb8] bg-hazard-soft px-4 py-2.5 text-[13px] font-bold text-hazard-dark"
-                : g.tone === "unsure"
-                  ? "cursor-pointer rounded-full border-[1.5px] border-[#d9e0ec] bg-[#eef1f6] px-4 py-2.5 text-[13px] font-bold text-[#4a5568]"
-                  : "cursor-pointer rounded-full border-[1.5px] border-leaf-soft bg-white px-4 py-2.5 text-[13px] font-bold text-ink"
-            }
-          >
-            {g.label}
-          </button>
-        ))}
+      {loiAnh && (
+        <div className="relative z-10 mt-3 rounded-2xl border-[1.5px] border-[#f6cdb8] bg-hazard-soft px-4 py-3 text-[13px] font-bold text-hazard-dark">
+          {loiAnh}
+        </div>
+      )}
+
+      {/* ── thẻ tiến độ hôm nay (điểm + streak + cấp) ── */}
+      <div className="relative z-10 mt-5 rounded-[24px] border border-line bg-white p-4 shadow-[0_2px_10px_rgba(20,40,25,.05)]">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-[15px] font-bold">Hôm nay của bạn</span>
+          <span className="text-[13px] font-bold text-leaf-dark">Điểm xanh</span>
+        </div>
+        <div className="flex gap-2.5">
+          <div className="flex-1 rounded-2xl bg-leaf-soft px-3 py-3">
+            <div className="font-[family-name:var(--font-display)] text-2xl font-bold leading-none text-leaf-dark tabular-nums">
+              {diem.toLocaleString("vi-VN")}
+            </div>
+            <div className="mt-1 text-[11px] font-bold text-ink-soft">🌱 Điểm xanh</div>
+          </div>
+          <div className="flex-1 rounded-2xl bg-amber-soft px-3 py-3">
+            <div className="font-[family-name:var(--font-display)] text-2xl font-bold leading-none text-amber tabular-nums">
+              {streak}
+            </div>
+            <div className="mt-1 text-[11px] font-bold text-ink-soft">🔥 Ngày liên tiếp</div>
+          </div>
+        </div>
+        <div className="mt-3">
+          <div className="mb-1.5 flex justify-between text-[11px] font-bold text-ink-soft">
+            <span>
+              Cấp {cap.ten} {cap.icon}
+            </span>
+            <span>
+              {cap.conThieu > 0 ? `còn ${cap.conThieu} điểm để lên cấp kế tiếp` : "đã đạt cấp cao nhất"}
+            </span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-leaf-soft">
+            <div className="animate-gbfill h-full rounded-full bg-gradient-to-r from-leaf to-leaf-mint" style={{ width: `${cap.phanTram}%` }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── thẻ lịch thu gom kế tiếp → vào màn Lịch đầy đủ ── */}
+      <button
+        type="button"
+        onClick={onXemLich}
+        className="relative z-10 mt-3 flex items-center gap-3 rounded-[20px] bg-recycle-soft px-4 py-4 text-left"
+      >
+        <span className="flex h-[42px] w-[42px] flex-none items-center justify-center rounded-[14px] bg-white">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2f7fe0" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="3" />
+            <path d="M3 10h18M8 2v4M16 2v4" />
+          </svg>
+        </span>
+        <span className="flex-1">
+          <span className="block text-[14px] font-bold">Lịch thu gom của toà</span>
+          <span className="mt-0.5 block text-[12.5px] font-semibold text-ink-soft">
+            {tenThu()}, {homNay()} · xem cả khi không có mạng
+          </span>
+        </span>
+        <span className="text-[18px] font-bold text-recycle">›</span>
+      </button>
+
+      {/* ── hỏi nhanh không cần chụp ── */}
+      <div className="relative z-10 mt-5">
+        <div className="mb-2.5 text-[13px] font-bold text-ink-soft">Hỏi nhanh</div>
+        <div className="flex flex-wrap gap-2">
+          {GOI_Y_NHANH.map((g) => (
+            <button
+              key={g.label}
+              onClick={() => onAskText(g.query)}
+              className={
+                g.tone === "hazard"
+                  ? "cursor-pointer rounded-full border-[1.5px] border-[#f6cdb8] bg-hazard-soft px-4 py-2.5 text-[13px] font-bold text-hazard-dark"
+                  : g.tone === "unsure"
+                    ? "cursor-pointer rounded-full border-[1.5px] border-[#d9e0ec] bg-[#eef1f6] px-4 py-2.5 text-[13px] font-bold text-[#4a5568]"
+                    : "cursor-pointer rounded-full border-[1.5px] border-line bg-white px-4 py-2.5 text-[13px] font-bold text-ink"
+              }
+            >
+              {g.label}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

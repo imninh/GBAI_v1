@@ -16,6 +16,8 @@ import * as React from "react";
 import { Button, Card, Chip, DegradedBanner } from "@/components/ui/primitives";
 import { ScreenHeader } from "@/components/ui/shell";
 import { doTinCay, NHAN_TIN_CAY } from "@/lib/format";
+import { tinhCap } from "@/lib/gamification";
+import { useSession } from "@/lib/session";
 import {
   IconCam,
   IconChupAnh,
@@ -98,9 +100,12 @@ export function ResultScreen({
 }) {
   const [nguon, setNguon] = React.useState<AdviceSource | null>(null);
   const [daPhanHoi, setDaPhanHoi] = React.useState<"" | "up" | "down">("");
+  const { user } = useSession();
   const category = ketQua.category!;
   const mucTinCay = NHAN_TIN_CAY[ketQua.confidence_level];
   const lichThuGom = ketQua.schedule_hint?.lich_thu_gom?.[0];
+  const diem = user?.green_points ?? 0;
+  const cap = tinhCap(diem);
 
   return (
     <div className="min-h-full bg-cream pb-10 pt-11">
@@ -139,6 +144,35 @@ export function ResultScreen({
                 {ketQua.tier_label_vi}
               </span>
             )}
+          </div>
+        </div>
+
+        {/* Thanh độ tin cậy — người thường hiểu "độ chắc" mà không cần biết thang 0-1 */}
+        <div className="animate-gbfade mt-3.5 rounded-[20px] border border-line bg-white p-4 shadow-[0_2px_10px_rgba(20,40,25,.05)]">
+          <div className="mb-2.5 flex items-center justify-between">
+            <span className="text-[14px] font-bold">{mucTinCay.label}</span>
+            <span className="rounded-full bg-leaf-soft px-2.5 py-1 text-xs font-extrabold text-leaf-dark">
+              {doTinCay(ketQua.confidence)}
+            </span>
+          </div>
+          <div className="h-2.5 overflow-hidden rounded-full bg-leaf-soft">
+            <div
+              className="animate-gbfill h-full rounded-full bg-gradient-to-r from-leaf to-leaf-mint"
+              style={{ width: `${Math.min(100, Math.round(ketQua.confidence * 100))}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Điểm xanh — con số THẬT từ tài khoản, không phải +20 bịa */}
+        <div className="animate-gbpop mt-3.5 flex items-center gap-3 rounded-[20px] bg-leaf-soft p-4 [animation-delay:.3s]">
+          <span className="text-[26px]">🌱</span>
+          <div className="flex-1">
+            <div className="font-[family-name:var(--font-display)] text-[19px] font-bold leading-tight text-leaf-dark tabular-nums">
+              {diem.toLocaleString("vi-VN")} điểm xanh
+            </div>
+            <div className="mt-0.5 text-[12.5px] font-semibold text-ink-soft">
+              Cấp {cap.ten} {cap.icon} · còn {cap.conThieu} điểm để lên cấp kế tiếp
+            </div>
           </div>
         </div>
 

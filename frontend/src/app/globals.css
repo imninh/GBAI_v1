@@ -4,7 +4,7 @@
    Màu nhóm rác ở đây chỉ là giá trị dự phòng — giá trị thật đọc từ API
    (`bin_color` của từng nhóm), vì mỗi toà có thể quy định khác nhau. */
 @theme {
-  --font-display: var(--font-fredoka), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-baloo), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
 
   /* Nền và mực */
@@ -158,6 +158,71 @@ body {
     transform: translateY(-7px);
   }
 }
+/* Nhóm keyframe sau lấy đúng bộ chuyển động của prototype redesign
+   (`GreenBin Redesign.dc.html`): reveal kết quả, quét camera, vẫy tay,
+   nhịp tim, đổ đầy thanh, bật lên khi hiện. Cùng quy ước đặt tên `gb*`. */
+@keyframes gbrise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes gbwave {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-7deg);
+  }
+  75% {
+    transform: rotate(7deg);
+  }
+}
+@keyframes gbscan {
+  0% {
+    top: 8%;
+  }
+  50% {
+    top: 82%;
+  }
+  100% {
+    top: 8%;
+  }
+}
+@keyframes gbpulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.06);
+  }
+}
+@keyframes gbfill {
+  from {
+    width: 0;
+  }
+}
+@keyframes gbpop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
 
 .animate-gbfade {
   animation: gbfade 0.4s ease;
@@ -167,6 +232,35 @@ body {
 }
 .animate-gbspin {
   animation: gbspin 0.8s linear infinite;
+}
+.animate-gbrise {
+  animation: gbrise 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.animate-gbwave {
+  animation: gbwave 1.2s ease-in-out;
+}
+.animate-gbscan {
+  animation: gbscan 2.4s ease-in-out infinite;
+}
+.animate-gbpulse {
+  animation: gbpulse 2.2s ease-in-out infinite;
+}
+.animate-gbfill {
+  animation: gbfill 1s ease;
+}
+.animate-gbpop {
+  animation: gbpop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Người dùng bật "giảm chuyển động" thì tắt sạch animation — nhóm chuyển động
+   vui nhộn (float, wave, pulse, scan) là thứ gây khó chịu nhất khi bật. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-gbfloat,
+  .animate-gbwave,
+  .animate-gbscan,
+  .animate-gbpulse {
+    animation: none;
+  }
 }
 
 /* Bảng và biểu đồ rộng cuộn ngang TRONG khung riêng, không để cả trang cuộn. */

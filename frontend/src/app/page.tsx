@@ -13,8 +13,9 @@ import { CleanerHistoryScreen, CleanerMeScreen, RouteTodayScreen, VerifyLabelScr
 import { ManagerConsole } from "@/components/manager/console";
 import { AskScreen, BUOC_MAC_DINH, ProcessingScreen, buocTuKetQua } from "@/components/resident/ask";
 import { NearbyBinsScreen } from "@/components/resident/nearby-bins";
-import { LoginScreen, OnboardingScreen } from "@/components/resident/onboarding";
+import { LoginScreen, OnboardingScreen, Mascot } from "@/components/resident/onboarding";
 import {
+  DiemXanhScreen,
   MeScreen,
   PrivacyScreen,
   RequestDetailScreen,
@@ -26,6 +27,7 @@ import { HazardResultScreen, ResultScreen, UnsureScreen } from "@/components/res
 import { Button, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { PhoneFrame, TabBar, type TabItem } from "@/components/ui/shell";
 import { api, ApiError } from "@/lib/api";
+import { ghiHoatDong } from "@/lib/gamification";
 import { IconManHinhRong } from "@/lib/icons";
 import { laAppNative } from "@/lib/platform";
 import { SessionProvider, useSession } from "@/lib/session";
@@ -118,25 +120,25 @@ type ManCuDan =
   | "requests"
   | "requestDetail"
   | "schedule"
+  | "diemxanh"
   | "me";
 
 const ICON = {
-  ask: (
+  home: (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 8a2 2 0 0 1 2-2h1l1.2-2h5.6L16 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" transform="translate(1 0)" />
-      <circle cx="12" cy="13" r="3.2" />
+      <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />
+    </svg>
+  ),
+  scan: (
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z" />
+      <circle cx="12" cy="13" r="3.5" />
     </svg>
   ),
   diem: (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 21s-6.5-5.6-6.5-10a6.5 6.5 0 1 1 13 0c0 4.4-6.5 10-6.5 10z" />
       <circle cx="12" cy="11" r="2.2" />
-    </svg>
-  ),
-  lich: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="5" width="18" height="16" rx="2.5" />
-      <path d="M3 9h18M8 3v4M16 3v4" />
     </svg>
   ),
   yeuCau: (
@@ -182,6 +184,12 @@ function ResidentApp() {
   // Nguồn mở PickupWizard: "result" (sau khi phân loại) hay "requests" (nút + ở tab Yêu cầu).
   // Khác nguồn thì nút Quay lại phải về đúng chỗ, không về nhầm màn phân loại.
   const [nguonPickup, setNguonPickup] = React.useState<"result" | "requests">("result");
+  // Nút Chụp nổi giữa ở tab bar: đếm số lần người dùng chạm để AskScreen tự mở
+  // camera. Đang ở tab khác vẫn bấm được — lần chạm tiếp theo mở thẳng camera.
+  const [lanChup, setLanChup] = React.useState(0);
+  // Overlay chúc mừng sau khi phân loại ĐÚNG món thường (không refused, không
+  // nguy hại). Không cộng điểm giả — chỉ ăn mừng việc phân loại đúng.
+  const [chucMung, setChucMung] = React.useState(false);
   const huyRef = React.useRef(false);
 
   async function chay(goi: () => Promise<Classification>, coAnh: boolean) {
@@ -207,7 +215,14 @@ function ResidentApp() {
       }
       setBuocXuLy(5);
       setKetQua(kq);
-      setTimeout(() => !huyRef.current && setMan("result"), 500);
+      // Streak đếm hoạt động phân loại THÀNH CÔNG thật (lưu ngày hôm nay).
+      if (!kq.refused) ghiHoatDong();
+      setTimeout(() => {
+        if (huyRef.current) return;
+        setMan("result");
+        // Chỉ ăn mừng khi kết quả là món THƯỜNG và không bị từ chối.
+        if (!kq.refused && !kq.category?.is_hazardous) setChucMung(true);
+      }, 500);
     } catch (e) {
       if (huyRef.current) return;
       setLoi({
@@ -221,14 +236,15 @@ function ResidentApp() {
   }
 
   const tabs: TabItem[] = [
-    { key: "ask", label: "Hỏi", icon: ICON.ask },
+    { key: "ask", label: "Trang chủ", icon: ICON.home },
     { key: "diem", label: "Điểm gửi", icon: ICON.diem },
-    { key: "schedule", label: "Lịch", icon: ICON.lich },
+    { key: "scan", label: "Chụp", icon: ICON.scan, raised: true },
     { key: "requests", label: "Yêu cầu", icon: ICON.yeuCau },
     { key: "me", label: "Tôi", icon: ICON.toi },
   ];
-  const hienTabBar = ["ask", "diem", "schedule", "requests", "me"].includes(man);
-
+  // Lịch thu gom không còn là tab riêng: vào từ thẻ lịch trên Trang chủ hoặc nút
+  // trong tab Yêu cầu. Khi ở màn con (schedule, kết quả…) thì ẩn tab bar.
+  const hienTabBar = ["ask", "diem", "requests", "me"].includes(man);
   const nenMan =
     man === "processing"
       ? "#0c0f0c"
@@ -239,10 +255,27 @@ function ResidentApp() {
           : "#f4f1ea";
 
   return (
-    <PhoneFrame
-      bg={nenMan}
-      statusDark={man === "processing"}
-      tabBar={hienTabBar ? <TabBar items={tabs} active={man} onChange={(k) => setMan(k as ManCuDan)} /> : undefined}
+    <>
+      <PhoneFrame
+        bg={nenMan}
+        statusDark={man === "processing"}
+        tabBar={
+          hienTabBar ? (
+            <TabBar
+              items={tabs}
+              active={man}
+              onChange={(k) => {
+              if (k === "scan") {
+                // Nút Chụp nổi: quay về Trang chủ và nhờ AskScreen mở camera.
+                setMan("ask");
+                setLanChup((n) => n + 1);
+              } else {
+                setMan(k as ManCuDan);
+              }
+            }}
+          />
+        ) : undefined
+      }
     >
       {loi && man === "ask" && (
         <div className="px-4 pt-14">
@@ -253,6 +286,8 @@ function ResidentApp() {
       {man === "ask" && (
         <AskScreen
           unit={user!.unit}
+          lanChup={lanChup}
+          onXemLich={() => setMan("schedule")}
           onAskText={(q) => chay(() => api.classifyText(q, user!.building_id), false)}
           onPickImage={(f) => chay(() => api.classifyImage(f, user!.building_id), true)}
         />
@@ -320,18 +355,45 @@ function ResidentApp() {
         <RequestDetailScreen id={yeuCauId} onBack={() => setMan("requests")} />
       )}
 
-      {man === "schedule" && <ScheduleScreen buildingId={user!.building_id} buildingName={user!.building} />}
+      {man === "schedule" && (
+        <ScheduleScreen buildingId={user!.building_id} buildingName={user!.building} onBack={() => setMan("ask")} />
+      )}
 
       {man === "diem" && <NearbyBinsScreen />}
+
+      {man === "diemxanh" && <DiemXanhScreen user={user!} onBack={() => setMan("me")} />}
 
       {man === "me" && (
         <MeScreen
           user={user!}
           onPrivacy={() => (ketQua?.media_id ? setMan("privacy") : setMan("ask"))}
           onLogout={dangXuat}
+          onDiemXanh={() => setMan("diemxanh")}
         />
       )}
     </PhoneFrame>
+
+    {/* Overlay chúc mừng sau phân loại đúng — Mun nhảy, người dùng bấm để đóng.
+        Nằm ngoài PhoneFrame để phủ toàn màn hình thiết bị. */}
+    {chucMung && (
+      <div
+        onClick={() => setChucMung(false)}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-8 backdrop-blur-[3px]"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Phân loại thành công"
+      >
+        <div className="animate-gbpop relative w-full max-w-[300px] rounded-[30px] bg-white p-7 pb-6 text-center shadow-[0_30px_60px_-22px_rgba(0,0,0,.35)]">
+          <Mascot size={120} tuThe="hello" className="mx-auto -mt-16 mb-2 animate-gbwave" />
+          <div className="font-[family-name:var(--font-display)] text-[26px] font-bold text-leaf-dark">Tuyệt vời!</div>
+          <div className="mt-1.5 text-[14px] font-semibold text-ink-soft">Bạn vừa phân loại đúng một món rác</div>
+          <Button block className="mt-5" onClick={() => setChucMung(false)}>
+            Tiếp tục
+          </Button>
+        </div>
+      </div>
+      )}
+    </>
   );
 }
 

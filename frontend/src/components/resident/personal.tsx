@@ -10,6 +10,7 @@ import { ScreenHeader } from "@/components/ui/shell";
 import { api } from "@/lib/api";
 import { AnhCoToken } from "@/lib/anh-co-token";
 import { dungLuong, kg, ngayVn, TRANG_THAI_YEU_CAU } from "@/lib/format";
+import { CAP_DO, tinhCap, tinhStreak } from "@/lib/gamification";
 import { useSession } from "@/lib/session";
 import {
   IconChoDuyet,
@@ -20,6 +21,7 @@ import {
   IconMamXanh,
   IconMonDo,
   IconNguoiDung,
+  IconQuayLai,
   IconTiepTuc,
   IconToaNha,
   IconTuChoi,
@@ -127,7 +129,15 @@ export function PrivacyScreen({ mediaId, onBack }: { mediaId: number; onBack: ()
   );
 }
 
-export function ScheduleScreen({ buildingId, buildingName }: { buildingId: number | null; buildingName: string }) {
+export function ScheduleScreen({
+  buildingId,
+  buildingName,
+  onBack,
+}: {
+  buildingId: number | null;
+  buildingName: string;
+  onBack: () => void;
+}) {
   const [lich, setLich] = React.useState<Awaited<ReturnType<typeof api.schedule>> | null>(null);
   const [loi, setLoi] = React.useState("");
 
@@ -143,7 +153,18 @@ export function ScheduleScreen({ buildingId, buildingName }: { buildingId: numbe
 
   return (
     <div className="min-h-full bg-cream px-[18px] pb-[108px] pt-[54px]">
-      <h1 className="m-0 mb-1 font-[family-name:var(--font-display)] text-[28px] font-bold">Lịch thu gom</h1>
+      <div className="mb-2 flex items-center gap-3">
+        <button
+          onClick={onBack}
+          aria-label="Quay lại"
+          className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-full bg-white shadow-[0_2px_8px_rgba(20,40,25,.08)]"
+        >
+          <IconQuayLai className="h-5 w-5" />
+        </button>
+        <div>
+          <h1 className="m-0 font-[family-name:var(--font-display)] text-[28px] font-bold">Lịch thu gom</h1>
+        </div>
+      </div>
       <p className="m-0 mb-4 text-[13px] font-semibold text-muted">{buildingName} · xem được cả khi không có mạng</p>
 
       {!buildingId ? (
@@ -207,7 +228,8 @@ export function RequestsScreen({ onOpen, onCreate }: { onOpen: (id: number) => v
 
   return (
     <div className="relative min-h-full bg-cream px-[18px] pb-[108px] pt-[54px]">
-      <h1 className="m-0 mb-4 font-[family-name:var(--font-display)] text-[28px] font-bold">Yêu cầu của tôi</h1>
+      <h1 className="m-0 mb-1 font-[family-name:var(--font-display)] text-[28px] font-bold">Yêu cầu của tôi</h1>
+      <p className="m-0 mb-4 text-[13px] font-semibold text-muted">Thu gom đồ cồng kềnh & rác tái chế khối lượng lớn</p>
       {items === null ? (
         <Skeleton className="h-24 w-full" />
       ) : items.length === 0 ? (
@@ -220,18 +242,25 @@ export function RequestsScreen({ onOpen, onCreate }: { onOpen: (id: number) => v
             className: "bg-[#eef1ec] text-muted",
           };
           return (
-            <Card key={yc.id} onClick={() => onOpen(yc.id)} className="mb-3 cursor-pointer p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold ${tt.className}`}>
-                  <tt.icon className="h-3.5 w-3.5" />
-                  {tt.label}
-                </span>
-              </div>
-              <div className="mb-1 text-[15px] font-bold">{yc.items.map((i) => i.name).join(", ")}</div>
-              <div className="text-[13px] font-semibold text-muted">
-                {kg(yc.weight_max_kg)} · mong muốn {ngayVn(yc.preferred_date)}
-                {yc.route ? ` · đi cùng ${Math.max(0, yc.route.stop_count - 1)} hộ khác` : ""}
+            <Card key={yc.id} onClick={() => onOpen(yc.id)} className="mb-3 cursor-pointer overflow-hidden p-0">
+              {/* Viền trái màu trạng thái — nhìn nhanh biết yêu cầu đang ở đâu */}
+              <div className="flex">
+                <div className={`w-1.5 flex-none ${tt.className}`} />
+                <div className="flex-1 p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-sm font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold ${tt.className}`}>
+                      <tt.icon className="h-3.5 w-3.5" />
+                      {tt.label}
+                    </span>
+                  </div>
+                  <div className="mb-1 text-[15px] font-bold">{yc.items.map((i) => i.name).join(", ")}</div>
+                  <div className="text-[13px] font-semibold text-muted">
+                    {kg(yc.weight_max_kg)} · mong muốn {ngayVn(yc.preferred_date)}
+                    {yc.route ? ` · đi cùng ${Math.max(0, yc.route.stop_count - 1)} hộ khác` : ""}
+                  </div>
+                  <TrackYeuCau status={yc.status} />
+                </div>
               </div>
             </Card>
           );
@@ -252,6 +281,64 @@ export function RequestsScreen({ onOpen, onCreate }: { onOpen: (id: number) => v
     </div>
   );
 }
+
+/** Track 4 bước: Đặt → Xác nhận → Đang tới → Xong. Vẽ từ trạng thái THẬT của
+ *  yêu cầu; bước chưa tới thì mờ đi — màu không phải kênh duy nhất. */
+function TrackYeuCau({ status }: { status: string }) {
+  const buoc = TRACK_YEU_CAU[status] ?? 0;
+  const NHAN = ["Đặt", "Xác nhận", "Đang tới", "Xong"];
+  return (
+    <div className="mt-3">
+      <div className="flex items-center">
+        {NHAN.map((ten, i) => {
+          const xong = i < buoc;
+          const dangChay = i === buoc;
+          return (
+            <React.Fragment key={ten}>
+              {i > 0 && (
+                <div className={`mx-1 h-[3px] flex-1 rounded-full ${i <= buoc ? "bg-leaf" : "bg-line-2"}`} />
+              )}
+              <span
+                className={`flex h-[20px] w-[20px] flex-none items-center justify-center rounded-full text-[10px] font-extrabold ${
+                  xong
+                    ? "bg-leaf text-white"
+                    : dangChay
+                      ? "animate-gbpulse border-2 border-leaf bg-white text-leaf-dark"
+                      : "border-2 border-line-2 bg-white text-muted"
+                }`}
+              >
+                {xong ? "✓" : i + 1}
+              </span>
+            </React.Fragment>
+          );
+        })}
+      </div>
+      <div className="mt-1.5 flex justify-between">
+        {NHAN.map((ten, i) => (
+          <span
+            key={ten}
+            className={`text-[10px] font-bold ${i === buoc ? "text-leaf-dark" : i < buoc ? "text-ink-soft" : "text-muted"}`}
+          >
+            {ten}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Số bước đã hoàn thành của track, theo trạng thái yêu cầu. */
+const TRACK_YEU_CAU: Record<string, number> = {
+  cho_duyet: 1,
+  cho_nhan: 1,
+  da_nhan: 2,
+  dang_van_chuyen: 3,
+  da_giao_don_vi: 3,
+  tranh_chap: 2,
+  hoan_tat: 4,
+  tu_choi: 1,
+  da_huy: 1,
+};
 
 export function RequestDetailScreen({ id, onBack }: { id: number; onBack: () => void }) {
   const [yc, setYc] = React.useState<PickupRequest | null>(null);
@@ -524,7 +611,125 @@ function SuaHoSo({ user, onXong, onHuy }: { user: User; onXong: () => void; onHu
   );
 }
 
-export function MeScreen({ user, onPrivacy, onLogout }: { user: User; onPrivacy: () => void; onLogout: () => void }) {
+/** Màn Điểm xanh — tổng điểm, streak, cấp độ, huy hiệu.
+ *
+ * Mọi con số đều từ dữ liệu THẬT: điểm từ `user.green_points`, streak đếm
+ * hoạt động phân loại thật trên máy, cấp tính từ điểm. Không vẽ số ảo.
+ */
+export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => void }) {
+  const diem = user.green_points;
+  const cap = tinhCap(diem);
+  const streak = tinhStreak();
+
+  const HUY_HIEU = [
+    { icon: "♻️", ten: "Tách đúng nhóm", moTa: "Phân loại đúng món đầu tiên", daMo: diem > 0 },
+    { icon: "📷", ten: "Lần chụp đầu", moTa: "Chụp ảnh món rác", daMo: diem > 0 },
+    { icon: "🔥", ten: "Streak 7 ngày", moTa: "Phân loại 7 ngày liên tiếp", daMo: streak >= 7 },
+    { icon: "🚚", ten: "Chuyến gộp", moTa: "Đặt lịch thu gom", daMo: false },
+  ];
+
+  return (
+    <div className="min-h-full bg-[linear-gradient(180deg,#e9f7ef_0%,#f4f1ea_42%)] px-5 pb-[108px] pt-[54px]">
+      <div className="mb-2 flex items-center gap-3">
+        <button
+          onClick={onBack}
+          aria-label="Quay lại"
+          className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-full bg-white shadow-[0_2px_8px_rgba(20,40,25,.08)]"
+        >
+          <IconQuayLai className="h-5 w-5" />
+        </button>
+        <div className="font-[family-name:var(--font-display)] text-[22px] font-bold">Điểm xanh của bạn</div>
+      </div>
+
+      {/* thẻ hero: cấp + điểm + thanh tiến độ */}
+      <div className="relative mt-3 overflow-hidden rounded-[28px] border border-line bg-white p-4 pb-5 text-center shadow-[0_2px_10px_rgba(20,40,25,.05)]">
+        <div className="absolute left-4 top-4 rounded-full bg-leaf-soft px-3 py-1.5 text-[11px] font-extrabold tracking-wide text-leaf-dark">
+          CẤP · {cap.ten.toUpperCase()} {cap.icon}
+        </div>
+        <div className="mb-1 mt-10 flex h-[150px] items-end justify-center">
+          {/* Cây cấp độ — minh hoạ SVG đơn giản theo mức, đổi theo cấp */}
+          <CayCapDo level={CAP_DO.findIndex((c) => c.ten === cap.ten)} />
+        </div>
+        <div className="font-[family-name:var(--font-display)] text-[40px] font-bold leading-none text-leaf-dark tabular-nums">
+          {diem.toLocaleString("vi-VN")}
+        </div>
+        <div className="mt-1 text-[13px] font-semibold text-ink-soft">
+          điểm xanh · {cap.conThieu > 0 ? `còn ${cap.conThieu} điểm để lên Cây kế tiếp` : "đã đạt cấp cao nhất"}
+        </div>
+        <div className="mx-5 mt-3 h-2.5 overflow-hidden rounded-full bg-leaf-soft">
+          <div className="animate-gbfill h-full rounded-full bg-gradient-to-r from-leaf to-leaf-mint" style={{ width: `${cap.phanTram}%` }} />
+        </div>
+      </div>
+
+      {/* streak */}
+      <div className="mt-3.5 flex items-center gap-3.5 rounded-[22px] bg-amber-soft px-4 py-4">
+        <span className="text-[30px]">🔥</span>
+        <div className="flex-1">
+          <div className="font-[family-name:var(--font-display)] text-[19px] font-bold leading-tight text-amber">
+            {streak > 0 ? `${streak} ngày liên tiếp` : "Bắt đầu hôm nay"}
+          </div>
+          <div className="mt-0.5 text-[12.5px] font-semibold text-ink-soft">
+            {streak > 0 ? "Quay lại mai để giữ chuỗi nhé!" : "Phân loại một món là bắt đầu chuỗi của bạn"}
+          </div>
+        </div>
+      </div>
+
+      {/* huy hiệu */}
+      <div className="mt-5 text-[15px] font-bold">Huy hiệu</div>
+      <div className="mt-3 grid grid-cols-2 gap-2.5">
+        {HUY_HIEU.map((h) => (
+          <div
+            key={h.ten}
+            className={`rounded-[18px] border p-3 text-center ${
+              h.daMo ? "border-line bg-white shadow-[0_2px_10px_rgba(20,40,25,.05)]" : "border-dashed border-line bg-cream opacity-60"
+            }`}
+          >
+            <div className={`text-[26px] ${h.daMo ? "" : "grayscale"}`}>{h.icon}</div>
+            <div className="mt-1 text-[12px] font-bold">{h.ten}</div>
+            <div className="mt-0.5 text-[10.5px] font-semibold text-muted">{h.moTa}</div>
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-4 text-center text-[11px] font-semibold leading-relaxed text-muted">
+        Điểm xanh cộng khi yêu cầu thu gom của bạn hoàn tất. Streak đếm số ngày bạn phân loại trên máy này.
+      </p>
+    </div>
+  );
+}
+
+/** Cây cấp độ dạng SVG đơn giản — mọc theo 4 mức (Mầm → Rừng). Giữ nét bo tròn,
+ *  không phải ảnh tải thêm, đổi màu theo cấp. */
+function CayCapDo({ level }: { level: number }) {
+  const L = Math.max(0, Math.min(3, level));
+  const cao = 34 + L * 26;
+  const la = L + 1;
+  return (
+    <svg width="120" height="140" viewBox="0 0 120 140" fill="none" aria-hidden="true">
+      {/* chậu */}
+      <path d="M34 118h52l-5 12H39z" fill="#c67139" />
+      <rect x="30" y="110" width="60" height="8" rx="4" fill="#a85f30" />
+      <rect x="40" y="118" width="40" height="6" rx="3" fill="#4a3524" />
+      {/* thân */}
+      <rect x="57" y={140 - 24 - cao} width="6" height={cao} rx="3" fill="#728157" />
+      {/* lá */}
+      {Array.from({ length: la }).map((_, i) => (
+        <ellipse
+          key={i}
+          cx={i % 2 === 0 ? 78 : 42}
+          cy={140 - 30 - cao * (0.35 + i * 0.25)}
+          rx="16"
+          ry="9"
+          fill="#2fae66"
+          transform={`rotate(${i % 2 === 0 ? 18 : -18} ${i % 2 === 0 ? 78 : 42} ${140 - 30 - cao * (0.35 + i * 0.25)})`}
+        />
+      ))}
+      {L === 3 && <circle cx="60" cy={140 - 40 - cao} r="9" fill="#ffb88c" />}
+    </svg>
+  );
+}
+
+export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User; onPrivacy: () => void; onLogout: () => void; onDiemXanh: () => void }) {
   const [dangSua, setDangSua] = React.useState(false);
 
   return (
@@ -567,11 +772,15 @@ export function MeScreen({ user, onPrivacy, onLogout }: { user: User; onPrivacy:
           <span className="flex-1 text-sm font-bold">Ảnh của tôi được xử lý thế nào</span>
           <IconTiepTuc className="h-[18px] w-[18px] text-[#c3cbc2]" />
         </button>
-        <div className="flex items-center gap-3 px-4 py-4">
+        <button
+          onClick={onDiemXanh}
+          className="flex w-full cursor-pointer items-center gap-3 px-4 py-4 text-left"
+        >
           <IconMamXanh className="h-[18px] w-[18px] text-leaf" />
           <span className="flex-1 text-sm font-bold">Điểm xanh</span>
           <span className="text-sm font-extrabold text-leaf-dark">{user.green_points}</span>
-        </div>
+          <IconTiepTuc className="h-[18px] w-[18px] text-[#c3cbc2]" />
+        </button>
       </Card>
 
       <CaiAppCard />
