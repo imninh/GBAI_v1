@@ -71,10 +71,24 @@ def test_seed_reset_non_sqlite_khong_duoc_khi_thieu_toi_chac_chan() -> None:
     assert seed._cho_phep_reset("postgresql://user:pass@db.example:5432/greenbin?sslmode=require", False) is False
 
 
-def test_seed_reset_non_sqlite_duoc_khi_co_toi_chac_chan() -> None:
-    """Có --toi-chac-chan thì cho phép reset database không phải sqlite."""
+def test_seed_reset_non_sqlite_thieu_bien_moi_truong_van_tu_choi(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Có --toi-chac-chan nhưng thiếu ``CHO_PHEP_XOA_DB`` thì vẫn từ chối.
+
+    Lớp chốt thứ hai, thêm sau ngày 16/08/2026 — CSDL đang chạy mất 600 tài
+    khoản cư dân và toàn bộ bảng ``media``. Một cờ dòng lệnh gõ nhầm không được
+    phép xoá cả cơ sở dữ liệu thật.
+    """
     import scripts.seed as seed
 
+    monkeypatch.delenv("CHO_PHEP_XOA_DB", raising=False)
+    assert seed._cho_phep_reset("postgresql://user:pass@db.example:5432/greenbin?sslmode=require", True) is False
+
+
+def test_seed_reset_non_sqlite_duoc_khi_du_hai_lop(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Đủ CẢ ``--toi-chac-chan`` lẫn ``CHO_PHEP_XOA_DB=1`` thì mới cho phép."""
+    import scripts.seed as seed
+
+    monkeypatch.setenv("CHO_PHEP_XOA_DB", "1")
     assert seed._cho_phep_reset("postgresql://user:pass@db.example:5432/greenbin?sslmode=require", True) is True
 
 
