@@ -217,3 +217,52 @@ def test_snap_gps_loi_mang_fallback_raw(monkeypatch: pytest.MonkeyPatch) -> None
     snapped = duong_di_that.snap_gps(raw_points)
 
     assert snapped == raw_points, "Hỏng thì fallback toạ độ thô ban đầu, không mất dữ liệu"
+
+
+def test_dan_duong_co_tat_tra_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    _tat_co(monkeypatch)
+    so_lan, _ = _gia_http(monkeypatch)
+
+    res = duong_di_that.dan_duong((21.0278, 105.8342), (21.0312, 105.8507))
+    assert res is None
+    assert so_lan[0] == 0
+
+
+def test_dan_duong_thanh_cong(monkeypatch: pytest.MonkeyPatch) -> None:
+    _bat_co(monkeypatch)
+    so_lan, cac_url = _gia_http(
+        monkeypatch,
+        du_lieu={
+            "routes": [
+                {
+                    "distance": 1850.0,
+                    "duration": 240.0,
+                    "geometry": {
+                        "coordinates": [
+                            [105.8342, 21.0278],
+                            [105.8400, 21.0290],
+                            [105.8507, 21.0312],
+                        ]
+                    },
+                }
+            ]
+        },
+    )
+
+    res = duong_di_that.dan_duong((21.0278, 105.8342), (21.0312, 105.8507))
+    assert res is not None
+    assert res.distance_km == 1.85
+    assert res.duration_minutes == 4.0
+    assert len(res.polyline) == 3
+    assert res.polyline[0] == (21.0278, 105.8342)
+    assert res.polyline[-1] == (21.0312, 105.8507)
+    assert "105.8342,21.0278;105.8507,21.0312" in cac_url[0]
+
+
+def test_dan_duong_loi_mang_tra_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    _bat_co(monkeypatch)
+    _gia_http(monkeypatch, loi=OSError("network timeout"))
+
+    res = duong_di_that.dan_duong((21.0278, 105.8342), (21.0312, 105.8507))
+    assert res is None
+

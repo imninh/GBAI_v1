@@ -32,6 +32,9 @@ import json
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
@@ -110,7 +113,8 @@ def main() -> int:
     print(f"Mã hoá {len(prompts)} câu mô tả của {len(set(owner))} nhóm rác …")
     with torch.no_grad():
         dau_vao = processor(text=prompts, return_tensors="pt", padding=True, truncation=True)
-        text_emb = model.get_text_features(**dau_vao)
+        text_out = model.get_text_features(**dau_vao)
+        text_emb = text_out.pooler_output if hasattr(text_out, "pooler_output") else text_out
         text_emb = text_emb / text_emb.norm(dim=-1, keepdim=True)
         # `logit_scale` là hằng số nhân trước softmax. Quên lưu nó thì code vẫn
         # chạy, không lỗi, chỉ có mọi confidence lệch thang — và ngưỡng 0,82
@@ -143,20 +147,24 @@ def main() -> int:
             self.clip = clip
 
         def forward(self, pixel_values: torch.Tensor) -> torch.Tensor:
-            emb = self.clip.get_image_features(pixel_values=pixel_values)
+            img_out = self.clip.get_image_features(pixel_values=pixel_values)
+            emb = img_out.pooler_output if hasattr(img_out, "pooler_output") else img_out
             return emb / emb.norm(dim=-1, keepdim=True)
 
     fp32 = thu_muc / "clip_vision_fp32.onnx"
     mau = torch.randn(1, 3, _IMAGE_SIZE, _IMAGE_SIZE)
     print("Xuất nửa ảnh sang ONNX …")
+    nua_anh = NuaAnh(model)
+    nua_anh.eval()
     torch.onnx.export(
-        NuaAnh(model),
+        nua_anh,
         mau,
         str(fp32),
         input_names=["pixel_values"],
         output_names=["image_embeds"],
         dynamic_axes={"pixel_values": {0: "batch"}, "image_embeds": {0: "batch"}},
-        opset_version=14,
+        opset_version=18,
+        dynamo=False,
     )
     print(f"  → {fp32} ({_mb(fp32):.1f} MB)")
 
@@ -177,7 +185,8 @@ def main() -> int:
         # Đường gốc: CLIPProcessor → torch fp32.
         with torch.no_grad():
             vao_torch = processor(images=anh, return_tensors="pt")
-            emb_torch = model.get_image_features(**vao_torch)
+            img_out = model.get_image_features(**vao_torch)
+            emb_torch = img_out.pooler_output if hasattr(img_out, "pooler_output") else img_out
             emb_torch = (emb_torch / emb_torch.norm(dim=-1, keepdim=True))[0].numpy()
 
         cosine = float(np.dot(emb_onnx, emb_torch))

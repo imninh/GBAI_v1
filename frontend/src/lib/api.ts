@@ -8,6 +8,7 @@ import type {
   AgentRunDetail,
   Classification,
   EvalSummary,
+  NavigationResult,
   OpsMetrics,
   Overview,
   Permissions,
@@ -272,6 +273,17 @@ export const api = {
     request<{ duong_di: [number, number][] | null }>("/routes/duong-di", {
       method: "POST",
       body: JSON.stringify({ diem }),
+    }),
+  /** Lộ trình dẫn đường từ vị trí xe/người dùng tới điểm dừng qua OSRM */
+  navigate: (origin: { lat: number; lng: number }, dest: { lat: number; lng: number }) =>
+    request<NavigationResult>("/routes/navigate", {
+      method: "POST",
+      body: JSON.stringify({
+        origin_lat: origin.lat,
+        origin_lng: origin.lng,
+        dest_lat: dest.lat,
+        dest_lng: dest.lng,
+      }),
     }),
   routes: (params: Record<string, string> = {}) =>
     request<{ items: PickupRoute[] }>(`/routes?${new URLSearchParams(params)}`),

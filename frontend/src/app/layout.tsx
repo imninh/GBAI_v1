@@ -47,8 +47,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={`${baloo.variable} ${nunito.variable}`}>
-      <body>
+    <html lang="vi" className={`${baloo.variable} ${nunito.variable}`} suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <RegisterSW />
         {children}
       </body>
