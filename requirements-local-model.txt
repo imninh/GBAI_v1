@@ -1,0 +1,24 @@
+# Tầng T0.5 — bản CLIP ĐẦY ĐỦ, chỉ cần ở máy dev.
+#
+# Bản deploy KHÔNG cần file này: nó chạy bộ ONNX int8 do
+# `scripts/export_clip_onnx.py` sinh ra, và chỉ cần `onnxruntime` vốn đã nằm
+# trong `requirements.txt`. Xem ADR-0007.
+#
+# Cài file này khi muốn:
+#   - chạy bản CLIP đầy đủ ở máy dev để làm mốc đối chiếu cho eval;
+#   - hoặc XUẤT bộ ONNX (bước xuất bắt buộc phải có torch).
+#
+#     pip install -r requirements.txt
+#     pip install torch --index-url https://download.pytorch.org/whl/cpu
+#     pip install -r requirements-local-model.txt
+#
+# Việc xuất chạy MỘT LẦN. Máy yếu thì chạy trên Google Colab bản miễn phí rồi
+# tải hai file kết quả về — xem docstring của scripts/export_clip_onnx.py.
+#
+# Model tải một lần (~350 MB) rồi chạy hoàn toàn offline.
+
+torch>=2.4.0
+transformers>=4.44.0
+
+# Dùng cho bước xuất + nén model.
+onnx>=1.16.0

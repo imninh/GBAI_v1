@@ -1,0 +1,141 @@
+{
+  "chay_luc": "2026-08-13T05:42:02.073493+00:00",
+  "nhan": [
+    "recyclable",
+    "recyclable_paper",
+    "recyclable_plastic",
+    "recyclable_metal",
+    "recyclable_glass",
+    "organic",
+    "other",
+    "hazardous",
+    "bulky"
+  ],
+  "cau_hinh": {
+    "tang": {
+      "t1": {
+        "provider": "groq",
+        "model": "meta-llama/llama-4-maverick-17b-128e-instruct"
+      },
+      "t2": {
+        "provider": "gemini",
+        "model": "gemini-3.6-flash"
+      },
+      "text": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b"
+      }
+    },
+    "local_model_enabled": true,
+    "dung_cache_phash": false,
+    "nghi_giay": 0.0,
+    "limit": 1,
+    "ten_cau_hinh": "groq-llama4-maverick"
+  },
+  "tong_hop": {
+    "cong_khai": {
+      "so_anh": 0,
+      "so_tra_loi": 0,
+      "so_tu_choi": 0,
+      "so_loi": 6,
+      "ty_le_tra_loi": 0.0,
+      "accuracy_khi_tra_loi": 0.0,
+      "accuracy_toan_bo": 0.0,
+      "macro_f1": 0.0,
+      "recall_nguy_hai": 0.0,
+      "ty_le_nguy_hai_thanh_thuong": 0.0,
+      "latency_p50_ms": 0,
+      "latency_p95_ms": 0,
+      "tong_chi_phi_usd": 0,
+      "du_gia": true,
+      "theo_tier": {},
+      "ly_do_tu_choi": {}
+    }
+  },
+  "tung_anh": [
+    {
+      "duong_dan": "data\\eval\\cong_khai\\organic\\Food_Organics__Food Organics_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "organic",
+      "nhan_du_doan": "",
+      "tu_choi": true,
+      "ly_do_tu_choi": "model_loi",
+      "tier": "",
+      "model": "",
+      "latency_ms": 3602,
+      "cost_usd": 0.0,
+      "price_known": true,
+      "loi": "model_loi: Model trả về lỗi 404. Kiểm tra tên model và API key trong .env."
+    },
+    {
+      "duong_dan": "data\\eval\\cong_khai\\other\\Miscellaneous_Trash__Miscellaneous Trash_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "other",
+      "nhan_du_doan": "",
+      "tu_choi": true,
+      "ly_do_tu_choi": "model_loi",
+      "tier": "",
+      "model": "",
+      "latency_ms": 2776,
+      "cost_usd": 0.0,
+      "price_known": true,
+      "loi": "model_loi: Model trả về lỗi 404. Kiểm tra tên model và API key trong .env."
+    },
+    {
+      "duong_dan": "data\\eval\\cong_khai\\recyclable_glass\\Glass__Glass_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "recyclable_glass",
+      "nhan_du_doan": "",
+      "tu_choi": true,
+      "ly_do_tu_choi": "model_loi",
+      "tier": "",
+      "model": "",
+      "latency_ms": 2984,
+      "cost_usd": 0.0,
+      "price_known": true,
+      "loi": "model_loi: Model trả về lỗi 404. Kiểm tra tên model và API key trong .env."
+    },
+    {
+      "duong_dan": "data\\eval\\cong_khai\\recyclable_metal\\Metal__Metal_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "recyclable_metal",
+      "nhan_du_doan": "",
+      "tu_choi": true,
+      "ly_do_tu_choi": "model_loi",
+      "tier": "",
+      "model": "",
+      "latency_ms": 2674,
+      "cost_usd": 0.0,
+      "price_known": true,
+      "loi": "model_loi: Model trả về lỗi 404. Kiểm tra tên model và API key trong .env."
+    },
+    {
+      "duong_dan": "data\\eval\\cong_khai\\recyclable_paper\\Cardboard__Cardboard_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "recyclable_paper",
+      "nhan_du_doan": "",
+      "tu_choi": true,
+      "ly_do_tu_choi": "model_loi",
+      "tier": "",
+      "model": "",
+      "latency_ms": 4966,
+      "cost_usd": 0.0,
+      "price_known": true,
+      "loi": "model_loi: Model trả về lỗi 404. Kiểm tra tên model và API key trong .env."
+    },
+    {
+      "duong_dan": "data\\eval\\cong_khai\\recyclable_plastic\\Plastic__Plastic_1.jpg",
+      "bo": "cong_khai",
+      "nhan_dung": "recyclable_plastic",
+      "nhan_du_doan": "",
+      "tu_choi": true,
+      "ly_do_tu_choi": "model_loi",
+      "tier": "",
+      "model": "",
+      "latency_ms": 3049,
+      "cost_usd": 0.0,
+      "price_known": true,
+      "loi": "model_loi: Model trả về lỗi 404. Kiểm tra tên model và API key trong .env."
+    }
+  ]
+}

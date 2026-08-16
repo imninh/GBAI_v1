@@ -1,0 +1,278 @@
+"""Yêu cầu thu gom và hàng đợi duyệt — HITL #1."""
+
+from __future__ import annotations
+
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel, Field
+from sqlalchemy import desc, select
+
+from src.api.deps import CurrentUser, DbSession, require
+from src.api.errors import bad_request, forbidden, not_found
+from src.api.serializers import pickup_dict
+from src.db.models import PickupRequest, Unit, User
+from src.db.seed_data import PICKUP_REJECT_REASONS
+from src.models.schemas import CreatePickupRequest, ReviewPickupRequest
+from src.services import pickup as pickup_service
+from src.services import pickup_flow
+from src.services.auth import write_audit
+from src.services.pickup_lifecycle import (
+    CHO_DUYET,
+    CHO_NHAN,
+    LoiChuyenTrangThai,
+    chuan_hoa,
+    trang_thai_tuong_duong,
+)
+
+router = APIRouter(prefix="/pickups", tags=["pickups"])
+
+
+class ChuyenTrangThaiRequest(BaseModel):
+    """Body đẩy một yêu cầu dọc theo máy trạng thái thu gom."""
+
+    den: str = Field(min_length=1, max_length=40)
+    ghi_chu: str = Field(default="", max_length=500)
+
+
+class XacNhanKhoiLuongRequest(BaseModel):
+    """Body xác nhận khối lượng thật do đội vệ sinh cân."""
+
+    weight_confirmed_kg: float = Field(ge=0)
+
+
+@router.post("")
+def create_pickup(payload: CreatePickupRequest, session: DbSession, user: CurrentUser) -> dict:
+    """Cư dân đăng ký thu gom đồ cồng kềnh (wizard 3 bước ở spec 4.7)."""
+    if user.role not in {"resident", "manager"}:
+        raise forbidden("Đội vệ sinh không tạo yêu cầu thay cư dân.")
+    if not payload.confirmed_no_hazardous:
+        raise bad_request(
+            "Bạn cần xác nhận các món trên không chứa rác nguy hại (pin, hoá chất, bóng đèn, thuốc).",
+            code="PU-400",
+        )
+
+    items = [i.model_dump() for i in payload.items]
+    try:
+        request = pickup_service.create_pickup_request(
+            session,
+            resident=user,
+            items=items,
+            est_weight_kg=payload.est_weight_kg,
+            weight_min_kg=payload.weight_min_kg,
+            weight_max_kg=payload.weight_max_kg,
+            preferred_date=payload.preferred_date,
+            preferred_window=payload.preferred_window,
+            note=payload.note,
+            ngoai_lich=payload.ngoai_lich,
+        )
+    except ValueError as exc:
+        raise bad_request(str(exc), code="PU-400") from exc
+
+    data = pickup_dict(session, request, full=True)
+    data["message_vi"] = (
+        "Yêu cầu này vượt ngưỡng tự động nên cần ban quản lý duyệt."
+        if request.requires_hitl
+        else "Yêu cầu nằm trong ngưỡng tự động, đã được ghi nhận."
+    )
+    return data
+
+
+@router.get("")
+def list_pickups(
+    session: DbSession,
+    user: CurrentUser,
+    status: str = "",
+    building_id: int | None = None,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+) -> dict:
+    """Danh sách yêu cầu. Cư dân chỉ thấy của mình."""
+    statement = select(PickupRequest)
+    if user.role == "resident":
+        statement = statement.where(PickupRequest.resident_id == user.id)
+    if status:
+        try:
+            trang_thai_chuan = chuan_hoa(status)
+        except LoiChuyenTrangThai as exc:
+            raise bad_request(f"Giá trị trạng thái '{status}' không hợp lệ.", code="PU-400") from exc
+        statement = statement.where(PickupRequest.status.in_(trang_thai_tuong_duong(trang_thai_chuan)))
+    if building_id is not None:
+        statement = statement.join(Unit, PickupRequest.unit_id == Unit.id).where(Unit.building_id == building_id)
+
+    total = len(session.scalars(statement).all())
+    rows = session.scalars(
+        statement.order_by(desc(PickupRequest.created_at)).offset((page - 1) * page_size).limit(page_size)
+    ).all()
+    return {
+        "items": [pickup_dict(session, r) for r in rows],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "reject_reasons": PICKUP_REJECT_REASONS,
+    }
+
+
+@router.get("/{request_id}")
+def get_pickup(request_id: int, session: DbSession, user: CurrentUser) -> dict:
+    """Chi tiết một yêu cầu, kèm timeline và bối cảnh ra quyết định."""
+    request = session.get(PickupRequest, request_id)
+    if request is None:
+        raise not_found("yêu cầu thu gom này")
+    if user.role == "resident" and request.resident_id != user.id:
+        raise not_found("yêu cầu thu gom này")
+
+    data = pickup_dict(session, request, full=True)
+    if user.role in {"manager", "cleaner"}:
+        data.update(pickup_service.decision_context(session, request))
+        data["agent_suggestion"] = _agent_suggestion(session, request)
+    return data
+
+
+def _agent_suggestion(session, request: PickupRequest) -> dict:
+    """Gợi ý gộp tuyến cho màn duyệt — khối viền nét đứt nhãn "AI đề xuất"."""
+    if request.preferred_date is None:
+        return {}
+    cung_khung = session.scalars(
+        select(PickupRequest).where(
+            PickupRequest.preferred_date == request.preferred_date,
+            PickupRequest.preferred_window == request.preferred_window,
+            PickupRequest.status.in_(trang_thai_tuong_duong(CHO_NHAN) + trang_thai_tuong_duong(CHO_DUYET)),
+            PickupRequest.id != request.id,
+        )
+    ).all()
+    if not cung_khung:
+        return {
+            "label_vi": "AI đề xuất — cần người duyệt trước khi áp dụng",
+            "text_vi": "Chưa có yêu cầu nào khác cùng khung giờ để gộp chuyến.",
+        }
+    tong = sum(r.weight_max_kg for r in cung_khung) + request.weight_max_kg
+    return {
+        "label_vi": "AI đề xuất — cần người duyệt trước khi áp dụng",
+        "text_vi": (
+            f"Gộp vào chuyến {request.preferred_window} ngày "
+            f"{request.preferred_date.strftime('%d/%m')} cùng {len(cung_khung)} yêu cầu khác. "
+            f"Tổng ước tính {tong:.0f} kg."
+        ),
+        "so_yeu_cau_gop": len(cung_khung) + 1,
+        "tong_khoi_luong_kg": round(tong, 1),
+    }
+
+
+@router.post("/{request_id}/review")
+def review_pickup(
+    request_id: int,
+    payload: ReviewPickupRequest,
+    session: DbSession,
+    user: Annotated[User, Depends(require("review_pickup"))],
+) -> dict:
+    """HITL #1 — ban quản lý duyệt hoặc từ chối yêu cầu vượt ngưỡng."""
+    request = session.get(PickupRequest, request_id)
+    if request is None:
+        raise not_found("yêu cầu thu gom này")
+
+    try:
+        pickup_service.review_pickup(
+            session,
+            request=request,
+            actor=user,
+            action=payload.action,
+            reason=payload.reason,
+            note=payload.note,
+            changes=payload.changes,
+        )
+    except ValueError as exc:
+        raise bad_request(str(exc), code="PU-400") from exc
+
+    write_audit(
+        session,
+        actor=user,
+        action=f"pickup_{payload.action}",
+        entity="pickup_request",
+        entity_id=str(request.id),
+        detail={"reason": payload.reason, "note": payload.note},
+    )
+    return pickup_dict(session, request, full=True)
+
+
+@router.delete("/{request_id}")
+def cancel_pickup(request_id: int, session: DbSession, user: CurrentUser) -> dict:
+    """Cư dân huỷ yêu cầu của mình khi chưa xếp tuyến."""
+    request = session.get(PickupRequest, request_id)
+    if request is None:
+        raise not_found("yêu cầu thu gom này")
+    if request.resident_id != user.id and user.role != "manager":
+        raise forbidden("Bạn chỉ huỷ được yêu cầu của chính mình.")
+
+    try:
+        pickup_service.cancel_pickup(session, request=request, actor=user)
+    except ValueError as exc:
+        raise bad_request(str(exc), code="PU-409") from exc
+    return pickup_dict(session, request, full=True)
+
+
+@router.post("/{request_id}/chuyen-trang-thai")
+def chuyen_trang_thai_pickup(
+    request_id: int,
+    payload: ChuyenTrangThaiRequest,
+    session: DbSession,
+    user: Annotated[User, Depends(require("complete_stop"))],
+) -> dict:
+    """Đội vệ sinh đẩy một yêu cầu dọc theo máy trạng thái thu gom."""
+    request = session.get(PickupRequest, request_id)
+    if request is None:
+        raise not_found("yêu cầu thu gom này")
+
+    try:
+        pickup_flow.chuyen_trang_thai_yeu_cau(
+            session,
+            request=request,
+            den=payload.den,
+            actor=user,
+            ghi_chu=payload.ghi_chu,
+        )
+    except ValueError as exc:
+        raise bad_request(str(exc), code="PU-400") from exc
+
+    write_audit(
+        session,
+        actor=user,
+        action=f"pickup_chuyen_trang_thai_{payload.den}",
+        entity="pickup_request",
+        entity_id=str(request.id),
+        detail={"den": payload.den, "ghi_chu": payload.ghi_chu},
+    )
+    return pickup_dict(session, request, full=True)
+
+
+@router.post("/{request_id}/xac-nhan-khoi-luong")
+def xac_nhan_khoi_luong_pickup(
+    request_id: int,
+    payload: XacNhanKhoiLuongRequest,
+    session: DbSession,
+    user: Annotated[User, Depends(require("complete_stop"))],
+) -> dict:
+    """Đội vệ sinh xác nhận khối lượng THẬT — điểm chỉ trao từ con số này."""
+    request = session.get(PickupRequest, request_id)
+    if request is None:
+        raise not_found("yêu cầu thu gom này")
+
+    try:
+        pickup_flow.xac_nhan_khoi_luong(
+            session,
+            request=request,
+            weight_confirmed_kg=payload.weight_confirmed_kg,
+            actor=user,
+        )
+    except ValueError as exc:
+        raise bad_request(str(exc), code="PU-400") from exc
+
+    write_audit(
+        session,
+        actor=user,
+        action="pickup_xac_nhan_khoi_luong",
+        entity="pickup_request",
+        entity_id=str(request.id),
+        detail={"weight_confirmed_kg": payload.weight_confirmed_kg},
+    )
+    return pickup_dict(session, request, full=True)

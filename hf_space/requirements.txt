@@ -1,0 +1,8 @@
+# Hugging Face Space — chỉ suy luận CLIP, KHÔNG có torch (torch không vừa RAM
+# của CPU free tier, cả gói H1 sinh ra vì đúng chuyện đó).
+fastapi
+uvicorn
+onnxruntime
+numpy
+Pillow
+python-multipart

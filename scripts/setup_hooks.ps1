@@ -8,8 +8,9 @@ $HookFile = '.git/hooks/pre-push'
 # Git on Windows runs hooks via Git Bash, so the hook body must be bash.
 $HookBody = @'
 #!/usr/bin/env bash
-# Pre-push: sweep recent Antigravity / Gemini prompts, then submit AI logs.
+# Pre-push: sweep recent Antigravity / Gemini / OpenCode prompts, then submit.
 bash scripts/_pyrun.sh scripts/log_antigravity.py --auto || true
+bash scripts/_pyrun.sh scripts/log_opencode.py --auto || true
 bash scripts/_pyrun.sh scripts/submit_log.py || true
 exit 0
 '@

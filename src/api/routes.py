@@ -1,25 +1,31 @@
-from fastapi import APIRouter, HTTPException
+"""Gom toàn bộ router của API v1.
 
-from src.agents.graph import agent
-from src.models.schemas import ChatRequest, ChatResponse
+Đường dẫn khớp hợp đồng ở ``docs/FRONTEND_SPEC.md`` mục 7.
+"""
+
+from fastapi import APIRouter
+
+from src.api.routers import auth, bins, catalog, classify, media, ops, pickups, routes, tracking
+from src.services.vision import provider_status
 
 router = APIRouter()
 
-
-@router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest) -> ChatResponse:
-    """Chat với AI agent."""
-    try:
-        result = await agent.ainvoke({"query": request.message})
-        return ChatResponse(
-            response=result.get("response", ""),
-            analysis=result.get("analysis", ""),
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+router.include_router(auth.router)
+router.include_router(classify.router)
+router.include_router(media.router)
+router.include_router(catalog.router)
+router.include_router(pickups.router)
+router.include_router(routes.router)
+router.include_router(ops.router)
+router.include_router(bins.router)
+router.include_router(tracking.router)
 
 
-@router.get("/status")
-async def agent_status():
-    """Kiểm tra trạng thái agent."""
-    return {"status": "ready", "agent": "LangGraph Agent v1.0"}
+@router.get("/status", tags=["ops"])
+def status() -> dict:
+    """Trạng thái hệ thống — công khai, không cần đăng nhập.
+
+    Trả về nhà cung cấp model đang dùng và **có key hay chưa**; giá trị key
+    không bao giờ được trả ra ngoài.
+    """
+    return {"status": "ready", "app": "GreenBin AI", "version": "1.0.0", "model": provider_status()}

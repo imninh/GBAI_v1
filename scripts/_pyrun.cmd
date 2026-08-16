@@ -1,6 +1,17 @@
 @echo off
 REM Cross-platform Python launcher for AI log hooks (Windows cmd.exe).
-REM Tries local venv -> py -3 -> python -> python3 in order.
+REM Tries local venv -> py -3 -> python -> python3 in order, runs the given script with all args.
+REM Exits 0 silently if no Python is found - hooks must never block the AI tool.
+
+if exist "%~dp0..\venv\Scripts\python.exe" (
+  "%~dp0..\venv\Scripts\python.exe" %*
+  exit /b %ERRORLEVEL%
+)
+
+if exist "%~dp0..\.venv\Scripts\python.exe" (
+  "%~dp0..\.venv\Scripts\python.exe" %*
+  exit /b %ERRORLEVEL%
+)
 
 if exist "venv\Scripts\python.exe" (
   venv\Scripts\python.exe %*
