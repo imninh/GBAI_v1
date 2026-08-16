@@ -9,7 +9,7 @@
 
 import * as React from "react";
 
-import { CleanerHistoryScreen, CleanerMeScreen, RouteTodayScreen, VerifyLabelScreen } from "@/components/cleaner/screens";
+import { CleanerHistoryScreen, CleanerMeScreen, RouteTodayScreen } from "@/components/cleaner/screens";
 import { ManagerConsole } from "@/components/manager/console";
 import { AskScreen, BUOC_MAC_DINH, ProcessingScreen, buocTuKetQua } from "@/components/resident/ask";
 import { NearbyBinsScreen } from "@/components/resident/nearby-bins";
@@ -36,7 +36,7 @@ import type { Classification } from "@/lib/types";
 export default function Page() {
   return (
     <SessionProvider>
-      <main className="min-h-dvh w-full">
+      <main className="min-h-dvh w-full" suppressHydrationWarning>
         <AppShell />
       </main>
     </SessionProvider>
@@ -405,7 +405,6 @@ function CleanerApp() {
 
   const tabs: TabItem[] = [
     { key: "route", label: "Tuyến", icon: ICON.tuyen },
-    { key: "verify", label: "Xác nhận", icon: ICON.xacNhan },
     { key: "history", label: "Lịch sử", icon: ICON.lichSu },
     { key: "me", label: "Tôi", icon: ICON.toi },
   ];
@@ -416,7 +415,6 @@ function CleanerApp() {
       tabBar={<TabBar items={tabs} active={man} onChange={setMan} accent="#2f7fe0" />}
     >
       {man === "route" && <RouteTodayScreen onXemLichSu={() => setMan("history")} />}
-      {man === "verify" && <VerifyLabelScreen />}
       {man === "history" && <CleanerHistoryScreen />}
       {man === "me" && <CleanerMeScreen user={user!} onLogout={dangXuat} />}
     </PhoneFrame>

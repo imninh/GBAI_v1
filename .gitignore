@@ -39,6 +39,8 @@ data/*
 # vĩnh viễn. Sinh lại bằng `python scripts/export_clip_onnx.py`, rồi đính vào
 # GitHub Release và trỏ CLIP_ASSETS_URL vào đó. Xem ADR-0007.
 assets/clip/*.onnx
+assets/clip/*.data
+assets/clip/*.onnx.data
 assets/clip/clip_text_embeddings.json
 # Gói nén để đính vào Release — cũng không commit, vì lý do y hệt.
 clip-assets.tar.gz

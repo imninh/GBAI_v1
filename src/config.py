@@ -194,10 +194,10 @@ class Settings(BaseSettings):
     register_rate_window_seconds: int = Field(default=600, ge=1)
 
     # --- Khoảng cách đường đi thật (G3) ----------------------------------
-    # Mặc định TẮT. Bật qua biến môi trường ROUTE_REAL_DISTANCE=true trong .env.
+    # Mặc định TẮT (để test chạy offline nhanh không đụng mạng). Bật qua ROUTE_REAL_DISTANCE=true trong .env.
     route_real_distance: bool = False
     osrm_base_url: str = "https://router.project-osrm.org"
-    osrm_timeout_seconds: float = Field(default=3.0, gt=0)
+    osrm_timeout_seconds: float = Field(default=4.0, gt=0)
 
     # --- Nhà cung cấp model vision ---------------------------------------
     # Mặc định chung cho mọi tầng.

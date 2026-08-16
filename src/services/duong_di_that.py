@@ -54,6 +54,15 @@ class LoTrinh:
     legs: list[LegInfo] = field(default_factory=list)
 
 
+@dataclass
+class DanDuong:
+    """Kết quả dẫn đường từ A → B qua OSRM Route API."""
+
+    polyline: list[tuple[float, float]] = field(default_factory=list)
+    distance_km: float = 0.0
+    duration_minutes: float = 0.0
+
+
 def ma_tran_osrm(toa_do: list[tuple[float, float]]) -> MatranOSRM | None:
     """Ma trận khoảng cách (km) và thời gian (giây) giữa mọi cặp điểm.
 
@@ -182,6 +191,56 @@ def hinh_duong_di(toa_do: list[tuple[float, float]]) -> list[tuple[float, float]
     """Hình đường đi thật nối các điểm dừng theo đúng thứ tự (backward compatible)."""
     lt = lo_trinh(toa_do)
     return lt.polyline if lt is not None else None
+
+
+def dan_duong(origin: tuple[float, float], dest: tuple[float, float]) -> DanDuong | None:
+    """Đường đi thật từ A → B qua OSRM Route API.
+
+    Args:
+        origin: Toạ độ điểm xuất phát (lat, lng).
+        dest: Toạ độ điểm đến (lat, lng).
+
+    Returns:
+        DanDuong chứa polyline, distance_km, duration_minutes; hoặc None khi tắt cờ / lỗi.
+    """
+    settings = get_settings()
+    if not settings.route_real_distance:
+        return None
+
+    diem = f"{origin[1]},{origin[0]};{dest[1]},{dest[0]}"
+    url = f"{settings.osrm_base_url}/route/v1/driving/{diem}?overview=full&geometries=geojson"
+
+    try:
+        with httpx.Client(timeout=settings.osrm_timeout_seconds) as khach:
+            phan_hoi = khach.get(url)
+            phan_hoi.raise_for_status()
+            du_lieu = phan_hoi.json()
+
+        if not isinstance(du_lieu, dict):
+            return None
+        routes = du_lieu.get("routes")
+        if not isinstance(routes, list) or not routes:
+            return None
+
+        route_0 = routes[0]
+        if not isinstance(route_0, dict):
+            return None
+
+        hinh = _hinh_tu_geojson(du_lieu)
+        if hinh is None or len(hinh) < 2:
+            return None
+
+        distance_km = round(float(route_0.get("distance", 0.0)) / 1000.0, 2)
+        duration_min = round(float(route_0.get("duration", 0.0)) / 60.0, 1)
+
+        return DanDuong(
+            polyline=hinh,
+            distance_km=distance_km,
+            duration_minutes=duration_min,
+        )
+    except Exception as loi:
+        logger.warning("Không lấy được đường dẫn đường từ OSRM: %s", loi)
+        return None
 
 
 def _hinh_tu_geojson(du_lieu: object) -> list[tuple[float, float]] | None:

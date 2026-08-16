@@ -170,6 +170,8 @@ export interface RouteStop {
   issue: string;
   issue_note: string;
   actual_weight_kg: number | null;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 export interface RouteReasoning {
@@ -237,6 +239,12 @@ export interface LoTrinhMeta {
   total_km: number;
   total_minutes: number;
   legs: LoTrinhLeg[];
+}
+
+export interface NavigationResult {
+  polyline: [number, number][];
+  distance_km: number;
+  duration_minutes: number;
 }
 
 /** Trạng thái thật của ba cơ chế mới — trang Vận hành nói thật về giới hạn. */
