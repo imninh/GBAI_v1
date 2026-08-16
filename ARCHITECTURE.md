@@ -1022,10 +1022,6 @@ là lý do CLIP phải nén xuống ONNX int8 (185 MB RAM), và là lý do khi l
 | **DevOps** | CI kiểm cả Python lẫn frontend · build APK theo tag · `render.yaml` khai cả web lẫn CSDL |
 | **Code Quality** | ruff sạch · type hints hàm public · không bare `except` · 277 test · module thuần tách khỏi I/O |
 
-> Bài học Cohort 1: **DevOps và Code Quality là hai cột điểm thấp nhất**; 0/12 đội
-> có CI/CD dù template cho sẵn, chỉ 2/12 đội có eval evidence. Hai cột đó là chỗ
-> dễ ăn điểm nhất và cũng là chỗ dễ mất nhất.
-
 ---
 
 ---
