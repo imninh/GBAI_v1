@@ -329,3 +329,38 @@ def duong_di_toi_diem(payload: DuongDiRequest, user: CurrentUser) -> dict:
         return {"duong_di": None}
     hinh = duong_di_that.hinh_duong_di(toa_do)
     return {"duong_di": [[lat, lng] for lat, lng in hinh] if hinh else None}
+
+
+class NavigateRequest(BaseModel):
+    """Toạ độ xuất phát và điểm đến cho dẫn đường in-app."""
+
+    origin_lat: float
+    origin_lng: float
+    dest_lat: float
+    dest_lng: float
+
+
+@router.post("/navigate")
+def navigate(payload: NavigateRequest, user: CurrentUser) -> dict:
+    """Trả polyline + khoảng cách + thời gian từ vị trí hiện tại → điểm thu gom."""
+    origin = (payload.origin_lat, payload.origin_lng)
+    dest = (payload.dest_lat, payload.dest_lng)
+    dd = duong_di_that.dan_duong(origin, dest)
+
+    if dd is not None:
+        return {
+            "polyline": [[lat, lng] for lat, lng in dd.polyline],
+            "distance_km": dd.distance_km,
+            "duration_minutes": dd.duration_minutes,
+        }
+
+    # Fallback khi OSRM tắt hoặc lỗi mạng: đường chim bay
+    from src.services.vrp_solver import haversine_km
+
+    dist = round(haversine_km(origin[0], origin[1], dest[0], dest[1]), 2)
+    dur = round((dist / 30.0) * 60.0, 1)
+    return {
+        "polyline": [[origin[0], origin[1]], [dest[0], dest[1]]],
+        "distance_km": dist,
+        "duration_minutes": dur,
+    }

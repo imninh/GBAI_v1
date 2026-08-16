@@ -143,6 +143,18 @@ app.add_exception_handler(Exception, unhandled_error_handler)
 app.include_router(router, prefix="/api/v1")
 
 
+@app.get("/", include_in_schema=False)
+def root() -> dict:
+    return {
+        "service": "GreenBin AI API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health",
+        "frontend": "http://localhost:3000",
+    }
+
+
 @app.get("/health", tags=["ops"])
 def health() -> dict:
     return {"status": "ok", "env": settings.app_env}
+

@@ -94,8 +94,12 @@ async def test_duoi_hai_diem_thi_tra_null(api: AsyncClient, api_session: Session
 
 
 @pytest.mark.asyncio
-async def test_osrm_tat_mac_dinh_thi_tra_null(api: AsyncClient, api_session: Session) -> None:
-    """Cờ ``ROUTE_REAL_DISTANCE`` tắt (mặc định) → endpoint trả null, không gọi mạng."""
+async def test_osrm_tat_mac_dinh_thi_tra_null(
+    api: AsyncClient, api_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Cờ ``ROUTE_REAL_DISTANCE`` tắt → endpoint trả null, không gọi mạng."""
+    monkeypatch.setenv("ROUTE_REAL_DISTANCE", "false")
+    reset_settings_cache()
     auth = await _auth_cu_dan(api)
 
     response = await api.post(
@@ -128,3 +132,71 @@ async def test_hinh_duong_di_duoc_tra_nguyen_ven(
 
     assert response.status_code == 200, response.text
     assert response.json()["duong_di"] == [[21.0, 105.8], [21.1, 105.9]]
+
+
+@pytest.mark.asyncio
+async def test_navigate_thanh_cong(
+    api: AsyncClient, api_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Endpoint POST /routes/navigate trả polyline + distance_km + duration_minutes từ OSRM."""
+    from src.services.duong_di_that import DanDuong
+
+    monkeypatch.setattr(
+        duong_di_that,
+        "dan_duong",
+        lambda origin, dest: DanDuong(
+            polyline=[(21.0278, 105.8342), (21.0300, 105.8400), (21.0312, 105.8507)],
+            distance_km=1.85,
+            duration_minutes=4.0,
+        ),
+    )
+    auth = await _auth_cu_dan(api)
+
+    response = await api.post(
+        "/api/v1/routes/navigate",
+        json={
+            "origin_lat": 21.0278,
+            "origin_lng": 105.8342,
+            "dest_lat": 21.0312,
+            "dest_lng": 105.8507,
+        },
+        headers=auth,
+    )
+
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["distance_km"] == 1.85
+    assert data["duration_minutes"] == 4.0
+    assert len(data["polyline"]) == 3
+    assert data["polyline"][0] == [21.0278, 105.8342]
+    assert data["polyline"][-1] == [21.0312, 105.8507]
+
+
+@pytest.mark.asyncio
+async def test_navigate_fallback_khi_osrm_tat(
+    api: AsyncClient, api_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Khi OSRM tắt / lỗi, endpoint POST /routes/navigate fallback đường chim bay."""
+    monkeypatch.setenv("ROUTE_REAL_DISTANCE", "false")
+    reset_settings_cache()
+    auth = await _auth_cu_dan(api)
+
+    response = await api.post(
+        "/api/v1/routes/navigate",
+        json={
+            "origin_lat": 21.0278,
+            "origin_lng": 105.8342,
+            "dest_lat": 21.0312,
+            "dest_lng": 105.8507,
+        },
+        headers=auth,
+    )
+
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["distance_km"] > 0
+    assert data["duration_minutes"] > 0
+    assert len(data["polyline"]) == 2
+    assert data["polyline"][0] == [21.0278, 105.8342]
+    assert data["polyline"][1] == [21.0312, 105.8507]
+
