@@ -14,6 +14,7 @@ import Link from "next/link";
 
 import { AgentRunScreen, OpsScreen, OverviewScreen, QualityScreen } from "@/components/manager/insights";
 import { PickupQueue, RouteApproval, VerifyQueue } from "@/components/manager/queues";
+import { TatCaYeuCau } from "@/components/manager/tat-ca-yeu-cau";
 import { XepTuyen } from "@/components/manager/xep-tuyen";
 import { BrowserFrame } from "@/components/ui/shell";
 import { api } from "@/lib/api";
@@ -38,7 +39,7 @@ function useDuRong(): boolean | null {
   return duRong;
 }
 
-type Nav = "duyet" | "xep_tuyen" | "baocao" | "overview" | "runs";
+type Nav = "duyet" | "tat_ca" | "xep_tuyen" | "baocao" | "overview" | "runs";
 type TabDuyet = "pickup" | "verify" | "route";
 type TabBaoCao = "ops" | "quality";
 
@@ -47,6 +48,7 @@ type Muc = { key: string; label: string; permission: string; href?: string };
 const MUC_CHINH: Muc[] = [
   { key: "homnay", label: "Hôm nay đi đâu", permission: "view_bins", href: "/dieu-phoi" },
   { key: "duyet", label: "Chờ tôi duyệt", permission: "review_pickup" },
+  { key: "tat_ca", label: "Tất cả yêu cầu", permission: "view_all_pickups" },
   { key: "xep_tuyen", label: "Xếp tuyến", permission: "review_route" },
   { key: "baocao", label: "Báo cáo", permission: "view_ops" },
 ];
@@ -198,6 +200,8 @@ export function ManagerConsole() {
           )}
 
           {nav === "xep_tuyen" && <XepTuyen />}
+
+          {nav === "tat_ca" && <TatCaYeuCau />}
 
           {/* Tổng quan chỉ có một đích nhảy duy nhất là hàng đợi thu gom. */}
           {nav === "overview" && (

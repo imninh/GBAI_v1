@@ -318,6 +318,15 @@ class Settings(BaseSettings):
     # bỏ sót — 0,35 là mức khởi điểm, CHƯA chuẩn lại trên ảnh rác thật.
     yolo_confidence: float = Field(default=0.35, ge=0.0, le=1.0)
 
+    # --- Tầng T0.5d: cắt từng vật rồi CLIP chấm từng crop (hướng A) ----------
+    # MẶC ĐỊNH TẮT — chưa đo xong trên ảnh rác thật. Bật lên thì ảnh nhiều vật
+    # được cắt riêng từng crop, mỗi crop chỉ có một vật nên CLIP chấm cao hơn
+    # hẳn → chốt được tại chỗ, $0, không leo cloud (Groq free tier chỉ
+    # 8.000 token/phút — gọi cloud cho từng vật là bất khả thi).
+    phan_loai_tung_vat: bool = False
+    # Tối đa số vật cắt và chấm trong một ảnh; điểm cao được ưu tiên trước.
+    so_vat_toi_da: int = 4
+
     # --- Tầng T0: cache pHash --------------------------------------------
     # Khoảng cách Hamming tối đa giữa 2 pHash để coi là cùng một món rác.
     phash_max_distance: int = Field(default=6, ge=0, le=64)
