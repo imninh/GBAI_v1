@@ -45,6 +45,7 @@ __all__ = [
     "OpenAICompatibleClient",
     "Usage",
     "VisionClient",
+    "VisionProviderError",
     "VisionResult",
     "VisionUnavailableError",
     "classify_image_local",
@@ -52,6 +53,7 @@ __all__ = [
     "get_tier_models",
     "get_tier_provider",
     "get_vision_client",
+    "get_vision_model",
     "local_model_loaded",
     "local_model_runtime",
     "provider_status",
@@ -153,3 +155,67 @@ def provider_status() -> dict[str, object]:
         "local_model_runtime": local_model_runtime(),
         "prompt_version": settings.prompt_version,
     }
+
+
+class VisionProviderError(RuntimeError):
+    """No usable Vision provider is configured."""
+
+
+class _StubVisionModel:
+    """Returns a canned prediction. **Never for production.**
+
+    Exists so the LED feedback paths (ok / warning / hazard) can be exercised
+    end-to-end without an API key — see iot/docs/testing-without-hardware.md.
+    """
+
+    def __init__(self, label: str, confidence: float) -> None:
+        self._label = label
+        self._confidence = confidence
+
+    async def ainvoke(self, _messages):
+        import logging
+
+        log = logging.getLogger(__name__)
+        log.warning(
+            "STUB VISION PROVIDER — returning canned label %r at confidence %.2f. "
+            "No image was analysed.",
+            self._label,
+            self._confidence,
+        )
+
+        class _Reply:
+            content = (
+                f'{{"label": "{self._label}", "confidence": {self._confidence}}}'
+            )
+
+        return _Reply()
+
+
+def get_vision_model():
+    """Return a LangChain chat model capable of image input."""
+    settings = get_settings()
+    provider = settings.vision_provider.strip().lower()
+
+    if provider == "stub":
+        return _StubVisionModel(
+            settings.stub_vision_label, settings.stub_vision_confidence
+        )
+
+    if provider == "openai":
+        if not settings.openai_api_key:
+            raise VisionProviderError("OPENAI_API_KEY is not configured")
+        from langchain_openai import ChatOpenAI
+
+        extra = {}
+        if settings.vision_base_url:
+            extra["base_url"] = settings.vision_base_url
+
+        return ChatOpenAI(
+            model=settings.vision_model_name,
+            api_key=settings.openai_api_key,
+            temperature=0,
+            **extra,
+        )
+
+    raise VisionProviderError(f"Unsupported vision provider: {provider!r}")
+

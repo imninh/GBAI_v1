@@ -178,7 +178,8 @@ class RetrievalTestRequest(BaseModel):
     query: str = Field(min_length=1, max_length=300)
     building_id: int | None = None
     top_k: int = Field(default=5, ge=1, le=20)
-=======
+
+
 class ChatResponse(BaseModel):
     response: str = Field(..., description="Phản hồi từ agent")
     analysis: str = Field(default="", description="Phân tích nội bộ")

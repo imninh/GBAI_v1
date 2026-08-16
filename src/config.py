@@ -18,7 +18,7 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VisionProvider = Literal["gemini", "groq", "openai", "openrouter", "nvidia", "deepseek", "mistral", "local_only"]
+VisionProvider = str
 
 # Ba tầng có gọi model đám mây. T0 (cache pHash) và T0.5 (CLIP local) không gọi
 # nên không nằm ở đây.

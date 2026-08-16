@@ -14,6 +14,7 @@ from __future__ import annotations
 import pytest
 from sqlalchemy.orm import Session
 
+from src.config import get_settings
 from src.db.models import WasteCategory
 from src.services import classifier, safety
 from src.services.classifier import classify_waste
