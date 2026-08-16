@@ -134,3 +134,42 @@ def test_duong_dan_anh_dai_hon_400_van_ghi_duoc(db_session: Session) -> None:
     assert luu.stored_path == duong_dan_dai, "Đường dẫn dài phải được ghi và đọc lại nguyên vẹn"
     # Chốt trần schema không bị thu nhỏ trở lại — phần thật sự chặn được bug.
     assert Media.__table__.c.stored_path.type.length >= 1024  # type: ignore[attr-defined]
+
+
+def test_phash_distance_tra_ve_int_va_json_serializable() -> None:
+    """Đảm bảo phash_distance trả về kiểu int chuẩn của Python (không phải numpy.int64),
+    có thể serialize trực tiếp sang JSON mà không văng lỗi."""
+    import json
+    import numpy as np
+
+    h1 = "ffffffffffffffff"
+    h2 = "fffffffffffffff0"
+    dist = phash_distance(h1, h2)
+
+    assert isinstance(dist, int)
+    assert type(dist) is int  # Không phải numpy scalar subclass
+    assert not isinstance(dist, np.generic)
+
+    # Thử serialize qua json.dumps chuẩn
+    encoded = json.dumps({"phash_distance": dist})
+    assert '"phash_distance": 4' in encoded
+
+
+def test_runs_record_nodes_with_numpy_meta(db_session: Session) -> None:
+    """Đảm bảo record_nodes tự động sanitize các kiểu numpy scalar trong meta khi ghi vào CSDL."""
+    import numpy as np
+    from src.services.classifier import NodeMetric
+    from src.services.runs import finish_run, start_run
+
+    run = start_run(db_session, kind="classify")
+    node = NodeMetric(
+        node="cache_lookup",
+        cache_hits=1,
+        meta={"phash_distance": np.int64(0), "np_float": np.float32(0.85)},
+    )
+    finished = finish_run(db_session, run, nodes=[node])
+    assert finished.status == "ok"
+    assert finished.nodes[0].meta["phash_distance"] == 0
+    assert type(finished.nodes[0].meta["phash_distance"]) is int
+
+

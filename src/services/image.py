@@ -314,7 +314,7 @@ def phash_distance(left: str, right: str) -> int:
     if not left or not right or len(left) != len(right):
         return 64
     try:
-        return imagehash.hex_to_hash(left) - imagehash.hex_to_hash(right)
+        return int(imagehash.hex_to_hash(left) - imagehash.hex_to_hash(right))
     except ValueError:
         return 64
 
