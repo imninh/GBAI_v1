@@ -139,6 +139,11 @@ def test_tat_co_thi_khong_goi_mang(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_thieu_bien_thi_khong_goi_mang(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("STORAGE_ENABLED", "true")  # nhưng SUPABASE_URL rỗng
+    # Máy dev đã cấu hình Storage thật trong `.env` thì hai biến dưới có giá trị,
+    # và test này đo nhầm nhánh (gọi mạng thật thay vì thoát sớm). Ép rỗng để
+    # nhánh "thiếu biến" luôn được đo đúng, không phụ thuộc môi trường.
+    monkeypatch.setenv("SUPABASE_URL", "")
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "")
     reset_settings_cache()
     khach = _gia_http(monkeypatch)
 

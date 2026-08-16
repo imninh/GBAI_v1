@@ -64,7 +64,11 @@ def tai_len(duong_dan_dia: str, khoa: str) -> str | None:
         with httpx.Client(timeout=_QUA_HAN_GIAY) as khach:
             phan_hoi = khach.post(
                 f"{url}/storage/v1/object/{bucket}/{khoa}",
-                headers={"Authorization": f"Bearer {khoa_bi_mat}", "Content-Type": "image/jpeg"},
+                headers={
+                    "Authorization": f"Bearer {khoa_bi_mat}",
+                    "apikey": khoa_bi_mat,
+                    "Content-Type": "image/jpeg",
+                },
                 content=noi_dung,
             )
             phan_hoi.raise_for_status()
@@ -96,7 +100,7 @@ def tai_ve(khoa: str) -> bytes | None:
         with httpx.Client(timeout=_QUA_HAN_GIAY) as khach:
             phan_hoi = khach.get(
                 f"{url}/storage/v1/object/{bucket}/{khoa}",
-                headers={"Authorization": f"Bearer {khoa_bi_mat}"},
+                headers={"Authorization": f"Bearer {khoa_bi_mat}", "apikey": khoa_bi_mat},
             )
             phan_hoi.raise_for_status()
     except httpx.HTTPStatusError as loi:
@@ -119,7 +123,7 @@ def xoa(khoa: str) -> bool:
         with httpx.Client(timeout=_QUA_HAN_GIAY) as khach:
             phan_hoi = khach.delete(
                 f"{url}/storage/v1/object/{bucket}/{khoa}",
-                headers={"Authorization": f"Bearer {khoa_bi_mat}"},
+                headers={"Authorization": f"Bearer {khoa_bi_mat}", "apikey": khoa_bi_mat},
             )
             phan_hoi.raise_for_status()
     except httpx.HTTPStatusError as loi:
@@ -154,7 +158,12 @@ def kiem_tra() -> dict[str, object]:
         with httpx.Client(timeout=10.0) as khach:
             ghi = khach.post(
                 f"{url}/storage/v1/object/{bucket}/{khoa}",
-                headers={"Authorization": f"Bearer {khoa_bi_mat}", "Content-Type": "text/plain", "x-upsert": "true"},
+                headers={
+                    "Authorization": f"Bearer {khoa_bi_mat}",
+                    "apikey": khoa_bi_mat,
+                    "Content-Type": "text/plain",
+                    "x-upsert": "true",
+                },
                 content=b"ping",
             )
             if ghi.status_code >= 400:
@@ -162,14 +171,14 @@ def kiem_tra() -> dict[str, object]:
                 return ket
             doc = khach.get(
                 f"{url}/storage/v1/object/{bucket}/{khoa}",
-                headers={"Authorization": f"Bearer {khoa_bi_mat}"},
+                headers={"Authorization": f"Bearer {khoa_bi_mat}", "apikey": khoa_bi_mat},
             )
             if doc.status_code >= 400:
                 ket["chi_tiet"] = f"đọc lỗi HTTP {doc.status_code}"
                 return ket
             khach.delete(
                 f"{url}/storage/v1/object/{bucket}/{khoa}",
-                headers={"Authorization": f"Bearer {khoa_bi_mat}"},
+                headers={"Authorization": f"Bearer {khoa_bi_mat}", "apikey": khoa_bi_mat},
             )
         ket["ok"] = True
         ket["chi_tiet"] = "ghi/đọc/xoá bucket OK"
