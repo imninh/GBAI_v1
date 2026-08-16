@@ -121,40 +121,28 @@ yolo11n.pt
 *.tsbuildinfo
 .ai-log/.opencode-raw.offset
 
-# Bộ ảnh RealWaste tải về máy — 656 MB, 4.752 ảnh. KHÔNG commit: git giữ file
-# trong lịch sử vĩnh viễn, xoá sau phải viết lại lịch sử của cả repo nhóm.
-# Tải lại từ nguồn gốc, hoặc chép tay vào máy như hiện nay.
+# Bộ ảnh RealWaste tải về máy — 656 MB, 4.752 ảnh. KHÔNG commit
 realwaste-main/
 
 # Bảng khoá thiết bị thô do scripts/cap_khoa_thung.py --ghi-file sinh ra.
 khoa_thung*.json
 
-# ═══════════════════════════════════════════════════════════════════════════
-# TẠM GIỮ LẠI MỌI FILE .md TRỪ README — chốt 11/08/2026
-#
-# Chủ dự án muốn tự đọc duyệt từng file tài liệu trước khi đẩy lên repo nhóm,
-# nên đợt commit này chỉ đưa MÃ NGUỒN lên. Đây là quyết định TẠM.
-#
-# ⛔ TRƯỚC KHI NỘP PHẢI GỠ LẠI BỐN FILE SAU — chúng là deliverable BTC chấm:
-#      ARCHITECTURE.md      (deliverable #3 — Architecture Diagram)
-#      JOURNAL.md           (deliverable #8 — Development Journal)
-#      WORKLOG.md           (deliverable #9 — Worklog)
-#      docs/evaluation.md   (deliverable #10 — Evaluation Evidence)
-#    cộng docs/decisions/*.md (ADR, README trỏ link tới) và
-#    docs/ai-logs-trich-dan.md (deliverable #4 — bản trích dẫn AI log).
-#    Thiếu chúng là mất 4–5 điểm deliverable dù code có chạy tốt tới đâu.
-#
-# Cách gỡ: xoá khối này, hoặc thêm dòng `!<đường dẫn>` cho từng file cần đẩy.
-# ═══════════════════════════════════════════════════════════════════════════
-*.md
-!README.md
-
-# Thư mục cấu hình của các công cụ AI hỗ trợ lập trình — không phải sản phẩm.
-# Giữ `.github/` (CI và workflow build APK) và `.env.example` (khuôn biến môi
-# trường, người khác cần để chạy được dự án).
-.agents/
-.claude/
+# Skills & AI agent configurations
+skills/
+**/skills/
+skills-lock.json
+.agents/skills/
+.claude/skills/
+.gemini/skills/
 .codex/
 .cursor/
+.agents/
+.claude/
 .gemini/
 .opencode/
+
+# IoT firmware — PlatformIO build output
+iot/firmware/.pio/
+# Device credentials. Only secrets.example.h is committed.
+iot/firmware/include/secrets.h
+

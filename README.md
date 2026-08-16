@@ -556,3 +556,34 @@ Khối này hiển thị ngay trên trang Vận hành của sản phẩm, không
 
 Bảng này cố ý ghi cả phần chưa xong — bốn dòng ⚠️/❌ là việc đang nợ, không phải
 chỗ bị bỏ quên.
+
+---
+
+## IoT và mô phỏng Wokwi
+
+Phần IoT Phase 1 gồm firmware ESP32-CAM, PIR, cảm biến siêu âm HC-SR04,
+NeoPixel, API nhận ảnh, privacy pipeline và mô phỏng Wokwi.
+
+- Thành viên mới và người demo bắt đầu tại
+  [Hướng dẫn IoT và Wokwi bằng tiếng Việt](docs/IOT_WOKWI_GUIDE_VI.md).
+- Xem toàn bộ tài liệu tại [Mục lục tài liệu](docs/README.md).
+- Xem các kịch bản mô phỏng tại
+  [Simulation scenarios](iot/simulation/scenarios/README.md).
+
+Build nhanh firmware Wokwi:
+
+```bash
+cd iot/firmware
+../../.venv/bin/pio run -e wokwi
+```
+
+## Git workflow
+
+Mỗi tính năng được phát triển trên một nhánh riêng và gửi Pull Request vào
+`develop`. Xem hướng dẫn chi tiết tại
+[docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md).
+
+## Repository
+
+<https://github.com/AI20K-Build-Phase-Cohort-3/P-075>
+

@@ -1,0 +1,287 @@
+/* ==========================================================================
+   BQL Smart Trash Bin System - Markdown Feature CSS (Senior Redesign)
+   Includes: Split Editor & Preview, Toolbar, Glassmorphism Cards, GFM Specs
+   ========================================================================== */
+
+.markdown-page-container {
+  display: flex;
+  flex: 1;
+  height: 100vh;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.markdown-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Header bar for Markdown editor */
+.markdown-header {
+  height: 64px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.markdown-header-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.02em;
+}
+
+.markdown-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.md-action-btn {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition-smooth);
+}
+
+.md-action-btn:hover {
+  background: var(--primary-green-light);
+  color: var(--primary-green);
+  border-color: var(--primary-green-border);
+}
+
+.md-action-btn.primary {
+  background: var(--primary-green);
+  border: none;
+  color: #FFFFFF;
+  box-shadow: var(--shadow-emerald);
+}
+
+.md-action-btn.primary:hover {
+  background: var(--primary-green-hover);
+}
+
+/* Toolbar formatting buttons */
+.markdown-toolbar {
+  height: 48px;
+  background: var(--bg-card-subtle);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.tb-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.tb-btn:hover {
+  background: var(--bg-panel);
+  color: var(--primary-green);
+  border-color: var(--border-color);
+}
+
+.tb-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-color);
+  margin: 0 4px;
+}
+
+/* Main Split View Area */
+.markdown-editor-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  background: var(--bg-dark);
+}
+
+.editor-pane,
+.preview-pane {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 112px);
+  overflow: hidden;
+}
+
+.editor-pane {
+  border-right: 1px solid var(--border-color);
+  background: var(--bg-panel);
+}
+
+.pane-header {
+  height: 38px;
+  background: var(--bg-card-subtle);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+#markdown-input {
+  flex: 1;
+  width: 100%;
+  padding: 20px 24px;
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+  border: none;
+  outline: none;
+  resize: none;
+}
+
+.preview-pane {
+  background: var(--bg-dark);
+}
+
+#markdown-preview {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+  color: var(--text-primary);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* GitHub Flavored Markdown Styling inside Preview */
+#markdown-preview h1,
+#markdown-preview h2,
+#markdown-preview h3,
+#markdown-preview h4 {
+  color: var(--text-primary);
+  font-weight: 800;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+#markdown-preview h1 {
+  font-size: 24px;
+  border-bottom: 2px solid var(--primary-green-border);
+  padding-bottom: 8px;
+  color: var(--primary-green);
+}
+
+#markdown-preview h2 {
+  font-size: 20px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 6px;
+}
+
+#markdown-preview h3 {
+  font-size: 17px;
+}
+
+#markdown-preview p {
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+}
+
+#markdown-preview ul,
+#markdown-preview ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+}
+
+#markdown-preview li {
+  margin-bottom: 6px;
+}
+
+#markdown-preview blockquote {
+  border-left: 4px solid var(--primary-green);
+  background: var(--primary-green-light);
+  padding: 12px 18px;
+  border-radius: 0 12px 12px 0;
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+#markdown-preview table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+#markdown-preview th,
+#markdown-preview td {
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+
+#markdown-preview th {
+  background: var(--primary-green-light);
+  color: var(--primary-green);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+#markdown-preview td {
+  background: var(--bg-panel);
+  font-size: 13px;
+}
+
+#markdown-preview code {
+  font-family: var(--font-mono);
+  background: var(--bg-card-subtle);
+  color: var(--primary-green);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  border: 1px solid var(--border-color);
+}
+
+#markdown-preview pre code {
+  display: block;
+  padding: 16px;
+  overflow-x: auto;
+  border-radius: 12px;
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
