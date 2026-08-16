@@ -129,3 +129,50 @@ def xoa(khoa: str) -> bool:
         logger.warning("Xoá ảnh trên Storage không được (%s) với khoá '%s'.", type(loi).__name__, khoa)
         return False
     return True
+
+
+def kiem_tra() -> dict[str, object]:
+    """Tự kiểm Storage: thử ghi → đọc → xoá một object nhỏ. Không ném ngoại lệ.
+
+    Dùng cho /ops để NHÌN THẤY Storage có thật sự chạy — thay vì lỗi im lặng rơi
+    về đĩa. ``ok=False`` kèm ``chi_tiet`` có mã HTTP để chẩn đúng cấu hình.
+    """
+    settings = get_settings()
+    ket: dict[str, object] = {
+        "enabled": settings.storage_enabled,
+        "bucket": settings.supabase_bucket,
+        "ok": False,
+        "chi_tiet": "",
+    }
+    cau_hinh = _cau_hinh()
+    if cau_hinh is None:
+        ket["chi_tiet"] = "tắt cờ hoặc thiếu SUPABASE_URL / SUPABASE_SECRET_KEY"
+        return ket
+    url, khoa_bi_mat, bucket = cau_hinh
+    khoa = "healthcheck/ops-ping.txt"
+    try:
+        with httpx.Client(timeout=10.0) as khach:
+            ghi = khach.post(
+                f"{url}/storage/v1/object/{bucket}/{khoa}",
+                headers={"Authorization": f"Bearer {khoa_bi_mat}", "Content-Type": "text/plain", "x-upsert": "true"},
+                content=b"ping",
+            )
+            if ghi.status_code >= 400:
+                ket["chi_tiet"] = f"ghi lỗi HTTP {ghi.status_code} — kiểm URL/khoá/bucket"
+                return ket
+            doc = khach.get(
+                f"{url}/storage/v1/object/{bucket}/{khoa}",
+                headers={"Authorization": f"Bearer {khoa_bi_mat}"},
+            )
+            if doc.status_code >= 400:
+                ket["chi_tiet"] = f"đọc lỗi HTTP {doc.status_code}"
+                return ket
+            khach.delete(
+                f"{url}/storage/v1/object/{bucket}/{khoa}",
+                headers={"Authorization": f"Bearer {khoa_bi_mat}"},
+            )
+        ket["ok"] = True
+        ket["chi_tiet"] = "ghi/đọc/xoá bucket OK"
+    except httpx.HTTPError as loi:
+        ket["chi_tiet"] = f"lỗi mạng: {type(loi).__name__}"
+    return ket

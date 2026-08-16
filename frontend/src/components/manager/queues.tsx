@@ -97,7 +97,7 @@ export function PickupQueue() {
                 <div className="mb-1 flex justify-between">
                   <span className="text-[13px] font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
                   <span className="rounded-md bg-amber-soft px-2 py-0.5 text-[11px] font-extrabold text-amber">
-                    {kg(yc.weight_max_kg)}
+                    {kg(yc.est_weight_kg)}
                   </span>
                 </div>
                 <div className="text-[13px] font-bold">
@@ -139,9 +139,12 @@ export function PickupQueue() {
                     </div>
                   ))}
                   <div className="flex justify-between py-1 text-[13px] font-bold">
-                    <span className="text-muted-2">Khoảng khối lượng ước tính</span>
+                    <span className="text-muted-2">Cư dân tự ước tính</span>
                     <span>
-                      {dangChon.weight_min_kg}–{dangChon.weight_max_kg} kg
+                      {kg(dangChon.est_weight_kg)}{" "}
+                      <span className="font-semibold text-muted">
+                        (dung sai {dangChon.weight_min_kg}–{dangChon.weight_max_kg} kg)
+                      </span>
                     </span>
                   </div>
                 </div>
