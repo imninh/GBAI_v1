@@ -14,13 +14,13 @@ langgraph>=0.2.0
 
 # Database
 sqlalchemy>=2.0.0
-# alembic>=1.14.0          # bật khi schema ổn định, xem docs/decisions/
 psycopg2-binary>=2.9.0
 
 # Xử lý ảnh — tước EXIF, nén, làm mờ khuôn mặt, băm tri giác (pHash)
 pillow>=11.0.0
 imagehash>=4.3.0
-opencv-python-headless>=4.10.0
+# Pinned below 5.0: OpenCV 5 removed CascadeClassifier and ships no bundled face model
+opencv-python-headless>=4.10.0,<5.0.0
 
 # Upload file cho FastAPI
 python-multipart>=0.0.20

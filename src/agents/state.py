@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from typing import Any, TypedDict
 
+from src.models.schemas import ClassifyOutcome
+
 
 class GreenBinState(TypedDict, total=False):
     """Schema state cho LangGraph. ``total=False`` nên mọi trường đều tuỳ chọn."""
@@ -30,7 +32,25 @@ class GreenBinState(TypedDict, total=False):
     # --- Vận hành ---
     nodes: list[Any]  # list[src.services.classifier.NodeMetric]
     error: str
+    metadata: dict[str, Any]
 
 
 # Giữ tên cũ để code mẫu của template không gãy khi còn tham chiếu tới.
 AgentState = GreenBinState
+
+
+class ClassifyState(TypedDict, total=False):
+    """State schema cho waste-classification graph.
+
+    `image_b64` luôn là ảnh ĐÃ qua privacy pipeline (src.services.image_privacy),
+    không bao giờ là ảnh gốc từ thiết bị.
+    """
+
+    image_b64: str
+    phash: str
+    source: str  # "iot" | "web"
+    label: str
+    confidence: float
+    error: str
+    outcome: ClassifyOutcome
+

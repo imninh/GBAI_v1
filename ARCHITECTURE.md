@@ -24,8 +24,8 @@
 | 7 | [Luồng A — phân loại](#7-luồng-a--phân-loại-rác-đường-găng) | 18 | [Kiến trúc frontend](#18-kiến-trúc-frontend) |
 | 8 | [Định tuyến 4 tầng](#8-định-tuyến-model-bốn-tầng) | 19 | [Triển khai và CI/CD](#19-triển-khai-và-cicd) |
 | 9 | [Agent LangGraph](#9-agent-langgraph) | 20 | [Ánh xạ tiêu chí chấm và PLO](#20-ánh-xạ-tiêu-chí-chấm-và-plo) |
-| 10 | [Guardrails và HITL](#10-guardrails-và-ba-điểm-hitl) | 21 | [Chỉ mục ADR](#22-chỉ-mục-adr) |
-| 11 | [Luồng B/C — RAG, thu gom](#11-luồng-b-và-c--tra-quy-định-và-điều-phối-tuyến) | 
+| 10 | [Guardrails và HITL](#10-guardrails-và-ba-điểm-hitl) | 21 | [Giới hạn và nợ kỹ thuật](#21-giới-hạn-đã-biết-và-nợ-kỹ-thuật) |
+| 11 | [Luồng B/C — RAG, thu gom](#11-luồng-b-và-c--tra-quy-định-và-điều-phối-tuyến) | 22 | [Chỉ mục ADR](#22-chỉ-mục-adr) |
 
 ---
 
@@ -872,6 +872,31 @@ bị tính là hỏng, nhưng cũng không được giả vờ là hoàn toàn k
 chạy trên máy mình (T0, T0.5) vẫn là $0 thật. **Không điền số mò vào bảng giá** —
 làm thế là biến cột chi phí thành số bịa.
 
+### 16.2 Nhật ký phiên code AI (deliverable #4)
+
+```mermaid
+flowchart LR
+    OC["OpenCode"] -->|"plugin .opencode/plugins/ai-log.js"| RAW[".ai-log/opencode-raw.jsonl"]
+    RAW -->|"scripts/log_opencode.py<br/>chuẩn hoá + lọc trùng"| SES[".ai-log/session.jsonl"]
+    SES -->|"scripts/submit_log.py"| PHX["Phoenix — /api/ingest"]
+    SES -.->|"sau khi gửi thành công"| ARC[".ai-log/archive/YYYY-MM-DD.jsonl"]
+```
+
+**Tách hai chặng có chủ đích:** plugin chạy *trong tiến trình OpenCode* nên chỉ
+được ghi file — không gọi git, không chạm mạng. Mọi việc gọi git dồn về lúc chạy
+script.
+
+Bắt được: prompt · từng lệnh tool · model · **chi phí + token + độ trễ từng lượt**.
+
+```bash
+cd C:/P-075 && python scripts/log_opencode.py && python scripts/submit_log.py
+```
+
+Ba điều đã đo, đừng phải tìm lại: hook `chat.message` **không mang tên model**
+(phải ghép ngược từ `message.updated`) · OpenCode gọi hook **hai lần** cho cùng
+một sự việc cách nhau ~1 ms (đã chặn trùng ở cả hai lớp: 33 → 0 bản ghi trùng) ·
+**sửa plugin xong phải khởi động lại OpenCode**.
+
 ---
 
 ## 17. Xử lý lỗi và suy giảm có kiểm soát
@@ -1022,7 +1047,109 @@ là lý do CLIP phải nén xuống ONNX int8 (185 MB RAM), và là lý do khi l
 | **DevOps** | CI kiểm cả Python lẫn frontend · build APK theo tag · `render.yaml` khai cả web lẫn CSDL |
 | **Code Quality** | ruff sạch · type hints hàm public · không bare `except` · 277 test · module thuần tách khỏi I/O |
 
+> Bài học Cohort 1: **DevOps và Code Quality là hai cột điểm thấp nhất**; 0/12 đội
+> có CI/CD dù template cho sẵn, chỉ 2/12 đội có eval evidence. Hai cột đó là chỗ
+> dễ ăn điểm nhất và cũng là chỗ dễ mất nhất.
+
 ---
+
+## 21. Giới hạn đã biết và nợ kỹ thuật
+
+Ghi thẳng, vì "nêu rõ giới hạn, rủi ro, hướng cải tiến" là **yêu cầu chấm điểm**.
+
+### ⛔ Đang chặn
+
+| Việc | Ảnh hưởng |
+|---|---|
+| **Chưa có bộ 100 ảnh tự chụp** | Chặn eval phân loại · chặn chuẩn lại `CLIP_ACCEPT_CONFIDENCE` cho bản ONNX · chặn việc **chứng minh** YOLO tốt hơn thay vì chỉ nói là tốt hơn. Số liệu trang Chất lượng AI hiện là **dữ liệu demo mô phỏng**, có gắn nhãn rõ trên UI |
+| ~~**Nhiều gói chưa commit**~~ | **Đã hết** — code đang ở `main` của repo deploy, Railway tự dựng lại sau mỗi lần đẩy |
+| ~~**Bản deploy đã cũ**~~ | **Đã hết** — backend Railway + web Vercel chạy bản hiện hành, `/health` 200. **Còn nợ:** repo nhóm `AI20K-Build-Phase-Cohort-3/P-075` chưa merge |
+| **`pickup_requests.unit_id` đang NOT NULL** | Chặn **600/606 tài khoản cư dân** (nhập từ workbook GIS, rải khắp Hà Nội nên không thuộc căn hộ nào) — họ **không tạo được yêu cầu thu gom**. Nghiệp vụ mới cho cư dân *chọn địa điểm* từng yêu cầu, nên cần cột `address/lat/lng` trên chính yêu cầu + `ALTER … DROP NOT NULL`. Đụng CSDL đang chạy nên chờ người duyệt |
+| **Quota Groq quá chật cho đường nóng** | Gói free **8.000 token/phút**. Đo 16/08: bật `reasoning_effort=none` kéo token đầu ra từ **2000 → 148** nên đỡ hẳn, nhưng vài người dùng đồng thời vẫn đụng 429. Đường dài phải đổi tầng T2 sang nhà cung cấp khác hoặc trả phí |
+| **Thiếu 3 deliverable Demo Day** | Pitch deck · video demo · live URL bản mới. Không phải việc code, cần người dựng. *(Bằng chứng đánh giá và bản trích dẫn AI log đã xong.)* |
+
+*(2 test đỏ của `test_pickup_lifecycle.py` đã hết — bộ test hiện **423 passed**.)*
+
+### Lỗi đang mở
+
+**`SRV-500 / StatementError` ở đường ảnh trên PostgreSQL.** Chỉ xảy ra ở đường
+ảnh, chỉ trên Postgres; đường chữ chạy tốt. Đã loại trừ 9 giả thuyết. Nghi ngờ
+hàng đầu chưa kiểm được: `stored_path`/`original_path` là `String(400)` — Postgres
+ép độ dài `VARCHAR` còn SQLite thì bỏ qua. **Đừng sửa mò khi chưa có 2 dòng log
+Render.**
+
+### Nợ kiến trúc đã biết
+
+| Nợ | Chi tiết |
+|---|---|
+| **Di trú trạng thái dở dang** | Chỗ đọc đã lật, chỗ **ghi** còn từ vựng cũ. Hai bộ từ vựng dùng chung 3 từ (mục 11.3) |
+| **Một ảnh vẫn ép một nhãn** | Kiến trúc cũ không có chỗ nói "bình giữ nhiệt → kim loại **và** củ sạc → nguy hại". **Đã dựng đường gốc (hướng A + YOLO)**: `phat_hien_co_hop` quy hộp YOLO về toạ độ ảnh gốc, `services/phan_loai_nhieu_vat.py` cắt từng vật rồi để **CLIP chấm từng crop** — YOLO chỉ định vị, không bao giờ là nhãn rác. **Mặc định TẮT** (`phan_loai_tung_vat=false`) tới khi đo trên ảnh thật. Lý do làm: ảnh 8 vật kéo confidence CLIP toàn khung xuống **0,1356**, cắt riêng thì chốt được tại chỗ và $0 |
+| ~~**Ảnh cư dân nằm trên đĩa tạm**~~ | **Đã hết** — ảnh đi thẳng Supabase Storage (`uploads/YYYY/MM/DD/`), `/ops/metrics` có khối `storage` tự ghi→đọc→xoá để nhìn thấy tầng này sống hay chết. ⚠️ Ảnh tải lên **trước** 16/08 vẫn nằm ở đĩa và sẽ mất khi máy chủ khởi động lại |
+| **Vào thẳng `/dieu-phoi` khi chưa đăng nhập thì bí đường** | Màn hiện "Bạn cần đăng nhập" và các lệnh gọi API trả 401, nhưng **không đưa người dùng về màn đăng nhập** — mà màn đăng nhập lại nằm ở `/`, kèm ba nút vào thẳng bằng tài khoản demo. Người kiểm thử bên ngoài dễ kẹt ở đây. Cần: 401 thì chuyển về `/` và nói rõ có tài khoản demo (phát hiện A-03 của rà soát QA Gate 01, 13/08) |
+| **Luồng đồ cồng kềnh không nhìn thấy được từ trang chủ** | Wizard đăng ký thu gom nằm trong tab *Yêu cầu*, sau khi đăng nhập — người mở web lần đầu chỉ thấy phần chụp ảnh phân loại nên tưởng sản phẩm chỉ có chừng đó. Đây là vấn đề **chỗ đặt lối vào**, không phải thiếu tính năng: máy trạng thái 10 bước và màn duyệt của đơn vị thu gom đều đã chạy (phát hiện A-02 của rà soát QA Gate 01) |
+| **Chưa có ô chat tra cứu quy định** | Hiện cư dân hỏi bằng chữ **bên trong tab Phân loại** và nhận hướng dẫn có trích nguồn; chưa có khung chat nhiều lượt như bản đặc tả Gate 01 mô tả. Phần truy hồi (RAG hybrid, mục 11.1) đã sẵn — thiếu lớp giao diện hội thoại (phát hiện A-04) |
+| **Bẫy: model reasoning + JSON mode** | `qwen3.6-27b` (Groq) tiêu **hết trần 2000 token vào phần suy nghĩ** rồi trả nội dung rỗng; bật `response_format: json_object` thì Groq kiểm JSON trên chuỗi rỗng và trả **HTTP 400 `json_validate_failed`** — nhìn như "model hỏng" suốt hai ngày. Cách chữa đang dùng: với `groq` thì gửi `reasoning_effort=none` + `reasoning_format=hidden` và **bỏ** `response_format`, để `parse_model_json` của mình tự bóc. Model reasoning mới nào cắm vào cũng phải kiểm lại chỗ này |
+| **T1 mù đồ điện tử** | Đo 03/08 trên ảnh rác thật: llama-90b **0/6**, nemotron-12b 1/6, Gemini 2/2, **YOLO11n local 4/4 trong ~100 ms và $0**. Chỉ số an toàn "nguy hại thành rác thường" vì thế đang trượt trên ảnh có đồ điện tử |
+| ~~`classifier.py` 564 dòng~~ | **Đã hết** — đo lại 10/08: `src/services/classifier.py` còn **134 dòng**, `classify_waste` là hàm cấp cao duy nhất. Phần nặng đã nằm ở các module riêng. Không còn là chốt chặn trước khi động vào YOLO |
+| ~~**Nhân viên vệ sinh thấy mọi thùng**~~ | **Đã hết.** Finding **C-01** của Gate 01 đóng lại: cả nửa GHI lẫn nửa ĐỌC đã xong, và nay chặn **hai lớp** — theo đơn vị thu gom rồi theo nhân viên. Quyết định "ai thấy gì" nằm gọn trong `loc_theo_nguoi_xem` + `to_chuc_cua_nguoi_xem` ở `services/bins.py`, có test quét để không ai rải điều kiện ra router |
+| ~~**`/auth/register` chưa có rate limit**~~ | **Đã có** — cửa sổ trượt theo IP, mặc định 10 lần / 10 phút, `0` để tắt. **Còn nợ:** bộ đếm nằm trong bộ nhớ tiến trình (nhiều worker = nhiều bộ đếm), và **chưa có bước xác thực số điện thoại** |
+| ~~**Thứ tự ghé cố định điểm đầu**~~ | **Đã thả** — nearest-neighbour chạy từ nhiều điểm xuất phát (chặn ở 8), đo thêm **−6,3%**, lên 97–98/100 bộ tối ưu tuyệt đối. Thêm đường **tuỳ chọn mặc định TẮT** lấy khoảng cách đường đi thật từ OSRM, hỏng thì rơi êm về haversine |
+| **Endpoint ingest chưa chống replay** | Mỗi thùng đã có khoá riêng và thu hồi được bằng tay, nhưng một request bắt được vẫn phát lại được. Cần nonce + mốc thời gian, và một lịch xoay vòng khoá |
+| **Ma trận quyền lệch với spec** | `view_diem_gui` · `edit_own_profile` · `assign_bin` đã có trong code nhưng **chưa chép sang `docs/FRONTEND_SPEC.md` mục 1**, trong khi chính docstring của `auth.py` yêu cầu sửa một bên thì sửa cả hai |
+| Alembic | Chưa dùng, **hoãn có chủ đích**. Thay bằng bảng khai báo `COT_CAN_VA` ở `src/db/schema_patch.py`, vá cột lúc khởi động, chạy được trên cả SQLite lẫn PostgreSQL. Chuyển sang Alembic khi schema ổn định |
+| pgvector | `embedding` còn là JSON list; đổi sang kiểu `vector` khi lên Postgres |
+| ~~Khoá thiết bị chung~~ | **Đã hết.** Mỗi thùng một khoá riêng lưu dạng băm SHA-256; thùng đã cấp khoá thì khoá chung không mở được nữa, thùng chưa cấp vẫn dùng khoá chung nên đội thùng ngoài hiện trường không chết giữa chừng. Thu hồi bằng `scripts/cap_khoa_thung.py --thu-hoi` — cấp một khoá mới rồi vứt chuỗi thô, nên thùng khoá chặt chứ **không** rơi về khoá chung |
+| Chưa phỏng vấn lao công + BQL | Chỗ yếu nhất của ADR-0002/0003. ADR-0008 không vá được — nó là tiếng nói cư dân, không phải người vận hành |
+| APK chưa ai thử | Khung Android đã dựng, chưa ai cầm máy chạy thử |
+
+**Một phát hiện QA đã kiểm lại và KHÔNG tái hiện được.** Bản rà soát QA Gate 01
+(13/08) chấm mức nghiêm trọng nhất cho *"17/19 đường dẫn trả 404 do thiếu
+`vercel.json`"*. Đo lại trực tiếp trên bản chạy thật: cả **ba** đường dẫn có thật
+đều trả **HTTP 200** kể cả khi gõ thẳng hoặc bấm F5 (`/` · `/tai-app/` ·
+`/dieu-phoi/`). Các đường trả 404 trong báo cáo là **URL không thuộc sản phẩm** —
+`/pickups` và `/auth/login` là hai màn nằm *bên trong* `/`, còn `/classify/text`
+là đường **API của máy chủ**, không phải trang web. Xem mục 18.1. **Không thêm
+`vercel.json` rewrite**: bản export tĩnh đã sinh sẵn HTML cho từng trang thật, và
+rewrite tất-cả-về-`/` sẽ làm mất đúng hai trang đang chạy tốt.
+
+### ADR còn nợ
+
+**ADR-0009** và **ADR-0010** đã viết xong ngày 06/08 — xem mục 22.
+
+Còn nợ đúng một: **ADR-0011 — YOLO ở tầng T0.5.** Quyết định đã ra ngày 03/08
+kèm số đo (YOLO11n phát hiện đồ điện tử 4/4 trong ~100 ms và $0, so với
+llama-90b 0/6 và nemotron-12b 1/6), nhưng **chưa viết thành ADR** và **repo
+không có một dòng YOLO nào**. Đặc tả nằm trong bản bàn giao nội bộ ngày 03/08
+của nhóm, không nằm trong repo.
+
+⚠️ Vì vậy, câu đúng khi trình bày là: *"đã đo YOLO11n ~100 ms trên CPU, nhưng
+hiện chưa cắm vào sản phẩm"* — **không nói "hệ thống em dùng YOLO"**.
+
+### Giới hạn khoa học phải nói rõ trong báo cáo
+
+> Model đạt **94,18% trên TrashNet** chỉ còn **41,04% trên RealWaste** (ảnh rác
+> thật tại bãi). Vì vậy: (1) **không bao giờ** đưa accuracy của dataset công khai
+> lên slide như thể đó là năng lực sản phẩm; (2) bộ ảnh tự chụp là bộ **quan trọng
+> nhất**, không phải bộ bổ sung.
+
+---
+
+## 22. Chỉ mục ADR
+
+| ADR | Quyết định |
+|---|---|
+| [0001](docs/decisions/0001-chon-de-tai-greenbin.md) | Chọn đề VHR-17 GreenBin (loại 3 đề khác, có lý do) |
+| [0002](docs/decisions/0002-chuyen-trong-tam-sang-van-hanh.md) | Chuyển trọng tâm sang vận hành: BQL + đội vệ sinh là người dùng chính |
+| [0003](docs/decisions/0003-phan-tang-rac-va-trong-tam-doi-ve-sinh.md) | Phân tầng rác — chỉ luồng B qua AI; khối lượng là khoảng |
+| [0004](docs/decisions/0004-tu-lam-auth-thay-vi-supabase.md) | Tự làm auth PBKDF2 + JWT thay vì Supabase |
+| [0005](docs/decisions/0005-pwa-va-capacitor-thay-vi-viet-lai-native.md) | PWA + Capacitor, một bản build dùng chung; Render thay Railway |
+| [0006](docs/decisions/0006-provider-theo-tung-tang.md) | Provider khai riêng từng tầng |
+| [0007](docs/decisions/0007-tang-t05-chay-onnx-int8.md) | T0.5 chạy ONNX int8 để vừa máy chủ 512 MB |
+| [0008](docs/decisions/0008-dinh-chinh-pham-vi-cu-dan-do-cong-kenh.md) | Đính chính phạm vi: cư dân **có** pain point ở đồ cồng kềnh |
+| [0009](docs/decisions/0009-phan-cung-vao-pham-vi.md) | Phần cứng vào phạm vi — **chỉ với vai trò nguồn dữ liệu**, không làm cơ cấu phân loại tự động |
+| [0010](docs/decisions/0010-doi-nguoi-dung-trung-tam.md) | Đổi người dùng trung tâm: cư dân + nhân viên thu gom (app) · đơn vị thu gom (web) |
+| 0011 | *(nợ)* YOLO ở tầng T0.5 |
+| [0012](docs/decisions/0012-mo-lai-pham-vi-phan-cung.md) | Mở lại phạm vi phần cứng — thùng ESP32 **được** tự phân loại, nhưng phần mềm vẫn quyết nhãn và chốt an toàn giữ nguyên |
 
 ---
 

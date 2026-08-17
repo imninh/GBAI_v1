@@ -54,7 +54,7 @@ def _gia_http(
             return du_lieu or {}
 
     class _Khach:
-        def __init__(self, timeout: float) -> None:
+        def __init__(self, timeout: float = 0, *args: object, **kwargs: object) -> None:
             pass
 
         def __enter__(self) -> _Khach:

@@ -8,18 +8,19 @@
 # Exits 0 silently if no Python is found — hooks must never block the AI tool.
 set -u
 
-PY=""
-if [ -f "venv/Scripts/python.exe" ]; then
-  PY="venv/Scripts/python.exe"
-elif [ -f ".venv/Scripts/python.exe" ]; then
-  PY=".venv/Scripts/python.exe"
-elif [ -f "venv/bin/python" ]; then
-  PY="venv/bin/python"
-elif [ -f ".venv/bin/python" ]; then
-  PY=".venv/bin/python"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [ -f "$REPO_ROOT/venv/Scripts/python.exe" ]; then
+  PY="$REPO_ROOT/venv/Scripts/python.exe"
+elif [ -f "$REPO_ROOT/.venv/Scripts/python.exe" ]; then
+  PY="$REPO_ROOT/.venv/Scripts/python.exe"
+elif [ -f "$REPO_ROOT/venv/bin/python" ]; then
+  PY="$REPO_ROOT/venv/bin/python"
+elif [ -f "$REPO_ROOT/.venv/bin/python" ]; then
+  PY="$REPO_ROOT/.venv/bin/python"
 elif command -v python3 >/dev/null 2>&1 && python3 -c "import sys" >/dev/null 2>&1; then
   PY=python3
-elif command -v python >/dev/null 2>&1 && python -c "import sys" >/dev/null 2>&1; then
+elif command -v python >/dev/null 2>&1 && ! which python 2>/dev/null | grep -qi "WindowsApps" && python -c "import sys" >/dev/null 2>&1; then
   PY=python
 elif command -v py >/dev/null 2>&1 && py -3 -c "import sys" >/dev/null 2>&1; then
   PY="py -3"

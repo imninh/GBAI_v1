@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.api.errors import ApiError, api_error_handler, http_error_handler, unhandled_error_handler
+from src.api.iot import router as iot_router
 from src.api.routes import router
 from src.config import get_settings
 from src.db.session import init_db
@@ -141,6 +142,7 @@ app.add_exception_handler(HTTPException, http_error_handler)
 app.add_exception_handler(Exception, unhandled_error_handler)
 
 app.include_router(router, prefix="/api/v1")
+app.include_router(iot_router, prefix="/api/v1", tags=["iot"])
 
 
 @app.get("/", include_in_schema=False)

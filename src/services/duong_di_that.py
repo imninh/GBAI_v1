@@ -27,6 +27,8 @@ from src.config import get_settings
 
 logger = logging.getLogger(__name__)
 
+OSRM_HEADERS = {"User-Agent": "GreenBinAI/1.0 (https://greenbin.vn)"}
+
 
 @dataclass
 class MatranOSRM:
@@ -82,7 +84,7 @@ def ma_tran_osrm(toa_do: list[tuple[float, float]]) -> MatranOSRM | None:
     url = f"{settings.osrm_base_url}/table/v1/driving/{diem}?annotations=distance,duration"
 
     try:
-        with httpx.Client(timeout=settings.osrm_timeout_seconds) as khach:
+        with httpx.Client(timeout=settings.osrm_timeout_seconds, headers=OSRM_HEADERS) as khach:
             phan_hoi = khach.get(url)
             phan_hoi.raise_for_status()
             du_lieu = phan_hoi.json()
@@ -145,7 +147,7 @@ def lo_trinh(toa_do: list[tuple[float, float]]) -> LoTrinh | None:
     url = f"{settings.osrm_base_url}/route/v1/driving/{diem}?overview=full&geometries=geojson&steps=true"
 
     try:
-        with httpx.Client(timeout=settings.osrm_timeout_seconds) as khach:
+        with httpx.Client(timeout=settings.osrm_timeout_seconds, headers=OSRM_HEADERS) as khach:
             phan_hoi = khach.get(url)
             phan_hoi.raise_for_status()
             du_lieu = phan_hoi.json()
@@ -211,7 +213,7 @@ def dan_duong(origin: tuple[float, float], dest: tuple[float, float]) -> DanDuon
     url = f"{settings.osrm_base_url}/route/v1/driving/{diem}?overview=full&geometries=geojson"
 
     try:
-        with httpx.Client(timeout=settings.osrm_timeout_seconds) as khach:
+        with httpx.Client(timeout=settings.osrm_timeout_seconds, headers=OSRM_HEADERS) as khach:
             phan_hoi = khach.get(url)
             phan_hoi.raise_for_status()
             du_lieu = phan_hoi.json()
@@ -259,7 +261,7 @@ def _hinh_tu_geojson(du_lieu: object) -> list[tuple[float, float]] | None:
 
     ket_qua: list[tuple[float, float]] = []
     for diem in coordinates:
-        if not isinstance(diem, list) or len(diem) < 2:
+        if not isinstance(diem, (list, tuple)) or len(diem) < 2:
             return None
         try:
             lng, lat = float(diem[0]), float(diem[1])
@@ -294,7 +296,7 @@ def snap_gps(
         url += f"&timestamps={';'.join(str(int(t)) for t in timestamps)}"
 
     try:
-        with httpx.Client(timeout=settings.osrm_timeout_seconds) as khach:
+        with httpx.Client(timeout=settings.osrm_timeout_seconds, headers=OSRM_HEADERS) as khach:
             phan_hoi = khach.get(url)
             phan_hoi.raise_for_status()
             du_lieu = phan_hoi.json()

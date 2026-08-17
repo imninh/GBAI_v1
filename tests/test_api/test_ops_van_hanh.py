@@ -137,8 +137,8 @@ async def test_dem_dung_so_thung_co_khoa_rieng(api: AsyncClient, api_session: Se
 
 @pytest.mark.asyncio
 async def test_duong_di_that_mac_dinh_tat(api: AsyncClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    """Chốt chặn lỗi cố ý: không đặt biến môi trường → cờ thật phải là TẮT."""
-    monkeypatch.delenv("ROUTE_REAL_DISTANCE", raising=False)
+    """Chốt chặn: cờ tắt thì overview báo tắt."""
+    monkeypatch.setenv("ROUTE_REAL_DISTANCE", "false")
     reset_settings_cache()
 
     data = await _overview(api)
