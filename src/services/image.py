@@ -314,7 +314,10 @@ def phash_distance(left: str, right: str) -> int:
     if not left or not right or len(left) != len(right):
         return 64
     try:
-        return imagehash.hex_to_hash(left) - imagehash.hex_to_hash(right)
+        # imagehash trả kiểu numpy ở numpy 1.x còn `int` ở numpy 2.x — cùng một
+        # phép trừ, máy dev chạy tốt còn máy chủ nổ kiểu `int64`. Chữ ký `-> int`
+        # chỉ đúng nếu ép ngay tại nguồn.
+        return int(imagehash.hex_to_hash(left) - imagehash.hex_to_hash(right))
     except ValueError:
         return 64
 
