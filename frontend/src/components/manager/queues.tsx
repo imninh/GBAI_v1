@@ -598,6 +598,8 @@ export function RouteApproval() {
   // đổi nhãn nút thành "Đang duyệt…" — người dùng phải thấy máy đang làm gì.
   const [dangGui, setDangGui] = React.useState("");
   const [xacNhanHuy, setXacNhanHuy] = React.useState(false);
+  // Danh sách "không gộp vào chuyến này" — mặc định đóng, bấm vào mới mở.
+  const [moKhongGop, setMoKhongGop] = React.useState(false);
 
   const tai = React.useCallback(async () => {
     try {
@@ -724,6 +726,37 @@ export function RouteApproval() {
               Quãng đường ước tính theo đường chim bay — tuyến này chưa có đường đi thật.
             </p>
           )}
+
+          {/* Những yêu cầu KHÔNG gộp vào chuyến này (lệch ngày / lệch khung giờ)
+              — người duyệt cần biết thông tin này để hiểu vì sao chuyến chỉ có
+              bấy nhiêu điểm. Không có dữ liệu thì không dựng khối rỗng. */}
+          {tuyen.reasoning?.excluded?.length ? (
+            <div className="mb-4 rounded-[16px] border border-[#f2d9c2] bg-[#fdf3ea]">
+              <button
+                type="button"
+                onClick={() => setMoKhongGop((v) => !v)}
+                aria-expanded={moKhongGop}
+                className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-left"
+              >
+                <IconTuChoi className="h-4 w-4 flex-none text-[#a8791a]" />
+                <span className="flex-1 text-[13px] font-bold text-[#8a5a1a]">
+                  {tuyen.reasoning.excluded.length} yêu cầu không gộp vào chuyến này
+                </span>
+                <span className="text-[13px] font-bold text-[#a8791a]">{moKhongGop ? "Thu gọn" : "Xem lý do"}</span>
+              </button>
+              {moKhongGop && (
+                <ul className="gb-hscroll px-4 pb-3">
+                  {tuyen.reasoning.excluded.map((e, i) => (
+                    <li key={`${e.request_id}-${i}`} className="flex items-start gap-2 border-t border-[#f2d9c2] py-1.5 text-[12px] font-semibold leading-snug">
+                      <span className="flex-none font-extrabold text-[#a8791a]">{e.request_id}</span>
+                      {e.unit && <span className="flex-none text-muted">{e.unit}</span>}
+                      <span className="min-w-0 flex-1 text-[#5a4a38]">{e.ly_do}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : null}
 
           {/* Danh sách điểm dừng — mỗi điểm MỘT dòng. */}
           <div className="mb-4 rounded-[20px] bg-white px-4 py-2">

@@ -101,6 +101,16 @@ async def test_health_khong_can_dang_nhap(api: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
+async def test_root_khong_tra_dia_chi_frontend_cung(api: AsyncClient) -> None:
+    """Trang gốc không được trỏ tới localhost — địa chỉ web phụ thuộc hạ tầng deploy."""
+    response = await api.get("/")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "frontend" not in payload
+    assert "localhost:3000" not in str(payload)
+
+
+@pytest.mark.asyncio
 async def test_dang_nhap_ba_vai_tro_demo(api: AsyncClient) -> None:
     for email, role in (
         ("resident@demo.vn", "resident"),

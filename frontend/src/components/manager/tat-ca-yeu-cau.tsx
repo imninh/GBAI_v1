@@ -27,6 +27,8 @@ const LOC_TRANG_THAI: { key: TrangThaiYeuCau | ""; label: string }[] = [
   { key: "cho_nhan", label: NHAN_TRANG_THAI_YEU_CAU.cho_nhan },
   { key: "da_nhan", label: NHAN_TRANG_THAI_YEU_CAU.da_nhan },
   { key: "dang_van_chuyen", label: NHAN_TRANG_THAI_YEU_CAU.dang_van_chuyen },
+  { key: "da_giao_don_vi", label: NHAN_TRANG_THAI_YEU_CAU.da_giao_don_vi },
+  { key: "tranh_chap", label: NHAN_TRANG_THAI_YEU_CAU.tranh_chap },
   { key: "hoan_tat", label: NHAN_TRANG_THAI_YEU_CAU.hoan_tat },
   { key: "tu_choi", label: NHAN_TRANG_THAI_YEU_CAU.tu_choi },
   { key: "da_huy", label: NHAN_TRANG_THAI_YEU_CAU.da_huy },

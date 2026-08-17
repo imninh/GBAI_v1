@@ -145,12 +145,14 @@ app.include_router(router, prefix="/api/v1")
 
 @app.get("/", include_in_schema=False)
 def root() -> dict:
+    # Cố tình KHÔNG trả khoá `frontend`: địa chỉ web phụ thuộc hạ tầng deploy
+    # (Vercel/Railway đổi domain), viết cứng "localhost:3000" là trỏ tới đường
+    # chết với người mở API trên production. Người dùng tự điều hướng từ docs.
     return {
         "service": "GreenBin AI API",
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/health",
-        "frontend": "http://localhost:3000",
     }
 
 
