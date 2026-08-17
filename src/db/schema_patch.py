@@ -54,6 +54,16 @@ COT_CAN_VA: list[tuple[str, str, str]] = [
     # (SQLite bắt buộc), và không khoá ngoại trong ALTER (SQLite không làm được).
     ("media", "storage_key", "VARCHAR(1024) NOT NULL DEFAULT ''"),
     ("media", "original_storage_key", "VARCHAR(1024) NOT NULL DEFAULT ''"),
+    # Gói P52 — nơi ở của cư dân (địa chỉ + toạ độ) tách khỏi liên kết căn hộ.
+    # `address` dùng `NOT NULL DEFAULT ''` để SQLite chấp nhận ALTER; `lat` / `lng`
+    # để NULL cho phép người không có toạ độ. `DOUBLE PRECISION` hợp lệ trên cả
+    # SQLite (ánh xạ sang REAL affinity) lẫn PostgreSQL — đã kiểm bằng ALTER thật.
+    ("users", "address", "VARCHAR(300) NOT NULL DEFAULT ''"),
+    ("users", "lat", "DOUBLE PRECISION"),
+    ("users", "lng", "DOUBLE PRECISION"),
+    ("pickup_requests", "address", "VARCHAR(300) NOT NULL DEFAULT ''"),
+    ("pickup_requests", "lat", "DOUBLE PRECISION"),
+    ("pickup_requests", "lng", "DOUBLE PRECISION"),
 ]
 
 

@@ -122,6 +122,11 @@ class CreatePickupRequest(BaseModel):
     preferred_window: str = ""
     ngoai_lich: bool = False
     note: str = ""
+    # Điểm lấy hàng của riêng yêu cầu này — có thể khác nơi ở đăng ký trên hồ sơ.
+    # Tất cả đều tuỳ chọn: app cư dân hiện chưa gửi, gửi thiếu vẫn phải chạy.
+    address: str = ""
+    lat: float | None = None
+    lng: float | None = None
     # Bắt buộc tick ở bước 3 của wizard (spec 4.7).
     confirmed_no_hazardous: bool = False
 

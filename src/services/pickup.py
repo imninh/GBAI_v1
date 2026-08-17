@@ -31,6 +31,7 @@ from src.db.models import (
     WasteCategory,
 )
 from src.db.seed_data import PICKUP_REJECT_REASONS
+from src.services.noi_o import noi_o_cua
 from src.services.pickup_lifecycle import (
     CHO_DUYET,
     CHO_NHAN,
@@ -149,14 +150,40 @@ def create_pickup_request(
     preferred_window: str = "",
     note: str = "",
     ngoai_lich: bool = False,
+    address: str = "",
+    lat: float | None = None,
+    lng: float | None = None,
 ) -> PickupRequest:
     """Tạo yêu cầu thu gom và ghi hai mốc đầu tiên trên timeline.
 
+    Điểm lấy hàng của yêu cầu này quyết định như sau (xem thêm ``noi_o.py``):
+
+    * Cư dân **có** căn hộ → ``unit_id = resident.unit_id``. Có truyền
+      ``address`` thì tôn trọng ``address`` (lấy hàng ở chỗ khác nơi ở) nhưng
+      **giữ nguyên** ``unit_id`` để BQL của toà vẫn duyệt được.
+    * Cư dân **không** có căn hộ: có ``address`` truyền vào thì dùng nó (``unit_id
+      = None``); không truyền nhưng ``resident.address`` khác rỗng thì lấy nơi ở
+      của chính người đó qua ``noi_o_cua``; không có cả hai thì báo lỗi.
+
     Raises:
-        ValueError: khi cư dân chưa gắn với căn hộ nào (không biết thu ở đâu).
+        ValueError: khi cư dân chưa gắn căn hộ và không có địa chỉ nào cả.
     """
-    if resident.unit_id is None:
-        raise ValueError("Tài khoản chưa gắn với căn hộ nào nên không tạo được yêu cầu thu gom")
+    co_can_ho = resident.unit_id is not None
+    if co_can_ho:
+        # Điểm lấy hàng mặc định là nơi ở qua căn hộ; `address` chỉ được điền khi
+        # người gọi truyền vào (lấy hàng ở chỗ khác nơi ở).
+        unit_id = resident.unit_id
+    else:
+        if address:
+            unit_id = None
+        else:
+            dia_chi, vi_do, kinh_do = noi_o_cua(session, resident)
+            if not dia_chi:
+                raise ValueError(
+                    "Tài khoản chưa gắn căn hộ nên cần nhập địa chỉ thu gom cho yêu cầu này"
+                )
+            address, lat, lng = dia_chi, vi_do, kinh_do
+            unit_id = None
 
     co_khoang_ro = (
         weight_min_kg is not None and weight_max_kg is not None and weight_max_kg >= weight_min_kg > 0
@@ -179,7 +206,10 @@ def create_pickup_request(
 
     request = PickupRequest(
         resident_id=resident.id,
-        unit_id=resident.unit_id,
+        unit_id=unit_id,
+        address=address,
+        lat=lat,
+        lng=lng,
         items=items,
         weight_min_kg=low,
         weight_max_kg=high,
@@ -317,7 +347,7 @@ def decision_context(session: Session, request: PickupRequest) -> dict[str, Any]
     Người duyệt cần con số chính xác chứ không cần câu văn hay; và số do SQL
     tính thì luôn đúng, không có chuyện bịa.
     """
-    unit = session.get(Unit, request.unit_id)
+    unit = session.get(Unit, request.unit_id) if request.unit_id is not None else None
     building_id = unit.building_id if unit else None
 
     lich_su = session.execute(
@@ -383,6 +413,9 @@ def _notify(session: Session, user_id: int, title: str, body: str, request: Pick
 
 
 def building_of(session: Session, request: PickupRequest) -> Building | None:
-    """Toà nhà của một yêu cầu, lấy qua căn hộ."""
-    unit = session.get(Unit, request.unit_id)
+    """Toà nhà của một yêu cầu, lấy qua căn hộ.
+
+    Yêu cầu của hộ dân lẻ không có ``unit_id`` nên không có toà — trả ``None``.
+    """
+    unit = session.get(Unit, request.unit_id) if request.unit_id is not None else None
     return session.get(Building, unit.building_id) if unit else None

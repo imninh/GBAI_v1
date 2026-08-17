@@ -49,6 +49,19 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), index=True)  # resident | cleaner | manager
     password_hash: Mapped[str] = mapped_column(String(255))
     unit_id: Mapped[int | None] = mapped_column(ForeignKey("units.id"), nullable=True)
+    # Nơi ở là HAI khái niệm khác nhau:
+    #   * `unit_id` — QUAN HỆ HÀNH CHÍNH: thuộc toà nào, BQL nào duyệt, lịch nào
+    #     áp. Có giá trị khi người này là cư dân chung cư của một toà trong hệ
+    #     thống (liên kết toà qua `Unit.building_id`).
+    #   * `address` / `lat` / `lng` — TOẠ ĐỘ ĐỊA LÝ: xe đi đến đâu để lấy hàng.
+    #     Cột riêng cho 600 tài khoản nhập từ dữ liệu GIS là hộ dân lẻ trên phố:
+    #     có địa chỉ và toạ độ rõ ràng nhưng không thuộc căn hộ nào. Không đẻ căn
+    #     hộ giả cho họ (gói P52).
+    # Ưu tiên quyết định "người này ở đâu" tập trung ở `src/services/noi_o.py`,
+    # không được rải `if user.unit_id is None` ra router hay serializer.
+    address: Mapped[str] = mapped_column(String(300), default="")
+    lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     # Đơn vị thu gom mà người này thuộc về. NULL = chưa gắn tổ chức nào — trạng
     # thái của mọi tài khoản có từ trước, và của cư dân (cư dân không thuộc đơn
     # vị thu gom nào).
