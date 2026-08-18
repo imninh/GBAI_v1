@@ -25,6 +25,12 @@ opencv-python-headless>=4.10.0,<5.0.0
 # Upload file cho FastAPI
 python-multipart>=0.0.20
 
+# Doc workbook GIS — scripts/nhap_cu_dan_gis.py dung de nhap va KHOI PHUC
+# 600 tai khoan cu dan sau su co mat du lieu. Truoc day khong khai o dau,
+# nen script chi chay duoc tren may da cai san — dung luc can khoi phuc
+# thi no vang ModuleNotFoundError.
+openpyxl>=3.1.0
+
 # Xác thực — tự làm auth thay vì Supabase, xem ADR-0004
 pyjwt>=2.10.0
 
