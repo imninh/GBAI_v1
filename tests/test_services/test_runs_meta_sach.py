@@ -5,7 +5,7 @@ Production trả ``TypeError: Object of type int64 is not JSON serializable`` �
 cột JSON. Không tái hiện được ở máy dev vì numpy khác phiên bản (2.x trả `int`,
 1.x trả `int64`).
 
-Vá ở biên ghi dữ liệu (:func:`runs._ve_kieu_python`) thay vì đuổi theo từng field
+Vá ở biên ghi dữ liệu (:func:`kieu_json.ve_kieu_python`) thay vì đuổi theo từng field
 — mỗi phiên bản numpy lại lộ một field khác. Test dùng một lớp giả có ``.item()``
 đóng vai numpy scalar, **không import numpy** (máy chạy có thể không có).
 """
@@ -20,7 +20,8 @@ from sqlalchemy.orm import Session
 
 from src.services.classifier import NodeMetric
 from src.services.image import phash_distance
-from src.services.runs import _ve_kieu_python, record_nodes, start_run
+from src.services.kieu_json import ve_kieu_python
+from src.services.runs import record_nodes, start_run
 
 
 class _NumpyGia:
@@ -50,8 +51,8 @@ def _khong_numpy(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
 
 def test_dung_lop_gia_duong_vai_numpy_scalar() -> None:
-    """Lớp giả có ``.item()`` → ``_ve_kieu_python`` đổi thành int và JSON dumps chạy."""
-    gia = _ve_kieu_python(_NumpyGia(7))
+    """Lớp giả có ``.item()`` → ``ve_kieu_python`` đổi thành int và JSON dumps chạy."""
+    gia = ve_kieu_python(_NumpyGia(7))
     assert gia == 7
     assert type(gia) is int, "numpy scalar phải về đúng kiểu int"
     assert json.dumps({"diem": gia}) == '{"diem": 7}'
@@ -66,7 +67,7 @@ def test_long_nhau_dict_trong_list_trong_dict() -> None:
             {"danh_sach": {"so_vat": _NumpyGia(3), "nhanh": None}},
         ],
     }
-    sach = _ve_kieu_python(lon_xon)
+    sach = ve_kieu_python(lon_xon)
 
     assert sach["meta"][0]["nguong"] == 82
     assert type(sach["meta"][0]["nguong"]) is int
@@ -78,13 +79,13 @@ def test_long_nhau_dict_trong_list_trong_dict() -> None:
 def test_kieu_goc_giu_nguyen() -> None:
     """bool/int/float/str/None/dict/list không bị xáo động."""
     vao = {"a": 1, "b": 1.5, "c": "chữ", "d": True, "e": None, "f": [1, "hai"]}
-    ra = _ve_kieu_python(vao)
+    ra = ve_kieu_python(vao)
     assert ra == vao
 
 
 def test_gia_tri_la_dich_list_tu_tuong_duoc_gop() -> None:
     """List/tuple đầu vào không đổi kiểu container — chỉ đổi lá."""
-    ra = _ve_kieu_python([_NumpyGia(5), ("x", _NumpyGia(9))])
+    ra = ve_kieu_python([_NumpyGia(5), ("x", _NumpyGia(9))])
     assert ra == [5, ["x", 9]]
 
 

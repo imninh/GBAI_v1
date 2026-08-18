@@ -151,7 +151,9 @@ def media_privacy_dict(media: Media) -> dict[str, Any]:
 
 
 def pickup_dict(session: Session, request: PickupRequest, *, full: bool = False) -> dict[str, Any]:
-    unit = session.get(Unit, request.unit_id)
+    # Hộ dân lẻ (unit_id = None) không có căn hộ để tra — chặn tường minh kẻo
+    # session.get(Unit, None) trả None kèm SAWarning.
+    unit = session.get(Unit, request.unit_id) if request.unit_id is not None else None
     building = session.get(Building, unit.building_id) if unit else None
     resident = session.get(User, request.resident_id)
 
@@ -161,6 +163,9 @@ def pickup_dict(session: Session, request: PickupRequest, *, full: bool = False)
         "unit": unit.code if unit else "",
         "building": building.name if building else "",
         "building_code": building.code if building else "",
+        # Điểm lấy hàng của RIÊNG yêu cầu này — màn duyệt phải biết xe đi đâu.
+        # Rỗng nghĩa là lấy theo nơi ở của cư dân (users.address / toà nhà).
+        "address": request.address,
         "items": request.items or [],
         "weight_min_kg": request.weight_min_kg,
         "weight_max_kg": request.weight_max_kg,

@@ -491,7 +491,7 @@ export function WeightConfirmQueue() {
       </div>
 
       <div className="mb-4 rounded-2xl border border-leaf-line bg-leaf-soft px-4 py-3 text-[13px] font-bold leading-relaxed text-leaf-dark">
-        Điểm thưởng chỉ tính trên khối lượng do người xác nhận, không tính trên con số AI ước lượng.
+        Điểm thưởng chỉ tính trên khối lượng do người xác nhận, không tính trên con số cư dân tự khai.
         <br />
         Con số dưới đây phải là số đội thu gom đã cân tại chỗ. Chưa có số cân thì để trống —
         đừng ước lượng thay họ, vì chính con số này chốt trạng thái và điểm thưởng.
@@ -523,7 +523,7 @@ export function WeightConfirmQueue() {
 
                 <div className="mb-3 rounded-xl bg-console-bg px-3.5 py-3">
                   <div className="flex justify-between text-[13px] font-bold">
-                    <span className="text-muted-2">AI ước lượng</span>
+                    <span className="text-muted-2">Cư dân tự khai</span>
                     <span className="text-ink-soft">
                       {yc.weight_min_kg}–{yc.weight_max_kg} kg
                     </span>
@@ -544,7 +544,7 @@ export function WeightConfirmQueue() {
                       </div>
                     )}
                     <div className="mt-2 text-[11px] font-semibold text-muted">
-                      Đã chốt {soKg[yc.id]} kg · AI ước lượng {yc.weight_min_kg}–{yc.weight_max_kg} kg
+                      Đã chốt {soKg[yc.id]} kg · Cư dân tự khai {yc.weight_min_kg}–{yc.weight_max_kg} kg
                     </div>
                   </>
                 ) : (

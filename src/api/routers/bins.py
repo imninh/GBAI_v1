@@ -10,8 +10,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -23,7 +22,6 @@ from src.db.models import Bin, User, utcnow
 from src.models.schemas import BinReading
 from src.services import bin_readings, bins, khoa_thiet_bi
 from src.services.auth import write_audit
-from src.services.device_auth import DeviceAuthError, authenticate as auth_device
 
 router = APIRouter(tags=["bins"])
 
@@ -226,26 +224,22 @@ def nhan_reading(
 
     Endpoint này KHÔNG cần JWT người dùng — thiết bị không đăng nhập được, nó
     xác thực bằng ``X-Device-Key``.
+
+    Gói P58 gộp ngã ba xác thực về MỘT cửa: trước đây firmware (có ``device_id``
+    trong thân) rẽ sang ``device_auth`` rồi ghi vào kho trong bộ nhớ, còn đường
+    không có ``device_id`` mới chạy ``khoa_thiet_bi`` + CSDL. Firmware ESP32 luôn
+    gửi ``device_id`` nên mọi thùng thật rơi vào nhánh chết (bảng khoá rỗng →
+    401, số liệu không vào CSDL). Giờ chỉ còn MỘT đường: tra thùng theo ``code``
+    → ``khoa_thiet_bi.kiem_khoa`` → ``bins.ghi_nhan_reading`` xuống CSDL thật.
+
+    ``device_id`` trong thân vẫn được chấp nhận (firmware vẫn gửi nguyên vẹn),
+    nhưng khoá ràng theo THÙNG (qua ``code`` trên đường dẫn): một khoá hợp lệ
+    của thùng A không mở được thùng B, vì mỗi thùng có ``device_key_hash`` riêng
+    (hoặc rơi về khoá chung). Xem ``khoa_thiet_bi.kiem_khoa``.
     """
     settings = get_settings()
 
     khoa_nhan = (x_device_key or "").strip()
-
-    if payload.device_id:
-        try:
-            auth_device(khoa_nhan, payload.device_id)
-        except DeviceAuthError:
-            raise HTTPException(status_code=401, detail="Invalid device credentials")
-        if payload.fill_percent < 0.0 or payload.fill_percent > 100.0:
-            raise HTTPException(status_code=422, detail="fill_percent must be between 0 and 100")
-        reading = bin_readings.record_reading(
-            bin_code=code,
-            device_id=payload.device_id,
-            fill_percent=payload.fill_percent,
-            is_full=bool(payload.is_full or (payload.fill_percent >= 80)),
-            uptime_s=payload.uptime_s,
-        )
-        return JSONResponse(status_code=201, content=reading.model_dump(mode="json"))
 
     if payload.source not in NGUON_HOP_LE:
         raise bad_request(

@@ -12,8 +12,6 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile
 
 from src.models.schemas import (
-    BinReading,
-    BinReadingRequest,
     HeartbeatRequest,
     HeartbeatResponse,
     IoTCaptureResponse,
@@ -107,31 +105,3 @@ async def heartbeat(
         device_id=authenticated_device,
         server_time=datetime.now(UTC),
     )
-
-
-@router.post("/bins/{code}/readings", response_model=BinReading, status_code=201)
-async def create_bin_reading(
-    code: str,
-    payload: BinReadingRequest,
-    authenticated_device: str = Depends(require_device_key),
-) -> BinReading:
-    """Record a fill-level reading for a bin (spec §14)."""
-    if payload.device_id != authenticated_device:
-        raise HTTPException(status_code=401, detail="Invalid device credentials")
-
-    try:
-        return bin_readings.record_reading(
-            bin_code=code,
-            device_id=payload.device_id,
-            fill_percent=payload.fill_percent,
-            is_full=payload.is_full,
-            uptime_s=payload.uptime_s,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-
-
-@router.get("/bins/{code}/readings", response_model=list[BinReading])
-async def list_bin_readings(code: str, limit: int = 50) -> list[BinReading]:
-    """Recent readings for a bin — used by the ops view and by tests."""
-    return bin_readings.get_repository().list_for_bin(code, limit=limit)

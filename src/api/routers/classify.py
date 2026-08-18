@@ -7,6 +7,7 @@ qua bước đó.
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
@@ -30,10 +31,13 @@ from src.models.schemas import ClassifyTextRequest, FeedbackRequest, VerifyReque
 from src.services import runs
 from src.services.auth import write_audit
 from src.services.image import preprocess_image
+from src.services.kieu_json import lam_sach_gia_tri
 from src.services.luu_tru import tai_len
 from src.services.safety import HARD_BLOCK_RULES
 
 router = APIRouter(tags=["classify"])
+
+logger = logging.getLogger(__name__)
 
 MAX_IMAGE_BYTES = 12 * 1024 * 1024
 
@@ -73,7 +77,7 @@ def _run_pipeline(
         asker_id=user.id,
         building_id=building_id,
         item_name=outcome.item_name or outcome.guess_item_name,
-        items=outcome.items,
+        items=lam_sach_gia_tri(outcome.items or [], "classifications.items"),
         predicted_category_id=category.id if category else None,
         confidence=outcome.confidence,
         tier=outcome.tier,

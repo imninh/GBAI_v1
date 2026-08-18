@@ -17,6 +17,7 @@ import { AnhCoToken } from "@/lib/anh-co-token";
 import { api } from "@/lib/api";
 import { kg, ngayVn } from "@/lib/format";
 import { IconChoDuyet, IconDuyet, IconQuayLai, IconTuChoi, IconXeThuGom } from "@/lib/icons";
+import { useSession } from "@/lib/session";
 import type { Classification, PickupRequest, ScheduleHint } from "@/lib/types";
 
 interface MonRac {
@@ -66,9 +67,17 @@ export function PickupWizard({
   const [loi, setLoi] = React.useState("");
   const [ketQua, setKetQua] = React.useState<PickupRequest | null>(null);
   const [dangTaiAnh, setDangTaiAnh] = React.useState<number | null>(null);
+  // Điểm lấy hàng của riêng yêu cầu này (`CreatePickupRequest.address`). Hộ dân
+  // lẻ chưa gắn căn hộ thì bắt buộc; cư dân có căn hộ để trống là lấy tại nơi ở.
+  const { user } = useSession();
+  const [diaChi, setDiaChi] = React.useState("");
 
   const tongKg = mon.reduce((s, m) => s + m.est_weight_kg * m.qty, 0);
   const vuotNguong = tongKg * 1.4 > NGUONG_KG_MAC_DINH;
+  // `user.unit` rỗng nghĩa là chưa gắn căn hộ (serializer `user_dict` trả chuỗi
+  // rỗng khi `unit_id` None) — tín hiệu có sẵn, không gọi thêm API.
+  const coCanHo = Boolean(user?.unit);
+  const thieuDiaChi = !coCanHo && !diaChi.trim();
 
   const khungBQL = React.useMemo(() => {
     // Chỉ lấy khung có chuyến thật của toà. Bỏ 2 khung cứng cũ — giờ ngoài lịch
@@ -91,6 +100,11 @@ export function PickupWizard({
         setDangGui(false);
         return;
       }
+      if (thieuDiaChi) {
+        setLoi("Vui lòng nhập địa chỉ lấy hàng để đội vệ sinh biết chỗ đến.");
+        setDangGui(false);
+        return;
+      }
       const yeuCau = await api.createPickup({
         items: mon,
         est_weight_kg: tongKg,
@@ -99,6 +113,7 @@ export function PickupWizard({
         note: ghiChu,
         confirmed_no_hazardous: daTick,
         ngoai_lich: laGioNgoaiLich,
+        address: diaChi.trim(),
       });
       setKetQua(yeuCau);
       setBuoc(4);
@@ -123,7 +138,7 @@ export function PickupWizard({
   }
 
   const nhanNut = buoc === 1 ? "Tiếp tục" : buoc === 2 ? "Xem lại" : "Gửi yêu cầu";
-  const choPhepTiep = buoc === 1 ? mon.length > 0 : buoc === 2 ? Boolean(khungGio) : daTick;
+  const choPhepTiep = buoc === 1 ? mon.length > 0 : buoc === 2 ? Boolean(khungGio) : daTick && !thieuDiaChi;
 
   return (
     <div className="min-h-full bg-cream pb-10 pt-11">
@@ -300,6 +315,43 @@ export function PickupWizard({
           <>
             <div className="mb-1 text-[13px] font-bold text-bulky">Bước 3/3</div>
             <h1 className="m-0 mb-4 font-[family-name:var(--font-display)] text-[26px] font-bold">Xác nhận</h1>
+
+            {coCanHo ? (
+              <div className="mb-2.5 rounded-2xl border-[1.5px] border-line-2 bg-white p-4">
+                <label htmlFor="dia-chi-lay-hang" className="mb-1 block text-[13px] font-bold text-muted">
+                  Lấy hàng ở chỗ khác? nhập địa chỉ
+                </label>
+                <input
+                  id="dia-chi-lay-hang"
+                  type="text"
+                  value={diaChi}
+                  onChange={(e) => setDiaChi(e.target.value)}
+                  placeholder="VD: 25 Lý Thường Kiệt, Hoàn Kiếm"
+                  className="w-full rounded-xl border border-line-3 bg-white px-3 py-2 text-[14px] font-semibold outline-none focus:border-leaf"
+                />
+                <div className="mt-1 text-[11px] font-semibold text-muted">
+                  Để trống thì đội vệ sinh lấy tại nơi ở đã đăng ký.
+                </div>
+              </div>
+            ) : (
+              <div className="mb-2.5 rounded-2xl border-[1.5px] border-line-2 bg-white p-4">
+                <label htmlFor="dia-chi-lay-hang" className="mb-1 block text-[13px] font-bold text-ink-soft">
+                  Địa chỉ lấy hàng <span className="text-hazard-dark">*</span>
+                </label>
+                <input
+                  id="dia-chi-lay-hang"
+                  type="text"
+                  value={diaChi}
+                  onChange={(e) => setDiaChi(e.target.value)}
+                  placeholder="Số nhà, tên phố, phường/xã, quận/huyện"
+                  className="w-full rounded-xl border border-line-3 bg-white px-3 py-2 text-[14px] font-semibold outline-none focus:border-leaf"
+                />
+                <div className="mt-1 text-[11px] font-semibold text-muted">
+                  Đội vệ sinh sẽ đến lấy tại địa chỉ này.
+                </div>
+              </div>
+            )}
+
             <Card className="mb-3 p-4">
               <Dong nhan="Số món" gia={`${mon.length} món`} />
               <Dong nhan="Tổng khối lượng" gia={kg(tongKg)} dam />
