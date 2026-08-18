@@ -20,7 +20,12 @@ class Media(Base):
     __tablename__ = "media"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    uploader_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    # NULL = ảnh do THIẾT BỊ gửi lên, không phải người dùng — thùng ESP32 không
+    # có tài khoản nên không có ai để trỏ tới. Cột này đã được nới trên CSDL
+    # production ngày 17/08/2026 (`ALTER TABLE media ALTER COLUMN uploader_id
+    # DROP NOT NULL`); dòng này chỉ để model khớp với CSDL thật — thiếu nó thì
+    # test dựng SQLite từ model vẫn ra NOT NULL và đường ảnh thiết bị không chạy.
+    uploader_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), index=True, nullable=True)
     # Đường dẫn TUYỆT ĐỐI tới file trên đĩa. Trần 400 là quá nhỏ: PostgreSQL ép
     # độ dài VARCHAR còn SQLite bỏ qua, nên đường ảnh "chạy tốt ở dev, chết ở
     # deploy" — SRV-500/StatementError trên `INSERT INTO media`. Đường dẫn đĩa
