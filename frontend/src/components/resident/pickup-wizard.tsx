@@ -18,7 +18,7 @@ import { api } from "@/lib/api";
 import { kg, ngayVn } from "@/lib/format";
 import { IconChoDuyet, IconDuyet, IconQuayLai, IconTuChoi, IconXeThuGom } from "@/lib/icons";
 import { useSession } from "@/lib/session";
-import type { Classification, PickupRequest, ScheduleHint } from "@/lib/types";
+import type { Classification, PickupRequest, ScheduleHint, WasteCategory } from "@/lib/types";
 
 interface MonRac {
   name: string;
@@ -29,6 +29,22 @@ interface MonRac {
 }
 
 const NGUONG_KG_MAC_DINH = 30;
+
+// Hai nhóm cư dân được chọn khi thêm món. Tên hiển thị LẤY TỪ API (`GET /categories`,
+// `api.categories()` đã có sẵn) — tên nằm trong CSDL, có thể được sửa ở màn quản lý.
+// Bảng này chỉ là nhãn tối thiểu khi danh mục chưa tải xong hoặc gọi hỏng, để
+// wizard vẫn thêm được món mà không chặn cả luồng.
+const HAI_NHOM: string[] = ["recyclable", "bulky"];
+const NHOM_LOI_THEO_MA: Record<string, string> = {
+  recyclable: "Rác tái chế",
+  bulky: "Đồ cồng kềnh",
+};
+
+function tenNhom(ma: string, danhMuc: WasteCategory[]): string {
+  const nhom = danhMuc.find((c) => c.code === ma);
+  if (nhom) return nhom.name;
+  return NHOM_LOI_THEO_MA[ma] ?? ma;
+}
 
 // Giờ tự chọn nằm trong 06:00–22:00. Chọn giờ ngoài lịch của toà → cần BQL duyệt.
 const KHUNG_TU_CHON = ["06:00-08:00", "08:00-10:00", "10:00-12:00", "13:00-15:00", "15:00-17:00", "17:00-19:00", "19:00-22:00"];
@@ -71,8 +87,28 @@ export function PickupWizard({
   // lẻ chưa gắn căn hộ thì bắt buộc; cư dân có căn hộ để trống là lấy tại nơi ở.
   const { user } = useSession();
   const [diaChi, setDiaChi] = React.useState("");
+  // Tên nhóm rác lấy từ API để hiện tiếng Việt thay cho mã kỹ thuật (`bulky`…).
+  // Gọi hỏng KHÔNG chặn wizard — lui về nhãn tối thiểu ở `tenNhom`.
+  const [danhMuc, setDanhMuc] = React.useState<WasteCategory[]>([]);
+
+  React.useEffect(() => {
+    let song = true;
+    api.categories()
+      .then((r) => {
+        if (song) setDanhMuc(r.items);
+      })
+      .catch(() => {
+        // Danh mục lỗi: giữ danhMuc rỗng, người dùng vẫn thêm món được.
+      });
+    return () => {
+      song = false;
+    };
+  }, []);
 
   const tongKg = mon.reduce((s, m) => s + m.est_weight_kg * m.qty, 0);
+  // Món mới bắt đầu với tên trống (thay "Món mới" cứng) — phải có tên mới gửi
+  // được, máy chủ từ chối món tên rỗng (`PickupItem.name` min_length=1).
+  const thieuTen = mon.some((m) => !m.name.trim());
   const vuotNguong = tongKg * 1.4 > NGUONG_KG_MAC_DINH;
   // `user.unit` rỗng nghĩa là chưa gắn căn hộ (serializer `user_dict` trả chuỗi
   // rỗng khi `unit_id` None) — tín hiệu có sẵn, không gọi thêm API.
@@ -138,7 +174,7 @@ export function PickupWizard({
   }
 
   const nhanNut = buoc === 1 ? "Tiếp tục" : buoc === 2 ? "Xem lại" : "Gửi yêu cầu";
-  const choPhepTiep = buoc === 1 ? mon.length > 0 : buoc === 2 ? Boolean(khungGio) : daTick && !thieuDiaChi;
+  const choPhepTiep = buoc === 1 ? mon.length > 0 && !thieuTen : buoc === 2 ? Boolean(khungGio) : daTick && !thieuDiaChi;
 
   return (
     <div className="min-h-full bg-cream pb-10 pt-11">
@@ -191,12 +227,36 @@ export function PickupWizard({
                   <input
                     value={m.name}
                     onChange={(e) => setMon((cu) => cu.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))}
+                    placeholder="Tên món (VD: tủ gỗ cũ)"
                     className="w-full bg-transparent text-[15px] font-extrabold outline-none"
                   />
-                  <div className="my-1.5 flex items-center gap-1.5">
-                    <span className="rounded-lg bg-bulky-soft px-2 py-0.5 text-[11px] font-extrabold text-bulky-dark">
-                      {m.category_code}
-                    </span>
+                  <div className="my-1.5 flex flex-wrap items-center gap-1.5">
+                    {HAI_NHOM.map((ma) => {
+                      const dangChon = m.category_code === ma;
+                      return (
+                        <button
+                          key={ma}
+                          type="button"
+                          onClick={() =>
+                            setMon((cu) => cu.map((x, j) => (j === i ? { ...x, category_code: ma } : x)))
+                          }
+                          aria-pressed={dangChon}
+                          className="cursor-pointer rounded-lg px-2 py-0.5 text-[11px] font-extrabold transition-colors"
+                          style={{
+                            background: dangChon ? "#ece7f6" : "#f2ede2",
+                            color: dangChon ? "#5b3fbf" : "#8a7a5a",
+                            border: dangChon ? "1.5px solid #7c5cdf" : "1.5px solid transparent",
+                          }}
+                        >
+                          {tenNhom(ma, danhMuc)}
+                        </button>
+                      );
+                    })}
+                    {!HAI_NHOM.includes(m.category_code) && (
+                      <span className="rounded-lg bg-bulky-soft px-2 py-0.5 text-[11px] font-extrabold text-bulky-dark">
+                        {tenNhom(m.category_code, danhMuc)}
+                      </span>
+                    )}
                     <input
                       type="number"
                       value={m.est_weight_kg}
@@ -222,11 +282,16 @@ export function PickupWizard({
               </Card>
             ))}
             <button
-              onClick={() => setMon((cu) => [...cu, { name: "Món mới", category_code: "bulky", qty: 1, est_weight_kg: 10, media_id: null }])}
+              onClick={() => setMon((cu) => [...cu, { name: "", category_code: "bulky", qty: 1, est_weight_kg: 10, media_id: null }])}
               className="w-full cursor-pointer rounded-2xl border-[1.5px] border-dashed border-[#cbb8ee] bg-white p-3.5 text-sm font-bold text-bulky-dark"
             >
               + Thêm món
             </button>
+            {thieuTen && (
+              <p className="mt-2 text-[12px] font-bold text-hazard-dark">
+                Điền tên món để tiếp tục — món phải có tên mới gửi được.
+              </p>
+            )}
             <div className="mx-0.5 mt-4 flex items-center justify-between text-sm font-bold">
               <span className="text-muted">Tổng ước tính</span>
               <span className="font-[family-name:var(--font-display)] text-lg font-extrabold">{kg(tongKg)}</span>

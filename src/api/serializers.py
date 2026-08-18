@@ -45,8 +45,13 @@ def category_dict(category: WasteCategory | None) -> dict[str, Any] | None:
 
 
 def user_dict(session: Session, user: User) -> dict[str, Any]:
+    # Toà của người dùng lấy TRỰC TIẾP từ `building_id` (liên kết chính từ gói
+    # P62) — người không có căn hộ (hộ dân lẻ / cư dân GIS) vẫn có toà. Chỉ khi
+    # cột đó rỗng mới lui về đường cũ qua `unit → building`.
+    building = session.get(Building, user.building_id) if user.building_id else None
     unit = session.get(Unit, user.unit_id) if user.unit_id else None
-    building = session.get(Building, unit.building_id) if unit else None
+    if building is None and unit is not None:
+        building = session.get(Building, unit.building_id)
     return {
         "id": user.id,
         "full_name": user.full_name,
@@ -61,6 +66,11 @@ def user_dict(session: Session, user: User) -> dict[str, Any]:
         # chưa gắn căn hộ thì không có toạ độ, app phải chịu được `null`.
         "building_lat": building.lat if building else None,
         "building_lng": building.lng if building else None,
+        # Nơi ở tự khai của CHÍNH người dùng (gói P52) — khác toà khi hộ dân lẻ
+        # nhập địa chỉ riêng; khác rỗng khi chưa có gì.
+        "address": user.address,
+        "lat": user.lat,
+        "lng": user.lng,
         "green_points": user.green_points,
     }
 
@@ -88,7 +98,10 @@ def classification_dict(
         "classification_id": classification.id,
         "media_id": classification.media_id,
         "input_type": classification.input_type,
-        "text_query": classification.text_query,
+        # `text_query` là câu hỏi bằng chữ của cư dân. Trước gói P62 khoá
+        # chống-trùng của THIẾT BỊ bị nhét vào đây dưới dạng "item_id:…"; lọc bỏ
+        # để dữ liệu đã lỡ ghi không hiện lên màn hình (dọn dữ liệu cũ).
+        "text_query": "" if classification.text_query.startswith("item_id:") else classification.text_query,
         "item_name": classification.item_name,
         "category": category_dict(category),
         "confidence": round(classification.confidence, 4),

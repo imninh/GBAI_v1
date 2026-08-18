@@ -49,6 +49,12 @@ class User(Base):
     role: Mapped[str] = mapped_column(String(20), index=True)  # resident | cleaner | manager
     password_hash: Mapped[str] = mapped_column(String(255))
     unit_id: Mapped[int | None] = mapped_column(ForeignKey("units.id"), nullable=True)
+    # LIÊN KẾT CHÍNH tới toà nhà — nơi hệ thống hỏi "người này ở toà nào" lấy
+    # thẳng từ đây, không phải đi vòng `unit_id → units.building_id`. `unit_id`
+    # giờ là CHI TIẾT TUỲ CHỌN: cho biết căn hộ nào (ô chọn căn hộ lúc đăng ký,
+    # màn sửa hồ sơ vẫn dùng). ⛔ Có `unit_id` thì `building_id` PHẢI khớp với toà
+    # của căn hộ đó — hai cột cùng mô tả một nơi, không được mâu thuẫn.
+    building_id: Mapped[int | None] = mapped_column(ForeignKey("buildings.id"), nullable=True, index=True)
     # Nơi ở là HAI khái niệm khác nhau:
     #   * `unit_id` — QUAN HỆ HÀNH CHÍNH: thuộc toà nào, BQL nào duyệt, lịch nào
     #     áp. Có giá trị khi người này là cư dân chung cư của một toà trong hệ

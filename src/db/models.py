@@ -27,6 +27,7 @@ from src.db.models_diem import DiemThuongLog  # noqa: F401
 from src.db.models_eval import EvalRun, FailureCase  # noqa: F401
 from src.db.models_knowledge import KnowledgeChunk, KnowledgeDoc  # noqa: F401
 from src.db.models_ops import AgentRun, AuditLog, RunNodeMetric  # noqa: F401
+from src.db.models_phien import PhienThung, TokenThietBi  # noqa: F401
 from src.db.models_pickup import (  # noqa: F401
     STOP_KIND_THUNG,
     STOP_KIND_YEU_CAU,
@@ -60,6 +61,7 @@ __all__ = [
     "Media",
     "Notification",
     "Organization",
+    "PhienThung",
     "PickupEvent",
     "PickupRequest",
     "PickupRoute",
@@ -68,6 +70,7 @@ __all__ = [
     "STOP_KINDS",
     "STOP_KIND_THUNG",
     "STOP_KIND_YEU_CAU",
+    "TokenThietBi",
     "Unit",
     "User",
     "WasteCategory",

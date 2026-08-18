@@ -19,8 +19,7 @@ from src.api.deps import DbSession, require
 from src.api.errors import ApiError, bad_request, not_found
 from src.config import get_settings
 from src.db.models import Bin, User, utcnow
-from src.models.schemas import BinReading
-from src.services import bin_readings, bins, khoa_thiet_bi
+from src.services import bins, khoa_thiet_bi
 from src.services.auth import write_audit
 
 router = APIRouter(tags=["bins"])
@@ -295,10 +294,25 @@ def nhan_reading(
     )
 
 
-@router.get("/bins/{code}/readings", response_model=list[BinReading])
-def list_bin_readings(code: str, limit: int = 50) -> list[BinReading]:
-    """Recent readings for a bin — used by the ops view and by tests."""
-    return bin_readings.get_repository().list_for_bin(code, limit=limit)
+@router.get("/bins/{code}/readings")
+def list_bin_readings(code: str, session: DbSession, limit: int = 50) -> list[dict]:
+    """Lịch sử báo về của một thùng, mới trước cũ sau.
+
+    Gói P61/P58: POST giờ ghi xuống CSDL thật (bảng ``bin_readings``) qua
+    ``bins.ghi_nhan_reading``, nên GET phải đọc từ CSDL — đọc kho in-memory cũ là
+    trả rỗng vô nghĩa ngoài đời. Dùng đúng hàm ``_phan_hoi_thung`` đang dùng
+    (``bins.lich_su_readings``); giữ nguyên đường dẫn và tham số ``limit``.
+
+    ⚠️ Khuôn trả về đổi từ ``schemas.BinReading`` (yêu cầu device_id/is_full/
+    uptime_s/reading_id mà bảng ``bin_readings`` KHÔNG có) sang đúng khối
+    ``lich_su_readings`` — chính là khuôn ``_phan_hoi_thung`` trả cho frontend
+    (``fill_percent/battery_percent/source/created_at``). Trả khuôn cũ buộc phải
+    bịa 4 trường không tồn tại trong CSDL.
+    """
+    thung = session.scalar(select(Bin).where(Bin.code == code))
+    if thung is None:
+        return []
+    return bins.lich_su_readings(session, thung.id, limit=limit)
 
 
 

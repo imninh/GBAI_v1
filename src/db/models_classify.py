@@ -67,6 +67,11 @@ class Classification(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     media_id: Mapped[int | None] = mapped_column(ForeignKey("media.id"), nullable=True, index=True)
     text_query: Mapped[str] = mapped_column(Text, default="")
+    # Khoá do THIẾT BỊ sinh (CP2) — dùng để gửi lại cùng ảnh không tạo bản ghi
+    # thứ hai. Cất ở cột riêng thay vì nhét vào `text_query`: `text_query` là câu
+    # hỏi bằng chữ của cư dân, đi thẳng ra frontend; chuỗi `item_id:` lọt vào đó
+    # là rò dữ liệu nội bộ ra màn duyệt.
+    item_id: Mapped[str] = mapped_column(String(64), default="", index=True)
     input_type: Mapped[str] = mapped_column(String(10), default="image")  # image | text
     asker_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
     building_id: Mapped[int | None] = mapped_column(ForeignKey("buildings.id"), nullable=True)

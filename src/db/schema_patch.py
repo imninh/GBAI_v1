@@ -64,6 +64,15 @@ COT_CAN_VA: list[tuple[str, str, str]] = [
     ("pickup_requests", "address", "VARCHAR(300) NOT NULL DEFAULT ''"),
     ("pickup_requests", "lat", "DOUBLE PRECISION"),
     ("pickup_requests", "lng", "DOUBLE PRECISION"),
+    # Gói P62 — liên kết CHÍNH người → toà nhà, không phải đi vòng qua căn hộ.
+    # Kiểu để trần `INTEGER`, KHÔNG kèm ràng buộc khoá ngoại: SQLite không thêm
+    # được FK bằng ALTER TABLE, và mệnh đề này phải chạy y hệt trên cả SQLite lẫn
+    # PostgreSQL.
+    ("users", "building_id", "INTEGER"),
+    # Gói P62 — khoá chống-trùng của THIẾT BỊ, cất ở cột riêng thay vì nhét vào
+    # `classifications.text_query` (câu hỏi bằng chữ của cư dân — rò ra frontend).
+    # `NOT NULL` bắt buộc kèm `DEFAULT` để SQLite chấp nhận ALTER.
+    ("classifications", "item_id", "VARCHAR(64) NOT NULL DEFAULT ''"),
 ]
 
 
