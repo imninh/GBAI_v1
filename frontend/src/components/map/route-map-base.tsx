@@ -138,12 +138,12 @@ export default function RouteMapBase({
   const cacNhom = Object.values(nhom);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className} z-0 isolate`}>
       <MapContainer
         center={[cacDiem[0].lat, cacDiem[0].lng]}
         zoom={14}
         scrollWheelZoom
-        className="h-full w-full"
+        className="h-full w-full relative z-0 isolate"
       >
         <TileLayer
           attribution='&copy; Google Maps'

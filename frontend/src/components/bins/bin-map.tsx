@@ -101,7 +101,7 @@ export default function BinMap({
       center={[21.0285, 105.8522]}
       zoom={15}
       scrollWheelZoom
-      className="h-full w-full"
+      className="h-full w-full relative z-0 isolate"
     >
       <TileLayer
         attribution='&copy; Google Maps'

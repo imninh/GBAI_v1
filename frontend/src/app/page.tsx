@@ -408,21 +408,21 @@ function ResidentApp() {
           onDiemXanh={() => setMan("diemxanh")}
         />
       )}
-
-      {/* Trợ lý AI Chatbot nổi */}
-      <ChatbotModal
-        buildingId={user?.building_id}
-        userLat={user?.building_lat}
-        userLng={user?.building_lng}
-      />
     </PhoneFrame>
+
+    {/* Trợ lý AI Chatbot nổi — đặt ngoài PhoneFrame để phủ toàn màn hình thiết bị */}
+    <ChatbotModal
+      buildingId={user?.building_id}
+      userLat={user?.building_lat}
+      userLng={user?.building_lng}
+    />
 
     {/* Overlay chúc mừng sau phân loại đúng — Mun nhảy, người dùng bấm để đóng.
         Nằm ngoài PhoneFrame để phủ toàn màn hình thiết bị. */}
     {chucMung && (
       <div
         onClick={() => setChucMung(false)}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-8 backdrop-blur-[3px]"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 p-8 backdrop-blur-[3px]"
         role="dialog"
         aria-modal="true"
         aria-label="Phân loại thành công"
