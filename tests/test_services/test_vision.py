@@ -6,6 +6,7 @@ switching to a real provider must not require a code change.
 """
 
 import pytest
+from pydantic import ValidationError
 
 from src.config import get_settings
 from src.services.vision import VisionProviderError, get_vision_model
@@ -76,7 +77,11 @@ def test_base_url_routes_to_an_openai_compatible_endpoint(settings_env):
 
 
 def test_unknown_provider_is_rejected(settings_env):
-    settings_env(VISION_PROVIDER="definitely-not-a-provider")
+    """A typo'd provider is now a config-load error, not a model-call error.
 
-    with pytest.raises(VisionProviderError, match="Unsupported vision provider"):
-        get_vision_model()
+    Gói P55 khôi phục `VisionProvider` về `Literal` (trước đó bị hạ xuống `str`
+    trong lần gộp repo), nên `VISION_PROVIDER` không hợp lệ bị pydantic bắt ngay
+    lúc `Settings()` dựng — fail-fast, không chờ tới lúc gọi model.
+    """
+    with pytest.raises(ValidationError, match="definitely-not-a-provider"):
+        settings_env(VISION_PROVIDER="definitely-not-a-provider")

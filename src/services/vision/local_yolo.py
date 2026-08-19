@@ -211,11 +211,13 @@ def _iou(a: list[float], b: list[float]) -> float:
     return giao / hop if hop > 0 else 0.0
 
 
-def _loc_ket_qua(dau_ra, nguong: float) -> list[dict]:
-    """Output thô của YOLO → danh sách phát hiện, đã lọc ngưỡng và NMS đơn giản.
+def _loc_ket_qua_co_hop(dau_ra, nguong: float) -> list[dict]:
+    """Output thô của YOLO → danh sách phát hiện kèm hộp, đã lọc và NMS.
 
     Output dạng ``[1, 84, 8400]`` hoặc ``[1, 8400, 84]``; 84 = 4 toạ độ hộp +
-    80 điểm lớp COCO. Trả ``[{"lop": ..., "diem": ...}]`` sắp giảm theo điểm.
+    80 điểm lớp COCO. Hộp ``[x1, y1, x2, y2]`` nằm trong hệ toạ độ 640×640 của
+    ảnh đã letterbox — muốn dùng cho việc cắt ảnh gốc phải quy đổi lại (xem
+    :func:`phat_hien_co_hop`). Sắp giảm theo điểm.
     """
     import numpy as np
 
@@ -243,7 +245,70 @@ def _loc_ket_qua(dau_ra, nguong: float) -> list[dict]:
     for vat in cac_vat:
         if all(_iou(vat["box"], g["box"]) < 0.45 for g in giu):
             giu.append(vat)
-    return [{"lop": g["lop"], "diem": g["diem"]} for g in giu]
+    return giu
+
+
+def _loc_ket_qua(dau_ra, nguong: float) -> list[dict]:
+    """Như :func:`_loc_ket_qua_co_hop` nhưng chỉ giữ ``lop``/``diem``.
+
+    Giữ nguyên hành vi lịch sử của :func:`phat_hien` — hộp không được đưa ra
+    ngoài hàm này. 31 file test dựa vào đúng khuôn ``[{"lop", "diem"}]``.
+    """
+    return [{"lop": g["lop"], "diem": g["diem"]} for g in _loc_ket_qua_co_hop(dau_ra, nguong)]
+
+
+def phat_hien_co_hop(image_bytes: bytes) -> list[dict] | None:
+    """Như ``phat_hien`` nhưng GIỮ hộp, đã quy về toạ độ ẢNH GỐC.
+
+    ``_tien_xu_ly_anh`` letterbox ảnh về 640×640: co theo ``ti_le = 640/max(w,h)``
+    rồi dán vào giữa nền xám. Muốn cắt đúng vật thì phải trừ phần đệm rồi chia
+    lại tỉ lệ — quên bước này thì hộp lệch và crop ra nền xám.
+
+    Returns:
+        ``[{"lop","diem","box":[x1,y1,x2,y2]}]`` theo pixel ảnh gốc, hoặc None.
+    """
+    settings = get_settings()
+    if not settings.yolo_enabled:
+        return None
+    model = _load()
+    if model is None:
+        return None
+
+    try:
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    except (OSError, ValueError):
+        return None
+
+    try:
+        rong, cao = image.size
+        ti_le = 640 / max(rong, cao)
+        pixel_values = _tien_xu_ly_anh(image)
+        output = model.run(None, {"images": pixel_values})[0]
+    except Exception as exc:
+        logger.warning("Chạy YOLO lỗi: %s. Bỏ qua tầng.", exc)
+        return None
+
+    rong_co = round(rong * ti_le)
+    cao_co = round(cao * ti_le)
+    pad_x = (640 - rong_co) // 2
+    pad_y = (640 - cao_co) // 2
+
+    ket_qua: list[dict] = []
+    for vat in _loc_ket_qua_co_hop(output, settings.yolo_confidence):
+        x1, y1, x2, y2 = vat["box"]
+        ket_qua.append(
+            {
+                "lop": vat["lop"],
+                "diem": vat["diem"],
+                "box": [
+                    max(0.0, min(float(rong), (x1 - pad_x) / ti_le)),
+                    max(0.0, min(float(cao), (y1 - pad_y) / ti_le)),
+                    max(0.0, min(float(rong), (x2 - pad_x) / ti_le)),
+                    max(0.0, min(float(cao), (y2 - pad_y) / ti_le)),
+                ],
+            }
+        )
+    return ket_qua
 
 
 def phat_hien(image_bytes: bytes) -> list[dict] | None:

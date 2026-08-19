@@ -25,11 +25,12 @@ import {
 } from "@/components/resident/personal";
 import { PickupWizard } from "@/components/resident/pickup-wizard";
 import { HazardResultScreen, ResultScreen, UnsureScreen } from "@/components/resident/result";
+import { ScanScreen } from "@/components/resident/scan";
 import { Button, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { PhoneFrame, TabBar, type TabItem } from "@/components/ui/shell";
 import { api, ApiError } from "@/lib/api";
 import { ghiHoatDong } from "@/lib/gamification";
-import { IconManHinhRong } from "@/lib/icons";
+import { IconManHinhRong, IconXeThuGom } from "@/lib/icons";
 import { laAppNative } from "@/lib/platform";
 import { SessionProvider, useSession } from "@/lib/session";
 import type { Classification } from "@/lib/types";
@@ -114,6 +115,7 @@ function ManagerTrenAppScreen() {
 type ManCuDan =
   | "ask"
   | "diem"
+  | "scan"
   | "processing"
   | "result"
   | "privacy"
@@ -245,7 +247,7 @@ function ResidentApp() {
   ];
   // Lịch thu gom không còn là tab riêng: vào từ thẻ lịch trên Trang chủ hoặc nút
   // trong tab Yêu cầu. Khi ở màn con (schedule, kết quả…) thì ẩn tab bar.
-  const hienTabBar = ["ask", "diem", "requests", "me"].includes(man);
+  const hienTabBar = ["ask", "diem", "scan", "requests", "me"].includes(man);
   const nenMan =
     man === "processing"
       ? "#0c0f0c"
@@ -266,15 +268,13 @@ function ResidentApp() {
               items={tabs}
               active={man}
               onChange={(k) => {
-              if (k === "scan") {
-                // Nút Chụp nổi: quay về Trang chủ và nhờ AskScreen mở camera.
-                setMan("ask");
-                setLanChup((n) => n + 1);
-              } else {
+                // Nút Chụp nổi giờ mở màn Chụp & quét (scan.tsx) — hai lối vào:
+                // quét mã thùng và chụp phân loại. Đường chụp cũ vẫn nguyên vẹn:
+                // nút "Chụp để phân loại" trong đó quay về Trang chủ và nhờ
+                // AskScreen mở camera qua `lanChup` như trước.
                 setMan(k as ManCuDan);
-              }
-            }}
-          />
+              }}
+            />
         ) : undefined
       }
     >
@@ -285,12 +285,42 @@ function ResidentApp() {
       )}
 
       {man === "ask" && (
-        <AskScreen
-          unit={user!.unit}
-          lanChup={lanChup}
-          onXemLich={() => setMan("schedule")}
-          onAskText={(q) => chay(() => api.classifyText(q, user!.building_id), false)}
-          onPickImage={(f) => chay(() => api.classifyImage(f, user!.building_id), true)}
+        <>
+          <AskScreen
+            unit={user!.unit}
+            lanChup={lanChup}
+            onXemLich={() => setMan("schedule")}
+            onAskText={(q) => chay(() => api.classifyText(q, user!.building_id), false)}
+            onPickImage={(f) => chay(() => api.classifyImage(f, user!.building_id), true)}
+          />
+          {/* Lối vào nhanh wizard ở màn chính (phát hiện A-02): wizard nằm sâu
+              trong tab Yêu cầu nên người mới tưởng app chỉ có chụp ảnh. Đây chỉ
+              là chỗ đặt lối vào — không thay đường cũ, không đổi luồng wizard. */}
+          <button
+            type="button"
+            onClick={() => {
+              setNguonPickup("requests");
+              setMan("pickup");
+            }}
+            aria-label="Đặt lịch thu gom đồ cồng kềnh"
+            className="fixed bottom-[calc(84px+env(safe-area-inset-bottom)+12px)] left-[max(14px,calc((100vw_-_560px)/2_+_14px))] z-40 flex cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-[#d9cef0] bg-white py-2 pl-2.5 pr-4 shadow-[0_12px_28px_-14px_rgba(106,77,196,.75)]"
+          >
+            <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-bulky-soft text-bulky-dark">
+              <IconXeThuGom className="h-4 w-4" />
+            </span>
+            <span className="text-[13px] font-extrabold text-bulky-dark">
+              Đặt lịch thu gom đồ cồng kềnh
+            </span>
+          </button>
+        </>
+      )}
+
+      {man === "scan" && (
+        <ScanScreen
+          onChup={() => {
+            setMan("ask");
+            setLanChup((n) => n + 1);
+          }}
         />
       )}
 

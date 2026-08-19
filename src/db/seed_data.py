@@ -799,9 +799,9 @@ KNOWN_LIMITATIONS: list[str] = [
     "Không phân biệt được nhựa PET và nhựa HDPE khi nhãn bị mờ hoặc mất.",
     "Không xác định được rác y tế lây nhiễm — luôn chuyển người, không tự trả lời.",
     "Quy định phân loại khác nhau giữa các toà; hướng dẫn chỉ đúng với toà đang chọn.",
-    "Khối lượng do AI ước lượng có sai số lớn (±40%) — chỉ dùng để gợi ý, đội vệ sinh cân lại tại chỗ.",
+    "Khối lượng do cư dân tự nhập ước tính, hệ thống để dung sai ±40% — chỉ dùng để gợi ý, đội vệ sinh cân lại tại chỗ.",
     "Dữ liệu demo là dữ liệu mô phỏng và ảnh tự chụp, không phải dữ liệu cư dân thật.",
-    "Bản demo trên hạ tầng miễn phí lưu ảnh trên đĩa tạm — ảnh đã tải lên sẽ mất khi máy chủ khởi động lại.",
+    "Ảnh tải lên từ 16/08/2026 được lưu trên Supabase Storage nên bền vững; ảnh tải lên trước thời điểm đó vẫn nằm ở đĩa tạm và sẽ mất khi máy chủ khởi động lại.",
     "Tầng T0.5 trên bản deploy chạy bản CLIP đã nén (int8) để vừa bộ nhớ máy chủ miễn phí. "
     "Bản nén cho điểm số lệch so với bản đầy đủ, và ngưỡng chấp nhận CHƯA được chuẩn lại "
     "trên bộ ảnh thật — bảng Cấu hình model bên dưới cho biết đang chạy bản nào.",

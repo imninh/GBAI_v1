@@ -123,24 +123,41 @@ class OpenAICompatibleClient:
         return response.json()
 
     def _call(self, model: str, content: list[dict], categories: list[CategoryOption]) -> VisionResult:
-        body = self._post(
-            {
-                "model": model,
-                "messages": [{"role": "user", "content": content}],
-                "temperature": 0.1,
-                # 700 là QUÁ NHỎ cho prompt liệt kê `items` — đo 03/08/2026 trên
-                # hai ảnh rác thật: `finish_reason: "length"`, completion_tokens
-                # đúng bằng trần, JSON đứt giữa chừng. `parse_model_json` ném
-                # ValueError và cả lần phân loại trở thành `VISION-500`.
-                #
-                # Đây mới là nguyên nhân gốc của "chụp phát nào cũng không nhận
-                # diện được", KHÔNG phải "model 11B quá nhỏ để bám JSON" như
-                # chẩn đoán ngày 02/08: chuỗi trả về đúng cú pháp, chỉ là bị cắt.
-                # llama-3.2-90b hỏng 3/3 ở trần 700 và chạy sạch ở trần này.
-                "max_tokens": get_settings().vision_max_output_tokens,
-                "response_format": {"type": "json_object"},
-            }
-        )
+        payload: dict = {
+            "model": model,
+            "messages": [{"role": "user", "content": content}],
+            "temperature": 0.1,
+            # 700 là QUÁ NHỎ cho prompt liệt kê `items` — đo 03/08/2026 trên
+            # hai ảnh rác thật: `finish_reason: "length"`, completion_tokens
+            # đúng bằng trần, JSON đứt giữa chừng. `parse_model_json` ném
+            # ValueError và cả lần phân loại trở thành `VISION-500`.
+            #
+            # Đây mới là nguyên nhân gốc của "chụp phát nào cũng không nhận
+            # diện được", KHÔNG phải "model 11B quá nhỏ để bám JSON" như
+            # chẩn đoán ngày 02/08: chuỗi trả về đúng cú pháp, chỉ là bị cắt.
+            # llama-3.2-90b hỏng 3/3 ở trần 700 và chạy sạch ở trần này.
+            "max_tokens": get_settings().vision_max_output_tokens,
+            "response_format": {"type": "json_object"},
+        }
+        # Model reasoning (qwen3.x trên Groq) xuất khối <think> trước câu trả lời.
+        # Bật JSON mode cùng lúc thì Groq kiểm JSON THẤT BẠI và trả HTTP 400
+        # `json_validate_failed` với `failed_generation` rỗng — đo thật 16/08/2026:
+        # cùng một ảnh, có `response_format` -> 400, thêm `reasoning_format:hidden`
+        # -> 200 và JSON sạch. Chỉ gửi cho groq: tham số này là của riêng họ.
+        if self.provider_name == "groq":
+            # Đo thật 16/08/2026 trên qwen/qwen3.6-27b: model tiêu HẾT 2000 token
+            # đầu ra vào phần suy nghĩ rồi trả nội dung RỖNG (finish_reason
+            # "length"). Kèm `response_format` thì Groq kiểm JSON trên chuỗi rỗng
+            # và trả HTTP 400 `json_validate_failed` với `failed_generation` rỗng
+            # — đó là "VISION-400" bí ẩn suốt hai ngày.
+            #
+            # `reasoning_effort: none` tắt hẳn suy nghĩ. Bỏ `response_format` để
+            # phần kiểm JSON do `parse_model_json` của mình làm: chạm trần thì
+            # sản phẩm nói thẳng VISION-LENGTH thay vì 400 không đọc được.
+            payload["reasoning_format"] = "hidden"
+            payload["reasoning_effort"] = "none"
+            payload.pop("response_format", None)
+        body = self._post(payload)
         try:
             choice = body["choices"][0]
             text = choice["message"]["content"] or ""

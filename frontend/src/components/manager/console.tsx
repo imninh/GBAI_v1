@@ -4,16 +4,17 @@
  *
  * Người dùng ở đây ít kinh nghiệm công nghệ, nên cột trái chỉ có ba dòng, đúng
  * ba câu hỏi của một ngày làm việc: *hôm nay đi đâu* · *chờ tôi duyệt* · *báo
- * cáo*. Mọi màn hình còn lại nằm dưới "Xem thêm" — vẫn mở được, nhưng không
- * chen vào tầm mắt. Mục nào vai trò hiện tại không có quyền thì **hiện mờ kèm
- * tooltip giải thích**, không ẩn hẳn.
+ * cáo*. Hai màn còn lại (Tổng quan, Agent run) hiện ngay bên dưới đường kẻ,
+ * không phải bấm mở thêm nữa. Mục nào vai trò hiện tại không có quyền thì
+ * **hiện mờ kèm tooltip giải thích**, không ẩn hẳn.
  */
 
 import * as React from "react";
 import Link from "next/link";
 
 import { AgentRunScreen, OpsScreen, OverviewScreen, QualityScreen } from "@/components/manager/insights";
-import { PickupQueue, RouteApproval, VerifyQueue, WeightConfirmQueue } from "@/components/manager/queues";
+import { PickupQueue, RouteApproval, VerifyQueue } from "@/components/manager/queues";
+import { TatCaYeuCau } from "@/components/manager/tat-ca-yeu-cau";
 import { XepTuyen } from "@/components/manager/xep-tuyen";
 import { BrowserFrame } from "@/components/ui/shell";
 import { api } from "@/lib/api";
@@ -38,8 +39,8 @@ function useDuRong(): boolean | null {
   return duRong;
 }
 
-type Nav = "duyet" | "xep_tuyen" | "baocao" | "overview" | "runs";
-type TabDuyet = "pickup" | "verify" | "route" | "weight";
+type Nav = "duyet" | "tat_ca" | "xep_tuyen" | "baocao" | "overview" | "runs";
+type TabDuyet = "pickup" | "verify" | "route";
 type TabBaoCao = "ops" | "quality";
 
 type Muc = { key: string; label: string; permission: string; href?: string };
@@ -47,6 +48,7 @@ type Muc = { key: string; label: string; permission: string; href?: string };
 const MUC_CHINH: Muc[] = [
   { key: "homnay", label: "Hôm nay đi đâu", permission: "view_bins", href: "/dieu-phoi" },
   { key: "duyet", label: "Chờ tôi duyệt", permission: "review_pickup" },
+  { key: "tat_ca", label: "Tất cả yêu cầu", permission: "view_all_pickups" },
   { key: "xep_tuyen", label: "Xếp tuyến", permission: "review_route" },
   { key: "baocao", label: "Báo cáo", permission: "view_ops" },
 ];
@@ -60,8 +62,6 @@ const TAB_DUYET: Muc[] = [
   { key: "pickup", label: "Thu gom", permission: "review_pickup" },
   { key: "verify", label: "Nhãn nghi ngờ", permission: "verify_label" },
   { key: "route", label: "Tuyến gộp", permission: "review_route" },
-  // Màn đối soát cân đã viết xong từ trước nhưng chưa có đường nào bấm tới.
-  { key: "weight", label: "Đối soát cân", permission: "review_pickup" },
 ];
 
 const TAB_BAO_CAO: Muc[] = [
@@ -72,11 +72,10 @@ const TAB_BAO_CAO: Muc[] = [
 export function ManagerConsole() {
   const { user, dangXuat, duocPhep, lyDoCam } = useSession();
   const duRong = useDuRong();
-  // Vào là thấy việc, không phải thấy số liệu — "Tổng quan" lui xuống Xem thêm.
+  // Vào là thấy việc, không phải thấy số liệu — "Tổng quan" nằm ở nhóm phụ bên dưới.
   const [nav, setNav] = React.useState<Nav>("duyet");
   const [tabDuyet, setTabDuyet] = React.useState<TabDuyet>("pickup");
   const [tabBaoCao, setTabBaoCao] = React.useState<TabBaoCao>("ops");
-  const [moThem, setMoThem] = React.useState(false);
   const [dem, setDem] = React.useState({ pickup: 0, labels: 0, routes: 0 });
 
   React.useEffect(() => {
@@ -156,26 +155,16 @@ export function ManagerConsole() {
           ))}
 
           <div className="mx-2 my-3 h-px bg-line-3" />
-          <button
-            onClick={() => setMoThem((v) => !v)}
-            aria-expanded={moThem}
-            className="mb-0.5 flex w-full cursor-pointer items-center rounded-xl px-3 py-2.5 text-left text-[13px] font-bold text-muted"
-          >
-            <span>Xem thêm</span>
-            <span className="flex-1" />
-            <span className="text-[10px] leading-none">{moThem ? "▲" : "▼"}</span>
-          </button>
-          {moThem &&
-            MUC_PHU.map((m) => (
-              <NavButton
-                key={m.key}
-                muc={m}
-                nav={nav}
-                setNav={(n) => setNav(n as Nav)}
-                allowed={duocPhep(m.permission)}
-                reason={lyDoCam(m.permission)}
-              />
-            ))}
+          {MUC_PHU.map((m) => (
+            <NavButton
+              key={m.key}
+              muc={m}
+              nav={nav}
+              setNav={(n) => setNav(n as Nav)}
+              allowed={duocPhep(m.permission)}
+              reason={lyDoCam(m.permission)}
+            />
+          ))}
         </div>
 
         <div className="gb-scroll flex-1 overflow-y-auto px-8 py-6">
@@ -192,7 +181,6 @@ export function ManagerConsole() {
               {tabDuyet === "pickup" && <PickupQueue />}
               {tabDuyet === "verify" && <VerifyQueue />}
               {tabDuyet === "route" && <RouteApproval />}
-              {tabDuyet === "weight" && <WeightConfirmQueue />}
             </>
           )}
 
@@ -212,6 +200,8 @@ export function ManagerConsole() {
           )}
 
           {nav === "xep_tuyen" && <XepTuyen />}
+
+          {nav === "tat_ca" && <TatCaYeuCau />}
 
           {/* Tổng quan chỉ có một đích nhảy duy nhất là hàng đợi thu gom. */}
           {nav === "overview" && (

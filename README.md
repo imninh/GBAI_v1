@@ -181,10 +181,15 @@ trong báo cáo:
   giây. *Trước lúc demo phải mở web một lần cho nó thức dậy.* Bản dùng thử của
   Railway không ngủ, nhưng **hết hạn theo thời gian hoặc theo mức tín dụng** —
   phải kiểm ngày hết hạn còn xa hơn ngày nộp, nếu không thì quay về Render.
-- **Đĩa là tạm thời** → ảnh cư dân đã tải lên mất khi service khởi động lại.
-- **Không đủ RAM cho `torch`** → tầng T0.5 tắt trên bản deploy
-  (`LOCAL_MODEL_ENABLED=false`), ảnh đi thẳng lên T1. Trang Vận hành hiện
-  "Model local: đang tắt" nên số liệu vẫn trung thực.
+- **Đĩa là tạm thời** → vì vậy ảnh cư dân **cất trên Supabase Storage** từ
+  16/08/2026 (`STORAGE_ENABLED=true`, bucket riêng tư `greenbin`), không còn phụ
+  thuộc đĩa của container. Trang Vận hành có khối `storage` tự ghi → đọc → xoá
+  một tệp thử nên nhìn ra ngay khi tầng này chết. ⚠️ Ảnh tải lên **trước** ngày
+  đó vẫn nằm trên đĩa và sẽ mất khi máy chủ khởi động lại.
+- **Không đủ RAM cho `torch`** → tầng T0.5 chạy bản **ONNX int8** (185 MB) thay
+  vì `torch`; trên bản deploy hiện tại model local **đã nạp**
+  (`/ops/metrics` → `local_model_loaded: true`). YOLO nạp lười, bật bằng
+  `YOLO_ENABLED`.
 
 Render tự nạp dữ liệu nền lúc khởi động (`SEED_ON_START=true`) vì ở đó không có
 chỗ chạy tay `scripts/seed.py`. Gọi lại nhiều lần vô hại — dữ liệu nền cập nhật
@@ -444,7 +449,7 @@ Ba bài toán "tìm đường" trong sản phẩm này khác nhau, đừng gộp
 ## Kiểm thử
 
 ```bash
-python -m pytest -q                          # 491 test, không test nào gọi API thật
+python -m pytest -q                          # 791 test, không test nào gọi API thật
 python -m ruff check src/ tests/ eval/ scripts/
 ```
 
@@ -472,7 +477,7 @@ scripts/device_simulator.py  bơm số liệu thùng thu gom mô phỏng
 scripts/build_assets.py  cắt ảnh linh vật, sinh bộ icon PWA
 docs/           FRONTEND_SPEC (hợp đồng API) · decisions/ (ADR) · research/
 eval/           bộ đo truy hồi và phân loại, kết quả lưu ở eval/results/
-tests/          491 test
+tests/          791 test
 ```
 
 Ba file đáng chú ý vì chúng giữ những ràng buộc dễ vi phạm:
@@ -521,11 +526,15 @@ Khối này hiển thị ngay trên trang Vận hành của sản phẩm, không
 - Quy định khác nhau giữa các toà; hướng dẫn chỉ đúng với toà đang chọn.
 - Khối lượng AI ước lượng sai số ±40% — đội vệ sinh cân lại tại chỗ, và **chỉ
   khối lượng đó mới được dùng để chốt điểm**.
-- **Bản demo trên hạ tầng miễn phí lưu ảnh trên đĩa tạm** — ảnh đã tải lên mất
-  khi máy chủ khởi động lại.
-- **Tầng T0.5 tắt trên bản deploy** vì máy chủ miễn phí không đủ bộ nhớ cho
-  `torch`; ảnh đi thẳng lên tầng T1. Và **ngưỡng `CLIP_ACCEPT_CONFIDENCE` chưa
-  được chuẩn lại** cho bản nén ONNX.
+- **Ngưỡng `CLIP_ACCEPT_CONFIDENCE` chưa được chuẩn lại** cho bản nén ONNX — vẫn
+  đang chờ bộ 100 ảnh tự chụp.
+- **Quota model của gói miễn phí rất chật**: Groq cho 8.000 token mỗi phút, đủ
+  cho vài lần phân loại liên tiếp rồi chạm giới hạn. Đã hạ mức tiêu bằng cách
+  tắt phần suy nghĩ của model (token đầu ra 2000 → 148), nhưng nhiều người dùng
+  cùng lúc vẫn có thể bị chặn.
+- **Ảnh nhiều vật vẫn ra một nhãn** trên đường mặc định. Đường phân loại từng
+  vật (cắt theo hộp YOLO rồi chấm từng mảnh) đã dựng nhưng **đang tắt**
+  (`phan_loai_tung_vat=false`), chờ đo trên ảnh thật.
 - **Bộ đếm giới hạn tần suất nằm trong bộ nhớ tiến trình.** Chạy nhiều worker thì
   mỗi worker giữ một bộ đếm riêng, nên giới hạn thật lỏng hơn con số cấu hình
   đúng bằng số worker. Bản chặt cần Redis hoặc chặn ở tầng cạnh. Và `/auth/register`
@@ -547,7 +556,7 @@ Khối này hiển thị ngay trên trang Vận hành của sản phẩm, không
 | 2 | README | file này | ✅ |
 | 3 | Architecture Diagram | [ARCHITECTURE.md](ARCHITECTURE.md) · [docs/architecture_diagram.md](docs/architecture_diagram.md) | ✅ |
 | 4 | AI Logs | hook + `scripts/log_hook.py`; log thô không đẩy lên repo, bản trích dẫn đã che ở [docs/ai-logs-trich-dan.md](docs/ai-logs-trich-dan.md) | ✅ |
-| 5 | Live URL | Render (backend) · Vercel (web) | ⚠️ bản đang chạy đã cũ |
+| 5 | Live URL | Railway (backend) · Vercel (web) · APK ở Releases | ✅ |
 | 6 | Video Demo | — | ❌ chưa có |
 | 7 | Pitch Deck | — | ❌ chưa có |
 | 8 | Development Journal | [JOURNAL.md](JOURNAL.md) | ✅ |

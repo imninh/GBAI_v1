@@ -65,6 +65,12 @@ def create_pickup(payload: CreatePickupRequest, session: DbSession, user: Curren
             preferred_window=payload.preferred_window,
             note=payload.note,
             ngoai_lich=payload.ngoai_lich,
+            # Điểm lấy hàng của riêng yêu cầu này. Ba trường đều tuỳ chọn: app cư
+            # dân hiện chưa gửi, khi đó tầng dịch vụ tự lấy nơi ở của người gửi
+            # (hoặc báo lỗi PU-400 nếu không có nơi ở nào cả).
+            address=payload.address,
+            lat=payload.lat,
+            lng=payload.lng,
         )
     except ValueError as exc:
         raise bad_request(str(exc), code="PU-400") from exc

@@ -8,6 +8,7 @@ công phải ghi một mốc ``PickupEvent`` lên timeline.
 
 from __future__ import annotations
 
+import warnings
 from collections.abc import Iterator
 from datetime import date, timedelta
 
@@ -15,13 +16,16 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine, func, select
+from sqlalchemy.exc import SAWarning
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.api.deps import get_db
+from src.api.serializers import pickup_dict
 from src.config import reset_settings_cache
-from src.db.models import Base, PickupEvent, PickupRequest
+from src.db.models import Base, PickupEvent, PickupRequest, User
 from src.main import app
+from src.services.security import hash_password
 
 MAT_KHAU = "demo1234"
 
@@ -91,17 +95,48 @@ async def _tao_yeu_cau(api: AsyncClient, token: str) -> dict:
     """Tạo một yêu cầu trong ngưỡng tự động → trạng thái ``cho_nhan``."""
     response = await api.post(
         "/api/v1/pickups",
-        json={
-            "items": [{"name": "Thùng carton", "category_code": "recyclable_paper", "qty": 2}],
-            "est_weight_kg": 8,
-            "preferred_date": (date.today() + timedelta(days=3)).isoformat(),
-            "preferred_window": "08:00-10:00",
-            "confirmed_no_hazardous": True,
-        },
+        json=_payload_yeu_cau(),
         headers=_auth(token),
     )
     assert response.status_code == 200, response.text
     return response.json()
+
+
+def _payload_yeu_cau(**sua) -> dict:
+    """Payload hợp lệ để tạo yêu cầu thu gom; ``sua`` ghi đè từng trường."""
+    payload = {
+        "items": [{"name": "Thùng carton", "category_code": "recyclable_paper", "qty": 2}],
+        "est_weight_kg": 8,
+        "preferred_date": (date.today() + timedelta(days=3)).isoformat(),
+        "preferred_window": "08:00-10:00",
+        "confirmed_no_hazardous": True,
+    }
+    payload.update(sua)
+    return payload
+
+
+def _them_cu_dan_khong_can_ho(
+    session: Session,
+    *,
+    dia_chi: str,
+    lat: float | None = None,
+    lng: float | None = None,
+) -> User:
+    """Cư dân hộ dân lẻ (không thuộc căn hộ nào) để test nhánh unit_id = None."""
+    cu_dan = User(
+        email="dan_pho@demo.vn",
+        phone="0901112222",
+        full_name="Dân phố không căn hộ",
+        role="resident",
+        password_hash=hash_password(MAT_KHAU),
+        unit_id=None,
+        address=dia_chi,
+        lat=lat,
+        lng=lng,
+    )
+    session.add(cu_dan)
+    session.flush()
+    return cu_dan
 
 
 def _dem_event(session: Session, request_id: int) -> int:
@@ -336,3 +371,113 @@ async def test_khong_xac_nhan_duoc_tu_trang_thai_khac_da_giao_don_vi(api: AsyncC
 
     assert response.status_code == 400
     assert "giao đơn vị thu gom" in response.json()["error"]["message_vi"]
+
+
+# --- Mở khoá tạo yêu cầu cho cư dân không căn hộ (gói P59) --------------------
+
+
+@pytest.mark.asyncio
+async def test_cu_dan_co_can_ho_tao_duoc_va_unit_id_dung(api: AsyncClient, api_session: Session) -> None:
+    """(a) Cư dân có căn hộ tạo được như cũ, unit_id đúng căn hộ của họ."""
+    resident = await _dang_nhap(api, "resident@demo.vn")
+    cu_dan = api_session.scalar(select(User).where(User.email == "resident@demo.vn"))
+    assert cu_dan is not None and cu_dan.unit_id is not None
+
+    yeu_cau = await _tao_yeu_cau(api, resident)
+
+    ban_ghi = api_session.get(PickupRequest, yeu_cau["id"])
+    assert ban_ghi is not None
+    assert ban_ghi.unit_id == cu_dan.unit_id, "Cư dân có căn hộ thì unit_id phải đúng căn hộ của họ"
+
+
+@pytest.mark.asyncio
+async def test_cu_dan_khong_can_ho_co_dia_chi_tao_duoc_qua_api(
+    api: AsyncClient, api_session: Session
+) -> None:
+    """(b) Cư dân không căn hộ nhưng có users.address → tạo được qua API.
+
+    ``address`` lấy từ nơi ở của chính người đó (tầng dịch vụ ``noi_o_cua``),
+    ``unit_id`` vẫn None.
+    """
+    _them_cu_dan_khong_can_ho(api_session, dia_chi="123 Phố Mô Phỏng, Hà Nội", lat=21.01, lng=105.8)
+    api_session.commit()
+    token = await _dang_nhap(api, "dan_pho@demo.vn")
+
+    response = await api.post("/api/v1/pickups", json=_payload_yeu_cau(), headers=_auth(token))
+
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["unit"] == "", "Hộ dân lẻ không có mã căn hộ"
+    assert data["address"] == "123 Phố Mô Phỏng, Hà Nội", "Điểm lấy hàng lấy từ nơi ở của chính người đó"
+    ban_ghi = api_session.get(PickupRequest, data["id"])
+    assert ban_ghi is not None
+    assert ban_ghi.unit_id is None
+    assert ban_ghi.address == "123 Phố Mô Phỏng, Hà Nội"
+
+
+@pytest.mark.asyncio
+async def test_cu_dan_khong_can_ho_khong_dia_chi_tra_loi_400(api: AsyncClient, api_session: Session) -> None:
+    """(c) Không căn hộ, không địa chỉ nào → lỗi HTTP 400 mã PU-400, KHÔNG phải 500."""
+    _them_cu_dan_khong_can_ho(api_session, dia_chi="")
+    api_session.commit()
+    token = await _dang_nhap(api, "dan_pho@demo.vn")
+
+    response = await api.post("/api/v1/pickups", json=_payload_yeu_cau(), headers=_auth(token))
+
+    assert response.status_code == 400, response.text
+    loi = response.json()["error"]
+    assert loi["code"] == "PU-400", "Phải giữ nguyên mã lỗi hiện có của tầng dịch vụ"
+
+
+@pytest.mark.asyncio
+async def test_gui_dia_chi_rieng_khac_noi_o_duoc_ton_trong(api: AsyncClient, api_session: Session) -> None:
+    """(d) Gửi address riêng khác nơi ở → yêu cầu nhận đúng address đó.
+
+    Cư dân có căn hộ vẫn giữ unit_id để BQL toà duyệt được — tầng dịch vụ đã quy.
+    """
+    resident = await _dang_nhap(api, "resident@demo.vn")
+
+    response = await api.post(
+        "/api/v1/pickups",
+        json=_payload_yeu_cau(address="999 Địa chỉ riêng, Hà Nội"),
+        headers=_auth(resident),
+    )
+
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["address"] == "999 Địa chỉ riêng, Hà Nội"
+    ban_ghi = api_session.get(PickupRequest, data["id"])
+    assert ban_ghi is not None
+    assert ban_ghi.address == "999 Địa chỉ riêng, Hà Nội"
+    assert ban_ghi.unit_id is not None, "Cư dân có căn hộ: gửi address riêng vẫn giữ unit_id"
+
+
+def test_pickup_dict_yeu_cau_unit_id_none_khong_sa_warning(api_session: Session) -> None:
+    """(e) pickup_dict của yêu cầu unit_id=None → không nổ, không SAWarning, có address.
+
+    Trước gói P59, ``session.get(Unit, None)`` trả None kèm SAWarning — may mà
+    dòng sau đã có ``if unit`` nên không nổ. Giờ phải chặn tường minh.
+    """
+    cu_dan = _them_cu_dan_khong_can_ho(api_session, dia_chi="123 Phố Mô Phỏng, Hà Nội")
+    api_session.commit()
+    yeu_cau = PickupRequest(
+        resident_id=cu_dan.id,
+        unit_id=None,
+        address="123 Phố Mô Phỏng, Hà Nội",
+        items=[{"name": "Bàn gỗ", "category_code": "bulky", "qty": 1}],
+        weight_min_kg=10.0,
+        weight_max_kg=30.0,
+        est_weight_kg=20.0,
+        status="cho_nhan",
+    )
+    api_session.add(yeu_cau)
+    api_session.commit()
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        data = pickup_dict(api_session, yeu_cau)
+
+    sa_warning = [w for w in caught if issubclass(w.category, SAWarning)]
+    assert sa_warning == [], [str(w.message) for w in sa_warning]
+    assert data["address"] == "123 Phố Mô Phỏng, Hà Nội"
+    assert data["unit"] == ""

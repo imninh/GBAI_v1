@@ -18,7 +18,18 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VisionProvider = str
+# Mọi tên mà hệ thống thực sự dùng được, lấy từ `build_client_for` trong
+# `src/services/vision/__init__.py` (gemini, openai, openrouter, nvidia, deepseek,
+# groq, mistral, local_only) cộng `stub` — tên của đường `get_vision_model` (IoT).
+# `local_only` dựng được qua nhánh riêng (ném `VisionUnavailableError` mã
+# VISION-LOCAL); `stub` không nằm trong `build_client_for` — nó do `get_vision_model`
+# phục vụ (bẫy đã báo trong báo cáo gói P55).
+#
+# Đừng hạ xuống `str`: gõ sai tên provider sẽ không ai phát hiện cho tới lúc gọi
+# model và nhận VISION-400 — lỗi đã tốn hai ngày tuần trước.
+VisionProvider = Literal[
+    "gemini", "groq", "openai", "openrouter", "nvidia", "deepseek", "mistral", "local_only", "stub"
+]
 
 # Ba tầng có gọi model đám mây. T0 (cache pHash) và T0.5 (CLIP local) không gọi
 # nên không nằm ở đây.
@@ -317,6 +328,15 @@ class Settings(BaseSettings):
     # Ngưỡng điểm của một hộp phát hiện. Thấp quá thì báo động giả, cao quá thì
     # bỏ sót — 0,35 là mức khởi điểm, CHƯA chuẩn lại trên ảnh rác thật.
     yolo_confidence: float = Field(default=0.35, ge=0.0, le=1.0)
+
+    # --- Tầng T0.5d: cắt từng vật rồi CLIP chấm từng crop (hướng A) ----------
+    # MẶC ĐỊNH TẮT — chưa đo xong trên ảnh rác thật. Bật lên thì ảnh nhiều vật
+    # được cắt riêng từng crop, mỗi crop chỉ có một vật nên CLIP chấm cao hơn
+    # hẳn → chốt được tại chỗ, $0, không leo cloud (Groq free tier chỉ
+    # 8.000 token/phút — gọi cloud cho từng vật là bất khả thi).
+    phan_loai_tung_vat: bool = False
+    # Tối đa số vật cắt và chấm trong một ảnh; điểm cao được ưu tiên trước.
+    so_vat_toi_da: int = 4
 
     # --- Tầng T0: cache pHash --------------------------------------------
     # Khoảng cách Hamming tối đa giữa 2 pHash để coi là cùng một món rác.

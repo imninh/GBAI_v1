@@ -22,7 +22,17 @@ class PickupRequest(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     resident_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    unit_id: Mapped[int] = mapped_column(ForeignKey("units.id"), index=True)
+    # Liên kết hành chính tới căn hộ — NULL khi cư dân là hộ dân lẻ (không thuộc
+    # căn hộ nào) hoặc chọn điểm lấy hàng khác nơi ở. Toạ độ lấy hàng khi đó nằm
+    # ở ba cột `address` / `lat` / `lng` dưới đây.
+    unit_id: Mapped[int | None] = mapped_column(ForeignKey("units.id"), nullable=True, index=True)
+    # Điểm lấy hàng của RIÊNG yêu cầu này — xe đi đến đây để lấy đồ, có thể khác
+    # nơi ở đăng ký trên `users`. `address` rỗng nghĩa là không có điểm riêng
+    # (lấy ở nơi ở theo `users`); `lat` / `lng` cho phép NULL vì không phải lúc
+    # nào cũng có toạ độ.
+    address: Mapped[str] = mapped_column(String(300), default="")
+    lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     items: Mapped[list] = mapped_column(JSON, default=list)  # [{name, category_code, qty, media_id}]
     # Khối lượng lưu thành KHOẢNG (ADR-0003): vision ước lượng kg từ ảnh sai
     # vài lần là bình thường, nên ngưỡng HITL so với ``weight_max_kg`` —

@@ -146,3 +146,8 @@ iot/firmware/.pio/
 # Device credentials. Only secrets.example.h is committed.
 iot/firmware/include/secrets.h
 
+
+# Sổ nội bộ — không đẩy lên repo
+JOURNAL.md
+WORKLOG.md
+CLAUDE.local.md
