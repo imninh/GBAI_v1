@@ -14,6 +14,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from src.db.models import Base, WasteCategory
 from src.db.seed_data import WASTE_CATEGORIES
@@ -33,7 +34,7 @@ async def client():
 @pytest.fixture
 def db_session() -> Iterator[Session]:
     """CSDL SQLite trong bộ nhớ, đã seed sẵn danh mục rác."""
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False})
+    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     session = factory()

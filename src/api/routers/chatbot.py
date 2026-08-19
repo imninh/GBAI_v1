@@ -6,7 +6,6 @@ from typing import Any
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
 
 from src.api.deps import DbSession
 from src.services.chatbot import ask_chatbot

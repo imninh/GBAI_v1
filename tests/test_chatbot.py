@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.db.models import Building, KnowledgeChunk, KnowledgeDoc, WasteCategory
+from src.api.deps import get_db
+from src.db.models import Building, KnowledgeChunk, KnowledgeDoc
 from src.main import app
 from src.services.chatbot import (
     ask_chatbot,
@@ -18,7 +20,22 @@ from src.services.chatbot import (
     handle_waste_law,
     normalize_input,
 )
-from src.services.chatbot_tools import query_viable_bins
+
+
+@pytest.fixture
+def chatbot_client(db_session: Session) -> Iterator[TestClient]:
+    def _override() -> Iterator[Session]:
+        try:
+            yield db_session
+            db_session.commit()
+        except Exception:
+            db_session.rollback()
+            raise
+
+    app.dependency_overrides[get_db] = _override
+    with TestClient(app) as client:
+        yield client
+    app.dependency_overrides.pop(get_db, None)
 
 
 @pytest.fixture
@@ -148,9 +165,8 @@ def test_ask_chatbot_out_of_scope_abstain(db_session: Session):
 
 # --- 7. Test API Endpoints -----------------------------------------------
 
-def test_api_chatbot_ask(db_session: Session, mock_knowledge_db: dict[str, int]):
-    client = TestClient(app)
-    response = client.post(
+def test_api_chatbot_ask(chatbot_client: TestClient, mock_knowledge_db: dict[str, int]):
+    response = chatbot_client.post(
         "/api/v1/chatbot/ask",
         json={"question": "Không phân loại rác bị phạt bao nhiêu tiền?"},
     )
@@ -162,9 +178,8 @@ def test_api_chatbot_ask(db_session: Session, mock_knowledge_db: dict[str, int])
     assert "source_badge" in data
 
 
-def test_api_chatbot_feedback():
-    client = TestClient(app)
-    response = client.post(
+def test_api_chatbot_feedback(chatbot_client: TestClient):
+    response = chatbot_client.post(
         "/api/v1/chatbot/feedback",
         json={
             "question": "Bỏ chai nhựa ở đâu?",
@@ -178,9 +193,8 @@ def test_api_chatbot_feedback():
     assert response.json()["status"] == "success"
 
 
-def test_api_chatbot_suggested_questions():
-    client = TestClient(app)
-    response = client.get("/api/v1/chatbot/suggested-questions")
+def test_api_chatbot_suggested_questions(chatbot_client: TestClient):
+    response = chatbot_client.get("/api/v1/chatbot/suggested-questions")
     assert response.status_code == 200
     suggestions = response.json().get("suggestions", [])
     assert len(suggestions) >= 3

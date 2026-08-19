@@ -18,16 +18,14 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
 from typing import Any, Literal
 
 from sqlalchemy.orm import Session
 
 from src.config import get_settings
-from src.services.chatbot_tools import ViableBinInfo, format_bins_for_llm_context, query_viable_bins
+from src.services.chatbot_tools import format_bins_for_llm_context, query_viable_bins
 from src.services.pii import redact
 from src.services.rag import (
-    RetrievedChunk,
     embed_query,
     reorder_context,
     retrieve,
