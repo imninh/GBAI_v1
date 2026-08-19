@@ -13,6 +13,7 @@ import { CleanerHistoryScreen, CleanerMeScreen, RouteTodayScreen } from "@/compo
 import { ManagerConsole } from "@/components/manager/console";
 import { AskScreen, BUOC_MAC_DINH, ProcessingScreen, buocTuKetQua } from "@/components/resident/ask";
 import { NearbyBinsScreen } from "@/components/resident/nearby-bins";
+import { ChatbotModal } from "@/components/resident/ChatbotModal";
 import { LoginScreen, OnboardingScreen, Mascot } from "@/components/resident/onboarding";
 import {
   DiemXanhScreen,
@@ -371,6 +372,13 @@ function ResidentApp() {
           onDiemXanh={() => setMan("diemxanh")}
         />
       )}
+
+      {/* Trợ lý AI Chatbot nổi */}
+      <ChatbotModal
+        buildingId={user?.building_id}
+        userLat={user?.building_lat}
+        userLng={user?.building_lng}
+      />
     </PhoneFrame>
 
     {/* Overlay chúc mừng sau phân loại đúng — Mun nhảy, người dùng bấm để đóng.

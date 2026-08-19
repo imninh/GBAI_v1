@@ -170,7 +170,7 @@ class Settings(BaseSettings):
     # ``https://localhost`` và ``capacitor://localhost`` là origin mà app Android
     # đóng gói bằng Capacitor tự dùng khi phục vụ giao diện từ trong máy. Thiếu
     # hai dòng này thì app cài về gọi API bị CORS chặn.
-    cors_origins: str = "http://localhost:3000,http://localhost:3001,https://localhost,capacitor://localhost"
+    cors_origins: str = "https://gbai-v1.vercel.app,http://localhost:3000,http://localhost:3001,https://localhost,capacitor://localhost"
 
     # Máy chủ tự nạp dữ liệu nền khi khởi động. Bật trên Render vì ở đó không có
     # chỗ chạy tay ``scripts/seed.py``; để tắt khi dev cho khỏi bất ngờ.

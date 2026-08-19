@@ -399,3 +399,44 @@ export interface AgentRunDetail {
 export interface ApiErrorBody {
   error: { code: string; message_vi: string; detail: Record<string, unknown> };
 }
+
+// --- Chatbot RAG ---
+export interface ChatbotSource {
+  doc_title: string;
+  section: string;
+  quote: string;
+  doc_type: string;
+  source: string;
+  score: number;
+}
+
+export interface ViableBinCard {
+  id: number;
+  code: string;
+  name: string;
+  address: string;
+  category_codes: string[];
+  category_names: string[];
+  fill_percent: number;
+  battery_percent: number;
+  status: string;
+  status_label_vi: string;
+  is_viable: boolean;
+  distance_meters: number | null;
+  lat: number | null;
+  lng: number | null;
+}
+
+export interface ChatbotResponse {
+  answer: string;
+  intent: "waste_law" | "bin_query" | "app_guide" | "out_of_scope";
+  confidence_level: "High" | "Medium" | "Low";
+  confidence_score: number;
+  source_badge: string;
+  sources: ChatbotSource[];
+  viable_bins: ViableBinCard[];
+  fallback_level: number;
+  generated_by: string;
+  tokens_used: number;
+  cost_usd: number;
+}

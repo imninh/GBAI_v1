@@ -5,13 +5,19 @@ $ErrorActionPreference = 'Stop'
 
 $HookFile = '.git/hooks/pre-push'
 
-# Git on Windows runs hooks via Git Bash, so the hook body must be bash.
+# Git on Windows runs hooks via Git Bash / sh.
 $HookBody = @'
-#!/usr/bin/env bash
+#!/bin/sh
 # Pre-push: sweep recent Antigravity / Gemini / OpenCode prompts, then submit.
-bash scripts/_pyrun.sh scripts/log_antigravity.py --auto || true
-bash scripts/_pyrun.sh scripts/log_opencode.py --auto || true
-bash scripts/_pyrun.sh scripts/submit_log.py || true
+if [ -f "scripts/_pyrun.cmd" ]; then
+    scripts/_pyrun.cmd scripts/log_antigravity.py --auto 2>/dev/null || true
+    scripts/_pyrun.cmd scripts/log_opencode.py --auto 2>/dev/null || true
+    scripts/_pyrun.cmd scripts/submit_log.py 2>/dev/null || true
+else
+    sh scripts/_pyrun.sh scripts/log_antigravity.py --auto 2>/dev/null || true
+    sh scripts/_pyrun.sh scripts/log_opencode.py --auto 2>/dev/null || true
+    sh scripts/_pyrun.sh scripts/submit_log.py 2>/dev/null || true
+fi
 exit 0
 '@
 

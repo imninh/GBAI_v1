@@ -5,3 +5,10 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+/** Mở khung Chatbot RAG GreenBin từ bất kỳ đâu */
+export function openGreenBinChat() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("open-greenbin-chat"));
+  }
+}

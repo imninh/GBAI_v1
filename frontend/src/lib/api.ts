@@ -6,6 +6,7 @@ import type { Bin, BinReading, BinStats, DiemGui, NhanVien } from "./bins";
 import { nenAnh } from "./nen_anh";
 import type {
   AgentRunDetail,
+  ChatbotResponse,
   Classification,
   EvalSummary,
   NavigationResult,
@@ -326,4 +327,12 @@ export const api = {
       `/bins/${encodeURIComponent(code)}/nhan-vien`,
       { method: "PATCH", body: JSON.stringify({ cleaner_id: cleanerId }) },
     ),
+
+  // --- Chatbot RAG ---
+  chatbotAsk: (payload: { question: string; building_id?: number | null; lat?: number | null; lng?: number | null }) =>
+    request<ChatbotResponse>("/chatbot/ask", { method: "POST", body: JSON.stringify(payload) }),
+  chatbotFeedback: (payload: { question: string; answer: string; intent: string; rating: number; comment?: string }) =>
+    request<{ status: string; message: string }>("/chatbot/feedback", { method: "POST", body: JSON.stringify(payload) }),
+  chatbotSuggestions: () =>
+    request<{ suggestions: { category: string; label: string; question: string }[] }>("/chatbot/suggested-questions"),
 };

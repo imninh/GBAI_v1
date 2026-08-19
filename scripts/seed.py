@@ -168,7 +168,15 @@ def seed_knowledge(session: Session, buildings: dict[str, Building]) -> None:
             )
             session.add(doc)
             session.flush()
-            for chunk in row["chunks"]:
+
+        for chunk in row["chunks"]:
+            existing_chunk = session.scalar(
+                select(KnowledgeChunk).where(
+                    KnowledgeChunk.doc_id == doc.id,
+                    KnowledgeChunk.section == chunk["section"],
+                )
+            )
+            if existing_chunk is None:
                 session.add(
                     KnowledgeChunk(
                         doc_id=doc.id,
@@ -177,6 +185,8 @@ def seed_knowledge(session: Session, buildings: dict[str, Building]) -> None:
                         meta={"needs_verification": bool(chunk.get("needs_verification"))},
                     )
                 )
+            else:
+                existing_chunk.content = chunk["content"]
     session.flush()
 
 

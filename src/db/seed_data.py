@@ -634,18 +634,35 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
         "title": "Luật Bảo vệ môi trường 2020 — phân loại chất thải rắn sinh hoạt tại nguồn",
         "building_code": "",
         "doc_type": "law",
-        "source": "Luật Bảo vệ môi trường số 72/2020/QH14",
+        "source": "Luật số 72/2020/QH14",
         "effective_date": "2022-01-01",
         "chunks": [
             {
-                "section": "Diễn giải — nghĩa vụ phân loại tại nguồn",
+                "section": "Điều 75.1 — 3 Nhóm phân loại CTRSH bắt buộc",
                 "content": (
-                    "Luật Bảo vệ môi trường 2020 đặt ra nghĩa vụ phân loại chất thải rắn sinh hoạt tại nguồn "
-                    "đối với hộ gia đình và cá nhân, và giao trách nhiệm tổ chức thực hiện cho đơn vị quản lý "
-                    "khu chung cư. Đây là nền pháp lý cho việc toà nhà triển khai phân loại rác."
+                    "Chất thải rắn sinh hoạt từ hộ gia đình, cá nhân phải phân loại thành 3 nhóm: "
+                    "(1) Rác có khả năng tái sử dụng, tái chế (giấy, nhựa, kim loại, thủy tinh, vải, gỗ, cao su, e-waste); "
+                    "(2) Rác thực phẩm (thức ăn thừa, rau củ quả, hữu cơ dễ phân hủy); "
+                    "(3) Rác sinh hoạt khác (rác nguy hại hộ gia đình, rác cồng kềnh, rác trơ vô cơ). "
+                    "Hạn chót thực hiện bắt buộc toàn quốc là ngày 31/12/2024."
                 ),
-                "needs_verification": True,
-            }
+            },
+            {
+                "section": "Điều 77 — Nguyên tắc chi trả giá dịch vụ thu gom",
+                "content": (
+                    "Cơ chế giá dịch vụ thu gom, vận chuyển và xử lý chất thải rắn sinh hoạt được tính dựa trên "
+                    "nguyên tắc Người gây ô nhiễm phải trả tiền, định lượng theo khối lượng hoặc thể tích chất thải. "
+                    "Hộ gia đình không phân loại sẽ phải trả mức phí cao hơn như đối với rác thải sinh hoạt khác."
+                ),
+            },
+            {
+                "section": "Điều 79 — Trách nhiệm Ban quản lý chung cư và Chủ đầu tư",
+                "content": (
+                    "Ban quản lý chung cư có trách nhiệm bố trí thiết bị chứa và điểm tập kết riêng biệt cho từng "
+                    "loại rác (tái chế, hữu cơ, rác khác, rác nguy hại, rác cồng kềnh). BQL có quyền từ chối tiếp nhận "
+                    "chất thải của cư dân nếu không phân loại đúng quy định."
+                ),
+            },
         ],
     },
     {
@@ -656,14 +673,117 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
         "effective_date": "2022-08-25",
         "chunks": [
             {
-                "section": "Diễn giải — chế tài với hành vi không phân loại",
+                "section": "Điều 26.1 — Mức phạt không phân loại rác tại nguồn",
                 "content": (
-                    "Nghị định 45/2022/NĐ-CP quy định chế tài xử phạt hành chính đối với hành vi không phân loại "
-                    "chất thải rắn sinh hoạt theo quy định. Mức phạt cụ thể và điều khoản áp dụng phải tra tại "
-                    "văn bản gốc trước khi trích dẫn ra ngoài."
+                    "Phạt tiền từ 500.000 đồng đến 1.000.000 đồng đối với hành vi hộ gia đình, cá nhân không "
+                    "phân loại chất thải rắn sinh hoạt theo quy định; không sử dụng bao bì chứa chất thải rắn sinh hoạt đúng quy chuẩn."
                 ),
-                "needs_verification": True,
-            }
+            },
+            {
+                "section": "Điều 26.2 — Phạt vứt rác bừa bãi tại chung cư và nơi công cộng",
+                "content": (
+                    "Phạt tiền từ 500.000 đồng đến 1.000.000 đồng đối với hành vi vứt, thải, bỏ rác thải sinh hoạt, "
+                    "đổ nước thải không đúng nơi quy định tại khu chung cư, thương mại, dịch vụ hoặc nơi công cộng."
+                ),
+            },
+            {
+                "section": "Điều 29 — Phạt vi phạm về quản lý rác nguy hại sinh hoạt",
+                "content": (
+                    "Phạt tiền từ 1.000.000 đồng đến 2.000.000 đồng đối với hành vi không lưu giữ riêng chất thải nguy hại "
+                    "(pin, ắc quy, bóng đèn huỳnh quang, chai lọ hóa chất) mà để lẫn vào rác sinh hoạt thông thường. "
+                    "Phạt từ 5.000.000 đồng đến 10.000.000 đồng nếu xả hóa chất độc hại vào hệ thống thoát nước hoặc họng rác chung cư."
+                ),
+            },
+        ],
+    },
+    {
+        "title": "Hướng dẫn Kỹ thuật 9368/BTNMT-KSONMT — Phân loại chi tiết từng loại rác",
+        "building_code": "",
+        "doc_type": "guideline",
+        "source": "Công văn số 9368/BTNMT-KSONMT ngày 02/11/2023 của Bộ TN&MT",
+        "effective_date": "2023-11-02",
+        "chunks": [
+            {
+                "section": "Nhóm Tái chế — Giấy, Hộp sữa và Bìa Carton",
+                "content": (
+                    "Giấy báo, sách vở, bìa carton và vỏ hộp sữa giấy (Tetra Pak) thuộc nhóm rác tái chế. "
+                    "Vỏ hộp sữa chỉ cần trút hết sữa, bóp dẹp phẳng, KHÔNG cần bóc tách lớp nhôm bên trong. "
+                    "Giấy dính dầu mỡ hoặc khăn giấy ướt đã dùng phải chuyển sang thùng rác khác."
+                ),
+            },
+            {
+                "section": "Nhóm Tái chế — Chai Nhựa, Ly Nhựa và Kim Loại",
+                "content": (
+                    "Chai nhựa PET, ly nhựa trà sữa, can nhựa HDPE, lon bia lon nước ngọt nhôm thuộc nhóm rác tái chế. "
+                    "Yêu cầu: Đổ sạch nước/trân châu thừa, tráng sơ bằng nước sạch và bóp dẹp để tiết kiệm thể tích."
+                ),
+            },
+            {
+                "section": "Nhóm Rác Nguy hại — Chai Lọ Hóa Chất, Pin và Đèn Thủy Ngân",
+                "content": (
+                    "Chai nước tẩy bồn cầu, nước xịt muỗi, bình sơn, pin, bóng đèn huỳnh quang, thuốc hết hạn thuộc RÁC NGUY HẠI. "
+                    "Tuyệt đối KHÔNG vứt vào thùng nhựa tái chế dù vỏ là nhựa. Cần đậy chặt nắp và đem xuống điểm thu gom riêng ở hầm B1."
+                ),
+            },
+            {
+                "section": "Nhóm Rác Cồng Kềnh — Đồ Quá Khổ và Nội Thất Cũ",
+                "content": (
+                    "Đồ cồng kềnh (sofa, nệm, giường, tủ, máy giặt, tivi) là vật phẩm có kích thước vượt 0.5m x 0.5m x 0.5m "
+                    "hoặc nặng trên 10kg. Bắt buộc đăng ký trước với BQL ít nhất 24 giờ, sử dụng thang máy chở hàng và trả phí dịch vụ bốc dỡ."
+                ),
+            },
+        ],
+    },
+    {
+        "title": "Hướng dẫn sử dụng App GreenBin AI — Cẩm nang Cư dân",
+        "building_code": "",
+        "doc_type": "app_guide",
+        "source": "Sổ tay người dùng GreenBin AI v1.0",
+        "effective_date": "2026-01-01",
+        "chunks": [
+            {
+                "section": "Tổng quan 5 Tab chức năng của App",
+                "content": (
+                    "Ứng dụng GreenBin AI gồm 5 tab chức năng chính: "
+                    "(1) Phân loại: Chụp ảnh hoặc gõ chữ để AI nhận diện nhóm rác và hướng dẫn màu thùng; "
+                    "(2) Yêu cầu: Đặt lịch thu gom đồ cồng kềnh (sofa, nệm, tủ) và theo dõi tiến độ; "
+                    "(3) Lịch: Xem lịch thu gom rác toà nhà (hoạt động được cả khi mất mạng); "
+                    "(4) Điểm gửi: Bản đồ thùng rác thông minh gần nhất với mức đầy thời gian thực; "
+                    "(5) Tôi: Quản lý điểm thưởng xanh Green Points, đổi căn hộ và lịch sử phân loại."
+                ),
+            },
+            {
+                "section": "Cách Phân loại Rác bằng Ảnh và Chữ",
+                "content": (
+                    "Để phân loại rác: Vào tab 'Phân loại'. Bạn có thể chụp ảnh hoặc gõ mô tả chữ. "
+                    "Khi chụp ảnh, giữ thẳng camera, đủ sáng. AI sẽ trả về nhóm rác, màu thùng cần bỏ, "
+                    "hướng dẫn xử lý sơ bộ và trích dẫn quy định toà nhà. Nếu nhiều món rác trong ảnh, AI sẽ liệt kê từng món."
+                ),
+            },
+            {
+                "section": "Cách Đặt lịch Thu gom Đồ Cồng Kềnh",
+                "content": (
+                    "Để đăng ký thu gom đồ cồng kềnh: Vào tab 'Yêu cầu' > Bấm 'Tạo yêu cầu mới' > Chọn loại đồ "
+                    "(nội thất, nệm, sofa), chụp ảnh và ước tính số lượng > Chọn ngày & khung giờ mong muốn > Gửi yêu cầu. "
+                    "Bạn có thể theo dõi 10 trạng thái từ 'Chờ duyệt', 'Đã xếp tuyến' cho tới 'Hoàn tất'."
+                ),
+            },
+            {
+                "section": "Tra cứu Thùng Rác Thông Minh và Điểm Gửi",
+                "content": (
+                    "Vào tab 'Điểm gửi' để xem bản đồ các thùng rác thông minh. Bạn có thể lọc theo loại rác tái chế "
+                    "(nhựa, giấy, kim loại), xem khoảng cách thực tế, và xem mức đầy theo màu "
+                    "(Xanh = Còn chỗ <70%, Vàng = Sắp đầy 70-90%, Đỏ = Đã đầy >90% hoặc Mất kết nối)."
+                ),
+            },
+            {
+                "section": "Điểm Xanh Green Points và Quyền Riêng Tư",
+                "content": (
+                    "Mỗi lần phân loại đúng và gửi rác tái chế, bạn được cộng Điểm Xanh (Green Points) hiển thị ở tab 'Tôi'. "
+                    "Tại tab này bạn cũng có thể xem lịch sử phân loại, đổi thông tin căn hộ, và kiểm tra chính sách bảo mật "
+                    "(ảnh chụp được tự động che mặt và xoá tạm thời sau khi xử lý)."
+                ),
+            },
         ],
     },
 ]
