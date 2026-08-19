@@ -220,7 +220,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-20 right-4 z-40 flex items-center gap-2.5 rounded-full bg-emerald-800/95 py-2 pl-2 pr-4 text-white shadow-[0_8px_30px_rgba(16,70,35,0.35)] backdrop-blur-xs border border-emerald-600/40 transition-all duration-300 hover:scale-105 hover:bg-emerald-700 active:scale-95 sm:bottom-6 sm:right-6 group"
+          className="fixed bottom-20 right-4 z-[1001] flex items-center gap-2.5 rounded-full bg-emerald-800/95 py-2 pl-2 pr-4 text-white shadow-[0_8px_30px_rgba(16,70,35,0.35)] backdrop-blur-xs border border-emerald-600/40 transition-all duration-300 hover:scale-105 hover:bg-emerald-700 active:scale-95 sm:bottom-6 sm:right-6 group"
           title="Bấm vào để hỏi Mun AI"
         >
           <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-emerald-700/80 overflow-hidden shadow-inner">
@@ -239,7 +239,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
 
       {/* Cửa sổ Chat Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-xs p-0 sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/40 backdrop-blur-xs p-0 sm:items-center sm:p-4">
           <div className="flex h-[92vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-2xl sm:h-[650px] sm:rounded-2xl dark:bg-zinc-900 dark:text-zinc-100">
             {/* Header với Mun avatar */}
             <div className="flex items-center justify-between border-b border-emerald-900/40 px-4 py-3 bg-gradient-to-r from-emerald-800 to-emerald-900 text-white rounded-t-2xl">

@@ -416,7 +416,7 @@ export default function NavigationMode({
         center={initialCenter}
         zoom={16}
         scrollWheelZoom
-        className="h-full w-full"
+        className="h-full w-full relative z-0 isolate"
       >
         {tileMode === "satellite" ? (
           <TileLayer
