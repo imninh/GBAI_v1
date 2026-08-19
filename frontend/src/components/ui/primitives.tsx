@@ -83,8 +83,8 @@ export function SectionLabel({ className, ...props }: React.HTMLAttributes<HTMLD
   return <div className={cn("text-[13px] font-bold text-muted mb-2", className)} {...props} />;
 }
 
-export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-xl bg-black/[0.06]", className)} suppressHydrationWarning />;
+export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("animate-pulse rounded-xl bg-black/[0.06]", className)} suppressHydrationWarning {...props} />;
 }
 
 /** Trạng thái rỗng — phân biệt "chưa có gì bao giờ" với "không có kết quả sau lọc". */

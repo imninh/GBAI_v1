@@ -104,8 +104,8 @@ export default function BinMap({
       className="h-full w-full"
     >
       <TileLayer
-        attribution='&copy; OpenStreetMap, &copy; CARTO'
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        attribution='&copy; Google Maps'
+        url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi&gl=VN"
       />
       {/* Chỉ vẽ thùng đã có toạ độ — `lat`/`lng` được phép null trong API. */}
       {bins.filter(hasCoords).map((bin) => (

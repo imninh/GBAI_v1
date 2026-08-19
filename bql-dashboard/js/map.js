@@ -36,13 +36,12 @@ class BQLTrashMap {
     // Custom Zoom control position (top right)
     L.control.zoom({ position: 'topright' }).addTo(this.map);
 
-    // CartoDB Voyager Light Tile Layer (clean enterprise map for green & white UI)
+    // Google Maps Tile Layer
     this.tileLayer = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi&gl=VN',
       {
         maxZoom: 19,
-        subdomains: 'abcd',
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        attribution: '&copy; Google Maps'
       }
     ).addTo(this.map);
 
