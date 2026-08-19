@@ -36,10 +36,16 @@ import { SessionProvider, useSession } from "@/lib/session";
 import type { Classification } from "@/lib/types";
 
 export default function Page() {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <SessionProvider>
       <main className="min-h-dvh w-full" suppressHydrationWarning>
-        <AppShell />
+        {mounted ? <AppShell /> : <Skeleton className="h-dvh w-full" />}
       </main>
     </SessionProvider>
   );
