@@ -17,6 +17,7 @@ import { IconChonAnh, IconDuyet, IconMoTaChu, IconChuong } from "@/lib/icons";
 import { chonAnh, chupAnh } from "@/lib/platform";
 import { useSession } from "@/lib/session";
 import type { Classification } from "@/lib/types";
+import { openGreenBinChat } from "@/lib/utils";
 
 const GOI_Y_NHANH = [
   { label: "Hộp sữa giấy", query: "hộp sữa giấy tráng nhôm", tone: "" },
@@ -110,11 +111,21 @@ export function AskScreen({
         </div>
       </div>
 
-      {/* ── Mun tràn viền phải — "bleeding off edge" như prototype ── */}
+      {/* ── Mun tràn viền phải — Bấm vào để mở Chatbot RAG ── */}
       <div className="pointer-events-none absolute right-[-26px] top-[92px] z-0 h-[170px] w-[170px] rounded-full bg-[radial-gradient(circle_at_46%_40%,#e9faf0,rgba(233,250,240,0))]" />
-      <div className="pointer-events-none absolute right-[-14px] top-[104px] z-0 w-[138px]">
-        <Mascot size={138} tuThe="hello" className="animate-gbfloat drop-shadow-[0_16px_22px_rgba(30,80,50,.22)]" />
-      </div>
+      <button
+        type="button"
+        onClick={() => openGreenBinChat()}
+        className="absolute right-[-14px] top-[104px] z-20 w-[138px] cursor-pointer transition-transform duration-300 hover:scale-110 active:scale-95 group focus:outline-none"
+        title="Bấm vào Mun để hỏi đáp phân loại rác & luật!"
+      >
+        {/* Bóng thoại nhỏ mời gọi bấm chat */}
+        <div className="absolute -top-3 left-[-24px] z-30 animate-bounce rounded-full bg-emerald-800 px-2.5 py-1 text-[11px] font-bold text-white shadow-lg border border-emerald-600/40 whitespace-nowrap">
+          💬 Hỏi Mun nè!
+          <div className="absolute bottom-[-4px] right-3 h-2 w-2 rotate-45 bg-emerald-800 border-r border-b border-emerald-600/40" />
+        </div>
+        <Mascot size={138} tuThe="hello" className="animate-gbfloat drop-shadow-[0_16px_22px_rgba(30,80,50,.22)] transition-transform group-hover:rotate-3" />
+      </button>
 
       {/* ── hero: scan chính ── */}
       <div className="relative z-10 mt-14">

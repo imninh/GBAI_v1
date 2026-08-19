@@ -237,6 +237,39 @@ def retrieve(
     return [c for c in ranked[:top_k] if c.score > 0]
 
 
+def reorder_context(chunks: list[RetrievedChunk]) -> list[RetrievedChunk]:
+    """Sắp xếp chunks quan trọng nhất ra hai đầu (front & back).
+
+    Áp dụng kỹ thuật Lost-in-the-Middle Mitigation (Cẩm nang hd.md Phần 2.6)
+    để LLM chú ý tốt nhất tới các đoạn có điểm liên quan cao nhất.
+    """
+    if len(chunks) <= 2:
+        return chunks
+    front: list[RetrievedChunk] = []
+    back: list[RetrievedChunk] = []
+    for i, chunk in enumerate(chunks):
+        if i % 2 == 0:
+            front.append(chunk)
+        else:
+            back.append(chunk)
+    return front + back[::-1]
+
+
+def rrf_fusion(
+    bm25_ranked_indices: list[int],
+    vector_ranked_indices: list[int],
+    *,
+    k: int = 60,
+) -> dict[int, float]:
+    """Hợp nhất thứ hạng Reciprocal Rank Fusion (RRF k=60) (hd.md Phần 2.4)."""
+    scores: dict[int, float] = {}
+    for rank, idx in enumerate(bm25_ranked_indices, start=1):
+        scores[idx] = scores.get(idx, 0.0) + 1.0 / (k + rank)
+    for rank, idx in enumerate(vector_ranked_indices, start=1):
+        scores[idx] = scores.get(idx, 0.0) + 1.0 / (k + rank)
+    return scores
+
+
 # --- Sinh hướng dẫn -------------------------------------------------------
 
 _ADVICE_PROMPT = """Bạn viết hướng dẫn bỏ rác cho cư dân một chung cư Việt Nam.

@@ -5,7 +5,7 @@
 
 from fastapi import APIRouter
 
-from src.api.routers import auth, bins, catalog, classify, media, ops, phien, pickups, routes, tracking
+from src.api.routers import auth, bins, catalog, chatbot, classify, media, ops, phien, pickups, routes, tracking
 from src.services.vision import provider_status
 
 router = APIRouter()
@@ -20,6 +20,7 @@ router.include_router(ops.router)
 router.include_router(bins.router)
 router.include_router(tracking.router)
 router.include_router(phien.router)
+router.include_router(chatbot.router)
 
 
 @router.get("/status", tags=["ops"])
