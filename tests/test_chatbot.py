@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.db.models import Building, KnowledgeChunk, KnowledgeDoc, WasteCategory
+from src.db.models import Building, KnowledgeChunk, KnowledgeDoc
 from src.main import app
 from src.services.chatbot import (
     ask_chatbot,
@@ -18,7 +17,6 @@ from src.services.chatbot import (
     handle_waste_law,
     normalize_input,
 )
-from src.services.chatbot_tools import query_viable_bins
 
 
 @pytest.fixture
