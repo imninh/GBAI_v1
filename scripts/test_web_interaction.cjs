@@ -18,6 +18,11 @@ async function run() {
     }
   }
 
+  if (!executablePath) {
+    console.error('❌ Không tìm thấy trình duyệt Chrome hoặc Edge.');
+    process.exit(1);
+  }
+
   console.log(`🌐 Khởi chạy trình duyệt: ${executablePath}`);
   const browser = await puppeteer.launch({
     executablePath,
@@ -27,6 +32,7 @@ async function run() {
   });
 
   const context = browser.defaultBrowserContext();
+  // Cấp quyền định vị Geolocation và set toạ độ giả lập chính xác ở Hoàn Kiếm, Hà Nội
   await context.overridePermissions('http://localhost:3000', ['geolocation']);
 
   const page = await browser.newPage();
@@ -41,7 +47,7 @@ async function run() {
     const skipBtn = buttons.find(b => b.innerText.includes('Bỏ qua') || b.innerText.includes('Tôi đã có tài khoản'));
     if (skipBtn) skipBtn.click();
   });
-  await new Promise(r => setTimeout(r, 1500));
+  await new Promise(r => setTimeout(r, 1200));
 
   console.log('3️⃣ Đăng nhập vai trò Cư dân...');
   await page.evaluate(() => {
@@ -49,27 +55,28 @@ async function run() {
     const resBtn = buttons.find(b => b.innerText.includes('Cư dân') || b.innerText.includes('resident@demo.vn'));
     if (resBtn) resBtn.click();
   });
-  
-  // Chờ màn hình Cư dân hiển thị đầy đủ
-  await page.waitForSelector('h1', { timeout: 10000 });
   await new Promise(r => setTimeout(r, 1500));
 
   console.log('4️⃣ Bấm vào chú gấu mèo Mun để mở khung Chatbot RAG...');
   await page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent('open-greenbin-chat'));
+    const munBtn = document.querySelector('button[title*="Mun"]') || document.querySelector('button[title*="Hỏi Mun"]');
+    if (munBtn) munBtn.click();
+    else if (window.dispatchEvent) {
+      window.dispatchEvent(new CustomEvent('open-greenbin-chat'));
+    }
   });
 
-  await page.waitForSelector('#chatbot-input', { timeout: 10000 });
-  console.log('✅ Khung chat Mun AI đã mở thành công!');
+  await new Promise(r => setTimeout(r, 1500));
 
-  console.log('5️⃣ Gửi câu hỏi F2 (Tra cứu thùng rác gần nhất) $\\to$ Kích hoạt tracking GPS DUY NHẤT 1 LẦN...');
+  console.log('5️⃣ Hỏi F2 (Tra cứu thùng rác gần nhất) để kích hoạt tracking GPS DUY NHẤT 1 LẦN...');
+  await page.waitForSelector('#chatbot-input', { timeout: 10000 });
   await page.type('#chatbot-input', 'Cho tôi biết thùng rác tái chế gần đây còn chỗ không?');
 
   const sendBtn = await page.$('#chatbot-send-btn');
   if (sendBtn) await sendBtn.click();
 
-  console.log('⏳ Chờ Mistral AI tra cứu và so khớp khoảng cách GPS...');
-  await new Promise(r => setTimeout(r, 8000));
+  console.log('⏳ Chờ Mistral AI tra cứu thùng rác IoT theo toạ độ GPS vừa được tracking...');
+  await new Promise(r => setTimeout(r, 7000));
   await page.screenshot({ path: path.join(ARTIFACT_DIR, '08_gps_tracking_bins_result.png') });
   console.log('📸 Đã chụp: 08_gps_tracking_bins_result.png');
 

@@ -19,8 +19,8 @@ router.include_router(routes.router)
 router.include_router(ops.router)
 router.include_router(bins.router)
 router.include_router(tracking.router)
-router.include_router(phien.router)
 router.include_router(chatbot.router)
+router.include_router(phien.router)
 
 
 @router.get("/status", tags=["ops"])
