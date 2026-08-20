@@ -12,6 +12,7 @@ import * as React from "react";
 import { Button, Card, EmptyState, ErrorState, SeedBadge, Skeleton } from "@/components/ui/primitives";
 import { api } from "@/lib/api";
 import { ngayGioVn, phanTram, soVn, tienUsd } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import {
   IconBoQua,
   IconCanhBao,
@@ -50,16 +51,17 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
       {du.alerts.map((c) => (
         <div
           key={c.id}
-          className="mb-4 flex items-center gap-3 rounded-2xl border px-4 py-3.5"
-          style={{
-            background: c.severity === "critical" ? "#fdeee6" : "#fff7e6",
-            borderColor: c.severity === "critical" ? "#f6cdb8" : "#f2d999",
-          }}
+          className={cn(
+            "mb-4 flex items-center gap-3 rounded-2xl border px-4 py-3.5 shadow-[var(--shadow-xs)] transition-all duration-200",
+            c.severity === "critical"
+              ? "bg-hazard-soft border-hazard/30 text-hazard-dark"
+              : "bg-amber-soft border-amber-line/60 text-amber"
+          )}
         >
-          <span className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-xl bg-hazard text-white">
-            <IconCanhBao className="h-[18px] w-[18px]" />
+          <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-hazard text-white shadow-xs">
+            <IconCanhBao className="h-5 w-5" />
           </span>
-          <span className="flex-1 text-sm font-bold text-[#8a3418]">{c.title}</span>
+          <span className="flex-1 text-sm font-bold">{c.title}</span>
           <Button size="sm" variant="outline" onClick={() => api.runs().then(() => onGoto("pickup"))}>
             Xem
           </Button>
@@ -67,9 +69,9 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
       ))}
 
       <div className="mb-4 grid grid-cols-2 gap-3.5 xl:grid-cols-4">
-        <Card className="cursor-pointer p-4" onClick={() => onGoto("pickup")}>
-          <div className="mb-1.5 text-xs font-bold text-muted">Cần duyệt</div>
-          <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none">{du.queues.total}</div>
+        <Card className="cursor-pointer p-4 transition-all duration-300 ease-[var(--ease-spring)] hover:-translate-y-1 hover:shadow-[var(--shadow-md)]" onClick={() => onGoto("pickup")}>
+          <div className="mb-1.5 text-xs font-bold text-muted uppercase tracking-wider">Cần duyệt</div>
+          <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums">{du.queues.total}</div>
           <div className="mt-1.5 text-[11px] font-semibold text-muted">
             {du.queues.pickup} thu gom · {du.queues.labels} nhãn · {du.queues.routes} tuyến
           </div>
@@ -79,9 +81,9 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
           </div>
         </Card>
 
-        <Card className="p-4">
-          <div className="mb-1.5 text-xs font-bold text-muted">Lượt phân loại tuần này</div>
-          <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none">
+        <Card className="p-4 transition-all duration-300 ease-[var(--ease-spring)] hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
+          <div className="mb-1.5 text-xs font-bold text-muted uppercase tracking-wider">Lượt phân loại tuần này</div>
+          <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums">
             {soVn(du.classifications_this_week)}
           </div>
           <div className="mt-1.5 text-[11px] font-extrabold text-leaf-dark">
@@ -96,9 +98,9 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
           </div>
         </Card>
 
-        <Card className="p-4">
-          <div className="mb-1.5 text-xs font-bold text-muted">Độ chính xác (có người xác nhận)</div>
-          <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none">
+        <Card className="p-4 transition-all duration-300 ease-[var(--ease-spring)] hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
+          <div className="mb-1.5 text-xs font-bold text-muted uppercase tracking-wider">Độ chính xác (có người xác nhận)</div>
+          <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums">
             {phanTram(du.accuracy)}
           </div>
           <div className="mt-1.5 text-[11px] font-semibold text-muted">trên {du.verified_count} ca đã xác nhận</div>
@@ -106,11 +108,10 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
 
         {/* Chỉ số an toàn cốt lõi của đề — nằm ở tổng quan, không giấu trong trang eval. */}
         <Card
-          className="p-4"
-          style={{
-            background: antoanXanh ? "#e6f4ea" : "#fdeee6",
-            borderColor: antoanXanh ? "#bfe6cc" : "#f6cdb8",
-          }}
+          className={cn(
+            "p-4 transition-all duration-300 ease-[var(--ease-spring)] hover:-translate-y-1 hover:shadow-[var(--shadow-md)]",
+            antoanXanh ? "bg-leaf-soft/60 border-leaf-mint/40" : "bg-hazard-soft/80 border-hazard/30"
+          )}
         >
           <div className="mb-1.5 text-xs font-bold" style={{ color: antoanXanh ? "#1f8a4f" : "#c1471c" }}>
             <span className="inline-flex items-center gap-1.5">
@@ -119,7 +120,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
             </span>
           </div>
           <div
-            className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none"
+            className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums"
             style={{ color: antoanXanh ? "#1f8a4f" : "#c1471c" }}
           >
             {antoan.hazard_missed_count}

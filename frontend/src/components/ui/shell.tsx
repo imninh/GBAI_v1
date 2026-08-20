@@ -32,7 +32,7 @@ export function PhoneFrame({
     // viền điện thoại: không viền đen, không tai thỏ, không đồng hồ giả.
     <div
       data-dark={statusDark || undefined}
-      className="mx-auto flex h-dvh w-full flex-col overflow-hidden sm:max-w-[560px] sm:border-x sm:border-line-3"
+      className="mx-auto flex h-dvh w-full flex-col overflow-hidden sm:max-w-[560px] sm:border-x sm:border-line-3 sm:shadow-[var(--shadow-lg)]"
       style={{ background: bg }}
     >
       <div className="gb-scroll flex-1 overflow-y-auto overflow-x-hidden">{children}</div>
@@ -62,7 +62,7 @@ export function TabBar({
   accent?: string;
 }) {
   return (
-    <div className="z-30 flex h-[84px] flex-none items-start border-t border-[rgba(20,40,25,.06)] bg-white/95 px-3 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+    <div className="z-30 flex h-[86px] flex-none items-start border-t border-line/60 bg-white/90 px-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl shadow-[0_-4px_20px_rgba(22,33,26,0.03)]">
       {items.map((item) => {
         const isActive = item.key === active;
         if (item.raised) {
@@ -71,11 +71,11 @@ export function TabBar({
               key={item.key}
               onClick={() => onChange(item.key)}
               aria-label="Chụp món rác"
-              className="relative flex flex-1 cursor-pointer items-start justify-center bg-transparent"
+              className="group relative flex flex-1 cursor-pointer items-start justify-center bg-transparent"
             >
               {/* Nút nổi: tròn, màu xanh, nhô lên khỏi thanh để dễ chạm bằng ngón cái. */}
               <span
-                className="animate-gbpop flex h-[58px] w-[58px] items-center justify-center rounded-full bg-leaf text-white shadow-[0_10px_22px_-6px_rgba(47,174,102,.7)] transition-transform active:scale-95"
+                className="flex h-[58px] w-[58px] items-center justify-center rounded-full bg-leaf text-white shadow-[var(--shadow-leaf-glow)] transition-all duration-300 ease-[var(--ease-bounce)] group-hover:scale-105 group-active:scale-95"
                 style={{ marginTop: "-18px" }}
                 aria-hidden="true"
               >
@@ -88,26 +88,29 @@ export function TabBar({
           <button
             key={item.key}
             onClick={() => onChange(item.key)}
-            className="relative flex flex-1 cursor-pointer flex-col items-center gap-1.5 bg-transparent"
-            style={{ color: isActive ? accent : "#a8b0a7" }}
+            className="relative flex flex-1 cursor-pointer flex-col items-center gap-1.5 pt-1.5 bg-transparent transition-all duration-200 ease-[var(--ease-spring)] active:scale-95"
+            style={{ color: isActive ? accent : "#8a938a" }}
             aria-current={isActive ? "page" : undefined}
             aria-label={`Điều hướng ${item.label}`}
           >
             {/* Trạng thái chọn: pill mềm nở ra sau icon, icon đậm màu hơn. */}
             <span
               aria-hidden="true"
-              className={`flex h-8 items-center justify-center rounded-full transition-all ${
-                isActive ? "w-[52px] bg-leaf-soft" : "w-8"
-              }`}
+              className={cn(
+                "flex h-8 items-center justify-center rounded-full transition-all duration-300 ease-[var(--ease-spring)]",
+                isActive ? "w-[54px] bg-leaf-soft text-leaf-dark shadow-[var(--shadow-xs)]" : "w-8 hover:bg-black/5"
+              )}
             >
               {item.icon}
             </span>
             {item.badge ? (
-              <span className="absolute right-5 top-0 flex h-4 min-w-4 items-center justify-center rounded-lg bg-hazard px-1 text-[10px] font-extrabold text-white">
+              <span className="absolute right-5 top-1 flex h-4 min-w-4 items-center justify-center rounded-full border border-white bg-hazard px-1 text-[10px] font-extrabold text-white shadow-[var(--shadow-xs)]">
                 {item.badge}
               </span>
             ) : null}
-            <span className="text-[11px] font-bold">{item.label}</span>
+            <span className={cn("text-[11px] tracking-tight transition-all", isActive ? "font-extrabold text-ink" : "font-bold text-muted")}>
+              {item.label}
+            </span>
           </button>
         );
       })}
@@ -136,17 +139,17 @@ export function ScreenHeader({
   tone?: "muted" | "hazard";
 }) {
   return (
-    <div className="flex items-center gap-2.5 px-[18px] pb-3 pt-1.5">
+    <div className="flex items-center gap-2.5 px-5 pb-3 pt-2">
       {onBack && (
         <button
           onClick={onBack}
           aria-label="Quay lại"
-          className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-full bg-white text-ink shadow-[0_2px_8px_rgba(20,40,25,.08)]"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-line-3 bg-white text-ink shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:scale-105 hover:shadow-[var(--shadow-sm)] active:scale-95"
         >
           <IconQuayLai className="h-5 w-5" />
         </button>
       )}
-      <span className={cn("text-[15px] font-bold", tone === "hazard" ? "text-[#a04b26]" : "text-muted-2")}>{title}</span>
+      <span className={cn("text-sm font-bold tracking-tight", tone === "hazard" ? "text-hazard-dark" : "text-ink-soft")}>{title}</span>
       <span className="flex-1" />
       {right}
     </div>
