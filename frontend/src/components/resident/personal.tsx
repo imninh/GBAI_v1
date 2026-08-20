@@ -619,7 +619,11 @@ function SuaHoSo({ user, onXong, onHuy }: { user: User; onXong: () => void; onHu
 export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => void }) {
   const diem = user.green_points;
   const cap = tinhCap(diem);
-  const streak = tinhStreak();
+  const [streak, setStreak] = React.useState(0);
+
+  React.useEffect(() => {
+    setStreak(tinhStreak());
+  }, []);
 
   const HUY_HIEU = [
     { icon: "♻️", ten: "Tách đúng nhóm", moTa: "Phân loại đúng món đầu tiên", daMo: diem > 0 },

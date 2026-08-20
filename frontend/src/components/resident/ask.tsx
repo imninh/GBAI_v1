@@ -17,7 +17,7 @@ import { IconChonAnh, IconDuyet, IconMoTaChu, IconChuong } from "@/lib/icons";
 import { chonAnh, chupAnh } from "@/lib/platform";
 import { useSession } from "@/lib/session";
 import type { Classification } from "@/lib/types";
-import { openGreenBinChat } from "@/lib/utils";
+import { cn, openGreenBinChat } from "@/lib/utils";
 
 const GOI_Y_NHANH = [
   { label: "Hộp sữa giấy", query: "hộp sữa giấy tráng nhôm", tone: "" },
@@ -84,14 +84,22 @@ export function AskScreen({
   // Điểm và cấp độ tính từ số thật `green_points`; streak từ hoạt động thật.
   const diem = user?.green_points ?? 0;
   const cap = tinhCap(diem);
-  const streak = tinhStreak();
+  const [streak, setStreak] = React.useState(0);
+  const [greeting, setGreeting] = React.useState("Chào bạn,");
+  const [scheduleText, setScheduleText] = React.useState("");
+
+  React.useEffect(() => {
+    setStreak(tinhStreak());
+    setGreeting(loiChao());
+    setScheduleText(`${tenThu()}, ${homNay()}`);
+  }, []);
 
   return (
     <div className="relative flex min-h-full flex-col overflow-hidden bg-[linear-gradient(180deg,#e7f5ec_0%,#f4f1ea_40%)] px-5 pb-[120px] pt-[54px]">
       {/* ── header: lời chào + chuông ── */}
       <div className="flex items-center justify-between">
         <div className="min-w-0">
-          <div className="text-[13px] font-semibold text-ink-soft">{loiChao()}</div>
+          <div className="text-xs font-semibold text-ink-soft">{greeting}</div>
           <div className="mt-0.5 truncate font-[family-name:var(--font-display)] text-[26px] font-bold leading-none tracking-tight">
             {user?.full_name?.split(" ").pop() ?? "Bạn"} <span className="text-leaf">🌿</span>
           </div>
@@ -226,38 +234,39 @@ export function AskScreen({
       <button
         type="button"
         onClick={onXemLich}
-        className="relative z-10 mt-3 flex items-center gap-3 rounded-[20px] bg-recycle-soft px-4 py-4 text-left"
+        className="relative z-10 mt-3.5 flex items-center gap-3 rounded-[20px] bg-recycle-soft border border-recycle/20 px-4 py-3.5 text-left shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer"
       >
-        <span className="flex h-[42px] w-[42px] flex-none items-center justify-center rounded-[14px] bg-white">
+        <span className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] bg-white shadow-xs">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2f7fe0" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="3" />
             <path d="M3 10h18M8 2v4M16 2v4" />
           </svg>
         </span>
         <span className="flex-1">
-          <span className="block text-[14px] font-bold">Lịch thu gom của toà</span>
-          <span className="mt-0.5 block text-[12.5px] font-semibold text-ink-soft">
-            {tenThu()}, {homNay()} · xem cả khi không có mạng
+          <span className="block text-sm font-bold text-ink">Lịch thu gom của toà</span>
+          <span className="mt-0.5 block text-xs font-semibold text-ink-soft">
+            {scheduleText || "Hôm nay"} · xem cả khi không có mạng
           </span>
         </span>
-        <span className="text-[18px] font-bold text-recycle">›</span>
+        <span className="text-xl font-bold text-recycle transition-transform group-hover:translate-x-1">›</span>
       </button>
 
       {/* ── hỏi nhanh không cần chụp ── */}
       <div className="relative z-10 mt-5">
-        <div className="mb-2.5 text-[13px] font-bold text-ink-soft">Hỏi nhanh</div>
+        <div className="mb-2.5 text-xs font-extrabold uppercase tracking-wider text-muted">Hỏi nhanh</div>
         <div className="flex flex-wrap gap-2">
           {GOI_Y_NHANH.map((g) => (
             <button
               key={g.label}
               onClick={() => onAskText(g.query)}
-              className={
+              className={cn(
+                "cursor-pointer rounded-full px-4 py-2 text-xs font-bold shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:scale-105 active:scale-95",
                 g.tone === "hazard"
-                  ? "cursor-pointer rounded-full border-[1.5px] border-[#f6cdb8] bg-hazard-soft px-4 py-2.5 text-[13px] font-bold text-hazard-dark"
+                  ? "border border-hazard/30 bg-hazard-soft text-hazard-dark hover:border-hazard"
                   : g.tone === "unsure"
-                    ? "cursor-pointer rounded-full border-[1.5px] border-[#d9e0ec] bg-[#eef1f6] px-4 py-2.5 text-[13px] font-bold text-[#4a5568]"
-                    : "cursor-pointer rounded-full border-[1.5px] border-line bg-white px-4 py-2.5 text-[13px] font-bold text-ink"
-              }
+                  ? "border border-line-2 bg-[#eef1f6] text-[#4a5568] hover:border-muted"
+                  : "border border-line-2 bg-white text-ink hover:border-leaf hover:bg-leaf-soft/40"
+              )}
             >
               {g.label}
             </button>

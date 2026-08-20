@@ -20,6 +20,7 @@ import { BrowserFrame } from "@/components/ui/shell";
 import { api } from "@/lib/api";
 import { IconKhoa } from "@/lib/icons";
 import { useSession } from "@/lib/session";
+import { cn } from "@/lib/utils";
 
 /** Màn có đủ rộng cho console không.
  *
@@ -245,17 +246,20 @@ function SubTabs({
             onClick={() => allowed && setDang(m.key)}
             disabled={!allowed}
             title={allowed ? undefined : lyDoCam(m.permission)}
-            className="flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[13px] font-bold"
-            style={{
-              background: dangChon ? "#16211a" : "transparent",
-              color: !allowed ? "#b8beb6" : dangChon ? "#fff" : "#3a453d",
-              cursor: allowed ? "pointer" : "not-allowed",
-            }}
+            className={cn(
+              "flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 ease-[var(--ease-spring)] select-none",
+              allowed ? "cursor-pointer active:scale-95" : "cursor-not-allowed text-muted/40",
+              dangChon
+                ? "bg-ink text-white shadow-[var(--shadow-xs)]"
+                : allowed
+                ? "bg-transparent text-ink-soft hover:bg-black/5"
+                : ""
+            )}
           >
             <span>{m.label}</span>
-            {!allowed && <IconKhoa className="h-3.5 w-3.5" />}
+            {!allowed && <IconKhoa className="h-3.5 w-3.5 opacity-60" />}
             {allowed && dem[m.key] ? (
-              <span className="rounded-md bg-hazard px-1.5 py-0.5 text-[10px] font-extrabold text-white">
+              <span className="rounded-md bg-hazard px-1.5 py-0.5 text-[10px] font-extrabold text-white shadow-xs">
                 {dem[m.key]}
               </span>
             ) : null}
@@ -282,12 +286,15 @@ function NavButton({
   badge?: number;
 }) {
   const dangChon = nav === muc.key;
-  const className = "mb-0.5 flex w-full items-center rounded-xl px-3 py-2.5 text-left text-[13px] font-bold";
-  const style = {
-    background: dangChon ? "#16211a" : "transparent",
-    color: !allowed ? "#b8beb6" : dangChon ? "#fff" : "#3a453d",
-    cursor: allowed ? "pointer" : "not-allowed",
-  };
+  const btnClass = cn(
+    "mb-1 flex w-full items-center rounded-xl px-3 py-2.5 text-left text-xs font-bold transition-all duration-200 ease-[var(--ease-spring)] select-none",
+    allowed ? "cursor-pointer active:scale-[0.98]" : "cursor-not-allowed text-muted/40",
+    dangChon
+      ? "bg-ink text-white shadow-[var(--shadow-xs)]"
+      : allowed
+      ? "bg-transparent text-ink-soft hover:bg-black/5 hover:translate-x-0.5"
+      : ""
+  );
 
   if (muc.href) {
     return (
@@ -298,12 +305,11 @@ function NavButton({
         onClick={(e) => {
           if (!allowed) e.preventDefault();
         }}
-        className={className}
-        style={style}
+        className={btnClass}
       >
         <span>{muc.label}</span>
         <span className="flex-1" />
-        {!allowed && <IconKhoa className="h-3.5 w-3.5" />}
+        {!allowed && <IconKhoa className="h-3.5 w-3.5 opacity-60" />}
       </Link>
     );
   }
@@ -313,14 +319,13 @@ function NavButton({
       onClick={() => allowed && setNav(muc.key)}
       disabled={!allowed}
       title={allowed ? undefined : reason}
-      className={className}
-      style={style}
+      className={btnClass}
     >
       <span>{muc.label}</span>
       <span className="flex-1" />
-      {!allowed && <IconKhoa className="h-3.5 w-3.5" />}
+      {!allowed && <IconKhoa className="h-3.5 w-3.5 opacity-60" />}
       {allowed && badge ? (
-        <span className="rounded-md bg-hazard px-2 py-0.5 text-[11px] font-extrabold text-white">{badge}</span>
+        <span className="rounded-md bg-hazard px-2 py-0.5 text-[11px] font-extrabold text-white shadow-xs">{badge}</span>
       ) : null}
     </button>
   );

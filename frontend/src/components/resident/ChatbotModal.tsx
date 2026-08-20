@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Mascot } from "@/components/resident/onboarding";
+import { MarkdownContent } from "@/components/ui/markdown";
 import { api } from "@/lib/api";
 import type { ChatbotResponse } from "@/lib/types";
 
@@ -365,9 +366,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                     )}
 
                     {/* Nội dung tin nhắn */}
-                    <div className="whitespace-pre-line leading-relaxed">
-                      {m.text}
-                    </div>
+                    <MarkdownContent content={m.text} />
 
                     {/* Danh sách thùng rác khả thi (nếu có) */}
                     {m.responseMeta?.viable_bins &&

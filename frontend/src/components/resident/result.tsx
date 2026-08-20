@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import { Button, Card, Chip, DegradedBanner } from "@/components/ui/primitives";
+import { MarkdownContent } from "@/components/ui/markdown";
 import { ScreenHeader } from "@/components/ui/shell";
 import { doTinCay, NHAN_TIN_CAY } from "@/lib/format";
 import { tinhCap } from "@/lib/gamification";
@@ -193,7 +194,9 @@ export function ResultScreen({
         )}
 
         {ketQua.advice && (
-          <Card className="mt-3 p-4 text-sm font-semibold leading-relaxed text-ink-soft">{ketQua.advice}</Card>
+          <Card className="mt-3 p-4 text-sm font-semibold leading-relaxed text-ink-soft">
+            <MarkdownContent content={ketQua.advice} />
+          </Card>
         )}
 
         {lichThuGom && (

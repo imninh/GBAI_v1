@@ -13,6 +13,7 @@ import { Button, Card, Chip, EmptyState, ErrorState, Skeleton } from "@/componen
 import { AnhCoToken } from "@/lib/anh-co-token";
 import { api } from "@/lib/api";
 import { doTinCay, kg, ngayGioVn, ngayVn, phanTram, soVn } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import {
   IconAi,
   IconCaKho,
@@ -91,16 +92,20 @@ export function PickupQueue() {
               <button
                 key={yc.id}
                 onClick={() => api.pickup(yc.id).then(setDangChon)}
-                className="mb-2.5 w-full cursor-pointer rounded-2xl bg-white p-3.5 text-left"
-                style={{ border: dangChon?.id === yc.id ? "2px solid #2fae66" : "1px solid #eceae3" }}
+                className={cn(
+                  "mb-2.5 w-full cursor-pointer rounded-2xl bg-white p-3.5 text-left transition-all duration-200 ease-[var(--ease-spring)] active:scale-[0.98]",
+                  dangChon?.id === yc.id
+                    ? "border-2 border-leaf shadow-[var(--shadow-sm)]"
+                    : "border border-line-3 shadow-[var(--shadow-xs)] hover:border-line-2 hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5"
+                )}
               >
                 <div className="mb-1 flex justify-between">
-                  <span className="text-[13px] font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
-                  <span className="rounded-md bg-amber-soft px-2 py-0.5 text-[11px] font-extrabold text-amber">
+                  <span className="text-xs font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
+                  <span className="rounded-md bg-amber-soft border border-amber-line/60 px-2 py-0.5 text-[11px] font-extrabold text-amber">
                     {kg(yc.est_weight_kg)}
                   </span>
                 </div>
-                <div className="text-[13px] font-bold">
+                <div className="text-xs font-bold text-ink">
                   {yc.unit} · {yc.resident?.full_name}
                 </div>
                 <div className="mt-1 text-[11px] font-semibold text-muted">mong muốn {ngayVn(yc.preferred_date)}</div>
