@@ -97,7 +97,9 @@ def main() -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-    url = os.environ.get("DATABASE_URL", "")
+    from src.config import get_settings
+
+    url = os.environ.get("DATABASE_URL", "") or get_settings().database_url
     if not url:
         print("Thiếu biến môi trường DATABASE_URL.")
         return 1

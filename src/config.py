@@ -392,6 +392,7 @@ class Settings(BaseSettings):
     # Khoá BÍ MẬT (service role). Bỏ qua Row Level Security nên CHỈ dùng ở máy
     # chủ; không bao giờ gửi xuống trình duyệt, không bao giờ ghi vào log.
     supabase_secret_key: str = ""
+    supabase_publishable_key: str = ""
     supabase_bucket: str = "greenbin"
 
     # --- Kiểm soát chi phí ------------------------------------------------
