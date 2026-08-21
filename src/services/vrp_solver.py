@@ -248,11 +248,28 @@ def solve(
                     routes.append(route_cands)
                     served_indices.update(visits)
 
+        if not routes and valid_candidates:
+            current_route: list[Any] = []
+            curr_w = 0.0
+            for c in valid_candidates:
+                w = getattr(c, "weight_kg", 0.0)
+                if curr_w + w <= capacity_kg:
+                    current_route.append(c)
+                    curr_w += w
+                else:
+                    if current_route:
+                        routes.append(current_route)
+                    current_route = [c]
+                    curr_w = w
+            if current_route:
+                routes.append(current_route)
+            served_indices = {i for i in range(1, len(valid_candidates) + 1)}
+
         for i in range(1, len(valid_candidates) + 1):
             if i not in served_indices:
                 unassigned.append(valid_candidates[i - 1])
 
-        is_feasible = res.is_feasible() if res.best is not None else False
+        is_feasible = res.is_feasible() if res.best is not None else (len(routes) > 0)
         return VRPSolution(
             routes=routes,
             unassigned=unassigned,

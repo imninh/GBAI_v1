@@ -38,7 +38,7 @@ jobs:
         run: ruff check src/ tests/ eval/ scripts/
 
       - name: Run tests
-        run: pytest tests/ -v --tb=short
+        run: pytest tests/ -v --tb=short -ra
         env:
           APP_ENV: test
           OPENAI_API_KEY: test-key
