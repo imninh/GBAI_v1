@@ -26,8 +26,8 @@ if not hasattr(graph, "checkpointer") or graph.checkpointer is None:
     graph.checkpointer = MemorySaver()
 
 # Use copilotkit's LangGraphAGUIAgent to serve via AG-UI
-from copilotkit import LangGraphAGUIAgent
 from ag_ui_langgraph import add_langgraph_fastapi_endpoint
+from copilotkit import LangGraphAGUIAgent
 
 app = FastAPI()
 

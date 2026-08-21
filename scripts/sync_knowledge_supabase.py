@@ -41,7 +41,7 @@ def sync_knowledge_to_supabase() -> dict[str, int]:
 
     with session_scope() as session:
         buildings = {b.code: b for b in session.scalars(select(Building)).all()}
-        
+
         docs_created = 0
         docs_updated = 0
         chunks_created = 0
@@ -50,7 +50,7 @@ def sync_knowledge_to_supabase() -> dict[str, int]:
         for row in KNOWLEDGE_DOCS:
             doc = session.scalar(select(KnowledgeDoc).where(KnowledgeDoc.title == row["title"]))
             building = buildings.get(row["building_code"]) if row.get("building_code") else None
-            
+
             if doc is None:
                 doc = KnowledgeDoc(
                     building_id=building.id if building else None,
