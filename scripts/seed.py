@@ -177,17 +177,22 @@ def seed_knowledge(session: Session, buildings: dict[str, Building]) -> None:
                     KnowledgeChunk.section == chunk["section"],
                 )
             )
+            chunk_meta = {
+                "needs_verification": bool(chunk.get("needs_verification")),
+                "keywords": chunk.get("keywords", []),
+            }
             if existing_chunk is None:
                 session.add(
                     KnowledgeChunk(
                         doc_id=doc.id,
                         content=chunk["content"],
                         section=chunk["section"],
-                        meta={"needs_verification": bool(chunk.get("needs_verification"))},
+                        meta=chunk_meta,
                     )
                 )
             else:
                 existing_chunk.content = chunk["content"]
+                existing_chunk.meta = chunk_meta
     session.flush()
 
 
