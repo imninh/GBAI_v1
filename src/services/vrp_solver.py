@@ -130,7 +130,10 @@ def solve(
 
     try:
         model = Model()
-        depot = model.add_depot(x=0.0, y=0.0)
+        try:
+            depot = model.add_depot(0.0, 0.0)
+        except TypeError:
+            depot = model.add_depot(x=0.0, y=0.0)
 
         scale = 100  # 0.01 kg
         scaled_capacity = int(round(capacity_kg * scale))
@@ -140,13 +143,32 @@ def solve(
             weight = getattr(c, "weight_kg", 0.0)
             demand = max(0, int(round(weight * scale)))
             prize = demand * 1000 + 1_000_000
-            client_obj = model.add_client(
-                x=float(i + 1),
-                y=float(i + 1),
-                delivery=[demand],
-                required=False,
-                prize=prize,
-            )
+            try:
+                client_obj = model.add_client(
+                    float(i + 1),
+                    float(i + 1),
+                    delivery=[demand],
+                    required=False,
+                    prize=prize,
+                )
+            except TypeError:
+                try:
+                    client_obj = model.add_client(
+                        float(i + 1),
+                        float(i + 1),
+                        [demand],
+                        [],
+                        prize=prize,
+                        required=False,
+                    )
+                except TypeError:
+                    client_obj = model.add_client(
+                        x=float(i + 1),
+                        y=float(i + 1),
+                        delivery=[demand],
+                        required=False,
+                        prize=prize,
+                    )
             client_objs.append(client_obj)
 
         all_locs = [depot] + client_objs
