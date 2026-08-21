@@ -648,7 +648,8 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                 ),
             },
             {
-                "section": "Điều 77 — Nguyên tắc chi trả giá dịch vụ thu gom",
+                "section": "Điều 79 — Nguyên tắc chi trả giá dịch vụ thu gom",
+                "needs_verification": True,
                 "content": (
                     "Cơ chế giá dịch vụ thu gom, vận chuyển và xử lý chất thải rắn sinh hoạt được tính dựa trên "
                     "nguyên tắc Người gây ô nhiễm phải trả tiền, định lượng theo khối lượng hoặc thể tích chất thải. "
@@ -656,7 +657,8 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                 ),
             },
             {
-                "section": "Điều 79 — Trách nhiệm Ban quản lý chung cư và Chủ đầu tư",
+                "section": "Điều 75 — Trách nhiệm Ban quản lý chung cư và Chủ đầu tư",
+                "needs_verification": True,
                 "content": (
                     "Ban quản lý chung cư có trách nhiệm bố trí thiết bị chứa và điểm tập kết riêng biệt cho từng "
                     "loại rác (tái chế, hữu cơ, rác khác, rác nguy hại, rác cồng kềnh). BQL có quyền từ chối tiếp nhận "
@@ -681,6 +683,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
             },
             {
                 "section": "Điều 26.2 — Phạt vứt rác bừa bãi tại chung cư và nơi công cộng",
+                "needs_verification": True,
                 "content": (
                     "Phạt tiền từ 500.000 đồng đến 1.000.000 đồng đối với hành vi vứt, thải, bỏ rác thải sinh hoạt, "
                     "đổ nước thải không đúng nơi quy định tại khu chung cư, thương mại, dịch vụ hoặc nơi công cộng."
@@ -688,6 +691,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
             },
             {
                 "section": "Điều 29 — Phạt vi phạm về quản lý rác nguy hại sinh hoạt",
+                "needs_verification": True,
                 "content": (
                     "Phạt tiền từ 1.000.000 đồng đến 2.000.000 đồng đối với hành vi không lưu giữ riêng chất thải nguy hại "
                     "(pin, ắc quy, bóng đèn huỳnh quang, chai lọ hóa chất) mà để lẫn vào rác sinh hoạt thông thường. "

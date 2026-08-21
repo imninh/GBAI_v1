@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date as date_type
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -14,7 +15,7 @@ from src.api.errors import bad_request, not_found
 from src.api.serializers import route_dict
 from src.db.models import PickupRoute, RouteStop, User
 from src.models.schemas import CompleteStopRequest, ProposeRouteRequest, ReviewRouteRequest
-from src.services import duong_di_that, route_planner, runs
+from src.services import duong_di_that, lich_tu_dong, route_planner, runs
 from src.services.auth import write_audit
 from src.services.classifier import NodeMetric
 from src.services.pickup_lifecycle import CHO_NHAN, DA_NHAN, chuan_hoa
@@ -156,6 +157,54 @@ def propose_routes(
     return {"items": [route_dict(session, r, full=True) for r in routes]}
 
 
+class TuDongTaoRequest(BaseModel):
+    """Tham số cho lần chạy cron tự tạo chuyến (gói P72)."""
+
+    # Cách giờ thu gom bao lâu thì tạo chuyến. Mặc định 60 phút theo yêu cầu.
+    truoc_bao_lau_phut: int = 60
+    # Chỉ để thử — cron thật bỏ trống để lấy thời điểm hiện tại.
+    bay_gio: datetime | None = None
+
+
+@router.post("/tu-dong-tao")
+def tu_dong_tao(
+    payload: TuDongTaoRequest,
+    session: DbSession,
+    user: Annotated[User, Depends(require("review_route"))],
+) -> dict:
+    """Cron ngoài (Railway Cron Job) gọi định kỳ: tự tạo chuyến theo lịch cố định.
+
+    Một tiếng trước giờ thu gom, hệ thống kiểm các điểm cần thu gom, gộp thành
+    chuyến đề xuất (``status="proposed"``) và giao ``nguon_tao="tu_dong"``. Bảng
+    tóm tắt trả về giúp nhìn log cron là biết lượt chạy vừa làm gì.
+    """
+    run = runs.start_run(session, kind="schedule", trigger="cron")
+    bay_gio = payload.bay_gio or datetime.now()
+    try:
+        ket_qua = lich_tu_dong.tao_chuyen_tu_lich(
+            session,
+            bay_gio=bay_gio,
+            truoc_bao_lau_phut=payload.truoc_bao_lau_phut,
+            run_id=run.id,
+        )
+    except Exception as exc:
+        runs.finish_run(
+            session,
+            run,
+            nodes=[NodeMetric(node="tao_chuyen_tu_lich", status="error", error_type="SCHEDULE_ERROR")],
+            items_processed=0,
+            error=str(exc),
+        )
+        raise
+    runs.finish_run(
+        session,
+        run,
+        nodes=[NodeMetric(node="tao_chuyen_tu_lich", meta=ket_qua)],
+        items_processed=ket_qua.get("so_chuyen_tao", 0),
+    )
+    return ket_qua
+
+
 @router.get("")
 def list_routes(
     session: DbSession,
@@ -255,6 +304,55 @@ def review_route(
         else "Đã huỷ tuyến, các yêu cầu quay về nhóm chờ xếp tuyến."
     )
     return data
+
+
+class KhongCoNguoiRequest(BaseModel):
+    """Lý do đánh dấu thùng ĐẦY khi không tìm được người vận chuyển (gói P72)."""
+
+    ly_do: str = ""
+
+
+@router.post("/{route_id}/khong-co-nguoi")
+def khong_co_nguoi(
+    route_id: int,
+    payload: KhongCoNguoiRequest,
+    session: DbSession,
+    user: Annotated[User, Depends(require("review_route"))],
+) -> dict:
+    """Không tìm được người vận chuyển → đánh dấu thùng của chuyến là ĐẦY.
+
+    Cờ chỉ ảnh hưởng tới cái người dùng nhìn thấy — điểm vẫn thu gom theo lịch
+    cố định. Không ghi đè số đo cảm biến của thùng.
+    """
+    run = runs.start_run(session, kind="schedule", trigger="manager")
+    try:
+        so_thung = lich_tu_dong.danh_dau_day_khi_khong_co_nguoi(
+            session,
+            actor=user,
+            route_id=route_id,
+            ly_do=payload.ly_do,
+        )
+    except ValueError as exc:
+        runs.finish_run(
+            session,
+            run,
+            nodes=[NodeMetric(node="danh_dau_day", status="error", error_type="ROUTE_NOT_FOUND")],
+            items_processed=0,
+            error=str(exc),
+        )
+        raise bad_request(str(exc), code="ROUTE-404") from exc
+    runs.finish_run(
+        session,
+        run,
+        nodes=[NodeMetric(node="danh_dau_day", meta={"so_thung": so_thung})],
+        items_processed=so_thung,
+    )
+    return {
+        "status": "ok",
+        "route_id": route_id,
+        "so_thung_danh_dau": so_thung,
+        "message_vi": "Đã đánh dấu thùng là ĐẦY; điểm vẫn thu gom theo lịch cố định.",
+    }
 
 
 @router.post("/{route_id}/stops/{stop_id}/done")

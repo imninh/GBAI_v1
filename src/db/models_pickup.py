@@ -108,6 +108,13 @@ class PickupRoute(Base):
     approved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     run_id: Mapped[int | None] = mapped_column(ForeignKey("agent_runs.id"), nullable=True)
     is_seed: Mapped[bool] = mapped_column(default=False, index=True)
+    # Gói P72 — phân biệt chuyến tự tạo (agent gộp lịch) với chuyến người tạo thủ
+    # công. Giá trị: "thu_cong" (mặc định) | "tu_dong".
+    nguon_tao: Mapped[str] = mapped_column(String(20), default="thu_cong", index=True)
+    # Gói P73 — ai xác nhận chuyến xong. NULL = chưa ai xác nhận.
+    xac_nhan_boi: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    # Gói P73 — thời điểm xác nhận chuyến xong.
+    xac_nhan_luc: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     stops: Mapped[list[RouteStop]] = relationship(back_populates="route", cascade="all, delete-orphan")
@@ -171,3 +178,30 @@ class GPSLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     route: Mapped[PickupRoute] = relationship()
+
+
+class SuCoThuGom(Base):
+    """Sự cố thu gom do người thu gom báo lên, ĐVTG duyệt (dùng ở P73).
+
+    Người thu gom gặp rác phân loại sai, thùng đã đầy, hoặc chủ nhà không tiếp
+    nhận thì báo lên; ĐVTG xem xét và xử lý (đã xử lý / từ chối).
+    """
+
+    __tablename__ = "su_co_thu_gom"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    route_id: Mapped[int] = mapped_column(ForeignKey("pickup_routes.id"), index=True)
+    # Cho NULL vì sự cố có thể báo ở mức chuyến, chưa chỉ đích danh điểm dừng.
+    stop_id: Mapped[int | None] = mapped_column(ForeignKey("route_stops.id"), nullable=True)
+    nguoi_bao_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    # phan_loai_sai | thung_day | khong_tiep_can | khac
+    loai: Mapped[str] = mapped_column(String(40), default="khac", index=True)
+    mo_ta: Mapped[str] = mapped_column(Text, default="")
+    # Ảnh minh chứng, NULL nếu báo không có ảnh.
+    anh_media_id: Mapped[int | None] = mapped_column(ForeignKey("media.id"), nullable=True)
+    # cho_xu_ly | da_xu_ly | tu_choi
+    trang_thai: Mapped[str] = mapped_column(String(20), default="cho_xu_ly", index=True)
+    nguoi_xu_ly_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    ghi_chu_xu_ly: Mapped[str] = mapped_column(Text, default="")
+    xu_ly_luc: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)

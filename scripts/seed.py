@@ -169,6 +169,10 @@ def seed_knowledge(session: Session, buildings: dict[str, Building]) -> None:
             )
             session.add(doc)
             session.flush()
+        elif doc.source != row["source"]:
+            doc.source = row["source"]
+
+        expected_sections = {chunk["section"] for chunk in row["chunks"]}
 
         for chunk in row["chunks"]:
             existing_chunk = session.scalar(
@@ -188,7 +192,19 @@ def seed_knowledge(session: Session, buildings: dict[str, Building]) -> None:
                 )
             else:
                 existing_chunk.content = chunk["content"]
-    session.flush()
+                existing_chunk.meta = {"needs_verification": bool(chunk.get("needs_verification"))}
+        session.flush()
+
+        stale = session.scalars(
+            select(KnowledgeChunk).where(
+                KnowledgeChunk.doc_id == doc.id,
+                KnowledgeChunk.section.notin_(expected_sections),
+            )
+        ).all()
+        for chunk in stale:
+            print(f"  Xoá chunk cũ: doc={row['title']!r}, section={chunk.section!r}")
+            session.delete(chunk)
+        session.flush()
 
 
 # --- Dữ liệu demo mô phỏng ----------------------------------------------

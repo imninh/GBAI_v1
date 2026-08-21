@@ -5,9 +5,10 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
-from src.api.deps import DbSession
+from src.api.deps import CurrentUser, DbSession
+from src.services.auth import write_audit
 from src.services.chatbot import ask_chatbot
 
 router = APIRouter(prefix="/chatbot", tags=["chatbot"])
@@ -56,14 +57,30 @@ class ChatbotFeedbackRequest(BaseModel):
     rating: int = Field(..., description="1 là Thích (👍), -1 là Không thích (👎)")
     comment: str = ""
 
+    @field_validator("rating")
+    @classmethod
+    def _check_rating(cls, v: int) -> int:
+        # Chỉ nhận 1 hoặc -1. Lưu ý: ge=-1, le=1 vẫn cho lọt số 0 nên phải chặn rõ.
+        if v not in (1, -1):
+            raise ValueError("rating chỉ nhận 1 (👍) hoặc -1 (👎)")
+        return v
+
 
 @router.post("/ask", response_model=ChatbotAskResponse)
-def ask(payload: ChatbotAskRequest, session: DbSession) -> dict[str, Any]:
+def ask(payload: ChatbotAskRequest, session: DbSession, user: CurrentUser) -> dict[str, Any]:
     """Hỏi đáp tự do với Trợ lý GreenBin AI RAG (Luật, Thùng rác, Hướng dẫn App)."""
+    building_id = payload.building_id
+    # Chặn hỏi xuyên toà: nếu người dùng có building_id, chỉ dùng toà của chính họ.
+    if (
+        building_id is not None
+        and user.building_id is not None
+        and building_id != user.building_id
+    ):
+        building_id = user.building_id
     res = ask_chatbot(
         session,
         payload.question,
-        building_id=payload.building_id,
+        building_id=building_id,
         user_lat=payload.lat,
         user_lng=payload.lng,
     )
@@ -71,18 +88,33 @@ def ask(payload: ChatbotAskRequest, session: DbSession) -> dict[str, Any]:
 
 
 @router.post("/feedback")
-def submit_feedback(payload: ChatbotFeedbackRequest, session: DbSession) -> dict[str, Any]:
-    """Ghi nhận đánh giá phản hồi 👍 / 👎 tức thì từ người dùng."""
-    # Phục vụ vòng phản hồi chất lượng (HAX G15 & Triplet Observability)
+def submit_feedback(payload: ChatbotFeedbackRequest, session: DbSession, user: CurrentUser) -> dict[str, Any]:
+    """Ghi nhận đánh giá phản hồi 👍 / 👎 tức thì từ người dùng.
+
+    Ghi thật vào audit_log (HAX G15 & Triplet Observability).
+    """
+    # Cắt độ dài trước khi ghi — cột audit_log chiều rộng có hạn, SQLite không bắt
+    # nhưng PostgreSQL (String) sẽ nổ ở production.
+    write_audit(
+        session,
+        actor=user,
+        action="chatbot_feedback",
+        entity="chatbot",
+        detail={
+            "question": payload.question[:500],
+            "intent": payload.intent,
+            "rating": payload.rating,
+            "comment": payload.comment[:300],
+        },
+    )
     return {
         "status": "success",
-        "message": "Cảm ơn bạn đã đóng góp phản hồi để cải thiện chất lượng AI!",
-        "rating": payload.rating,
+        "message": "Cảm ơn bạn đã gửi đánh giá phản hồi.",
     }
 
 
 @router.get("/suggested-questions")
-def get_suggested_questions() -> dict[str, list[dict[str, str]]]:
+def get_suggested_questions(user: CurrentUser) -> dict[str, list[dict[str, str]]]:
     """Danh sách câu hỏi gợi ý nhanh cho 3 nhóm tính năng."""
     return {
         "suggestions": [

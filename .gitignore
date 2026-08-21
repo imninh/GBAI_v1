@@ -151,3 +151,8 @@ iot/firmware/include/secrets.h
 JOURNAL.md
 WORKLOG.md
 CLAUDE.local.md
+
+# Khoá Firebase — KHÔNG BAO GIỜ đẩy lên kho mã.
+# Khoá tài khoản dịch vụ = toàn quyền quản trị dự án Firebase.
+*firebase-adminsdk*.json
+serviceAccountKey.json

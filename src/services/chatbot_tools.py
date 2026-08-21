@@ -182,14 +182,21 @@ def query_viable_bins(
     return results[:limit]
 
 
-def format_bins_for_llm_context(bins: list[ViableBinInfo]) -> str:
-    """Format danh sách thùng thành ngữ cảnh XML rõ ràng cho LLM đọc."""
+def format_bins_for_llm_context(bins: list[ViableBinInfo], *, has_gps: bool = True) -> str:
+    """Format danh sách thùng thành ngữ cảnh XML rõ ràng cho LLM đọc.
+
+    Khi ``has_gps=False`` (§5.2): không hiển thị khoảng cách, không sắp xếp
+    theo thứ tự khoảng cách, để tránh LLM bịa thông tin vị trí cư dân.
+    """
     if not bins:
         return "Hiện tại không tìm thấy thùng rác nào khả dụng gần khu vực này."
 
     lines = ["<bin_data>"]
     for b in bins:
-        dist_str = f", Khoảng cách: ~{int(b.distance_meters)}m" if b.distance_meters is not None else ""
+        if has_gps and b.distance_meters is not None:
+            dist_str = f", Khoảng cách: ~{int(b.distance_meters)}m"
+        else:
+            dist_str = ""
         cats_str = ", ".join(b.category_names) if b.category_names else ", ".join(b.category_codes)
         lines.append(
             f"- Mã thùng: {b.code} | Tên: {b.name} | Vị trí: {b.address}{dist_str} | "

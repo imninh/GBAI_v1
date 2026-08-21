@@ -9,8 +9,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from src.api.deps import get_db
-from src.db.models import Building, KnowledgeChunk, KnowledgeDoc
+from src.db.models import AuditLog, Building, KnowledgeChunk, KnowledgeDoc, User
 from src.main import app
+from src.services.auth import create_token
 from src.services.chatbot import (
     ask_chatbot,
     check_prompt_injection,
@@ -20,6 +21,7 @@ from src.services.chatbot import (
     handle_waste_law,
     normalize_input,
 )
+from src.services.security import hash_password
 
 
 @pytest.fixture
@@ -165,10 +167,35 @@ def test_ask_chatbot_out_of_scope_abstain(db_session: Session):
 
 # --- 7. Test API Endpoints -----------------------------------------------
 
-def test_api_chatbot_ask(chatbot_client: TestClient, mock_knowledge_db: dict[str, int]):
-    response = chatbot_client.post(
+@pytest.fixture
+def auth_chatbot_client(
+    db_session: Session, chatbot_client: TestClient
+) -> tuple[TestClient, str, User]:
+    """Client đã ghi đè get_db + một user resident có token thật."""
+    bld = Building(code="B-A", name="Toà A", lat=21.0, lng=105.0)
+    db_session.add(bld)
+    db_session.flush()
+
+    user = User(
+        email="cu_dan_a@demo.vn",
+        full_name="Cư dân A",
+        role="resident",
+        password_hash=hash_password("demo1234"),
+        building_id=bld.id,
+    )
+    db_session.add(user)
+    db_session.commit()
+
+    token = create_token(user)
+    return chatbot_client, token, user
+
+
+def test_api_chatbot_ask(auth_chatbot_client: tuple[TestClient, str, User], mock_knowledge_db: dict[str, int]):
+    client, token, _ = auth_chatbot_client
+    response = client.post(
         "/api/v1/chatbot/ask",
         json={"question": "Không phân loại rác bị phạt bao nhiêu tiền?"},
+        headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
     data = response.json()
@@ -178,8 +205,21 @@ def test_api_chatbot_ask(chatbot_client: TestClient, mock_knowledge_db: dict[str
     assert "source_badge" in data
 
 
-def test_api_chatbot_feedback(chatbot_client: TestClient):
+def test_api_chatbot_ask_khong_token(chatbot_client: TestClient):
+    """Không có token → 401 (cổng duyệt auth)."""
     response = chatbot_client.post(
+        "/api/v1/chatbot/ask",
+        json={"question": "Không phân loại rác bị phạt bao nhiêu tiền?"},
+    )
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "AUTH-401"
+
+
+def test_api_chatbot_feedback(
+    auth_chatbot_client: tuple[TestClient, str, User], db_session: Session
+):
+    client, token, _ = auth_chatbot_client
+    response = client.post(
         "/api/v1/chatbot/feedback",
         json={
             "question": "Bỏ chai nhựa ở đâu?",
@@ -188,15 +228,101 @@ def test_api_chatbot_feedback(chatbot_client: TestClient):
             "rating": 1,
             "comment": "Rất chính xác",
         },
+        headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
     assert response.json()["status"] == "success"
 
+    # Phải ghi đúng một dòng mới vào audit_log
+    rows = db_session.query(AuditLog).filter_by(action="chatbot_feedback").all()
+    assert len(rows) == 1
+    detail = rows[0].detail
+    assert detail["rating"] == 1
+    assert detail["intent"] == "bin_query"
+    assert "Bỏ chai nhựa" in detail["question"]
 
-def test_api_chatbot_suggested_questions(chatbot_client: TestClient):
-    response = chatbot_client.get("/api/v1/chatbot/suggested-questions")
+
+def test_api_chatbot_feedback_rating_sai(auth_chatbot_client: tuple[TestClient, str, User]):
+    """rating=99 → 422."""
+    client, token, _ = auth_chatbot_client
+    response = client.post(
+        "/api/v1/chatbot/feedback",
+        json={
+            "question": "Bỏ chai nhựa ở đâu?",
+            "answer": "Thùng tái chế.",
+            "intent": "bin_query",
+            "rating": 99,
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 422
+
+
+def test_api_chatbot_feedback_rating_khong(auth_chatbot_client: tuple[TestClient, str, User]):
+    """rating=0 → 422 (ge=-1, le=1 vẫn cho lọt 0, phải chặn rõ)."""
+    client, token, _ = auth_chatbot_client
+    response = client.post(
+        "/api/v1/chatbot/feedback",
+        json={
+            "question": "Bỏ chai nhựa ở đâu?",
+            "answer": "Thùng tái chế.",
+            "intent": "bin_query",
+            "rating": 0,
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 422
+
+
+def test_api_chatbot_suggested_questions(auth_chatbot_client: tuple[TestClient, str, User]):
+    client, token, _ = auth_chatbot_client
+
+    # Không token → 401
+    resp_no = client.get("/api/v1/chatbot/suggested-questions")
+    assert resp_no.status_code == 401
+
+    # Có token → 200, đủ 6 gợi ý
+    response = client.get(
+        "/api/v1/chatbot/suggested-questions",
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert response.status_code == 200
     suggestions = response.json().get("suggestions", [])
-    assert len(suggestions) >= 3
+    assert len(suggestions) >= 6
     categories = {s["category"] for s in suggestions}
     assert {"waste_law", "bin_query", "app_guide"} <= categories
+
+
+def test_api_chatbot_ask_toa_khac(
+    auth_chatbot_client: tuple[TestClient, str, User], db_session: Session
+):
+    """User thuộc toà A gửi building_id của toà B → ép về toà A, không lộ nội dung B."""
+    client, token, user = auth_chatbot_client
+
+    b_b = Building(code="B-B", name="Toà B", lat=21.1, lng=105.1)
+    db_session.add(b_b)
+    db_session.flush()
+
+    doc_a = KnowledgeDoc(building_id=user.building_id, title="NĐ 45 Toà A", doc_type="law", source="test")
+    doc_b = KnowledgeDoc(building_id=b_b.id, title="NĐ 45 Toà B", doc_type="law", source="test")
+    db_session.add_all([doc_a, doc_b])
+    db_session.flush()
+    db_session.add_all(
+        [
+            KnowledgeChunk(doc_id=doc_a.id, section="Điều 26.1", content="CHUNG_CU_A_456 quy định phạt 500k."),
+            KnowledgeChunk(doc_id=doc_b.id, section="Điều 26.1", content="CHUNG_CU_B_MAT_MA_123 quy định phạt 1tr."),
+        ]
+    )
+    db_session.commit()
+
+    response = client.post(
+        "/api/v1/chatbot/ask",
+        json={"question": "Không phân loại rác bị phạt bao nhiêu?", "building_id": b_b.id},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 200, response.text
+    answer = response.json()["answer"]
+    # Không được mang nội dung riêng của toà B
+    assert "CHUNG_CU_B_MAT_MA_123" not in answer
+    # Đã dùng toà A của người dùng
+    assert "CHUNG_CU_A_456" in answer
