@@ -179,21 +179,48 @@ def solve(
             weight = getattr(c, "weight_kg", 0.0)
             demand = max(0, int(round(weight * scale)))
             prize = demand * 1000 + 1_000_000
-            client = Client(
-                float(i + 1),
-                float(i + 1),
-                delivery=[demand],
-                required=False,
-                prize=prize,
-            )
+            try:
+                client = Client(
+                    float(i + 1),
+                    float(i + 1),
+                    [demand],
+                    [],
+                    0,
+                    0,
+                    9223372036854775807,
+                    0,
+                    prize,
+                    False,
+                )
+            except TypeError:
+                client = Client(
+                    x=float(i + 1),
+                    y=float(i + 1),
+                    delivery=[demand],
+                    required=False,
+                    prize=prize,
+                )
             clients.append(client)
 
-        depot = Depot(0.0, 0.0)
-        vehicle_type = VehicleType(
-            num_available=max(1, num_vehicles),
-            capacity=[scaled_capacity],
-            fixed_cost=50_000,
-        )
+        try:
+            depot = Depot(0.0, 0.0)
+        except TypeError:
+            depot = Depot(x=0.0, y=0.0)
+
+        try:
+            vehicle_type = VehicleType(
+                max(1, num_vehicles),
+                [scaled_capacity],
+                0,
+                0,
+                50_000,
+            )
+        except TypeError:
+            vehicle_type = VehicleType(
+                num_available=max(1, num_vehicles),
+                capacity=[scaled_capacity],
+                fixed_cost=50_000,
+            )
 
         data = ProblemData(
             clients=clients,
