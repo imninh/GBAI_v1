@@ -65,3 +65,28 @@ class AuditLog(Base):
     entity_id: Mapped[str] = mapped_column(String(60), default="")
     detail: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+
+class BatchGanNhan(Base):
+    """Một lô ảnh gom lại để gán nhãn và huấn luyện lại (dùng ở P74).
+
+    Ảnh được gán vào lô qua `media.batch_id`. Lô có thể ở trạng thái mở (thu
+    thập ảnh), đóng (không thêm ảnh nữa), hoặc đã gán nhãn xong.
+    """
+
+    __tablename__ = "batch_gan_nhan"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    # Ví dụ: BATCH-2026-08-20-01. Unique để không tạo trùng lô trong cùng ngày.
+    ma: Mapped[str] = mapped_column(String(40), unique=True, index=True)
+    # mo | dong | da_gan_nhan
+    trang_thai: Mapped[str] = mapped_column(String(20), default="mo", index=True)
+    # app | thiet_bi | hon_hop
+    nguon: Mapped[str] = mapped_column(String(20), default="", index=True)
+    so_anh: Mapped[int] = mapped_column(default=0)
+    ghi_chu: Mapped[str] = mapped_column(Text, default="")
+    # NULL = lô tạo bởi hệ thống, không chỉ đích danh người tạo.
+    nguoi_tao_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    # Thời điểm lô được đóng.
+    dong_luc: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)

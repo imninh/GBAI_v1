@@ -31,26 +31,31 @@
 
 ## 1. Số liệu chốt
 
-Đo trực tiếp, không ước lượng. **Cập nhật 16/08/2026:**
+Đo trực tiếp, không ước lượng. **Cập nhật 18/08/2026.**
 
 ```
-pytest -q                              → 791 passed
+pytest -q                              → 971 passed
 ruff check src/ tests/ eval/ scripts/  → All checks passed!
-số route khai báo                      → 69 (gồm cả WebSocket theo dõi xe)
+số route khai báo                      → 80 (gồm cả WebSocket theo dõi xe)
 frontend: npm run lint                 → 0 lỗi
 frontend: npm --prefix frontend run typecheck → sạch
 ```
 
-| Chỉ số | Giá trị |
-|---|---|
-| Mã Python | **76 file** trong `src/` |
-| Mã test | **93 file** trong `tests/` — **574 hàm test → 791 ca** (có parametrize) |
-| Bảng CSDL | **26** |
-| Endpoint HTTP | **69 route** khai báo (nghiệp vụ dưới `/api/v1` + `/health` + WebSocket) |
-| Vai trò người dùng | 3 · **19 quyền** trong ma trận |
-| Điểm HITL | 3 |
-| Tầng định tuyến model | 4 (T0 · T0.5 · T1 · T2) |
-| Nhà cung cấp model đấu nối | 5 + 1 local (Gemini · OpenAI · OpenRouter · NVIDIA · Groq · CLIP ONNX) |
+| Chỉ số | Giá trị | Bản 16/08 |
+|---|---|---|
+| Mã Python | **91 file** trong `src/` | 76 |
+| Mã test | **113 file** trong `tests/` — **971 ca** | 93 file · 791 ca |
+| Bảng CSDL | **28** | 26 |
+| Endpoint HTTP | **80 route** (nghiệp vụ dưới `/api/v1` + `/health` + WebSocket) | 69 |
+| Vai trò người dùng | 3 · **19 quyền** trong ma trận | không đổi |
+| Điểm HITL | 3 | không đổi |
+| Tầng định tuyến model | 4 (T0 · T0.5 · T1 · T2) | không đổi |
+| Nhà cung cấp model đấu nối | 5 + 1 local (Gemini · OpenAI · OpenRouter · NVIDIA · Groq · CLIP ONNX) | không đổi |
+
+Bước nhảy 791 → 971 ca test và 69 → 80 route đến từ ba việc: **gộp nhánh phần cứng
+của nhóm** vào nhánh triển khai (thêm firmware ESP32, tài liệu IoT, đường
+`/iot/captures`), **đóng lát cắt dọc thiết bị** (mục 12.1), và **thêm luồng phiên bỏ
+rác tại thùng** (mục 12.2). Hai bảng mới là `phien_thung` và `token_thiet_bi`.
 
 Ba quyền thêm sau bản 06/08: `view_diem_gui` (cư dân xem điểm gửi),
 `edit_own_profile` (tự sửa hồ sơ), `assign_bin` (quản lý giao thùng cho nhân
@@ -226,7 +231,7 @@ graph LR
     end
 
     subgraph db["src/db/"]
-        MD["models.py — 26 bảng"]
+        MD["models.py — 28 bảng"]
         SS["session.py"]
     end
 
@@ -714,14 +719,130 @@ không biết tình trạng pin hiện tại ra sao.
 
 ---
 
-## 13. Mô hình dữ liệu (26 bảng)
+### 12.1 Đường phân loại cho thiết bị — `POST /api/v1/iot/captures`
+
+Lát cắt dọc của thùng thông minh: **ESP32-CAM chụp → máy chủ phân loại → trả `route` →
+thiết bị quay servo**. Đây là đường riêng cho **thiết bị**, tách khỏi `POST /classify` của
+ứng dụng người dùng: thiết bị không có tài khoản, không có token đăng nhập, và khuôn dữ
+liệu khác.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant D as ESP32-CAM
+    participant API as POST /iot/captures
+    participant P as services/image_privacy.py
+    participant C as services/classifier.py
+    participant DB as media + classifications + agent_runs
+
+    D->>API: image (JPEG) · device_id · bin_code · item_id? + X-Device-Key
+    API->>API: khoá sai → 401 (không phân biệt "thùng lạ" với "khoá sai")
+    API->>API: item_id đã thấy → trả kết quả cũ, KHÔNG tạo bản ghi thứ hai
+    API->>P: preprocess_image — tước EXIF, làm mờ mặt, nén
+    P-->>API: ProcessedImage (bỏ qua bước riêng tư là LỖI KIỂU, không phải lỗi review)
+    API->>C: classify_waste — đúng 4 tầng T0/T0.5/T1/T2
+    C-->>API: outcome (nhãn · độ tin cậy · tầng · cờ nguy hại)
+    API->>DB: Media (uploader_id = NULL) + Classification + AgentRun
+    API-->>D: label · confidence · route · review_required · model_version
+```
+
+**Bốn ràng buộc kiến trúc của đường này:**
+
+| Ràng buộc | Vì sao |
+|---|---|
+| Thiết bị **chỉ thực thi `route`**, không tự đặt ngưỡng, không tự quyết nhãn | ADR-0012. Ngưỡng và luật an toàn nằm ở máy chủ; firmware đổi hành vi thì phải nạp lại toàn đội thùng |
+| **`label` và `route` tách bạch** — ca không chắc trả `label = "UNKNOWN"` **và** `route = "other"` | `UNKNOWN` nói *máy chủ nghĩ gì*, `route` nói *servo quay đâu*. Gộp hai thứ là mất khả năng đếm số ca không nhận ra được, mà đó là chỉ số chất lượng |
+| Nhóm **nguy hại** luôn `review_required = true` bất kể độ tin cậy | Hướng dẫn sai về rác nguy hại là rủi ro thật, không phải rủi ro thẩm mỹ |
+| `item_id` do thiết bị sinh → **gửi lại không tạo bản ghi thứ hai** | Mạng ở hiện trường chập chờn; thiết bị thử lại là chuyện thường. Không có khoá này thì một món rác đếm thành nhiều |
+
+**Ghi chú lịch sử.** Nhánh phần cứng của nhóm dựng đường `/iot/captures` kèm **một bộ phân
+loại thứ hai** (một lần gọi model, không cache, không CLIP, không YOLO) và **không ghi gì
+xuống cơ sở dữ liệu**. Khi gộp hai nhánh, đường dẫn được **giữ nguyên** để firmware đang
+chạy không phải sửa, còn **phần lõi được thay** bằng bộ phân loại 4 tầng và đường ghi dữ
+liệu thật. Bộ phân loại thứ hai đó chỉ hỗ trợ hai nhà cung cấp model, không có nhà cung cấp
+nào đang chạy thật — nó **trả HTTP 200 kèm trạng thái lỗi**, tức hỏng mà không ai thấy.
+
+---
+
+### 12.2 Phiên bỏ rác tại thùng
+
+Nối người dùng với hành động bỏ rác: cư dân xác thực mình đang đứng trước thùng, thùng tự
+phân loại từng món, hệ thống đếm và ghi nhận.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant U as Cư dân (app)
+    participant API as /api/v1/phien/*
+    participant S as services/phien_thung.py
+    participant D as ESP32-CAM
+    participant N as notifications
+
+    U->>API: mở phiên với mã thùng
+    API->>S: một thùng chỉ có MỘT phiên đang mở
+    S-->>U: ma_phien (uuid) · hạn 10 phút
+    D->>D: chụp → POST /iot/captures (KHÔNG biết phiên là gì)
+    D->>S: máy chủ tự tra phiên đang mở của thùng đó
+    S->>S: chỉ cộng khi vật được nhận diện VÀ được chấp nhận
+    U->>API: đóng phiên (hoặc quá 10 phút → tự hết hạn)
+    S->>N: thông báo: số vật · điểm nhận thức · nói rõ không đổi quà
+```
+
+**Tính chất quan trọng nhất: thiết bị không biết "phiên" là gì.** `/iot/captures` vốn đã
+nhận `bin_code`, nên máy chủ tự ghép ảnh vào phiên đang mở của thùng đó. Hệ quả: **firmware
+không phải sửa một dòng nào**, và **không ai quét mã thì thùng vẫn chạy như thường** — chỉ
+là không cộng cho ai. Phần tính điểm hỏng cũng không được làm hỏng phản hồi phân loại: cả
+khối được bọc, lỗi thì ghi log và trả kết quả phân loại như bình thường.
+
+**Điểm nhận thức — vì sao đếm được phép mà cân thì không.** Dự án có một luật cứng: *điểm
+có giá trị chỉ tính trên khối lượng do người cân*. Luật đó sinh ra vì **không thể ước lượng
+khối lượng từ ảnh** — đoán rồi quy ra quà là gian lận. Nhưng thùng **đếm thật** từng món đi
+qua bộ phân loại; đó là con số máy ghi nhận, không phải suy đoán. Nên phiên thùng cộng
+`diem_nhan_thuc`, và ba ràng buộc được khoá bằng test:
+
+- ⛔ **không** cộng vào `users.green_points`;
+- ⛔ **không** ghi vào `diem_thuong_log` (bảng của điểm có giá trị);
+- ✅ chỉ ghi vào `phien_thung.diem_nhan_thuc`, **không quy đổi**.
+
+⚠️ Và con số này là **"số vật đã phân loại"**, không phải "số rác đã bỏ": một túi hai mươi
+vỏ chai vẫn tính là một. Câu chữ trong thông báo phải nói đúng như vậy.
+
+**Bốn ca thất bại được tách riêng**, mỗi ca một thông báo — gộp chung thành "lỗi" thì người
+dùng đứng trước thùng không biết phải làm gì:
+
+| Ca | Người dùng đọc được |
+|---|---|
+| Không nhận diện được vật | thử đặt lại cho gọn trong khay |
+| Ngăn đích đã đầy | đơn vị thu gom đã được báo |
+| Thùng mất kết nối giữa chừng | phiên đã lưu phần đã bỏ |
+| Quá 10 phút | quét lại mã để tiếp tục |
+
+Phiên đóng vì hết hạn hoặc lỗi mà **đã có vật được chấp nhận** thì **vẫn cộng điểm cho phần
+đã bỏ** — không phạt người dùng vì thiết bị hỏng.
+
+**Giới hạn phần cứng đang mở.** Thiết kế đích là mã QR **đổi mới mỗi phiên**, hiện trên màn
+OLED của thùng — mã dùng một lần thì không ai chụp ảnh mang về nhà quét để lấy điểm mà
+không bỏ rác. Nhưng trên board AI Thinker ESP32-CAM hiện dùng, **màn hình không lắp được
+cùng camera**: bốn chân dùng được đã bị bốn cảm biến của giai đoạn 1 chiếm hết (xem
+`iot/docs/pin-map.md` mục 6.1), nên firmware chỉ bật màn ở môi trường mô phỏng. Hai đường
+đi tiếp: chuyển sang ESP32-S3 nhiều chân hơn, hoặc dùng **mã tĩnh kèm cổng cảm biến người**
+— máy chủ chỉ mở phiên khi thùng vừa báo có người đứng trước nó, đạt cùng mục đích chống
+gian lận bằng đúng phần cứng đang có.
+
+---
+
+## 13. Mô hình dữ liệu (28 bảng)
 
 ```mermaid
 erDiagram
     users ||--o{ media : "tải lên"
     users ||--o{ classifications : "hỏi"
-    users }o--|| units : "ở"
+    users }o--|| buildings : "ở toà"
+    users }o--|| units : "căn hộ (tuỳ chọn)"
     units }o--|| buildings : "thuộc"
+    users ||--o{ phien_thung : "mở phiên bỏ rác"
+    bins ||--o{ phien_thung : "tại thùng"
+    users ||--o{ token_thiet_bi : "nhận thông báo đẩy"
     buildings ||--o{ collection_schedules : "có lịch"
     buildings ||--o{ knowledge_docs : "quy định riêng"
     buildings ||--o{ bins : "đặt tại"
@@ -1064,7 +1185,7 @@ Ghi thẳng, vì "nêu rõ giới hạn, rủi ro, hướng cải tiến" là **
 | **Chưa có bộ 100 ảnh tự chụp** | Chặn eval phân loại · chặn chuẩn lại `CLIP_ACCEPT_CONFIDENCE` cho bản ONNX · chặn việc **chứng minh** YOLO tốt hơn thay vì chỉ nói là tốt hơn. Số liệu trang Chất lượng AI hiện là **dữ liệu demo mô phỏng**, có gắn nhãn rõ trên UI |
 | ~~**Nhiều gói chưa commit**~~ | **Đã hết** — code đang ở `main` của repo deploy, Railway tự dựng lại sau mỗi lần đẩy |
 | ~~**Bản deploy đã cũ**~~ | **Đã hết** — backend Railway + web Vercel chạy bản hiện hành, `/health` 200. **Còn nợ:** repo nhóm `AI20K-Build-Phase-Cohort-3/P-075` chưa merge |
-| **`pickup_requests.unit_id` đang NOT NULL** | Chặn **600/606 tài khoản cư dân** (nhập từ workbook GIS, rải khắp Hà Nội nên không thuộc căn hộ nào) — họ **không tạo được yêu cầu thu gom**. Nghiệp vụ mới cho cư dân *chọn địa điểm* từng yêu cầu, nên cần cột `address/lat/lng` trên chính yêu cầu + `ALTER … DROP NOT NULL`. Đụng CSDL đang chạy nên chờ người duyệt |
+| ~~**`pickup_requests.unit_id` đang NOT NULL**~~ | **Đã hết.** Cột đã nới, `users` và `pickup_requests` đều có `address`/`lat`/`lng`, và `users.building_id` thành liên kết chính thay cho đường vòng qua `units`. Cư dân không gắn căn hộ nay tạo được yêu cầu, có địa chỉ riêng cho từng lần lấy hàng. *(Nguyên văn:)* | Chặn **600/606 tài khoản cư dân** (nhập từ workbook GIS, rải khắp Hà Nội nên không thuộc căn hộ nào) — họ **không tạo được yêu cầu thu gom**. Nghiệp vụ mới cho cư dân *chọn địa điểm* từng yêu cầu, nên cần cột `address/lat/lng` trên chính yêu cầu + `ALTER … DROP NOT NULL`. Đụng CSDL đang chạy nên chờ người duyệt |
 | **Quota Groq quá chật cho đường nóng** | Gói free **8.000 token/phút**. Đo 16/08: bật `reasoning_effort=none` kéo token đầu ra từ **2000 → 148** nên đỡ hẳn, nhưng vài người dùng đồng thời vẫn đụng 429. Đường dài phải đổi tầng T2 sang nhà cung cấp khác hoặc trả phí |
 | **Thiếu 3 deliverable Demo Day** | Pitch deck · video demo · live URL bản mới. Không phải việc code, cần người dựng. *(Bằng chứng đánh giá và bản trích dẫn AI log đã xong.)* |
 
@@ -1085,8 +1206,8 @@ Render.**
 | **Di trú trạng thái dở dang** | Chỗ đọc đã lật, chỗ **ghi** còn từ vựng cũ. Hai bộ từ vựng dùng chung 3 từ (mục 11.3) |
 | **Một ảnh vẫn ép một nhãn** | Kiến trúc cũ không có chỗ nói "bình giữ nhiệt → kim loại **và** củ sạc → nguy hại". **Đã dựng đường gốc (hướng A + YOLO)**: `phat_hien_co_hop` quy hộp YOLO về toạ độ ảnh gốc, `services/phan_loai_nhieu_vat.py` cắt từng vật rồi để **CLIP chấm từng crop** — YOLO chỉ định vị, không bao giờ là nhãn rác. **Mặc định TẮT** (`phan_loai_tung_vat=false`) tới khi đo trên ảnh thật. Lý do làm: ảnh 8 vật kéo confidence CLIP toàn khung xuống **0,1356**, cắt riêng thì chốt được tại chỗ và $0 |
 | ~~**Ảnh cư dân nằm trên đĩa tạm**~~ | **Đã hết** — ảnh đi thẳng Supabase Storage (`uploads/YYYY/MM/DD/`), `/ops/metrics` có khối `storage` tự ghi→đọc→xoá để nhìn thấy tầng này sống hay chết. ⚠️ Ảnh tải lên **trước** 16/08 vẫn nằm ở đĩa và sẽ mất khi máy chủ khởi động lại |
-| **Vào thẳng `/dieu-phoi` khi chưa đăng nhập thì bí đường** | Màn hiện "Bạn cần đăng nhập" và các lệnh gọi API trả 401, nhưng **không đưa người dùng về màn đăng nhập** — mà màn đăng nhập lại nằm ở `/`, kèm ba nút vào thẳng bằng tài khoản demo. Người kiểm thử bên ngoài dễ kẹt ở đây. Cần: 401 thì chuyển về `/` và nói rõ có tài khoản demo (phát hiện A-03 của rà soát QA Gate 01, 13/08) |
-| **Luồng đồ cồng kềnh không nhìn thấy được từ trang chủ** | Wizard đăng ký thu gom nằm trong tab *Yêu cầu*, sau khi đăng nhập — người mở web lần đầu chỉ thấy phần chụp ảnh phân loại nên tưởng sản phẩm chỉ có chừng đó. Đây là vấn đề **chỗ đặt lối vào**, không phải thiếu tính năng: máy trạng thái 10 bước và màn duyệt của đơn vị thu gom đều đã chạy (phát hiện A-02 của rà soát QA Gate 01) |
+| ~~**Vào thẳng `/dieu-phoi` khi chưa đăng nhập thì bí đường**~~ | **Đã hết** — nhánh 401 nay hiện nút quay về `/` kèm câu nói rõ có sẵn tài khoản demo; luồng đã-đăng-nhập không đổi. *(Nguyên văn phát hiện cũ:)* Màn hiện "Bạn cần đăng nhập" và các lệnh gọi API trả 401, nhưng **không đưa người dùng về màn đăng nhập** — mà màn đăng nhập lại nằm ở `/`, kèm ba nút vào thẳng bằng tài khoản demo. Người kiểm thử bên ngoài dễ kẹt ở đây. Cần: 401 thì chuyển về `/` và nói rõ có tài khoản demo (phát hiện A-03 của rà soát QA Gate 01, 13/08) |
+| ~~**Luồng đồ cồng kềnh không nhìn thấy được từ trang chủ**~~ | **Đã hết** — màn chính của cư dân nay có lối vào thẳng "Đặt lịch thu gom đồ cồng kềnh", đường cũ ở tab *Yêu cầu* giữ nguyên. *(Nguyên văn phát hiện cũ:)* Wizard đăng ký thu gom nằm trong tab *Yêu cầu*, sau khi đăng nhập — người mở web lần đầu chỉ thấy phần chụp ảnh phân loại nên tưởng sản phẩm chỉ có chừng đó. Đây là vấn đề **chỗ đặt lối vào**, không phải thiếu tính năng: máy trạng thái 10 bước và màn duyệt của đơn vị thu gom đều đã chạy (phát hiện A-02 của rà soát QA Gate 01) |
 | **Chưa có ô chat tra cứu quy định** | Hiện cư dân hỏi bằng chữ **bên trong tab Phân loại** và nhận hướng dẫn có trích nguồn; chưa có khung chat nhiều lượt như bản đặc tả Gate 01 mô tả. Phần truy hồi (RAG hybrid, mục 11.1) đã sẵn — thiếu lớp giao diện hội thoại (phát hiện A-04) |
 | **Bẫy: model reasoning + JSON mode** | `qwen3.6-27b` (Groq) tiêu **hết trần 2000 token vào phần suy nghĩ** rồi trả nội dung rỗng; bật `response_format: json_object` thì Groq kiểm JSON trên chuỗi rỗng và trả **HTTP 400 `json_validate_failed`** — nhìn như "model hỏng" suốt hai ngày. Cách chữa đang dùng: với `groq` thì gửi `reasoning_effort=none` + `reasoning_format=hidden` và **bỏ** `response_format`, để `parse_model_json` của mình tự bóc. Model reasoning mới nào cắm vào cũng phải kiểm lại chỗ này |
 | **T1 mù đồ điện tử** | Đo 03/08 trên ảnh rác thật: llama-90b **0/6**, nemotron-12b 1/6, Gemini 2/2, **YOLO11n local 4/4 trong ~100 ms và $0**. Chỉ số an toàn "nguy hại thành rác thường" vì thế đang trượt trên ảnh có đồ điện tử |
@@ -1094,6 +1215,11 @@ Render.**
 | ~~**Nhân viên vệ sinh thấy mọi thùng**~~ | **Đã hết.** Finding **C-01** của Gate 01 đóng lại: cả nửa GHI lẫn nửa ĐỌC đã xong, và nay chặn **hai lớp** — theo đơn vị thu gom rồi theo nhân viên. Quyết định "ai thấy gì" nằm gọn trong `loc_theo_nguoi_xem` + `to_chuc_cua_nguoi_xem` ở `services/bins.py`, có test quét để không ai rải điều kiện ra router |
 | ~~**`/auth/register` chưa có rate limit**~~ | **Đã có** — cửa sổ trượt theo IP, mặc định 10 lần / 10 phút, `0` để tắt. **Còn nợ:** bộ đếm nằm trong bộ nhớ tiến trình (nhiều worker = nhiều bộ đếm), và **chưa có bước xác thực số điện thoại** |
 | ~~**Thứ tự ghé cố định điểm đầu**~~ | **Đã thả** — nearest-neighbour chạy từ nhiều điểm xuất phát (chặn ở 8), đo thêm **−6,3%**, lên 97–98/100 bộ tối ưu tuyệt đối. Thêm đường **tuỳ chọn mặc định TẮT** lấy khoảng cách đường đi thật từ OSRM, hỏng thì rơi êm về haversine |
+| **Màn hình thùng chỉ chạy được trong mô phỏng** | Thiết kế đích là mã QR đổi mỗi phiên hiện trên OLED, nhưng trên AI Thinker ESP32-CAM **bốn chân dùng được đã bị bốn cảm biến giai đoạn 1 chiếm hết** (`iot/docs/pin-map.md` mục 6.1: *"4 available, 4 required → zero margin"*). Màn I2C cần thêm hai chân. Firmware vì thế chỉ bật màn ở môi trường Wokwi; bản chạy thật biên dịch `NullDisplay`. Hai đường: chuyển ESP32-S3, hoặc dùng mã tĩnh kèm cổng cảm biến người |
+| **Cửa vào phiên có thể phải đảo chiều** | Hiện **ứng dụng** mở phiên từ mã thùng. Nếu chốt phương án mã QR đổi mỗi phiên thì **thiết bị** phải xin mã trước rồi ứng dụng quét vào để nhận. Phần lõi (đếm vật, điểm, thông báo, hết hạn) không đổi — chỉ đổi cửa vào |
+| **Điểm mỗi vật chưa có căn cứ** | `DIEM_NHAN_THUC_MOI_VAT = 5` là con số đặt tạm để chạy được, chưa dựa trên khảo sát hay đối chiếu nào. Là hằng số có tên nên đổi một chỗ, nhưng **phải chốt trước khi có người dùng thật** — đổi sau thì điểm cũ và mới không so sánh được |
+| **Thông báo đẩy mới có nền, chưa có đường** | Bảng `notifications` và `token_thiet_bi` đã có, `GET /notifications` đã chạy, nhưng **chưa đấu Firebase Cloud Messaging** nên thông báo chỉ hiện khi ứng dụng đang mở. Cần khoá máy chủ, `google-services.json`, và một lần dựng lại APK |
+| **Hợp đồng thiết bị và tài liệu lệch nhau** | `GET /bins/{code}/readings` đã đổi khuôn trả về (đọc từ CSDL thay vì bộ nhớ tiến trình) và `/iot/captures` đã thêm `route`/`item_id`, nhưng `iot/docs/api-contract.md` chưa cập nhật theo. Firmware không gọi đường GET đó nên chưa ai vỡ |
 | **Endpoint ingest chưa chống replay** | Mỗi thùng đã có khoá riêng và thu hồi được bằng tay, nhưng một request bắt được vẫn phát lại được. Cần nonce + mốc thời gian, và một lịch xoay vòng khoá |
 | **Ma trận quyền lệch với spec** | `view_diem_gui` · `edit_own_profile` · `assign_bin` đã có trong code nhưng **chưa chép sang `docs/FRONTEND_SPEC.md` mục 1**, trong khi chính docstring của `auth.py` yêu cầu sửa một bên thì sửa cả hai |
 | Alembic | Chưa dùng, **hoãn có chủ đích**. Thay bằng bảng khai báo `COT_CAN_VA` ở `src/db/schema_patch.py`, vá cột lúc khởi động, chạy được trên cả SQLite lẫn PostgreSQL. Chuyển sang Alembic khi schema ổn định |

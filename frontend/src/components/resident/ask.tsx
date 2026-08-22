@@ -13,7 +13,7 @@ import * as React from "react";
 import { Mascot } from "@/components/resident/onboarding";
 import { Button } from "@/components/ui/primitives";
 import { tinhCap, tinhStreak, homNay } from "@/lib/gamification";
-import { IconChonAnh, IconDuyet, IconMoTaChu, IconChuong } from "@/lib/icons";
+import { IconChonAnh, IconDuyet, IconMoTaChu, IconChuong, IconXeThuGom } from "@/lib/icons";
 import { chonAnh, chupAnh } from "@/lib/platform";
 import { useSession } from "@/lib/session";
 import type { Classification } from "@/lib/types";
@@ -45,6 +45,7 @@ export function AskScreen({
   unit,
   lanChup = 0,
   onXemLich,
+  onDatLich,
   onAskText,
   onPickImage,
 }: {
@@ -52,6 +53,8 @@ export function AskScreen({
   /** Nút Chụp nổi ở tab bar tăng con số này → mở camera ngay khi mount/đổi. */
   lanChup?: number;
   onXemLich: () => void;
+  /** Tuỳ chọn: lối vào đặt lịch thu gom đồ cồng kềnh. Nếu không truyền, khung không hiện. */
+  onDatLich?: () => void;
   onAskText: (query: string) => void;
   onPickImage: (file: File) => void;
 }) {
@@ -250,6 +253,26 @@ export function AskScreen({
         </span>
         <span className="text-xl font-bold text-recycle transition-transform group-hover:translate-x-1">›</span>
       </button>
+
+      {/* ── thẻ đặt lịch thu gom đồ cồng kềnh (tông bulky, cặp với thẻ lịch) ── */}
+      {onDatLich && (
+        <button
+          type="button"
+          onClick={onDatLich}
+          className="relative z-10 mt-3.5 flex items-center gap-3 rounded-[20px] bg-bulky-soft border border-bulky/20 px-4 py-3.5 text-left shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer"
+        >
+          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] bg-white shadow-xs">
+            <IconXeThuGom className="h-[22px] w-[22px] text-bulky-dark" />
+          </span>
+          <span className="flex-1">
+            <span className="block text-sm font-bold text-ink">Đặt lịch thu gom đồ cồng kềnh</span>
+            <span className="mt-0.5 block text-xs font-semibold text-ink-soft">
+              Sofa, nệm, tủ cũ · đội thu gom tới tận nơi
+            </span>
+          </span>
+          <span className="text-xl font-bold text-bulky transition-transform group-hover:translate-x-1">›</span>
+        </button>
+      )}
 
       {/* ── hỏi nhanh không cần chụp ── */}
       <div className="relative z-10 mt-5">

@@ -3,7 +3,8 @@
 import * as React from "react";
 import { Mascot } from "@/components/resident/onboarding";
 import { MarkdownContent } from "@/components/ui/markdown";
-import { api } from "@/lib/api";
+import { ApiError, api } from "@/lib/api";
+import { useSession } from "@/lib/session";
 import type { ChatbotResponse } from "@/lib/types";
 
 export function openGreenBinChat() {
@@ -44,6 +45,8 @@ function isBinQuery(text: string): boolean {
 }
 
 export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps) {
+  const { user, dangXuat } = useSession();
+  const [sessionExpired, setSessionExpired] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
   const [inputQuery, setInputQuery] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -176,10 +179,14 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
 
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err: unknown) {
+      const isAuthError = err instanceof ApiError && err.status === 401;
+      if (isAuthError) setSessionExpired(true);
       const errorMsg: ChatMessage = {
         id: `error-${Date.now()}`,
         sender: "ai",
-        text: (err instanceof Error ? err.message : null) || "Rất tiếc, đã có lỗi kết nối tới máy chủ AI. Bạn thử lại nhé!",
+        text: isAuthError
+          ? "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại."
+          : (err instanceof Error ? err.message : null) || "Rất tiếc, đã có lỗi kết nối tới máy chủ AI. Bạn thử lại nhé!",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -214,6 +221,30 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
       [msgId]: !prev[msgId],
     }));
   };
+
+  // §6.1 & §6.2: Chưa đăng nhập hoặc token hết hạn (401) → cửa chặn, không rơi vào ngõ cụt.
+  if (!user || sessionExpired) {
+    return (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+        <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl dark:bg-zinc-900 dark:text-zinc-100">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-700/90 text-white">
+            <Mascot size={48} tuThe="hello" />
+          </div>
+          <h3 className="font-bold text-base">Cần đăng nhập để dùng trợ lý</h3>
+          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+            Trợ lý GreenBin AI chỉ dành cho cư dân đã đăng nhập. Vui lòng đăng nhập để tiếp tục hỏi đáp luật, thùng rác và hướng dẫn app.
+          </p>
+          <button
+            type="button"
+            onClick={() => dangXuat()}
+            className="mt-5 w-full rounded-xl bg-emerald-700 px-4 py-2.5 font-medium text-white shadow-xs transition-colors hover:bg-emerald-800 cursor-pointer"
+          >
+            Đăng nhập lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -139,18 +139,12 @@ def query_viable_bins(
             if not match:
                 continue
 
-        if bin_obj.is_seed:
-            # BIN-04 và BIN-08 cố ý mất kết nối (>48h) trong kịch bản demo
-            if bin_obj.code in {"BIN-04", "BIN-08"}:
-                stt = "mat_ket_noi"
-            elif bin_obj.battery_percent <= 10.0:
-                stt = "het_pin"
-            elif bin_obj.fill_percent >= 80.0:
-                stt = "can_gom"
-            else:
-                stt = "binh_thuong"
-        else:
-            stt = trang_thai_thung(bin_obj, thoi_diem)
+        # Thùng demo và thùng thật đi CHUNG một đường tính trạng thái. Trước đây
+        # từng có khối gắn cứng vài mã thùng luôn ở trạng thái mất kết nối; khối
+        # đó đã được dọn và có test quét chặn quay lại — đừng thêm lại. Dữ liệu
+        # nền nay đặt sẵn mức đầy, mức pin và lần báo cuối sao cho bốn trạng
+        # thái TỰ SUY RA đúng.
+        stt = trang_thai_thung(bin_obj, thoi_diem)
 
         is_viable = (
             stt in {"binh_thuong", "can_gom"}
@@ -194,14 +188,21 @@ def query_viable_bins(
     return results[:limit]
 
 
-def format_bins_for_llm_context(bins: list[ViableBinInfo]) -> str:
-    """Format danh sách thùng thành ngữ cảnh XML rõ ràng cho LLM đọc."""
+def format_bins_for_llm_context(bins: list[ViableBinInfo], *, has_gps: bool = True) -> str:
+    """Format danh sách thùng thành ngữ cảnh XML rõ ràng cho LLM đọc.
+
+    Khi ``has_gps=False`` (§5.2): không hiển thị khoảng cách, không sắp xếp
+    theo thứ tự khoảng cách, để tránh LLM bịa thông tin vị trí cư dân.
+    """
     if not bins:
         return "Hiện tại không tìm thấy thùng rác nào khả dụng gần khu vực này."
 
     lines = ["<bin_data>"]
     for b in bins:
-        dist_str = f", Khoảng cách: ~{int(b.distance_meters)}m" if b.distance_meters is not None else ""
+        if has_gps and b.distance_meters is not None:
+            dist_str = f", Khoảng cách: ~{int(b.distance_meters)}m"
+        else:
+            dist_str = ""
         cats_str = ", ".join(b.category_names) if b.category_names else ", ".join(b.category_codes)
         lines.append(
             f"- Mã thùng: {b.code} | Tên: {b.name} | Vị trí: {b.address}{dist_str} | "

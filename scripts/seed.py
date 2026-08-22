@@ -169,6 +169,10 @@ def seed_knowledge(session: Session, buildings: dict[str, Building]) -> None:
             )
             session.add(doc)
             session.flush()
+        elif doc.source != row["source"]:
+            doc.source = row["source"]
+
+        expected_sections = {chunk["section"] for chunk in row["chunks"]}
 
         for chunk in row["chunks"]:
             existing_chunk = session.scalar(
@@ -177,6 +181,7 @@ def seed_knowledge(session: Session, buildings: dict[str, Building]) -> None:
                     KnowledgeChunk.section == chunk["section"],
                 )
             )
+            # keywords từ nhánh deploy (P75): từ khoá tìm kiếm cho chunk.
             chunk_meta = {
                 "needs_verification": bool(chunk.get("needs_verification")),
                 "keywords": chunk.get("keywords", []),
@@ -193,7 +198,18 @@ def seed_knowledge(session: Session, buildings: dict[str, Building]) -> None:
             else:
                 existing_chunk.content = chunk["content"]
                 existing_chunk.meta = chunk_meta
-    session.flush()
+        session.flush()
+
+        stale = session.scalars(
+            select(KnowledgeChunk).where(
+                KnowledgeChunk.doc_id == doc.id,
+                KnowledgeChunk.section.notin_(expected_sections),
+            )
+        ).all()
+        for chunk in stale:
+            print(f"  Xoá chunk cũ: doc={row['title']!r}, section={chunk.section!r}")
+            session.delete(chunk)
+        session.flush()
 
 
 # --- Dữ liệu demo mô phỏng ----------------------------------------------

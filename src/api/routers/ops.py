@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import date, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel
 from sqlalchemy import case, desc, func, select
 
 from src.agents.graph import GRAPH_SHAPE
@@ -12,11 +14,35 @@ from src.api.deps import CurrentUser, DbSession, require
 from src.api.errors import bad_request, not_found
 from src.config import get_settings
 from src.db.models import AgentRun, Alert, Bin, Notification, RunNodeMetric, User
+from src.services import batch_gan_nhan as batch_service
 from src.services import metrics
 from src.services import reporting as reporting_service
 from src.services import runs as runs_service
 
 router = APIRouter(tags=["ops"])
+
+
+class QuetBatchBody(BaseModel):
+    """Body cho ``POST /ops/batch/quet`` — khoảng ngày quét (ISO date)."""
+
+    tu_ngay: str | None = None
+    den_ngay: str | None = None
+    gioi_han: int = 500
+
+
+class TaoBatchBody(BaseModel):
+    """Body cho ``POST /ops/batch`` — ngày đứng tên lô, bắt buộc truyền vào."""
+
+    ngay: str
+    nguon: str = "hon_hop"
+    so_anh_toi_da: int = 200
+    ghi_chu: str = ""
+
+
+class DongBatchBody(BaseModel):
+    """Body cho ``POST /ops/batch/{batch_id}/dong`` — thời điểm đóng (ISO)."""
+
+    dong_luc: str | None = None
 
 
 def _khoi_co_che(session: DbSession) -> dict:
@@ -218,3 +244,106 @@ def list_notifications(session: DbSession, user: CurrentUser) -> dict:
         ],
         "unread": sum(1 for n in rows if n.read_at is None),
     }
+
+
+# --- Gom ảnh lỗi thành lô gán nhãn (gói P74) ------------------------------
+
+
+@router.post("/ops/batch/quet")
+def ops_batch_quet(
+    body: QuetBatchBody,
+    session: DbSession,
+    user: Annotated[User, Depends(require("view_ops"))],
+) -> dict:
+    """Quét ảnh lỗi, đánh dấu ``can_gan_nhan = True``."""
+    tu = date.fromisoformat(body.tu_ngay) if body.tu_ngay else None
+    den = date.fromisoformat(body.den_ngay) if body.den_ngay else None
+    return batch_service.quet_anh_can_gan_nhan(
+        session, tu_ngay=tu, den_ngay=den, gioi_han=body.gioi_han
+    )
+
+
+@router.post("/ops/batch")
+def ops_tao_batch(
+    body: TaoBatchBody,
+    session: DbSession,
+    user: Annotated[User, Depends(require("view_ops"))],
+) -> dict:
+    """Tạo lô từ ảnh đã đánh dấu. Không có ảnh → 400, không tạo lô rỗng."""
+    batch = batch_service.tao_batch(
+        session,
+        actor=user,
+        ngay=date.fromisoformat(body.ngay),
+        nguon=body.nguon,
+        so_anh_toi_da=body.so_anh_toi_da,
+        ghi_chu=body.ghi_chu,
+    )
+    if batch is None:
+        raise bad_request("Không có ảnh nào cần gán nhãn để tạo lô", code="BATCH-EMPTY")
+    return {
+        "id": batch.id,
+        "ma": batch.ma,
+        "trang_thai": batch.trang_thai,
+        "nguon": batch.nguon,
+        "so_anh": batch.so_anh,
+    }
+
+
+@router.post("/ops/batch/{batch_id}/dong")
+def ops_dong_batch(
+    batch_id: int,
+    body: DongBatchBody,
+    session: DbSession,
+    user: Annotated[User, Depends(require("view_ops"))],
+) -> dict:
+    """Đóng lô: ``mo`` → ``dong``. Đóng lần hai → 400."""
+    dong_luc = datetime.fromisoformat(body.dong_luc) if body.dong_luc else None
+    try:
+        batch = batch_service.dong_batch(
+            session, actor=user, batch_id=batch_id, dong_luc=dong_luc
+        )
+    except ValueError as exc:
+        raise bad_request(str(exc), code="BATCH-400") from exc
+    return {
+        "id": batch.id,
+        "ma": batch.ma,
+        "trang_thai": batch.trang_thai,
+        "dong_luc": batch.dong_luc.isoformat() if batch.dong_luc else None,
+    }
+
+
+@router.get("/ops/batch")
+def ops_danh_sach_batch(
+    session: DbSession,
+    user: Annotated[User, Depends(require("view_ops"))],
+    trang_thai: str | None = None,
+    limit: int = Query(default=50, ge=1, le=500),
+) -> dict:
+    """Danh sách lô, mới nhất trước."""
+    batches = batch_service.danh_sach_batch(session, trang_thai=trang_thai, limit=limit)
+    return {
+        "items": [
+            {
+                "id": b.id,
+                "ma": b.ma,
+                "trang_thai": b.trang_thai,
+                "nguon": b.nguon,
+                "so_anh": b.so_anh,
+                "created_at": b.created_at.isoformat() if b.created_at else None,
+            }
+            for b in batches
+        ]
+    }
+
+
+@router.get("/ops/batch/{batch_id}")
+def ops_chi_tiet_batch(
+    batch_id: int,
+    session: DbSession,
+    user: Annotated[User, Depends(require("view_ops"))],
+) -> dict:
+    """Chi tiết lô + danh sách ảnh. KHÔNG trả ``uploader_id`` (quyền riêng tư)."""
+    chi_tiet = batch_service.chi_tiet_batch(session, batch_id=batch_id)
+    if chi_tiet is None:
+        raise not_found("lô này")
+    return chi_tiet
