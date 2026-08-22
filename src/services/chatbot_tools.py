@@ -139,18 +139,12 @@ def query_viable_bins(
             if not match:
                 continue
 
-        if bin_obj.is_seed:
-            # BIN-04 và BIN-08 cố ý mất kết nối (>48h) trong kịch bản demo
-            if bin_obj.code in {"BIN-04", "BIN-08"}:
-                stt = "mat_ket_noi"
-            elif bin_obj.battery_percent <= 10.0:
-                stt = "het_pin"
-            elif bin_obj.fill_percent >= 80.0:
-                stt = "can_gom"
-            else:
-                stt = "binh_thuong"
-        else:
-            stt = trang_thai_thung(bin_obj, thoi_diem)
+        # Thùng demo và thùng thật đi CHUNG một đường tính trạng thái. Trước đây
+        # từng có khối gắn cứng vài mã thùng luôn ở trạng thái mất kết nối; khối
+        # đó đã được dọn và có test quét chặn quay lại — đừng thêm lại. Dữ liệu
+        # nền nay đặt sẵn mức đầy, mức pin và lần báo cuối sao cho bốn trạng
+        # thái TỰ SUY RA đúng.
+        stt = trang_thai_thung(bin_obj, thoi_diem)
 
         is_viable = (
             stt in {"binh_thuong", "can_gom"}
