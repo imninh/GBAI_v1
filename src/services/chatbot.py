@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 import unicodedata
 from dataclasses import dataclass, field
 from typing import Any, Literal
@@ -70,10 +71,21 @@ def _strip_xml_tags(text: str) -> str:
 
 
 _DISTANCE_PATTERN = re.compile(r"\d+\s*m\b|\d+\s*km|gần nhất|cách bạn", re.IGNORECASE)
+# Ở trạng thái `dia_danh`: vẫn chặn "gần nhất" và "cách bạn", nhưng CHO PHÉP
+# khoảng cách số kèm tên địa danh ("cách Bờ Hồ ~500m"). (§5.2)
+_DIA_DANH_PATTERN = re.compile(r"gần nhất|cách bạn", re.IGNORECASE)
 
 
-def _contains_distance_pattern(text: str) -> bool:
-    """Kiểm tra câu trả lời có chứa mẫu khoảng cách bị cấm khi không có GPS."""
+def _contains_distance_pattern(text: str, *, cho_phep_khoang_cach_dia_danh: bool = False) -> bool:
+    """Kiểm tra câu trả lời có chứa mẫu khoảng cách bị cấm.
+
+    - Mặc định (không có toạ độ, ``khong_biet``): chặn mọi khoảng cách, "gần nhất",
+      "cách bạn".
+    - ``cho_phep_khoang_cach_dia_danh=True`` (trạng thái ``dia_danh``): vẫn chặn
+      "gần nhất" và "cách bạn", nhưng cho phép "cách <tên địa danh> ~Xm".
+    """
+    if cho_phep_khoang_cach_dia_danh:
+        return bool(_DIA_DANH_PATTERN.search(text))
     return bool(_DISTANCE_PATTERN.search(text))
 
 
@@ -161,58 +173,95 @@ def check_prompt_injection(text: str) -> bool:
     return False
 
 
-# --- 2. Intent Classifier (Cascade Rule-based -> LLM) --------------------
+# --- 2. Intent Classifier (Cascade Rule-based Multi-Signal -> LLM) -------
 
-_LAW_KEYWORDS = {
-    "luat", "nghi dinh", "dieu khoan", "muc phat", "phat bao nhieu", "bi phat",
-    "quy dinh", "che tai", "nghia vu", "trach nhiem", "ban quan ly co quyen",
-    "tu choi thu gom", "nguoi gay o nhiem", "phap ly", "cv 9368", "nd 45",
-    "luat 72", "huong dan 9368", "rac nguy hai bi phat", "vut rac bua bai",
-    "ban quan ly",
-}
+_LAW_PATTERNS: list[tuple[str, int]] = [
+    # Mức phạt & Chế tài (Trọng số rất cao)
+    (r"(phạt|bị phạt|mức phạt|bao nhiêu tiền|phạt tiền|xử phạt|chế tài)", 12),
+    (r"(nghị định 45|nd 45|nđ 45|luật bảo vệ môi trường|luật bvmt|luật 72|công văn 9368|cv 9368|hướng dẫn 9368)", 15),
+    (r"(điều 26|điều 29|điều 75|điều 77|điều 79)", 15),
+    (r"(bắt buộc|quy định|pháp luật|pháp lý|trách nhiệm|nghĩa vụ)", 6),
+    (r"(3 nhóm|mấy nhóm|phân loại tại nguồn|hạn chót|31/12/2024)", 10),
+    (r"(người gây ô nhiễm phải trả tiền|khối lượng|thể tích|chi phí thu gom)", 10),
+    (r"(ban quản lý có quyền|từ chối thu gom|từ chối tiếp nhận|quyền từ chối)", 12),
+    (r"(vỏ hộp sữa|tetra pak|tráng nhôm|bóc tách|bóc màng)", 10),
+    (r"(nước tẩy bồn cầu|bình xịt muỗi|thùng nhựa tái chế|rác nguy hại|hầm b1)", 10),
+    (r"(kích thước như thế nào|vượt quá 0\.5m|nặng trên 10kg|đăng ký trước 24|đăng ký trước)", 12),
+    (r"(vứt rác bừa bãi|hành lang|nơi công cộng chung cư|nơi công cộng)", 10),
+]
 
-_BIN_KEYWORDS = {
-    "thung rac", "thung nao", "diem gui", "con cho", "gan day", "gan toi",
-    "sap day", "muc day", "bo rac", "vut rac", "bo chai", "vut chai", "bo pin",
-    "vut pin", "phong rac", "tang ham", "b1", "thung xanh", "thung vang",
-    "thung xam", "vi tri thung", "khoang cach", "o dau", "cho bo rac",
-}
+_APP_PATTERNS: list[tuple[str, int]] = [
+    (r"(app greenbin|ứng dụng greenbin|ứng dụng|app)", 8),
+    (r"(5 tab|tab chức năng|tab phân loại|tab yêu cầu|tab lịch|tab điểm gửi|tab tôi)", 15),
+    (r"(cách chụp ảnh|chụp ảnh phân loại|mô tả chữ|gõ chữ|chụp rõ nét|phân loại bằng hình ảnh)", 12),
+    (r"(đặt lịch thu gom|tạo yêu cầu mới|theo dõi tiến độ|chờ duyệt|đã xếp tuyến)", 12),
+    (r"(mất kết nối mạng|mất mạng|offline|xem lịch offline)", 12),
+    (r"(ảnh rác tôi chụp|lộ thông tin|mặt người|che mặt|bảo mật ảnh|quyền riêng tư)", 14),
+    (r"(điểm xanh|green points|đổi căn hộ|đổi mật khẩu|lịch sử phân loại)", 12),
+]
 
-_APP_KEYWORDS = {
-    "dung app", "su dung app", "huong dan app", "chup anh", "dat lich", "tao yeu cau",
-    "cong kenh", "diem xanh", "green points", "doi can ho", "doi mat khau",
-    "tab", "chuc nang", "xem lich", "tai khoan", "lich su", "bao mat anh",
-    "offline", "mat mang", "cai dat", "app greenbin", "phan loai chu",
-}
+_BIN_PATTERNS: list[tuple[str, int]] = [
+    (r"(thùng rác|thùng nào|bản đồ thùng|thùng thông minh)", 8),
+    (r"(còn chỗ|sắp đầy|đã đầy|mức đầy|mất kết nối|hết pin)", 8),
+    (r"(gần đây|gần tôi|gần nhất|vị trí thùng|ở đâu)", 6),
+    (r"(đinh tiên hoàng|hàng trống|lương văn can|tràng tiền|hàng bài|hàng khay|lý thái tổ|hàng đào|cầu gỗ|lò sũ)", 12),
+    (r"(thùng xanh|thùng vàng|thùng đỏ|màu xanh|màu vàng|màu đỏ|70%|90%)", 8),
+]
+
+_OUT_OF_SCOPE_PATTERNS: list[tuple[str, int]] = [
+    (r"(thời tiết|dự báo thời tiết|nhiệt độ)", 15),
+    (r"(bóng đá|ngoại hạng anh|world cup|cầu thủ)", 15),
+    (r"(xổ số|lô đề|vé số|kết quả xổ số)", 15),
+    (r"(viết thơ|bài thơ|làm thơ|kể chuyện|hát)", 15),
+    (r"(tổng thống|chính trị|chiến tranh)", 15),
+    (r"(viết code|python|javascript|lập trình)", 15),
+]
 
 
 def classify_intent_rule(text: str) -> ChatIntent | None:
-    """Bộ phân loại Intent nhanh bằng từ khoá và mẫu câu tiếng Việt.
+    """Bộ phân loại Intent chuẩn xác cao bằng Multi-Signal Pattern Scorer.
 
-    Thứ tự ưu tiên (§6):
-    1. Dấu hiệu pháp luật mạnh → waste_law (kể cả có từ khoá thùng rác)
-    2. Từ khoá thùng rác → bin_query
-    3. Từ khoá hướng dẫn app → app_guide
+    Của nhánh deploy (gộp vào P75): cộng điểm rồi chọn ý định điểm cao nhất
+    thay vì khớp-cái-nào-trước-ăn-cái-đó. Vẫn giữ chốt pháp luật mạnh của nhánh
+    ta (§5.1): dấu hiệu pháp luật mạnh luôn về ``waste_law`` kể cả khi câu có từ
+    khoá thùng rác — nhánh ``bin_query`` là nhánh bịa vị trí người dùng.
     """
     from src.services.rag import normalize_text
 
-    unaccented = normalize_text(text)
+    norm = normalize_text(text)
+    lower = text.lower()
 
-    # 1. Luôn là waste_law nếu có dấu hiệu pháp luật mạnh (§6)
-    if any(k in unaccented for k in _STRONG_LAW_SIGNALS):
+    # Chốt pháp luật mạnh (nhánh ta, §5.1): luôn là waste_law.
+    if any(k in norm for k in _STRONG_LAW_SIGNALS):
         return "waste_law"
 
-    # 2. Khớp câu hỏi thùng rác
-    if any(k in unaccented for k in _BIN_KEYWORDS):
-        return "bin_query"
+    # 1. Kiểm tra Out-of-scope trước nếu khớp từ khoá phi rác thải -> trả về None
+    for pat, _ in _OUT_OF_SCOPE_PATTERNS:
+        if re.search(pat, norm, re.IGNORECASE) or re.search(pat, lower, re.IGNORECASE):
+            return None
 
-    # 3. Khớp câu hỏi luật (còn lại — weaker signals)
-    if any(k in unaccented for k in _LAW_KEYWORDS):
-        return "waste_law"
+    # 2. Tính điểm tín hiệu từng Intent
+    scores: dict[str, int] = {"waste_law": 0, "bin_query": 0, "app_guide": 0}
 
-    # 4. Khớp câu hỏi hướng dẫn sử dụng app
-    if any(k in unaccented for k in _APP_KEYWORDS):
-        return "app_guide"
+    for pat, weight in _LAW_PATTERNS:
+        if re.search(pat, norm, re.IGNORECASE) or re.search(pat, lower, re.IGNORECASE):
+            scores["waste_law"] += weight
+
+    for pat, weight in _APP_PATTERNS:
+        if re.search(pat, norm, re.IGNORECASE) or re.search(pat, lower, re.IGNORECASE):
+            scores["app_guide"] += weight
+
+    for pat, weight in _BIN_PATTERNS:
+        if re.search(pat, norm, re.IGNORECASE) or re.search(pat, lower, re.IGNORECASE):
+            scores["bin_query"] += weight
+
+    best_intent, max_score = max(scores.items(), key=lambda item: item[1])
+
+    if max_score >= 6:
+        # Nếu câu hỏi có cả yếu tố tìm thùng/vứt rác nhưng có từ khóa luật/phạt mạnh, ưu tiên luật
+        if scores["waste_law"] >= 10:
+            return "waste_law"
+        return best_intent  # type: ignore[return-value]
 
     return None
 
@@ -472,6 +521,38 @@ def _detect_category_from_query(query: str) -> str | None:
     return None
 
 
+# 12 địa danh Hà Nội — toạ độ cứng (của nhánh deploy, gộp vào P75). Dùng khi câu
+# hỏi có tên địa danh mà không có toạ độ GPS thiết bị: "thùng gần Bờ Hồ" là câu
+# hỏi thật. KHÔNG được coi là vị trí của cư dân (§5.2).
+_LANDMARKS: dict[str, tuple[float, float]] = {
+    "dinh tien hoang": (21.0285, 105.8542),
+    "hang trong": (21.0296, 105.8501),
+    "luong van can": (21.0322, 105.8503),
+    "trang tien": (21.0256, 105.8521),
+    "hang bai": (21.0247, 105.8543),
+    "hang khay": (21.0291, 105.8523),
+    "ly thai to": (21.0326, 105.8541),
+    "hang dao": (21.0331, 105.8492),
+    "cau go": (21.0312, 105.8507),
+    "lo su": (21.0289, 105.8556),
+    "bo ho": (21.0285, 105.8542),
+    "hoan kiem": (21.0285, 105.8542),
+    "ly thuong kiet": (21.0271, 105.8519),
+}
+
+
+def _tra_dia_danh(norm_q: str) -> tuple[str, float, float] | None:
+    """Tra tên địa danh trong câu đã chuẩn hoá (bỏ dấu).
+
+    Trả về ``(tên_địa_danh, lat, lng)`` nếu khớp, ``None`` nếu không. Trả về cả
+    tên địa danh lẫn toạ độ để lời gọi biết đang ở trạng thái nào (§5.2).
+    """
+    for landmark_name, coords in _LANDMARKS.items():
+        if landmark_name in norm_q:
+            return landmark_name, coords[0], coords[1]
+    return None
+
+
 def handle_bin_query(
     session: Session,
     question: str,
@@ -483,7 +564,29 @@ def handle_bin_query(
     model: str = "",
     provider: str = "",
 ) -> ChatbotResponse:
-    """Xử lý tra cứu thùng rác thông minh khả thi (F2)."""
+    """Xử lý tra cứu thùng rác thông minh khả thi (F2).
+
+    Ba trạng thái vị trí (§5.2), phân biệt rõ:
+    - ``gps``: có toạ độ GPS thật từ thiết bị → được nói "cách bạn ~Xm".
+    - ``dia_danh``: không có GPS nhưng câu hỏi khớp ``_LANDMARKS`` → chỉ được nói
+      "cách <tên địa danh> ~Xm", CẤM "cách bạn", CẤM nói đó là vị trí cư dân.
+    - ``khong_biet``: không có gì → CẤM mọi khoảng cách và "gần nhất".
+    """
+    from src.services.rag import normalize_text
+
+    norm_q = normalize_text(question)
+
+    # --- Xác định trạng thái vị trí ---
+    dia_danh_name = ""
+    vi_tri = "khong_biet"
+    if user_lat is not None and user_lng is not None:
+        vi_tri = "gps"
+    else:
+        kq = _tra_dia_danh(norm_q)
+        if kq is not None:
+            dia_danh_name, user_lat, user_lng = kq
+            vi_tri = "dia_danh"
+
     cat_code = _detect_category_from_query(question)
     bins = query_viable_bins(
         session,
@@ -506,21 +609,30 @@ def handle_bin_query(
             generated_by="abstain",
         )
 
-    loc_note = (
-        f"Vị trí cư dân đã được định vị GPS chính xác tại toạ độ ({user_lat:.5f}, {user_lng:.5f}). Khoảng cách các thùng bên dưới được tính toán trực tiếp từ toạ độ GPS này."
-        if user_lat is not None and user_lng is not None
-        else (
+    if vi_tri == "gps":
+        loc_note = (
+            f"Vị trí cư dân đã được định vị GPS chính xác tại toạ độ ({user_lat:.5f}, {user_lng:.5f}). "
+            f"Khoảng cách các thùng bên dưới được tính toán trực tiếp từ toạ độ GPS này."
+        )
+    elif vi_tri == "dia_danh":
+        loc_note = (
+            f"KHÔNG có toạ độ GPS của cư dân, nhưng câu hỏi nhắc tới địa danh {dia_danh_name!r}. "
+            f"Toạ độ được lấy từ bản đồ địa danh ({user_lat:.5f}, {user_lng:.5f}). "
+            "TUYỆT ĐỐI không nói 'cách bạn', không nói đây là vị trí của cư dân, không suy ra "
+            "địa chỉ cư dân. Chỉ được nói 'cách <tên địa danh>' kèm khoảng cách mét tính từ địa danh đó."
+        )
+    else:
+        loc_note = (
             "KHÔNG có toạ độ GPS của cư dân. "
             "TUYỆT ĐỐI không nói khoảng cách, không nói thùng nào gần nhất, "
             "không suy ra hay nhắc lại địa chỉ của cư dân. "
             "Chỉ được liệt kê thùng kèm địa chỉ CỦA THÙNG."
         )
-    )
 
-    has_gps = user_lat is not None and user_lng is not None
+    has_vi_tri = vi_tri in {"gps", "dia_danh"}
     no_gps_conf_level, no_gps_conf_score = "Low", 0.3
 
-    bin_context = format_bins_for_llm_context(bins, has_gps=has_gps)
+    bin_context = format_bins_for_llm_context(bins, has_gps=has_vi_tri)
     prompt = _PROMPT_F2_BIN.format(
         canary_token=CANARY_TOKEN,
         location_note=loc_note,
@@ -541,15 +653,29 @@ def handle_bin_query(
             text = text.replace(CANARY_TOKEN, "").strip()
         cleaned_text = _strip_xml_tags(redact(text).text)
 
-        # Lớp bảo hiểm (§5.3): nếu không có GPS mà câu trả lời chứa mẫu khoảng cách → cắt bỏ
-        if not has_gps and _contains_distance_pattern(cleaned_text):
+        # Lớp bảo hiểm (§5.3): lọc mẫu khoảng cách theo trạng thái vị trí.
+        # dia_danh được phép "cách <tên địa danh> ~Xm", khong_biet chặn hết.
+        if vi_tri == "khong_biet" and _contains_distance_pattern(cleaned_text):
             cleaned_text = (
                 "Dưới đây là danh sách thùng rác khả dụng trong khu vực. "
                 "Bạn vui lòng liên hệ BQL toà nhà để biết vị trí chính xác."
             )
+        elif vi_tri == "dia_danh" and _contains_distance_pattern(
+            cleaned_text, cho_phep_khoang_cach_dia_danh=True
+        ):
+            # Vẫn chặn "cách bạn" / "gần nhất" ở trạng thái địa danh.
+            cleaned_text = (
+                f"Dưới đây là danh sách thùng rác khả dụng gần khu vực {dia_danh_name}. "
+                "Bạn vui lòng liên hệ BQL toà nhà để biết vị trí chính xác."
+            )
 
-        conf_level = "High" if has_gps else no_gps_conf_level
-        conf_score = 0.95 if has_gps else no_gps_conf_score
+        if vi_tri == "gps":
+            conf_level, conf_score = "High", 0.95
+        elif vi_tri == "dia_danh":
+            # Thấp hơn gps, cao hơn khong_biet (§5.2).
+            conf_level, conf_score = "Medium", 0.6
+        else:
+            conf_level, conf_score = no_gps_conf_level, no_gps_conf_score
 
         return ChatbotResponse(
             answer=cleaned_text,
@@ -579,8 +705,10 @@ def handle_bin_query(
         else:
             rule_text = f"Thùng rác hiện là **{bins[0].name}** ({bins[0].address}) nhưng đang ở trạng thái {bins[0].status_label_vi}."
 
-        conf_level = "Medium" if has_gps else no_gps_conf_level
-        conf_score = 0.7 if has_gps else no_gps_conf_score
+        if vi_tri == "gps":
+            conf_level, conf_score = "Medium", 0.7
+        else:
+            conf_level, conf_score = no_gps_conf_level, no_gps_conf_score
 
         return ChatbotResponse(
             answer=rule_text,
@@ -710,7 +838,7 @@ def handle_app_guide(
 
 # --- 7. Điểm Điều phối Chính (Chatbot Orchestrator) -----------------------
 
-def ask_chatbot(
+def _chay_chatbot(
     session: Session,
     question: str,
     *,
@@ -793,3 +921,34 @@ def ask_chatbot(
             fallback_level=3,
             generated_by="abstain",
         )
+
+
+def ask_chatbot(
+    session: Session,
+    question: str,
+    *,
+    building_id: int | None = None,
+    user_lat: float | None = None,
+    user_lng: float | None = None,
+    user_id: str = "khach",
+    ten_nguoi: str | None = None,
+) -> ChatbotResponse:
+    """Giao diện công khai — bọc ``_chay_chatbot`` và gắn trace Langfuse (P87).
+
+    Langfuse chỉ là lớp quan sát: dù nó có hỏng, câu trả lời cho người dùng vẫn
+    không đổi (xem ``src/services/theo_doi.py``).
+    """
+    from src.services.theo_doi import ghi_trace_chatbot
+
+    bat_dau = time.perf_counter()
+    resp = _chay_chatbot(
+        session, question, building_id=building_id, user_lat=user_lat, user_lng=user_lng
+    )
+    ghi_trace_chatbot(
+        question=question,
+        resp=resp,
+        bat_dau=bat_dau,
+        user_id=user_id,
+        ten_nguoi=ten_nguoi,
+    )
+    return resp

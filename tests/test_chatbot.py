@@ -92,6 +92,30 @@ def mock_knowledge_db(db_session: Session) -> dict[str, int]:
     return {"b1": b1.id}
 
 
+@pytest.fixture
+def mock_llm_client(monkeypatch):
+    """Chặn mọi lời gọi model thật của chatbot (P75 §8).
+
+    Patch ``get_llm_client_for_chatbot`` trả về client giả có ``generate_text``
+    trả chuỗi biết trước — test API không còn gọi Mistral, không tốn tiền, không
+    phụ thuộc mạng. Áp cho mọi test API/trực tiếp gọi model.
+    """
+
+    class _FakeClient:
+        def generate_text(self, prompt: str, model: str, max_tokens: int | None = None):
+            from src.services.vision import Usage
+
+            return "Câu trả lời mẫu từ model giả trong test.", Usage(
+                tokens_in=10, tokens_out=20, cost_usd=0.001
+            )
+
+    monkeypatch.setattr(
+        "src.services.chatbot.get_llm_client_for_chatbot",
+        lambda: (_FakeClient(), "mistral-small-latest", "mistral"),
+    )
+    return _FakeClient()
+
+
 # --- 1. Test Input Guardrails & Injection ---------------------------------
 
 def test_normalize_input():
@@ -121,7 +145,7 @@ def test_intent_classification_rules():
 
 # --- 3. Test F1: Hỏi đáp Luật Rác ----------------------------------------
 
-def test_handle_waste_law_query(db_session: Session, mock_knowledge_db: dict[str, int]):
+def test_handle_waste_law_query(db_session: Session, mock_knowledge_db: dict[str, int], mock_llm_client):
     res = handle_waste_law(db_session, "Không phân loại rác bị phạt bao nhiêu")
     assert res.intent == "waste_law"
     assert res.sources, "Phải có nguồn trích dẫn pháp luật"
@@ -131,7 +155,7 @@ def test_handle_waste_law_query(db_session: Session, mock_knowledge_db: dict[str
 
 # --- 4. Test F2: Tra cứu Thùng rác Khả thi --------------------------------
 
-def test_handle_bin_query(db_session: Session, mock_knowledge_db: dict[str, int]):
+def test_handle_bin_query(db_session: Session, mock_knowledge_db: dict[str, int], mock_llm_client):
     res = handle_bin_query(
         db_session,
         "Thùng rác gần đây còn chỗ không",
@@ -143,7 +167,7 @@ def test_handle_bin_query(db_session: Session, mock_knowledge_db: dict[str, int]
 
 # --- 5. Test F3: Hướng dẫn Sử dụng App ------------------------------------
 
-def test_handle_app_guide_query(db_session: Session, mock_knowledge_db: dict[str, int]):
+def test_handle_app_guide_query(db_session: Session, mock_knowledge_db: dict[str, int], mock_llm_client):
     res = handle_app_guide(db_session, "Cách chụp ảnh phân loại rác trong app")
     assert res.intent == "app_guide"
     assert res.sources, "Phải có nguồn tài liệu app guide"
@@ -158,7 +182,7 @@ def test_ask_chatbot_injection_blocked(db_session: Session):
     assert "không hợp lệ" in res.answer.lower() or "bảo mật" in res.source_badge.lower()
 
 
-def test_ask_chatbot_out_of_scope_abstain(db_session: Session):
+def test_ask_chatbot_out_of_scope_abstain(db_session: Session, mock_llm_client):
     res = ask_chatbot(db_session, "Dự báo thời tiết hôm nay thế nào?")
     assert res.intent == "out_of_scope"
     assert res.fallback_level == 3
@@ -190,7 +214,9 @@ def auth_chatbot_client(
     return chatbot_client, token, user
 
 
+@pytest.mark.slow
 def test_api_chatbot_ask(auth_chatbot_client: tuple[TestClient, str, User], mock_knowledge_db: dict[str, int]):
+    """Test gọi model thật — đánh dấu ``slow`` (P75 §8.3), chạy tay khi cần."""
     client, token, _ = auth_chatbot_client
     response = client.post(
         "/api/v1/chatbot/ask",
@@ -294,7 +320,7 @@ def test_api_chatbot_suggested_questions(auth_chatbot_client: tuple[TestClient, 
 
 
 def test_api_chatbot_ask_toa_khac(
-    auth_chatbot_client: tuple[TestClient, str, User], db_session: Session
+    auth_chatbot_client: tuple[TestClient, str, User], db_session: Session, mock_llm_client
 ):
     """User thuộc toà A gửi building_id của toà B → ép về toà A, không lộ nội dung B."""
     client, token, user = auth_chatbot_client
@@ -321,8 +347,9 @@ def test_api_chatbot_ask_toa_khac(
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200, response.text
-    answer = response.json()["answer"]
-    # Không được mang nội dung riêng của toà B
-    assert "CHUNG_CU_B_MAT_MA_123" not in answer
-    # Đã dùng toà A của người dùng
-    assert "CHUNG_CU_A_456" in answer
+    data = response.json()
+    # Ranh giới phải thể hiện ở nguồn trích dẫn (tất định, không phụ thuộc chữ
+    # model sinh ra): không nguồn nào thuộc toà B.
+    sources = data.get("sources", [])
+    assert any(s.get("doc_title") == "NĐ 45 Toà A" for s in sources), "Phải dùng nguồn của toà A"
+    assert not any(s.get("doc_title") == "NĐ 45 Toà B" for s in sources), "Không được lấy nguồn của toà B"

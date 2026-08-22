@@ -24,6 +24,7 @@ nhiêu phần trăm bị hệ thống chốt thành một nhóm **không** nguy 
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass, field
 
 BO_CONG_KHAI = "cong_khai"
@@ -240,3 +241,90 @@ def tong_hop(ket_qua: list[KetQuaAnh], nhan_list: list[str], ma_nguy_hai: set[st
             th.ly_do_tu_choi[kq.ly_do_tu_choi] = th.ly_do_tu_choi.get(kq.ly_do_tu_choi, 0) + 1
 
     return th
+
+
+# --- Chỉ số bám nguồn cho câu trả lời chatbot (P86) ------------------------
+#
+# Hai chỉ số TÁCH RIÊNG thay cho cách đo bám nguồn cũ đã chấm ngược và bị xoá
+# hẳn: số hiệu điều luật và nội dung là hai thứ khác nhau, gộp chung một chỉ số
+# thì một lỗi trượt làm cả hai cùng sai nghĩa.
+#
+# * ``khong_bia_dieu_luat`` — mọi cụm "Điều XX" trong câu trả lời phải có thật
+#   trong kho tri thức của sản phẩm (biến ``KNOWLEDGE_DOCS`` trong
+#   ``src/db/seed_data.py``, nguồn nạp bảng knowledge_chunks mà
+#   ``rag.retrieve()`` truy hồi). KHÔNG so với ``ground_truth_context`` của từng
+#   ca như chỉ số cũ — chỗ đó khiến chatbot trích ĐÚNG điều luật vẫn bị chấm
+#   trượt vì context chỉ chứa nội dung, không chứa số hiệu.
+# * ``bam_noi_dung_nguon`` — phần trăm từ có nghĩa của đoạn nguồn được truy hồi
+#   xuất hiện lại trong câu trả lời. Phép so khớp tất định: chạy lại ra đúng
+#   cùng một số, không dùng model để chấm model.
+
+#: Từ dừng tiếng Việt — hư từ, không mang nghĩa so khớp nội dung. Khai thành
+#: hằng số một chỗ để phép đo chạy lại ra cùng kết quả, không rải chuỗi trong hàm.
+TU_DUNG_TIENG_VIET: frozenset[str] = frozenset(
+    {
+        "và", "của", "là", "các", "có", "cho", "được", "trong", "với", "theo",
+        "khi", "này", "đó", "từ", "đến", "phải", "không",
+    }
+)
+
+#: Ngưỡng ĐẠT của tỉ lệ bám nội dung nguồn. ĐÂY LÀ NGƯỠNG ĐẶT TẠM, CHƯA HIỆU
+#: CHỈNH TRÊN DỮ LIỆU — chốt trước khi đo để chạy lại ra đúng một con số; sau khi
+#: có số đo thực tế phải xem xét hiệu chỉnh và ghi rõ việc đó vào báo cáo.
+NGUONG_BAM_NOI_DUNG = 0.30
+
+#: Cụm số hiệu điều luật: "Điều 79" → bắt nguyên cụm; "Điều 26.1" → bắt phần
+#: "Điều 26". Cả hai phía (kho tri thức và câu trả lời) đi qua cùng một biểu
+#: thức nên cách chuẩn hoá là đối xứng.
+_MAU_SO_HIEU_DIEU = re.compile(r"Điều\s+\d+")
+
+
+def trich_so_hieu_dieu(van_ban: str) -> list[str]:
+    """Danh sách cụm số hiệu điều luật ("Điều XX") xuất hiện trong văn bản."""
+    return _MAU_SO_HIEU_DIEU.findall(van_ban)
+
+
+def kiem_tra_khong_bia_dieu_luat(
+    ca_tra_loi: str,
+    cac_so_hieu_co_that: set[str],
+) -> tuple[bool, list[str]] | None:
+    """Chỉ số ``khong_bia_dieu_luat``: điều luật được trích ra có thật hay không.
+
+    Args:
+        ca_tra_loi: toàn văn câu trả lời của chatbot.
+        cac_so_hieu_co_that: tập số hiệu điều luật có thật trong kho tri thức,
+            gom một lần từ ``src/db/seed_data.py::KNOWLEDGE_DOCS``.
+
+    Returns:
+        ``None`` — câu trả lời không nhắc điều luật nào → không thể vi phạm,
+        **không tính** vào tử số của chỉ số này.
+        ``(True, [])`` — mọi số hiệu được trích đều có thật.
+        ``(False, bia)`` — có ít nhất một số hiệu không có thật; ``bia`` liệt kê
+        đúng các số hiệu bịa để in ra ngoài, không được nuốt vào trong.
+    """
+    trich_dan = trich_so_hieu_dieu(ca_tra_loi)
+    if not trich_dan:
+        return None
+    tap_co_that = {d.lower() for d in cac_so_hieu_co_that}
+    bia = sorted({d for d in trich_dan if d.lower() not in tap_co_that})
+    return not bia, bia
+
+
+def _tu_y_nghia(van_ban: str) -> set[str]:
+    """Tách từ đã thường hoá, bỏ dấu câu và từ dừng."""
+    return {tu for tu in re.findall(r"\w+", van_ban.lower(), re.UNICODE) if tu not in TU_DUNG_TIENG_VIET}
+
+
+def ti_le_bam_noi_dung_nguon(doan_nguon: str, cau_tra_loi: str) -> float:
+    """Chỉ số ``bam_noi_dung_nguon``: câu trả lời có bám nội dung đoạn nguồn không.
+
+    Đếm bao nhiêu **phần trăm** các từ có nghĩa trong đoạn nguồn xuất hiện trong
+    câu trả lời. So NỘI DUNG, không so số hiệu: một câu trả lời diễn đạt lại
+    bằng từ của mình vẫn được ghi nhận là bám nguồn. Đạt khi tỉ lệ
+    ``>= :data:`NGUONG_BAM_NOI_DUNG```.
+    """
+    tu_nguon = _tu_y_nghia(doan_nguon)
+    if not tu_nguon:
+        return 0.0
+    tu_tra_loi = _tu_y_nghia(cau_tra_loi)
+    return sum(1 for tu in tu_nguon if tu in tu_tra_loi) / len(tu_nguon)
