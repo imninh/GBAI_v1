@@ -1,6 +1,6 @@
 # Hướng dẫn chạy `demo_visual.html`
 
-File: [`iot/simulation/demo_visual.html`](./demo_visual.html) — mô phỏng trực quan (1 file HTML/CSS/JS
+File: [`iot/simulation/demo_visual.html`](../simulation/demo_visual.html) — mô phỏng trực quan (1 file HTML/CSS/JS
 độc lập) toàn bộ quy trình bỏ rác của thiết bị GreenBin AI: từ lúc người dùng đến gần thùng,
 xác thực (SKIP/QR), chụp ảnh, cho tới khi rác được servo phân loại vào đúng ngăn.
 
@@ -75,22 +75,54 @@ quan gì tới PIR/OLED/servo ở trên** — đúng như yêu cầu "khoang nà
 
 ### 2.1. Yêu cầu
 
-- Đã cài dependency Python của backend (`.venv` sẵn có trong repo).
+- Python **>= 3.11** (theo `pyproject.toml`).
 - Trình duyệt hiện đại (Chrome/Edge/Firefox) — có hỗ trợ `fetch`, `foreignObject` trong SVG,
   CSS transform trên phần tử SVG.
-- Node.js (đã có sẵn `npx`) — chỉ dùng để chạy 1 static server nhỏ phục vụ file demo.
+- Node.js (đã có sẵn `npx`) — chỉ dùng để chạy 1 static server nhỏ phục vụ file demo, và cho
+  web thật (`frontend/`, Next.js) nếu bạn muốn chạy song song.
 
-### 2.2. Cấu hình `.env`
+> **Lưu ý về port**: web thật cho doanh nghiệp/cư dân (`frontend/`, Next.js) mặc định chạy ở
+> `http://localhost:3000` (`npm run dev` → `next dev -p 3000`). Nếu bạn muốn **mở đồng thời cả
+> web thật và demo mô phỏng**, đừng phục vụ file demo ở port 3000 (sẽ đụng port với web thật) —
+> dùng port **5173** cho demo (xem mục 3), port đó cũng đã được whitelist sẵn trong
+> `CORS_ORIGINS`.
 
-Backend xác thực thiết bị IoT bằng header `X-Device-Key`, dùng **2 khoá khác nhau** cho
-2 endpoint mà demo gọi tới:
+### 2.2. Setup virtualenv (`.venv`) cho backend
 
-| Endpoint | Biến môi trường | Giá trị mặc định demo đang dùng |
-|---|---|---|
-| `POST /api/v1/iot/captures` (chụp + phân loại) | `IOT_DEVICE_KEYS` | `GBIN-001:sim-test-key` |
-| `POST /api/v1/bins/{code}/readings` (báo mức đầy) | `BIN_DEVICE_KEY` | giá trị đang có sẵn trong `.env`, ví dụ `dev-local-doi-truoc-khi-deploy` |
+Nếu repo **đã có sẵn** thư mục `.venv` (thường vậy), chỉ cần kích hoạt rồi cài lại dependency
+cho chắc (an toàn khi chạy lại, không cài trùng):
 
-Mở `.env` ở gốc repo, đảm bảo có dòng:
+```powershell
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Nếu **chưa có** `.venv` (máy mới, hoặc lỡ xoá), tạo mới từ đầu:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+Kiểm tra đã activate đúng chưa: prompt PowerShell sẽ có tiền tố `(.venv)` ở đầu dòng.
+
+> Có thêm `requirements-local-model.txt` nếu bạn bật `LOCAL_MODEL_ENABLED=true` (tầng T0.5
+> local) — cài thêm bằng `pip install -r requirements-local-model.txt` khi cần, không bắt buộc
+> cho demo này.
+
+### 2.3. Cấu hình `.env`
+
+Backend xác thực thiết bị IoT bằng header `X-Device-Key`, dùng **2 khoá (bin key) khác nhau**
+cho 2 endpoint mà demo gọi tới — đây là chỗ dễ nhầm nhất nên đọc kỹ:
+
+| Endpoint | Biến môi trường (đặt trong `.env`) | Giá trị mặc định demo đang dùng | Dùng cho |
+|---|---|---|---|
+| `POST /api/v1/iot/captures` (chụp + phân loại) | `IOT_DEVICE_KEYS` | `GBIN-001:sim-test-key` | Ô **"Device Key cho /iot/captures"** trên UI demo |
+| `POST /api/v1/bins/{code}/readings` (báo mức đầy) | `BIN_DEVICE_KEY` | ví dụ `dev-local-doi-truoc-khi-deploy` | Ô **"Device Key cho /bins/{code}/readings"** trên UI demo |
+
+Mở `.env` ở gốc repo, đảm bảo có đủ 3 dòng:
 
 ```env
 IOT_DEVICE_KEYS=GBIN-001:sim-test-key
@@ -98,19 +130,30 @@ BIN_DEVICE_KEY=dev-local-doi-truoc-khi-deploy
 CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 ```
 
+- `IOT_DEVICE_KEYS` là danh sách `device_id:key`, phân cách bằng dấu phẩy nếu có nhiều thiết
+  bị (ví dụ `GBIN-001:sim-test-key,GBIN-002:key-khac`). Rỗng thì `/iot/captures` **fail closed**
+  luôn — trả lỗi "No device keys configured on the server", không phân loại được gì cả.
+- `BIN_DEVICE_KEY` là khoá **chung** cho mọi thùng chưa có khoá riêng (`device_key_hash` rỗng
+  trong CSDL — đúng trường hợp seed data mẫu). Rỗng thì `/bins/{code}/readings` cũng fail
+  closed, trả `503`.
+- **2 khoá này độc lập nhau, không thay thế cho nhau được** — nhập nhầm khoá của endpoint này
+  sang ô của endpoint kia sẽ ra lỗi `401`.
+
 > Nếu bạn đổi giá trị key trong `.env`, nhớ sửa lại đúng giá trị đó trong khung
-> "⚙ Cấu hình backend" trên giao diện demo (2 ô "Device Key" tách riêng cho từng endpoint).
+> "⚙ Cấu hình backend" trên giao diện demo (2 ô "Device Key" tách riêng cho từng endpoint) —
+> rồi **khởi động lại uvicorn** (biến môi trường chỉ được đọc lúc process khởi động, `--reload`
+> không tự nạp lại `.env`).
 
 Backend cũng cần các bin có sẵn trong CSDL với mã trùng với cấu hình demo (mặc định
 `BIN-01/02/03/04` — đã có sẵn trong seed data mẫu của dự án). Nếu bạn dùng bộ CSDL khác,
 sửa 4 ô "Bin code" trong khung cấu hình cho khớp mã thùng thật.
 
 **Vì sao cần đúng 2 khoá và đúng mã bin:** endpoint `/iot/captures` fail closed nếu
-`IOT_DEVICE_KEYS` rỗng (lỗi "No device keys configured on the server"); endpoint
-`/bins/{code}/readings` fail closed nếu vừa thiếu `BIN_DEVICE_KEY` vừa thùng chưa có khoá
-riêng. Cấu hình sai sẽ thấy dòng `[ERR]` báo `401`/`503` ngay trong khung console của demo.
+`IOT_DEVICE_KEYS` rỗng; endpoint `/bins/{code}/readings` fail closed nếu vừa thiếu
+`BIN_DEVICE_KEY` vừa thùng chưa có khoá riêng. Cấu hình sai sẽ thấy dòng `[ERR]` báo
+`401`/`503` ngay trong khung console của demo.
 
-### 2.3. CORS
+### 2.4. CORS
 
 `CORS_ORIGINS` mặc định của backend chỉ cho phép `http://localhost:3000` và
 `http://localhost:5173`. Mở file demo trực tiếp bằng `file://` **sẽ bị chặn CORS** — luôn
@@ -120,7 +163,14 @@ phục vụ file qua static server ở 1 trong 2 origin trên (xem mục 3).
 
 ## 3. Cách chạy
 
-Cần **2 terminal chạy song song**.
+Chạy được **đồng thời cả 3 tiến trình** dưới đây, mỗi tiến trình 1 terminal riêng, không đụng
+port nhau:
+
+| Terminal | Chạy gì | Port |
+|---|---|---|
+| 1 | Backend FastAPI (bắt buộc cho cả 2 web) | 8000 |
+| 2 | Web thật cho doanh nghiệp/cư dân (`frontend/`, Next.js) | 3000 |
+| 3 | Demo mô phỏng thiết bị IoT (`demo_visual.html`) | 5173 |
 
 ### Terminal 1 — chạy backend thật
 
@@ -134,23 +184,36 @@ python -m uvicorn src.main:app --reload --port 8000
 này để nạp lại cấu hình mới (Ctrl+C rồi chạy lại lệnh trên, hoặc để `--reload` tự áp dụng
 khi sửa code — nhưng biến môi trường thì cần restart thủ công).
 
-### Terminal 2 — phục vụ file demo qua static server
+### Terminal 2 — chạy web thật (tuỳ chọn, chỉ cần khi muốn xem web thật)
 
 ```powershell
-npx serve iot/simulation -l 3000
+cd frontend
+npm install   # chỉ cần lần đầu
+npm run dev
+```
+
+Mở `http://localhost:3000` — đây là Next.js dùng thật cho doanh nghiệp/cư dân, tự trỏ API
+tới `http://localhost:8000` (đổi qua biến `NEXT_PUBLIC_API_URL` trong `frontend/.env.local`
+nếu backend chạy ở nơi khác).
+
+### Terminal 3 — phục vụ file demo qua static server (dùng port 5173, KHÔNG dùng 3000)
+
+```powershell
+npx serve iot/simulation -l 5173
 ```
 
 Mở trình duyệt vào:
 
 ```
-http://localhost:3000/demo_visual.html
+http://localhost:5173/demo_visual.html
 ```
 
-(không double-click mở file trực tiếp — sẽ bị chặn CORS như đã nói ở mục 2.3)
+(không double-click mở file trực tiếp — sẽ bị chặn CORS như đã nói ở mục 2.4. Cũng đừng dùng
+lại port 3000 cho demo nếu Terminal 2 đang chạy — 2 process sẽ giành port của nhau.)
 
-### 3.1. Kiểm tra cấu hình trước khi chạy
+### 3.1. Kiểm tra cấu hình trước khi chạy demo
 
-Bấm nút "⚙ Cấu hình backend" ở góc phải trên, kiểm tra:
+Bấm nút "⚙ Cấu hình backend" ở góc phải trên trang demo, kiểm tra:
 
 - **Backend base URL**: `http://localhost:8000/api/v1` (khớp port đang chạy ở Terminal 1).
 - **Device ID** / **Device Key cho /iot/captures**: khớp `IOT_DEVICE_KEYS` trong `.env`.
@@ -273,7 +336,8 @@ chờ hệ thống/mạng, xanh = đang chạy animation, đỏ = lỗi thật t
 
 | Hiện tượng | Nguyên nhân | Cách fix |
 |---|---|---|
-| `[ERR] Gọi backend thất bại: Failed to fetch` | Backend chưa chạy, sai port, hoặc CORS chặn | Kiểm tra Terminal 1 còn chạy; mở demo qua `localhost:3000`/`5173`, không mở bằng `file://` |
+| `[ERR] Gọi backend thất bại: Failed to fetch` | Backend chưa chạy, sai port, hoặc CORS chặn | Kiểm tra Terminal 1 còn chạy; mở demo qua `localhost:5173`, không mở bằng `file://` |
+| Web thật (`npm run dev`) báo lỗi port 3000 đang bận / tự nhảy sang 3001 | Demo đang được phục vụ ở port 3000 (đụng port với `frontend/`) | Đổi demo sang port 5173 (`npx serve iot/simulation -l 5173`), giữ port 3000 riêng cho `frontend/` |
 | `[ERR] HTTP 401 ...` ở `/iot/captures` | `IOT_DEVICE_KEYS` chưa set hoặc sai khớp Device ID/Key | Set lại `.env`, restart uvicorn, sửa lại 2 ô Device ID/Key trong cấu hình demo |
 | `[ERR] HTTP 401` hoặc `503` ở `/bins/.../readings` | `BIN_DEVICE_KEY` sai hoặc rỗng | Sửa ô "Device Key cho /bins/{code}/readings" khớp `.env` |
 | `[ERR] HTTP 404` ở `/bins/{code}/readings` | Mã bin trong cấu hình demo không tồn tại trong CSDL | Sửa 4 ô "Bin code" khớp mã thùng thật |
