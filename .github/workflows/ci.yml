@@ -38,13 +38,24 @@ jobs:
         run: ruff check src/ tests/ eval/ scripts/
 
       - name: Run tests
-        run: pytest tests/ -v --tb=short
+        run: |
+          pytest tests/ -v --tb=short -ra 2>&1 | tee test_output.log
         env:
           APP_ENV: test
           OPENAI_API_KEY: test-key
           # Chạy model ở chế độ stub (không gọi mạng). CI không có khoá Mistral,
           # và test chậm gọi model thật đã bị loại qua marker `slow` ở pyproject.toml.
           VISION_PROVIDER: stub
+
+      - name: Publish Test Summary
+        if: always()
+        run: |
+          if [ -f test_output.log ]; then
+            echo "### Pytest Summary" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 120 test_output.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
 
   # Frontend là một nửa sản phẩm mà trước đây CI không kiểm gì cả — một lỗi
   # kiểu sẽ chỉ lộ ra lúc build APK hoặc lúc Vercel deploy, tức là quá muộn.

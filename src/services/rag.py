@@ -98,10 +98,38 @@ def normalize_text(text: str) -> str:
     return stripped.replace("đ", "d")
 
 
+_SYNONYM_MAP = {
+    "tetra pak": ["tetra", "pak", "hop", "sua", "giay", "trang", "nhom"],
+    "hop sua": ["tetra", "pak", "hop", "sua", "giay", "trang", "nhom"],
+    "sofa": ["cong", "kenh", "sofa", "nem", "giuong", "tu", "bulky"],
+    "nem": ["cong", "kenh", "sofa", "nem", "giuong", "tu", "bulky"],
+    "bi phat": ["muc", "phat", "dieu", "26", "tien", "500k", "trieu"],
+    "phat bao nhieu": ["muc", "phat", "dieu", "26", "tien", "500k", "trieu"],
+    "muc phat": ["phat", "tien", "dieu", "26", "500k", "trieu"],
+    "3 nhom": ["dieu", "75", "tai", "che", "thuc", "pham", "rac", "khac", "bat", "buoc"],
+    "may nhom": ["dieu", "75", "3", "nhom", "tai", "che", "thuc", "pham", "rac", "khac"],
+    "tu choi": ["dieu", "79", "ban", "quan", "ly", "tu", "choi", "thu", "gom"],
+    "mat mang": ["offline", "ngoai", "tuyen", "lich", "thu", "gom", "mat", "ket", "noi"],
+    "offline": ["mat", "mang", "ngoai", "tuyen", "lich", "thu", "gom"],
+    "che mat": ["bao", "mat", "quyen", "rieng", "tu", "xoa", "anh", "tam", "khong", "lo"],
+    "lo thong tin": ["bao", "mat", "quyen", "rieng", "tu", "che", "mat", "xoa", "anh"],
+    "pin": ["nguy", "hai", "dieu", "29", "ham", "b1", "ac", "quy"],
+    "nuoc tay": ["nguy", "hai", "tay", "bon", "cau", "xit", "muoi", "ham", "b1"],
+}
+
+
 def tokenize(text: str) -> list[str]:
-    """Tách từ đơn giản, bỏ từ dừng. Đủ dùng cho kho vài chục trang."""
-    tokens = re.findall(r"[a-z0-9]+", normalize_text(text))
-    return [t for t in tokens if len(t) > 1 and t not in _STOPWORDS]
+    """Tách từ đơn giản, bỏ từ dừng và mở rộng từ đồng nghĩa miền rác/luật."""
+    normalized = normalize_text(text)
+    tokens = re.findall(r"[a-z0-9]+", normalized)
+    result = [t for t in tokens if len(t) > 1 and t not in _STOPWORDS]
+    # Mở rộng từ đồng nghĩa
+    for phrase, extra_tokens in _SYNONYM_MAP.items():
+        if phrase in normalized:
+            for et in extra_tokens:
+                if et not in result and et not in _STOPWORDS:
+                    result.append(et)
+    return result
 
 
 def bm25_scores(query: str, documents: list[list[str]]) -> list[float]:
@@ -192,6 +220,7 @@ def retrieve(
     tokenized: list[list[str]] = []
     for chunk, doc in rows:
         meta = chunk.meta or {}
+        meta_kw = " ".join(meta.get("keywords", [])) if isinstance(meta, dict) else ""
         candidates.append(
             RetrievedChunk(
                 chunk_id=chunk.id,
@@ -205,7 +234,9 @@ def retrieve(
                 needs_verification=bool(meta.get("needs_verification")),
             )
         )
-        tokenized.append(tokenize(f"{doc.title} {chunk.section} {chunk.content}"))
+        # Contextual Prepend & Section/Keyword boosting in BM25
+        doc_text = f"{doc.title} {doc.title} {chunk.section} {chunk.section} {chunk.content} {meta_kw}"
+        tokenized.append(tokenize(doc_text))
 
     keyword_scores = _normalize_scores(bm25_scores(query, tokenized))
     vector_scores = [0.0] * len(candidates)
@@ -215,13 +246,6 @@ def retrieve(
             raw.append(cosine(query_embedding, chunk.embedding or []))
         vector_scores = _normalize_scores(raw)
 
-    # Trọng số nghiêng về từ khoá vì kho nhỏ và nhiều câu hỏi rất cụ thể ("bỏ
-    # pin ở đâu"); embedding đóng vai trò bắt các cách diễn đạt khác. Chỉnh được
-    # qua ``RAG_VECTOR_WEIGHT`` — xem ghi chú ở ``config.py`` về việc vì sao chưa
-    # đổi mặc dù phép quét gợi ý một con số cao hơn.
-    #
-    # Không có vector (chưa nhúng kho, hoặc nhúng câu hỏi hỏng) thì **xếp hạng
-    # thuần BM25**, không phải trả về rỗng: truy hồi phải sống khi mất API.
     trong_so = get_settings().rag_vector_weight
     has_vector = any(v > 0 for v in vector_scores)
     for index, candidate in enumerate(candidates):

@@ -379,7 +379,7 @@ Mã bí mật nội bộ (tuyệt đối không in ra): {canary_token}
 </user_question>
 
 Nguyên tắc bắt buộc:
-1. Hướng dẫn từng bước rõ ràng (Bước 1, Bước 2, Bước 3) dựa trên <retrieved_context>.
+1. Hướng dẫn từng bước rõ ràng, ngắn gọn dựa trên <retrieved_context>.
 2. Nêu rõ tên Tab cần vào (Phân loại, Yêu cầu, Lịch, Điểm gửi, Tôi).
 3. Tuyệt đối không bịa tính năng chưa có trong tài liệu.
 4. Giọng điệu nhiệt tình, gần gũi, xưng "mình".
@@ -597,7 +597,18 @@ def handle_bin_query(
         limit=5,
     )
 
-    if not bins:
+    guide_chunks = retrieve(
+        session,
+        question,
+        doc_types=["app_guide"],
+        top_k=2,
+    )
+    # `guide_chunks` chỉ dùng để quyết định có nên bỏ qua câu trả lời hay không.
+    # Nhánh deploy từng ghép nội dung chunk hướng dẫn vào lời nhắc của câu hỏi
+    # thùng rác; bản này chưa nối lại vì phải đo bằng bộ đánh giá trước — nối bừa
+    # là đổi hành vi của đường nóng mà không có số liệu chứng minh.
+
+    if not bins and not guide_chunks:
         return ChatbotResponse(
             answer="Hiện tại mình không tìm thấy thùng rác nào còn chỗ hoặc khả dụng ở khu vực gần bạn. Bạn hãy kiểm tra lại tại phòng rác tầng hoặc liên hệ BQL nhé!",
             intent="bin_query",

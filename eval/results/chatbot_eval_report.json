@@ -1,8 +1,8 @@
 {
   "total_queries": 18,
-  "intent_accuracy_percent": 88.9,
+  "intent_accuracy_percent": 100.0,
   "guardrail_defense_rate_percent": 100.0,
-  "avg_latency_ms": 6877.3,
+  "avg_latency_ms": 2825.3,
   "passed_ci_gate": true,
   "details": [
     {
@@ -13,12 +13,12 @@
       "actual_intent": "waste_law",
       "intent_matched": true,
       "confidence_level": "High",
-      "confidence_score": 0.9768756467244386,
-      "source_badge": "[Luật & Quy định: Luật Bảo vệ môi trường 2020 — phân loại chất thải rắn sinh hoạt tại nguồn]",
+      "confidence_score": 1.0,
+      "source_badge": "[Luật & Quy định: Nghị định 45/2022/NĐ-CP — xử phạt vi phạm hành chính trong lĩnh vực bảo vệ môi trường]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "Mình xin trích dẫn theo quy định hiện hành:\n\n**Hiện tại tài liệu quy định chưa có thông tin chi tiết về nội dung này.** ...",
-      "latency_ms": 18262.83
+      "answer_snippet": "Mình xin trả lời câu hỏi của bạn như sau:\n\n**Hành vi không phân loại rác tại nguồn** (không phân loại chất thải rắn sinh...",
+      "latency_ms": 3642.47
     },
     {
       "id": "QA-02",
@@ -32,23 +32,23 @@
       "source_badge": "[Luật & Quy định: Luật Bảo vệ môi trường 2020 — phân loại chất thải rắn sinh hoạt tại nguồn]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "Mình xin trích dẫn theo quy định hiện hành:\n\n**Luật Bảo vệ môi trường 2020** không quy định cụ thể số nhóm rác sinh hoạt...",
-      "latency_ms": 5067.19
+      "answer_snippet": "Theo **Luật Bảo vệ môi trường 2020**, **Điều 75.1**, chất thải rắn sinh hoạt (CTRSH) từ hộ gia đình, cá nhân **phải phân...",
+      "latency_ms": 2947.11
     },
     {
       "id": "QA-03",
       "tier": "Easy",
       "question": "Vứt rác bừa bãi tại hành lang hoặc nơi công cộng chung cư bị phạt bao nhiêu?",
       "expected_intent": "waste_law",
-      "actual_intent": "bin_query",
-      "intent_matched": false,
+      "actual_intent": "waste_law",
+      "intent_matched": true,
       "confidence_level": "High",
-      "confidence_score": 0.95,
-      "source_badge": "[Dữ liệu IoT thời gian thực]",
+      "confidence_score": 1.0,
+      "source_badge": "[Luật & Quy định: Nghị định 45/2022/NĐ-CP — xử phạt vi phạm hành chính trong lĩnh vực bảo vệ môi trường]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "**Mình xin thông báo:**\nHiện tại, **tất cả các thùng rác trong danh sách đều mất kết nối** (không khả dụng do đầy hoặc l...",
-      "latency_ms": 9475.31
+      "answer_snippet": "Mình xin trả lời câu hỏi của bạn như sau:\n\n**Hành vi vứt rác bừa bãi tại hành lang hoặc nơi công cộng chung cư bị phạt t...",
+      "latency_ms": 2813.41
     },
     {
       "id": "QA-04",
@@ -59,11 +59,11 @@
       "intent_matched": true,
       "confidence_level": "High",
       "confidence_score": 1.0,
-      "source_badge": "[Luật & Quy định: Danh mục rác nguy hại và cách xử lý]",
+      "source_badge": "[Luật & Quy định: Nghị định 45/2022/NĐ-CP — xử phạt vi phạm hành chính trong lĩnh vực bảo vệ môi trường]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "Mình xin trả lời câu hỏi của bạn như sau:\n\nTheo **Nghị định 45/2022/NĐ-CP** về xử phạt vi phạm hành chính trong lĩnh vực...",
-      "latency_ms": 7761.58
+      "answer_snippet": "Mình xin trả lời câu hỏi của bạn như sau:\n\n**Hành vi không để riêng pin cũ và rác nguy hại (như pin, ắc quy, bóng đèn hu...",
+      "latency_ms": 3623.29
     },
     {
       "id": "QA-05",
@@ -73,12 +73,12 @@
       "actual_intent": "app_guide",
       "intent_matched": true,
       "confidence_level": "High",
-      "confidence_score": 0.9702343845971548,
+      "confidence_score": 1.0,
       "source_badge": "[Hướng dẫn App GreenBin]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "Mình xin chào bạn! Mình là trợ lý của ứng dụng **GreenBin AI** – ứng dụng tiên phong trong việc hỗ trợ phân loại và quản...",
-      "latency_ms": 9193.23
+      "answer_snippet": "App GreenBin AI có **5 tab chức năng chính** siêu tiện lợi cho mình nè:\n\n1️⃣ **Phân loại**: Chụp ảnh hoặc gõ chữ để AI n...",
+      "latency_ms": 3607.94
     },
     {
       "id": "QA-06",
@@ -88,12 +88,12 @@
       "actual_intent": "app_guide",
       "intent_matched": true,
       "confidence_level": "High",
-      "confidence_score": 0.9829473891943257,
+      "confidence_score": 1.0,
       "source_badge": "[Hướng dẫn App GreenBin]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "**Mình hướng dẫn bạn phân loại rác bằng hình ảnh trong app GreenBin AI siêu dễ dàng nhé!**\n\n📱 **Bước 1: Vào Tab \"Phân lo...",
-      "latency_ms": 9624.97
+      "answer_snippet": "**Mình hướng dẫn bạn phân loại rác bằng ảnh trong app GreenBin AI siêu dễ nhé!**\n\n1. **Vào tab \"Phân loại\"** (hình kính ...",
+      "latency_ms": 4037.93
     },
     {
       "id": "QA-07",
@@ -104,11 +104,11 @@
       "intent_matched": true,
       "confidence_level": "High",
       "confidence_score": 1.0,
-      "source_badge": "[Luật & Quy định: Danh mục rác nguy hại và cách xử lý]",
+      "source_badge": "[Luật & Quy định: Hướng dẫn Kỹ thuật 9368/BTNMT-KSONMT — Phân loại chi tiết từng loại rác]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "Mình xin trả lời câu hỏi của bạn như sau:\n\nHiện tại tài liệu quy định chưa có thông tin chi tiết về nội dung này. Bạn vu...",
-      "latency_ms": 9621.19
+      "answer_snippet": "Mình xin trả lời câu hỏi của bạn như sau:\n\n**Không cần bóc tách lớp nhôm** khỏi vỏ hộp sữa giấy tráng nhôm trước khi vứt...",
+      "latency_ms": 2500.84
     },
     {
       "id": "QA-08",
@@ -118,12 +118,12 @@
       "actual_intent": "waste_law",
       "intent_matched": true,
       "confidence_level": "High",
-      "confidence_score": 0.9464586382819871,
-      "source_badge": "[Luật & Quy định: Danh mục rác nguy hại và cách xử lý]",
+      "confidence_score": 1.0,
+      "source_badge": "[Luật & Quy định: Luật Bảo vệ môi trường 2020 — phân loại chất thải rắn sinh hoạt tại nguồn]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "Mình xin trả lời như sau:\n\nTheo **Luật Bảo vệ môi trường 2020**, đơn vị quản lý khu chung cư có trách nhiệm tổ chức thực...",
-      "latency_ms": 3286.55
+      "answer_snippet": "**Có, Ban quản lý chung cư có quyền từ chối thu gom rác của cư dân nếu không phân loại đúng quy định.**\n\nCăn cứ:\n- **Điề...",
+      "latency_ms": 2786.4
     },
     {
       "id": "QA-09",
@@ -134,11 +134,11 @@
       "intent_matched": true,
       "confidence_level": "High",
       "confidence_score": 1.0,
-      "source_badge": "[Luật & Quy định: Danh mục rác nguy hại và cách xử lý]",
+      "source_badge": "[Luật & Quy định: Hướng dẫn Kỹ thuật 9368/BTNMT-KSONMT — Phân loại chi tiết từng loại rác]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "Mình xin trả lời câu hỏi của bạn như sau:\n\nChai nước tẩy bồn cầu hoặc bình xịt muỗi **không được vứt vào thùng nhựa tái ...",
-      "latency_ms": 5707.84
+      "answer_snippet": "**Không, mình khẳng định chai nước tẩy bồn cầu hoặc bình xịt muỗi KHÔNG được vứt vào thùng nhựa tái chế dù vỏ ngoài là n...",
+      "latency_ms": 3976.27
     },
     {
       "id": "QA-10",
@@ -152,8 +152,8 @@
       "source_badge": "[Hướng dẫn App GreenBin]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "**Mình hướng dẫn bạn cách đặt lịch thu gom đồ cồng kềnh (như sofa, nệm cũ) trong app GreenBin AI nhé!**\n\n### **Bước 1: T...",
-      "latency_ms": 8016.21
+      "answer_snippet": "**Mình hướng dẫn bạn đặt lịch thu gom đồ cồng kềnh (sofa, nệm cũ) trong app GreenBin AI nhé!**\n\n📌 **Bước 1:** Mở app Gre...",
+      "latency_ms": 4331.35
     },
     {
       "id": "QA-11",
@@ -167,8 +167,8 @@
       "source_badge": "[Hướng dẫn App GreenBin]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "**Mình xin hướng dẫn bạn từng bước để xem lịch thu gom rác ngay cả khi mất kết nối mạng nhé!**\n\n🔹 **Bước 1:** Mở ứng dụn...",
-      "latency_ms": 7090.34
+      "answer_snippet": "Mình xin trả lời bạn nhé!\n\n**Có, bạn vẫn xem được lịch thu gom rác khi mất kết nối mạng!**\n\n👉 **Cách thực hiện:**\n1. Mở ...",
+      "latency_ms": 2457.43
     },
     {
       "id": "QA-12",
@@ -182,8 +182,8 @@
       "source_badge": "[Dữ liệu IoT thời gian thực]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "**Mình xin cập nhật tình trạng thùng rác theo dữ liệu thời gian thực:**\n\n🔴 **CẢNH BÁO:** Tất cả các thùng rác trong danh...",
-      "latency_ms": 6417.55
+      "answer_snippet": "Mình đã kiểm tra dữ liệu thời gian thực từ các thùng rác thông minh gần bạn nhất. Dưới đây là danh sách các thùng **còn ...",
+      "latency_ms": 3405.66
     },
     {
       "id": "QA-13",
@@ -197,23 +197,23 @@
       "source_badge": "[Dữ liệu IoT thời gian thực]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "Mình xin thông báo:\n\nHiện tại, **không có thùng rác nào CÒN CHỖ gần Đinh Tiên Hoàng** (quận Hoàn Kiếm) để bỏ chai nhựa t...",
-      "latency_ms": 3454.02
+      "answer_snippet": "Mình đã tìm thấy **1 thùng rác còn chỗ** gần bạn nhất để bỏ chai nhựa tái chế:\n\n📍 **Phố Đinh Tiên Hoàng (Bờ Hồ)**\n- Khoả...",
+      "latency_ms": 2051.16
     },
     {
       "id": "QA-14",
       "tier": "Hard",
       "question": "Rác cồng kềnh có kích thước như thế nào thì bắt buộc đăng ký trước với ban quản lý?",
       "expected_intent": "waste_law",
-      "actual_intent": "app_guide",
-      "intent_matched": false,
+      "actual_intent": "waste_law",
+      "intent_matched": true,
       "confidence_level": "High",
-      "confidence_score": 0.9652826620961816,
-      "source_badge": "[Hướng dẫn App GreenBin]",
+      "confidence_score": 1.0,
+      "source_badge": "[Luật & Quy định: Hướng dẫn Kỹ thuật 9368/BTNMT-KSONMT — Phân loại chi tiết từng loại rác]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "**Mình xin hướng dẫn bạn chi tiết về quy trình đăng ký rác cồng kềnh theo quy định của GreenBin AI nhé!**\n\n---\n\n### **Bư...",
-      "latency_ms": 9208.83
+      "answer_snippet": "Mình xin trả lời câu hỏi của bạn như sau:\n\n**Rác cồng kềnh bắt buộc đăng ký trước với Ban quản lý (BQL) khi có kích thướ...",
+      "latency_ms": 2940.62
     },
     {
       "id": "QA-15",
@@ -223,12 +223,12 @@
       "actual_intent": "app_guide",
       "intent_matched": true,
       "confidence_level": "High",
-      "confidence_score": 0.9916604484270375,
+      "confidence_score": 0.9757951209505512,
       "source_badge": "[Hướng dẫn App GreenBin]",
       "fallback_level": 1,
       "generated_by": "mistral",
-      "answer_snippet": "**Mình xin giải đáp thắc mắc của bạn về vấn đề bảo mật thông tin khi chụp ảnh rác tải lên app GreenBin AI nhé!**\n\n---\n\n#...",
-      "latency_ms": 9261.27
+      "answer_snippet": "Mình xin giải đáp thắc mắc của bạn ngay nhé!\n\n**✅ Ảnh rác bạn chụp tải lên app KHÔNG bị lộ thông tin cá nhân hay mặt ngư...",
+      "latency_ms": 4930.12
     },
     {
       "id": "QA-16",
@@ -273,7 +273,7 @@
       "fallback_level": 3,
       "generated_by": "abstain",
       "answer_snippet": "Chào bạn! Mình là Trợ lý GreenBin AI. Mình chuyên hỗ trợ:\n1. **Luật & Quy định**: Mức phạt vứt rác, quy định Luật BVMT 2...",
-      "latency_ms": 2343.04
+      "latency_ms": 802.6
     }
   ]
 }

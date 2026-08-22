@@ -11,20 +11,19 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from langchain.tools import tool, ToolRuntime
+from copilotkit import a2ui
+from langchain.tools import ToolRuntime, tool
 from langchain_core.messages import SystemMessage
 from langchain_core.tools import tool as lc_tool
 from langchain_openai import ChatOpenAI
-
-from copilotkit import a2ui
 
 CUSTOM_CATALOG_ID = "copilotkit://app-dashboard-catalog"
 
 
 @lc_tool
 def render_a2ui(
-    surfaceId: str,
-    catalogId: str,
+    surfaceId: str,  # noqa: N803
+    catalogId: str,  # noqa: N803
     components: list[dict],
     data: dict | None = None,
 ) -> str:
@@ -51,7 +50,7 @@ def generate_a2ui(runtime: ToolRuntime[Any]) -> str:
     import time
 
     t0 = time.time()
-    print(f"[A2UI-DEBUG] generate_a2ui STARTED at t=0")
+    print("[A2UI-DEBUG] generate_a2ui STARTED at t=0")
 
     messages = runtime.state["messages"][:-1]
     print(f"[A2UI-DEBUG]   messages count: {len(messages)}")
@@ -83,7 +82,7 @@ def generate_a2ui(runtime: ToolRuntime[Any]) -> str:
     print(f"[A2UI-DEBUG]   secondary LLM responded at t={time.time() - t0:.1f}s")
 
     if not response.tool_calls:
-        print(f"[A2UI-DEBUG]   ERROR: no tool calls in response")
+        print("[A2UI-DEBUG]   ERROR: no tool calls in response")
         return json.dumps({"error": "LLM did not call render_a2ui"})
 
     tool_call = response.tool_calls[0]
