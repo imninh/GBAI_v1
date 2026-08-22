@@ -173,9 +173,9 @@
         <input id="cfgBinKey" value="dev-local-doi-truoc-khi-deploy">
       </label>
       <label>Bin code — Plastic <input id="cfgBinPlastic" value="BIN_HN_ANLD_01"></label>
-      <label>Bin code — Aluminum (metal) <input id="cfgBinMetal" value="BIN_HN_BERR_01"></label>
-      <label>Bin code — Paper <input id="cfgBinPaper" value="BIN_HN_DCAP_C1"></label>
-      <label>Bin code — Other <input id="cfgBinOther" value="BIN_HN_DISC_01"></label>
+      <label>Bin code — Aluminum (metal) <input id="cfgBinMetal" value="BIN_HN_ANLD_01"></label>
+      <label>Bin code — Paper <input id="cfgBinPaper" value="BIN_HN_ANLD_01"></label>
+      <label>Bin code — Other <input id="cfgBinOther" value="BIN_HN_ANLD_01"></label>
       <div class="note">Gọi thẳng /iot/captures và /bins/{code}/readings — hai endpoint xác thực bằng header X-Device-Key, không cần JWT người dùng, nhưng dùng 2 khoá KHÁC NHAU (IOT_DEVICE_KEYS vs BIN_DEVICE_KEY trong .env). Trang này đã trỏ sẵn vào máy chủ đang chạy thật và điền sẵn mã thùng thật. Hai ô KHOÁ bên trên đang là giá trị MẪU — dán khoá thật vào lúc trình diễn, đừng lưu khoá thật vào trang này vì trang công khai. Chưa đặt biến IOT_DEVICE_KEYS trên máy chủ thì đường ảnh sẽ trả 401.</div>
     </div>
   </details>
