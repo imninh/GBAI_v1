@@ -18,7 +18,7 @@ Gói P72 — hai mảng nghiệp vụ:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -33,6 +33,7 @@ from src.db.models import (
 )
 from src.services import route_planner
 from src.services.auth import write_audit
+from src.services.kip_thu_gom import chon_kip_tu_dong, gan_kip
 
 _LOG = logging.getLogger(__name__)
 
@@ -154,6 +155,104 @@ def tao_chuyen_tu_lich(
     return {
         "so_lich_xet": len(cac_lich),
         "so_chuyen_tao": so_chuyen_tao,
+        "so_lich_bo_vi_da_co": so_bo_vi_da_co,
+        "so_lich_bo_vi_khong_yeu_cau": so_bo_vi_khong_yeu_cau,
+    }
+
+
+def tao_lich_tuan(
+    session: Session,
+    *,
+    actor: User,
+    tuan_bat_dau: date,
+    run_id: int | None = None,
+) -> dict[str, int]:
+    """Lên lịch cả tuần từ ``tuan_bat_dau`` — một lệnh tạo chuyến cho 7 ngày.
+
+    Khác ``tao_chuyen_tu_lich`` (chạy mỗi 15 phút, tạo chuyến 1 giờ trước giờ
+    đi). Hàm này gọi **một lần đầu tuần**, duyệt 7 ngày, tạo chuyến và gán
+    kíp sẵn theo vòng tròn (§3.2). Chống tạo trùng nhận ra chuyến do **cả hai
+    đường** tạo ra (cùng ``nguon_tao == "tu_dong"``).
+
+    - ``tuan_bat_dau`` là tham số truyền vào, không ``date.today()``.
+    - Không đủ người cho kíp → vẫn tạo chuyến, để trống kíp.
+    - Window rỗng hoặc sai định dạng → bỏ qua, ``log.warning``.
+    - Không có yêu cầu đã duyệt → không tạo chuyến rỗng.
+    """
+    from datetime import timedelta
+
+    so_ngay_xet = 0
+    so_chuyen_tao = 0
+    so_da_gan_kip = 0
+    so_chua_gan_kip = 0
+    so_bo_vi_da_co = 0
+    so_bo_vi_khong_yeu_cau = 0
+    da_gan: dict[int, int] = {}
+
+    all_schedules = list(session.scalars(select(CollectionSchedule)).all())
+
+    for i in range(7):
+        ngay = tuan_bat_dau + timedelta(days=i)
+        thu = ngay.weekday()
+
+        cac_lich = [s for s in all_schedules if thu in (s.weekdays or [])]
+        if not cac_lich:
+            continue
+        so_ngay_xet += 1
+
+        for lich in cac_lich:
+            if _parse_gio_bat_dau(lich.window) is None:
+                _LOG.warning(
+                    "Bỏ qua lịch %s: window %r rỗng hoặc sai định dạng, không tạo được chuyến.",
+                    lich.id,
+                    lich.window,
+                )
+                continue
+
+            da_co = session.scalar(
+                select(PickupRoute.id)
+                .where(
+                    PickupRoute.service_date == ngay,
+                    PickupRoute.window == lich.window,
+                    PickupRoute.nguon_tao == NGUON_TU_DONG,
+                )
+                .limit(1)
+            )
+            if da_co is not None:
+                so_bo_vi_da_co += 1
+                continue
+
+            try:
+                cac_route = route_planner.propose_routes(
+                    session,
+                    service_date=ngay,
+                    window=lich.window,
+                    run_id=run_id,
+                )
+            except ValueError:
+                so_bo_vi_khong_yeu_cau += 1
+                continue
+
+            for route in cac_route:
+                route.nguon_tao = NGUON_TU_DONG
+                so_chuyen_tao += 1
+
+                kip = chon_kip_tu_dong(session, tuan_bat_dau=tuan_bat_dau, da_gan=da_gan)
+                if kip is None:
+                    so_chua_gan_kip += 1
+                else:
+                    try:
+                        gan_kip(session, actor=actor, route_id=route.id, user_ids=kip)
+                        so_da_gan_kip += 1
+                    except ValueError:
+                        so_chua_gan_kip += 1
+            session.flush()
+
+    return {
+        "so_ngay_xet": so_ngay_xet,
+        "so_chuyen_tao": so_chuyen_tao,
+        "so_chuyen_da_gan_kip": so_da_gan_kip,
+        "so_chuyen_chua_gan_kip": so_chua_gan_kip,
         "so_lich_bo_vi_da_co": so_bo_vi_da_co,
         "so_lich_bo_vi_khong_yeu_cau": so_bo_vi_khong_yeu_cau,
     }
