@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.models_base import Base, utcnow
@@ -205,3 +205,26 @@ class SuCoThuGom(Base):
     ghi_chu_xu_ly: Mapped[str] = mapped_column(Text, default="")
     xu_ly_luc: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+
+class RouteThanhVien(Base):
+    """Thành viên của một kíp thu gom — lớp phủ lên ``pickup_routes`` (gói **P80**).
+
+    Gói P80 quản lý kíp: một chuyến (``pickup_routes``) sẽ có nhiều thành viên,
+    mỗi người một vai trò (``truong_kip`` hoặc ``thanh_vien``). Bảng này là lớp
+    phủ thêm — ``pickup_routes.team_id`` (người chịu trách nhiệm duy nhất cũ)
+    **giữ nguyên**, không xoá, để màn theo dõi xe và các test đang dùng nó không
+    bị phá. Ràng buộc duy nhất trên ``(route_id, user_id)`` chặn việc gán một
+    người hai lần vào cùng một chuyến.
+    """
+
+    __tablename__ = "route_thanh_vien"
+    __table_args__ = (
+        UniqueConstraint("route_id", "user_id", name="uq_route_thanh_vien_route_user"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    route_id: Mapped[int] = mapped_column(ForeignKey("pickup_routes.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    vai_tro: Mapped[str] = mapped_column(String(20), default="thanh_vien")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
