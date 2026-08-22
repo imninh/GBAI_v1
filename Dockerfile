@@ -1,5 +1,5 @@
 # ---- Stage 1: Build ----
-FROM python:3.11-slim AS builder
+FROM python:3.13-slim AS builder
 
 # Cài vào một virtualenv riêng ở /opt/venv thay vì `pip install --user`.
 #
@@ -11,11 +11,11 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt
+COPY requirements.lock.txt .
+RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.lock.txt
 
 # ---- Stage 2: Production ----
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # `opencv-python-headless` (dùng để làm mờ khuôn mặt) vẫn liên kết tới
 # libgthread của glib, thứ không có sẵn trong bản `slim`. Thiếu nó thì

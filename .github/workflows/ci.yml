@@ -28,7 +28,7 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.lock.txt
 
       - name: Lint with ruff
         # `scripts/` PHẢI có mặt: cổng kiểm ở máy dev là
@@ -42,6 +42,9 @@ jobs:
         env:
           APP_ENV: test
           OPENAI_API_KEY: test-key
+          # Chạy model ở chế độ stub (không gọi mạng). CI không có khoá Mistral,
+          # và test chậm gọi model thật đã bị loại qua marker `slow` ở pyproject.toml.
+          VISION_PROVIDER: stub
 
   # Frontend là một nửa sản phẩm mà trước đây CI không kiểm gì cả — một lỗi
   # kiểu sẽ chỉ lộ ra lúc build APK hoặc lúc Vercel deploy, tức là quá muộn.
