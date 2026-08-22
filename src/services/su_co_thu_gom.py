@@ -18,6 +18,7 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 
 from src.db.models import Notification, PickupRoute, RouteStop, SuCoThuGom, User
+from src.services import pham_vi_to_chuc
 from src.services.auth import write_audit
 
 # phan_loai_sai | thung_day | khong_tiep_can | khac
@@ -145,12 +146,14 @@ def _loc_theo_nguoi_xem(user: User):
     """Điều kiện lọc sự cố theo người xem — tập trung ở service, không rải ra router.
 
     * cleaner: chỉ thấy sự cố **mình** báo (``nguoi_bao_id == user.id``).
-    * manager: xem mọi sự cố của hệ thống (trả ``None`` = không giới hạn).
+    * manager: không bị giới hạn bởi vai trò này (trả ``None`` = không giới hạn).
 
-    ⚠️ Không lọc theo đơn vị ở đây: dự án có test quét cấm khoá lọc đơn vị xuất
-    hiện ngoài ``src/services/bins.py`` (quy tắc tập trung phạm vi đơn vị). Nên
-    ĐVTG xem toàn bộ sự cố — vẫn giữ được luật "người thu gom chỉ thấy sự cố của
-    mình" và "đừng rải điều kiện quyền ra router".
+    Lọc theo **đơn vị** không nằm ở đây mà nằm ở ``danh_sach_su_co``: nó gọi
+    ``pham_vi_to_chuc.dieu_kien_theo_to_chuc`` để lọc theo ``nguoi_bao_id``.
+    Quy tắc "tập trung phạm vi đơn vị vào một nơi duy nhất" vẫn giữ — chỉ là nơi
+    đó là module ``pham_vi_to_chuc``, không còn bị giam trong ``bins.py`` (gói
+    P83 đã nới test quét cho phép đúng hai file đó). Luật "người thu gom chỉ
+    thấy sự cố của mình" vẫn giữ nguyên.
     """
     if user.role == "cleaner":
         return SuCoThuGom.nguoi_bao_id == user.id
@@ -165,12 +168,19 @@ def danh_sach_su_co(
     route_id: int | None = None,
     limit: int = 50,
 ) -> list[SuCoThuGom]:
-    """Liệt kê sự cố theo người xem, lọc theo trạng thái và chuyến nếu có."""
+    """Liệt kê sự cố theo người xem, lọc theo trạng thái, chuyến và đơn vị nếu có."""
     statement = select(SuCoThuGom)
 
     loc = _loc_theo_nguoi_xem(nguoi_xem)
     if loc is not None:
         statement = statement.where(loc)
+
+    # Lọc theo đơn vị: chỉ hiện sự cố do người thuộc đơn vị của người xem (hoặc
+    # chưa gắn đơn vị) báo. PickupRoute không có cột đơn vị, nên lọc theo
+    # nguoi_bao_id — người báo luôn là nhân sự một đơn vị, không bao giờ là cư dân.
+    loc_dv = pham_vi_to_chuc.dieu_kien_theo_to_chuc(nguoi_xem, SuCoThuGom.nguoi_bao_id)
+    if loc_dv is not None:
+        statement = statement.where(loc_dv)
 
     if trang_thai is not None:
         if trang_thai not in TRANG_THAI_HOP_LE:
