@@ -463,11 +463,13 @@ export function LoginScreen() {
       {/* Lối vào bản mô phỏng thiết bị. Là trang tĩnh trong `public/` nên đi
           thẳng bằng thẻ <a>, không qua bộ định tuyến của ứng dụng — bản xuất
           tĩnh chỉ có ba đường thật, thêm route mới là 404.
-          Để là MỘT file phẳng chứ không phải `demo-thiet-bi/index.html`: máy chủ
-          phát triển không tự mở index.html của thư mục (đo được 404), còn bản
-          chạy thật thì có — dựa vào chỗ khác nhau đó là tự đặt bẫy. */}
+          ⚠️ Đường dẫn PHẢI có dấu `/` ở cuối và KHÔNG có đuôi `.html`, vì
+          `next.config.ts` đặt `trailingSlash: true`. Đo trên bản chạy thật:
+          `/demo-thiet-bi/` → 200 · `/demo-thiet-bi` → 308 · `/demo-thiet-bi.html`
+          → 404. Máy chủ phát triển thì ngược lại (chỉ mở được đuôi `.html`) —
+          hai môi trường vênh nhau, và bản chạy thật mới là bản phải đúng. */}
       <a
-        href="/demo-thiet-bi.html"
+        href="/demo-thiet-bi/"
         className="mb-4 mt-1 flex w-full cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] border-dashed border-line-2 bg-white p-3.5 text-left no-underline"
       >
         <span className="flex h-[42px] w-[42px] flex-none items-center justify-center rounded-xl bg-leaf-soft">
