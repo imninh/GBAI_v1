@@ -183,6 +183,13 @@ class Settings(BaseSettings):
     # hai dòng này thì app cài về gọi API bị CORS chặn.
     cors_origins: str = "https://gbai-v1.vercel.app,http://localhost:3000,http://localhost:3001,https://localhost,capacitor://localhost"
 
+    # Địa chỉ gốc của ứng dụng WEB (bản xuất tĩnh) — nơi mã QR trỏ tới. KHÁC
+    # ``cors_origins`` (danh sách origin được phép gọi API): hai thứ tình cờ hay
+    # trùng nhau chứ không phải một. Mặc định để giá trị thật — biến rỗng là hỏng
+    # câm (mã QR sinh ra sẽ trỏ về chính thiết bị quét), y như bài học
+    # ``IOT_DEVICE_KEYS``.
+    web_app_base_url: str = "https://gbai-v1.vercel.app"
+
     # Máy chủ tự nạp dữ liệu nền khi khởi động. Bật trên Render vì ở đó không có
     # chỗ chạy tay ``scripts/seed.py``; để tắt khi dev cho khỏi bất ngờ.
     seed_on_start: bool = False
@@ -413,6 +420,16 @@ class Settings(BaseSettings):
 
     # IoT devices — "device_id:key" pairs, comma separated. Never commit real keys.
     iot_device_keys: str = ""
+
+    # --- Langfuse: theo dõi hệ AI (P87, bước 1: chatbot + advise) ----------
+    # MẶC ĐỊNH TẮT. Bật qua ``LANGFUSE_ENABLED=true`` trong ``.env``. Thiếu
+    # khoá cũng coi như tắt — tuyệt đối không làm hỏng câu trả lời người dùng
+    # chỉ vì Langfuse chết / hết ngạch / đứt mạng.
+    langfuse_enabled: bool = False
+    langfuse_public_key: str = ""
+    langfuse_secret_key: str = ""
+    # Host Langfuse. Mặc định cloud; để trống cũng lấy cloud.langfuse.com.
+    langfuse_base_url: str = "https://cloud.langfuse.com"
 
     # --- Tiện ích ---------------------------------------------------------
 
