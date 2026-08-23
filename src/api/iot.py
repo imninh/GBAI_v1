@@ -25,7 +25,7 @@ from src.models.schemas import (
 from src.services import bin_readings, phien_thung, runs
 from src.services.classifier import classify_waste
 from src.services.classifier_types import ClassifyOutcome
-from src.services.device_auth import DeviceAuthError, authenticate
+from src.services.device_auth import DeviceAuthError, authenticate, kiem_chong_phat_lai
 from src.services.hop_dong_thiet_bi import dung_phan_hoi, sinh_item_id
 from src.services.image_privacy import ImageValidationError, preprocess_image
 from src.services.kieu_json import lam_sach_gia_tri
@@ -36,12 +36,29 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-async def require_device_key(x_device_key: str | None = Header(default=None)) -> str:
-    """FastAPI dependency: authenticate the caller as a known device."""
+async def require_device_key(
+    x_device_key: str | None = Header(default=None),
+    x_device_timestamp: str | None = Header(default=None),
+    x_device_signature: str | None = Header(default=None),
+) -> str:
+    """FastAPI dependency: authenticate the caller as a known device.
+
+    Khi ``IOT_CHONG_PHAT_LAI`` bật (mặc định TẮT — firmware cũ không gửi hai
+    header mới): khoá thô xác thực thành công mới xét tiếp chống phát lại.
+    Khoá HMAC là CHUỖI KHOÁ THÔ vừa mở được khoá, nên lớp này phủ cả thiết bị
+    khai trong ``IOT_DEVICE_KEYS`` lẫn thùng có ``device_key_hash`` riêng.
+    Mọi lý do chặn đều trả chung một 401 — lý do cụ thể chỉ nằm ở log máy chủ.
+    """
+    khoa_nhan = (x_device_key or "").strip()
     try:
-        return authenticate(x_device_key)
+        device_id = authenticate(x_device_key)
     except DeviceAuthError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
+    if get_settings().iot_chong_phat_lai and not kiem_chong_phat_lai(
+        device_id, khoa_nhan, x_device_timestamp, x_device_signature
+    ):
+        raise HTTPException(status_code=401, detail="Invalid device credentials")
+    return device_id
 
 
 @router.post("/iot/captures")

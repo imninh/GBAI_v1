@@ -19,7 +19,7 @@ from src.api.deps import DbSession, require
 from src.api.errors import ApiError, bad_request, not_found
 from src.config import get_settings
 from src.db.models import Bin, User, utcnow
-from src.services import bins, khoa_thiet_bi
+from src.services import bins, device_auth, khoa_thiet_bi
 from src.services.auth import write_audit
 
 router = APIRouter(tags=["bins"])
@@ -218,6 +218,8 @@ def nhan_reading(
     payload: ReadingPayload,
     session: DbSession,
     x_device_key: Annotated[str | None, Header(alias="X-Device-Key")] = None,
+    x_device_timestamp: Annotated[str | None, Header(alias="X-Device-Timestamp")] = None,
+    x_device_signature: Annotated[str | None, Header(alias="X-Device-Signature")] = None,
 ) -> Any:
     """Thiết bị (hoặc bộ mô phỏng thay thế) báo mức rác và pin của một thùng.
 
@@ -265,6 +267,19 @@ def nhan_reading(
     # Kiểm khoá SAU khi tra được thùng, vì mỗi thùng có thể có khoá riêng. Thùng
     # chưa cấp khoá riêng thì rơi về khoá chung — xem `khoa_thiet_bi.kiem_khoa`.
     if not khoa_thiet_bi.kiem_khoa(thung, khoa_nhan, settings.bin_device_key):
+        raise ApiError(401, "BIN-KEY-401", "Khoá thiết bị không hợp lệ hoặc bị thiếu.")
+
+    # Chống phát lại chỉ xét KHI khoá đã xác thực thành công — khoá sai thì 401
+    # ngay như cũ. Khoá HMAC là CHUỖI KHOÁ THÔ vừa mở được thùng (khoá chung hay
+    # khoá riêng đều như vậy), không phải bản băm trong CSDL: server không tính
+    # lại HMAC từ băm được, nhưng khoá thô thiết bị vừa gửi thì đang cầm trong
+    # tay. Cờ tắt (mặc định) ⇒ bỏ qua hẳn, request kiểu cũ chạy như trước.
+    if settings.iot_chong_phat_lai and not device_auth.kiem_chong_phat_lai(
+        payload.device_id or code,
+        khoa_nhan,
+        x_device_timestamp,
+        x_device_signature,
+    ):
         raise ApiError(401, "BIN-KEY-401", "Khoá thiết bị không hợp lệ hoặc bị thiếu.")
 
     now = utcnow()

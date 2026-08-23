@@ -211,6 +211,15 @@ class Settings(BaseSettings):
     register_rate_limit: int = Field(default=10, ge=0)
     register_rate_window_seconds: int = Field(default=600, ge=1)
 
+    # --- Thiết bị IoT -----------------------------------------------------
+    # Chống phát lại cho đường thiết bị (captures / heartbeat / readings):
+    # firmware gửi kèm ``X-Device-Timestamp`` (Unix giây) và
+    # ``X-Device-Signature`` = HMAC-SHA256(khoá_thô, "{device_id}.{timestamp}").
+    # MẶC ĐỊNH TẮT: firmware ngoài hiện trường chưa biết gửi hai header mới,
+    # cờ tắt ⇒ đường đi giữ nguyên như cũ; bật lên thì request kiểu cũ bị 401.
+    iot_chong_phat_lai: bool = False
+    iot_cua_so_thoi_gian_s: int = Field(default=300, ge=1)
+
     # --- Khoảng cách đường đi thật (G3) ----------------------------------
     # Mặc định TẮT (để test chạy offline nhanh không đụng mạng). Bật qua ROUTE_REAL_DISTANCE=true trong .env.
     route_real_distance: bool = False
