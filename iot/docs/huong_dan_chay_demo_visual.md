@@ -1,12 +1,19 @@
 # Hướng dẫn chạy `demo_visual.html`
 
-File: [`iot/simulation/demo_visual.html`](../simulation/demo_visual.html) — mô phỏng trực quan (1 file HTML/CSS/JS
-độc lập) toàn bộ quy trình bỏ rác của thiết bị GreenBin AI: từ lúc người dùng đến gần thùng,
-xác thực (SKIP/QR), chụp ảnh, cho tới khi rác được servo phân loại vào đúng ngăn.
+File: [`iot/simulation/demo_visual.html`](../simulation/demo_visual.html) — mô phỏng 3D (Three.js) toàn bộ quy
+trình bỏ rác của thiết bị GreenBin AI: bạn điều khiển 1 nhân vật 3D bằng phím **WASD** đi lại gần thùng rác,
+từ lúc PIR tự phát hiện, xác thực (SKIP/QR), chụp ảnh (webcam hoặc tải ảnh lên), cho tới khi rác được servo
+phân loại vào đúng ngăn. Gồm 3 file: `demo_visual.html` (khung UI), `scene3d.js` (cảnh 3D + di chuyển nhân
+vật), `app.js` (state machine + gọi backend thật).
 
-Đây **không phải giả lập toàn phần**: phần cơ khí (PIR, servo, OLED, camera) là animation
-CSS/JS vì không có board thật, nhưng phần gọi AI phân loại và báo mức đầy thùng là request
-**thật** (`fetch()`) tới backend FastAPI đang chạy — không có `setTimeout` giả kết quả.
+Màn hình chia 3 khối:
+- **Trái**: cảnh 3D (Three.js) — nhân vật, thùng rác 4 tầng, HUD điều khiển/OLED.
+- **Trên-phải**: sơ đồ cắt lát cơ khí (SVG) — phễu, servo, 4 ngăn chứa, hoạt hình khi rác rơi.
+- **Dưới-phải**: serial console — log từng bước và kết quả AI thật từ backend.
+
+Đây **không phải giả lập toàn phần**: phần cơ khí (PIR, servo, OLED, thùng 3D) là animation CSS/JS/Three.js
+vì không có board thật, nhưng phần gọi AI phân loại và báo mức đầy thùng là request **thật** (`fetch()`) tới
+backend FastAPI đang chạy — không có `setTimeout` giả kết quả.
 
 ---
 
@@ -16,13 +23,14 @@ CSS/JS vì không có board thật, nhưng phần gọi AI phân loại và báo
 
 | Khối | Vai trò | Thật hay giả lập |
 |---|---|---|
-| HC-SR501 (PIR) | Phát hiện người tới gần | Giả lập — bạn tự kéo/bấm icon 🚶 |
-| ESP32-S3 + OLED | Hiện màn SKIP/QR, đếm giờ, hiện kết quả | Giả lập (CSS/JS) |
+| Nhân vật 3D (tầng 1 thùng: HC-SR501 PIR) | Phát hiện người tới gần | Giả lập — bạn dùng phím **WASD**/mũi tên điều khiển nhân vật 3D đi vào bán kính gần thùng, PIR **tự động** kích hoạt (không cần bấm gì) |
+| Tầng 1 thùng: ESP32-CAM | Module camera trên mô hình 3D | Chỉ trực quan (không phải nguồn ảnh thật — xem dòng ESP32-CAM/chụp ảnh bên dưới) |
+| ESP32-S3 + OLED (hiện trong HUD 3D) | Hiện màn SKIP/QR, đếm giờ, hiện kết quả | Giả lập (CSS/JS) |
 | 2 nút SKIP / QR | Người dùng chọn ẩn danh hay xác thực | Giả lập — nút bấm thật trên UI |
-| ESP32-CAM | "Chụp" ảnh rác | Giả lập chỗ chớp đèn flash; **ảnh là file bạn tự chọn** (không dùng webcam) |
+| Bước "chụp ảnh" | Lấy ảnh rác để gửi đi phân loại | Giả lập chỗ chớp đèn flash; **ảnh là webcam thật (chụp 1 khung hình) hoặc file bạn tải lên** |
 | Backend AI (`/iot/captures`) | Phân loại ảnh, trả `label/confidence/route` | **THẬT** — gọi `fetch()` tới FastAPI |
-| 3 Servo (cây nhị phân 2 tầng) | Đẩy rác vào đúng ngăn theo `route` backend trả về | Giả lập (CSS transform xoay flap trong SVG) |
-| 4× HC-SR04 (đo mức đầy) | Báo mức đầy từng ngăn theo chu kỳ nền | **THẬT** — gọi `fetch()` tới `/bins/{code}/readings`, độc lập với luồng PIR/chụp ảnh |
+| Tầng 2 thùng: Servo 1, Tầng 3: 2 servo song song | Đẩy rác vào đúng ngăn theo `route` backend trả về (hiển thị ở panel cơ khí SVG) | Giả lập (CSS transform xoay flap trong SVG) |
+| Tầng 4 thùng: 4 ngăn phân loại, mỗi ngăn 1 cặp HC-SR04 | Báo mức đầy từng ngăn theo chu kỳ nền | **THẬT** — gọi `fetch()` tới `/bins/{code}/readings`, độc lập với luồng PIR/chụp ảnh |
 
 ### 1.2. Luồng chính (theo đúng thứ tự, tất cả các bước chờ đều là thao tác tay của bạn)
 
@@ -30,18 +38,19 @@ CSS/JS vì không có board thật, nhưng phần gọi AI phân loại và báo
 IDLE
  └─ bạn bấm "▶ Bắt đầu mô phỏng"
       → khởi động vòng lặp báo mức đầy nền (song song, không chặn luồng chính)
- └─ bạn tự KÉO (hoặc bấm) 🚶 lại gần thùng
-      → PIR phát hiện → đèn báo sáng
+ └─ bạn dùng WASD/phím mũi tên điều khiển nhân vật 3D lại gần thùng
+      → vào bán kính cảm biến → PIR tự động phát hiện (không cần bấm gì) → đèn báo sáng
 AWAIT_CHOICE
- └─ OLED hiện "Nhấn SKIP hoặc QR"
+ └─ OLED (HUD trong cảnh 3D) hiện "Nhấn SKIP hoặc QR"
  └─ bạn BẤM tay 1 trong 2 nút (không có timeout tự động — hệ thống chờ vô hạn)
       ├─ QR  → hiện mã QR mô phỏng → giả lập quét thành công → gắn user_id
       └─ SKIP → tiếp tục ẩn danh, không gắn user_id
 TIMER
  └─ đếm ngược cố định 3s (mô phỏng "vào vị trí trước khi chụp")
 CAPTURE
- └─ hệ thống dừng lại, MỞ HỘP THOẠI chọn ảnh — bạn chọn 1 file ảnh rác
-      (đây là lúc "chụp ảnh" xảy ra — không có ảnh sẽ đứng chờ ở đây)
+ └─ hệ thống dừng lại, chờ bạn chọn nguồn ảnh: 📷 "Dùng webcam" (mở camera thật, bấm "Chụp
+      ảnh" để lấy 1 khung hình) hoặc 📁 "Tải ảnh lên" (chọn 1 file ảnh rác từ máy)
+      (đây là lúc "chụp ảnh" xảy ra — không chọn nguồn ảnh sẽ đứng chờ ở đây)
  └─ chớp đèn flash
 UPLOADING
  └─ fetch() POST multipart ảnh thật lên `/iot/captures`
@@ -76,8 +85,13 @@ quan gì tới PIR/OLED/servo ở trên** — đúng như yêu cầu "khoang nà
 ### 2.1. Yêu cầu
 
 - Python **>= 3.11** (theo `pyproject.toml`).
-- Trình duyệt hiện đại (Chrome/Edge/Firefox) — có hỗ trợ `fetch`, `foreignObject` trong SVG,
-  CSS transform trên phần tử SVG.
+- Trình duyệt hiện đại (Chrome/Edge/Firefox) — có hỗ trợ WebGL (cảnh 3D dùng Three.js, tải qua
+  CDN nên máy chạy demo cần có mạng), `fetch`, `foreignObject` trong SVG, CSS transform trên
+  phần tử SVG.
+- Nếu muốn dùng chức năng 📷 "Dùng webcam" ở bước chụp ảnh: máy có webcam, và trình duyệt phải
+  cho phép quyền camera cho origin `http://localhost:5173` (xem mục 5 nếu gặp lỗi
+  `Permission denied`). Không có webcam/không cấp quyền vẫn dùng được demo bình thường qua nút
+  📁 "Tải ảnh lên".
 - Node.js (đã có sẵn `npx`) — chỉ dùng để chạy 1 static server nhỏ phục vụ file demo, và cho
   web thật (`frontend/`, Next.js) nếu bạn muốn chạy song song.
 
@@ -223,17 +237,21 @@ Bấm nút "⚙ Cấu hình backend" ở góc phải trên trang demo, kiểm tr
 ### 3.2. Chạy 1 lượt demo
 
 1. Bấm **"▶ Bắt đầu mô phỏng"**.
-2. **Tự kéo** icon 🚶 lại gần thùng trên thanh track (hoặc bấm vào icon để nó tự đi tới) —
-   kéo đủ xa mới kích hoạt PIR.
-3. OLED hiện màn chọn — **bấm tay** nút **SKIP** hoặc **QR** (hệ thống chờ vô hạn, không tự
-   động chọn hộ bạn).
+2. Dùng phím **W A S D** (hoặc mũi tên) điều khiển nhân vật 3D đi lại gần thùng rác — vào đủ
+   gần thì PIR **tự động** kích hoạt, không cần bấm gì thêm.
+3. OLED (trong HUD của cảnh 3D) hiện màn chọn — **bấm tay** nút **SKIP** hoặc **QR** (hệ thống
+   chờ vô hạn, không tự động chọn hộ bạn).
 4. Đợi đếm ngược 3 giây.
-5. Tới bước **CAPTURE**, hộp thoại chọn file tự mở — **chọn 1 ảnh rác thật** (jpg/png bất kỳ,
+5. Tới bước **CAPTURE**, chọn 1 trong 2 nguồn ảnh: 📷 **"Dùng webcam"** (trình duyệt xin quyền
+   camera, mở video preview, bấm **"📸 Chụp ảnh"** để lấy 1 khung hình — có thể bấm
+   **"↺ Chọn lại"** để đổi nguồn) hoặc 📁 **"Tải ảnh lên"** (chọn 1 file ảnh rác thật từ máy,
    càng giống rác thật càng cho kết quả AI có ý nghĩa).
 6. Xem khung console bên phải: dòng `[NET]` (đang gọi), rồi `[AI] status=... label=...
    confidence=...` — đây là **kết quả thật** từ backend.
-7. Xem servo xoay theo `route` thật, vật rơi đúng ngăn, thanh mức đầy tăng lên.
-8. Về lại IDLE — bấm "Bắt đầu mô phỏng" để chạy lượt tiếp theo (mỗi lượt phải chọn ảnh mới).
+7. Xem panel cơ khí (trên-phải): servo xoay theo `route` thật, vật rơi đúng ngăn, thanh mức
+   đầy tăng lên.
+8. Về lại IDLE — bấm "Bắt đầu mô phỏng" để chạy lượt tiếp theo (mỗi lượt phải chụp/tải ảnh
+   mới).
 
 Nút **"↺ Reset toàn bộ"**: xoá log + đưa mọi ngăn về 0% (chỉ reset cục bộ trên UI, không
 gọi backend).
@@ -245,13 +263,13 @@ gọi backend).
 ### 4.1. Sơ đồ tổng quát
 
 ```
-┌─────────────┐   drag/click 🚶   ┌──────────────┐   bấm SKIP/QR   ┌─────────────┐
+┌─────────────┐  WASD lại gần    ┌──────────────┐   bấm SKIP/QR   ┌─────────────┐
 │    IDLE     │ ───────────────► │ AWAIT_CHOICE │ ──────────────► │   (QR/SKIP  │
-│ (chờ tay)   │                  │  (chờ tay)   │                 │   xử lý)    │
+│ (chờ tay)   │  (PIR tự động)   │  (chờ tay)   │                 │   xử lý)    │
 └─────────────┘                  └──────────────┘                 └──────┬──────┘
                                                                           │ 3s đếm ngược
                                                                           ▼
-┌─────────────┐   fetch() thật   ┌──────────────┐  chọn file ảnh  ┌─────────────┐
+┌─────────────┐   fetch() thật   ┌──────────────┐ webcam/tải ảnh  ┌─────────────┐
 │   RESULT    │ ◄─────────────── │  UPLOADING   │ ◄────────────── │   CAPTURE   │
 │ (servo xoay,│  POST /iot/      │ (chờ network │  + flash        │ (chờ tay)   │
 │  vật rơi)   │  captures        │  thật)       │                 └─────────────┘
@@ -268,7 +286,7 @@ setInterval(6s) ──► POST /bins/{code}/readings (x4 ngăn) ──► log [B
 
 - **Auth**: header `X-Device-Key` (không cần JWT người dùng — đây là API cho thiết bị).
 - **Body**: `multipart/form-data`
-  - `image`: file ảnh bạn chọn ở bước CAPTURE
+  - `image`: ảnh bạn chụp qua webcam hoặc file bạn tải lên ở bước CAPTURE
   - `device_id`: theo cấu hình (mặc định `GBIN-001`)
   - `bin_code`: mã thùng dùng để gắn phiên bỏ rác (demo dùng mã ngăn "Other" làm bin_code
     chung cho request này)
@@ -341,5 +359,8 @@ chờ hệ thống/mạng, xanh = đang chạy animation, đỏ = lỗi thật t
 | `[ERR] HTTP 401 ...` ở `/iot/captures` | `IOT_DEVICE_KEYS` chưa set hoặc sai khớp Device ID/Key | Set lại `.env`, restart uvicorn, sửa lại 2 ô Device ID/Key trong cấu hình demo |
 | `[ERR] HTTP 401` hoặc `503` ở `/bins/.../readings` | `BIN_DEVICE_KEY` sai hoặc rỗng | Sửa ô "Device Key cho /bins/{code}/readings" khớp `.env` |
 | `[ERR] HTTP 404` ở `/bins/{code}/readings` | Mã bin trong cấu hình demo không tồn tại trong CSDL | Sửa 4 ô "Bin code" khớp mã thùng thật |
-| Bấm SKIP/QR không có phản ứng | Chưa tới bước `AWAIT_CHOICE` (còn đang chờ kéo 🚶) | Kéo/bấm icon 🚶 lại gần thùng trước |
-| Hộp thoại chọn ảnh không tự mở ở bước CAPTURE | Trình duyệt chặn `input.click()` lập trình (hiếm) | Refresh lại trang và chạy lại từ đầu |
+| Bấm SKIP/QR không có phản ứng | Chưa tới bước `AWAIT_CHOICE` (còn đang chờ PIR phát hiện) | Dùng WASD điều khiển nhân vật 3D lại gần thùng trước |
+| Nhấn W/A/S/D không thấy nhân vật di chuyển | Focus đang ở 1 ô input khác trên trang (ví dụ ô cấu hình backend) nên phím bị input đó nuốt mất | Click vào vùng cảnh 3D (không phải ô input) rồi thử lại |
+| PIR không tự kích hoạt dù đã đứng sát thùng | Bạn đã đứng sẵn trong bán kính cảm biến **trước khi** bấm "Bắt đầu mô phỏng" — cơ chế yêu cầu đi từ ngoài vào (tránh kích hoạt lặp lại liên tục) | Lùi ra xa thùng rồi đi vào lại |
+| `[ERR] Không mở được webcam: Permission denied` | Trình duyệt hoặc hệ điều hành đã chặn quyền camera cho origin này | Bấm icon khoá 🔒 cạnh thanh địa chỉ → Camera → Allow → tải lại trang; đồng thời kiểm tra Windows Settings → Privacy & security → Camera đã bật cho trình duyệt. Không muốn xử lý quyền thì dùng nút 📁 "Tải ảnh lên" thay thế |
+| Bấm "Dùng webcam" nhưng không thấy popup xin quyền, cũng không có gì xảy ra | Trang đang mở qua `file://` thay vì static server — `getUserMedia` chỉ chạy được trên secure context (`https://` hoặc `localhost`) | Mở lại qua `http://localhost:5173/demo_visual.html` như hướng dẫn ở mục 3, không double-click mở file |
