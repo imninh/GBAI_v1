@@ -24,6 +24,7 @@ import {
   ScheduleScreen,
 } from "@/components/resident/personal";
 import { PickupWizard } from "@/components/resident/pickup-wizard";
+import { QrPhienScreen, KHOA_MA_QR } from "@/components/resident/qr_phien";
 import { HazardResultScreen, ResultScreen, UnsureScreen } from "@/components/resident/result";
 import { ScanScreen } from "@/components/resident/scan";
 import { Button, ErrorState, Skeleton } from "@/components/ui/primitives";
@@ -54,6 +55,26 @@ export default function Page() {
 function AppShell() {
   const { user, loading } = useSession();
   const [daBatDau, setDaBatDau] = React.useState(false);
+  // Mã QR đọc từ `?ma=` của link dán trên thùng. Đọc NGAY khi vào trang — trước
+  // cả khi biết đã đăng nhập chưa, vì người quét QR phần lớn chưa có phiên.
+  const [maQr, setMaQr] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const maTuUrl = new URLSearchParams(window.location.search).get("ma");
+    if (!maTuUrl) {
+      // Không mã trên URL (vào app bình thường, hay F5 sau khi đã xoá tham số):
+      // nhặt lại mã còn treo trong sessionStorage — người vừa đăng nhập xong
+      // sau khi quét QR vẫn tiếp tục được luồng mở phiên.
+      setMaQr(window.sessionStorage.getItem(KHOA_MA_QR));
+      return;
+    }
+    // Xoá tham số khỏi thanh địa chỉ NGAY sau khi đọc: F5 về sau không tái gọi
+    // một mã đã dùng và nhận "Mã QR đã được sử dụng" vô cớ. Dùng replaceState
+    // chứ không dùng useSearchParams — bản export tĩnh bắt bọc Suspense vô ích.
+    window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+    window.sessionStorage.setItem(KHOA_MA_QR, maTuUrl);
+    setMaQr(maTuUrl);
+  }, []);
 
   if (loading) return <Skeleton className="h-dvh w-full" />;
 
@@ -61,6 +82,23 @@ function AppShell() {
     return (
       <PhoneFrame>
         {daBatDau ? <LoginScreen /> : <OnboardingScreen onNext={() => setDaBatDau(true)} />}
+      </PhoneFrame>
+    );
+  }
+
+  // Có mã QR đang chờ + đã đăng nhập: mở phiên bỏ rác của đúng thùng đó. Riêng
+  // cư dân — QR trên thùng dành cho người đi đổ rác; đội vệ sinh và ban quản lý
+  // vào thẳng app của họ như bình thường.
+  if (maQr && user.role === "resident") {
+    return (
+      <PhoneFrame>
+        <QrPhienScreen
+          ma={maQr}
+          onDong={() => {
+            window.sessionStorage.removeItem(KHOA_MA_QR);
+            setMaQr(null);
+          }}
+        />
       </PhoneFrame>
     );
   }
