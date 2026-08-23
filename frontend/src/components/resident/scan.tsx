@@ -249,7 +249,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           <span className="flex-1">
             <span className="block text-[15px] font-extrabold">Chụp để phân loại</span>
             <span className="mt-0.5 block text-[12.5px] font-semibold text-ink-soft">
-              Mun nhận ra món rác ngay trong 3 giây
+              Bini nhận ra món rác ngay trong 3 giây
             </span>
           </span>
           <span className="text-[18px] font-bold text-muted">›</span>

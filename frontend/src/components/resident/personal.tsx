@@ -621,16 +621,26 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
   const diem = user.green_points;
   const cap = tinhCap(diem);
   const [streak, setStreak] = React.useState(0);
+  const [coYeuCauThuGom, setCoYeuCauThuGom] = React.useState(false);
 
   React.useEffect(() => {
     setStreak(tinhStreak());
+  }, []);
+
+  React.useEffect(() => {
+    let huy = false;
+    api.pickups()
+      .then((d) => { if (!huy) setCoYeuCauThuGom(d.items.length > 0); })
+      .catch(() => { if (!huy) setCoYeuCauThuGom(false); })
+      .finally(() => { /* rơi êm */ });
+    return () => { huy = true; };
   }, []);
 
   const HUY_HIEU = [
     { icon: "♻️", ten: "Tách đúng nhóm", moTa: "Phân loại đúng món đầu tiên", daMo: diem > 0 },
     { icon: "📷", ten: "Lần chụp đầu", moTa: "Chụp ảnh món rác", daMo: diem > 0 },
     { icon: "🔥", ten: "Streak 7 ngày", moTa: "Phân loại 7 ngày liên tiếp", daMo: streak >= 7 },
-    { icon: "🚚", ten: "Chuyến gộp", moTa: "Đặt lịch thu gom", daMo: false },
+    { icon: "🚚", ten: "Chuyến gộp", moTa: "Đặt lịch thu gom", daMo: coYeuCauThuGom },
   ];
 
   return (

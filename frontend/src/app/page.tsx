@@ -443,7 +443,7 @@ function ResidentApp() {
       userLng={user?.building_lng}
     />
 
-    {/* Overlay chúc mừng sau phân loại đúng — Mun nhảy, người dùng bấm để đóng.
+    {/* Overlay chúc mừng sau phân loại đúng — Bini nhảy, người dùng bấm để đóng.
         Nằm ngoài PhoneFrame để phủ toàn màn hình thiết bị. */}
     {chucMung && (
       <div

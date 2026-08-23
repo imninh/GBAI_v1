@@ -2,7 +2,7 @@
 
 /** Onboarding + đăng nhập.
  *
- * Linh vật "Mun" là ba file PNG ở `assets/`, được `scripts/build_assets.py` cắt
+ * Linh vật "Bini" là ba file PNG ở `assets/`, được `scripts/build_assets.py` cắt
  * và xuất thành WebP ba bề rộng trong `public/mascot/`. Bản SVG vẽ tay vẫn giữ
  * nguyên làm ảnh dự phòng: nếu file ảnh lỗi hoặc chưa build thì giao diện vẫn
  * có linh vật thay vì một ô trống.
@@ -19,9 +19,9 @@ import { useSession } from "@/lib/session";
 export type TuTheMascot = "mascot" | "hello" | "magnify";
 
 const MO_TA_TU_THE: Record<TuTheMascot, string> = {
-  mascot: "Mun — linh vật GreenBin",
-  hello: "Mun vẫy tay chào",
-  magnify: "Mun đang soi món rác",
+  mascot: "Bini — linh vật GreenBin",
+  hello: "Bini vẫy tay chào",
+  magnify: "Bini đang soi món rác",
 };
 
 /** Ảnh dự phòng khi file WebP không tải được. */
@@ -80,13 +80,13 @@ export function Mascot({
 }
 
 /** Bốn beat onboarding — kể chuyện, mỗi màn MỘT ý như prototype redesign.
- *  Mỗi beat: tint nền + blob khác nhau, Mun một tư thế, chữ khổng lồ, CTA duy nhất.
+ *  Mỗi beat: tint nền + blob khác nhau, Bini một tư thế, chữ khổng lồ, CTA duy nhất.
  *  Không phải form, không xin quyền — chỉ dẫn dắt người dùng tới màn đăng nhập.
  */
 const ONBOARDING_BEATS = [
   {
-    over: "Cùng Mun bắt đầu",
-    h1: "Bỏ rác\ndúng thùng",
+    over: "Cùng Bini bắt đầu",
+    h1: "Bỏ rác\nđúng thùng",
     body: "Chai dầu, hộp sữa, pin cũ… ai cũng từng phân vân bỏ vào đâu.",
     cta: "Tiếp tục",
     tuThe: "mascot" as const,
@@ -106,8 +106,8 @@ const ONBOARDING_BEATS = [
   },
   {
     over: "Chào bạn nhé",
-    h1: "Mình là\nMun 🦝",
-    body: "Gấu mèo đồng hành của bạn — mình sẽ khen khi bạn phân loại đúng.",
+    h1: "Mình là\nBini",
+    body: "Hạt mầm đồng hành của bạn — mình sẽ khen khi bạn phân loại đúng.",
     cta: "Tiếp tục",
     tuThe: "hello" as const,
     tint: "linear-gradient(180deg,#efe9f9,#f4f1ea)",
@@ -157,7 +157,7 @@ export function OnboardingScreen({ onNext }: { onNext: () => void }) {
         </button>
       </div>
 
-      {/* cảnh minh hoạ: blob + Mun + lá bay */}
+      {/* cảnh minh hoạ: blob + Bini + lá bay */}
       <div className="relative z-0 mt-8 flex flex-1 items-center justify-center">
         <div className="absolute h-[290px] w-[290px] rounded-full" style={{ background: b.blob, filter: "blur(2px)" }} />
         <span className="animate-gbfloat absolute left-[8%] top-[6%] text-[22px]">🍃</span>

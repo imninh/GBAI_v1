@@ -128,7 +128,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
   }, []);
 
   React.useEffect(() => {
-    // Lắng nghe sự kiện mở chat khi bấm vào con vật Mun
+    // Lắng nghe sự kiện mở chat khi bấm vào con vật Bini
     const handleOpen = () => setIsOpen(true);
     window.addEventListener("open-greenbin-chat", handleOpen);
     return () => window.removeEventListener("open-greenbin-chat", handleOpen);
@@ -248,12 +248,12 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
 
   return (
     <>
-      {/* Nút Bong Bóng Nổi (Floating Chat Bubble với linh vật Mun) */}
+      {/* Nút Bong Bóng Nổi (Floating Chat Bubble với linh vật Bini) */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-20 right-4 z-[1001] flex items-center gap-2.5 rounded-full bg-emerald-800/95 py-2 pl-2 pr-4 text-white shadow-[0_8px_30px_rgba(16,70,35,0.35)] backdrop-blur-xs border border-emerald-600/40 transition-all duration-300 hover:scale-105 hover:bg-emerald-700 active:scale-95 sm:bottom-6 sm:right-6 group"
-          title="Bấm vào để hỏi Mun AI"
+          title="Bấm vào để hỏi Bini AI"
         >
           <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-emerald-700/80 overflow-hidden shadow-inner">
             <Mascot size={38} tuThe="hello" className="transition-transform group-hover:rotate-6 group-hover:scale-110" />
@@ -263,7 +263,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
             </span>
           </div>
           <div className="text-left">
-            <span className="block font-bold text-xs leading-none text-emerald-100">Hỏi Mun AI</span>
+            <span className="block font-bold text-xs leading-none text-emerald-100">Hỏi Bini AI</span>
             <span className="mt-0.5 block text-[10px] text-emerald-300 font-medium">Trợ lý luật & rác</span>
           </div>
         </button>
@@ -273,7 +273,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
       {isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/40 backdrop-blur-xs p-0 sm:items-center sm:p-4">
           <div className="flex h-[92vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-2xl sm:h-[650px] sm:rounded-2xl dark:bg-zinc-900 dark:text-zinc-100">
-            {/* Header với Mun avatar */}
+            {/* Header với Bini avatar */}
             <div className="flex items-center justify-between border-b border-emerald-900/40 px-4 py-3 bg-gradient-to-r from-emerald-800 to-emerald-900 text-white rounded-t-2xl">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-700/90 border border-emerald-500/40 overflow-hidden shadow-md">
@@ -281,7 +281,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-sm">Mun — Trợ lý AI GreenBin</h3>
+                    <h3 className="font-bold text-sm">Bini — Trợ lý AI GreenBin</h3>
                     <span className="rounded-full bg-emerald-950/80 px-2 py-0.5 text-[10px] font-medium text-emerald-300 border border-emerald-600/30">
                       Mistral AI
                     </span>

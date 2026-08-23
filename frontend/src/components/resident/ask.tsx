@@ -122,17 +122,17 @@ export function AskScreen({
         </div>
       </div>
 
-      {/* ── Mun tràn viền phải — Bấm vào để mở Chatbot RAG ── */}
+      {/* ── Bini tràn viền phải — Bấm vào để mở Chatbot RAG ── */}
       <div className="pointer-events-none absolute right-[-26px] top-[92px] z-0 h-[170px] w-[170px] rounded-full bg-[radial-gradient(circle_at_46%_40%,#e9faf0,rgba(233,250,240,0))]" />
       <button
         type="button"
         onClick={() => openGreenBinChat()}
         className="absolute right-[-14px] top-[104px] z-20 w-[138px] cursor-pointer transition-transform duration-300 hover:scale-110 active:scale-95 group focus:outline-none"
-        title="Bấm vào Mun để hỏi đáp phân loại rác & luật!"
+        title="Bấm vào Bini để hỏi đáp phân loại rác & luật!"
       >
         {/* Bóng thoại nhỏ mời gọi bấm chat */}
         <div className="absolute -top-3 left-[-24px] z-30 animate-bounce rounded-full bg-emerald-800 px-2.5 py-1 text-[11px] font-bold text-white shadow-lg border border-emerald-600/40 whitespace-nowrap">
-          💬 Hỏi Mun nè!
+          💬 Hỏi Bini nè!
           <div className="absolute bottom-[-4px] right-3 h-2 w-2 rotate-45 bg-emerald-800 border-r border-b border-emerald-600/40" />
         </div>
         <Mascot size={138} tuThe="hello" className="animate-gbfloat drop-shadow-[0_16px_22px_rgba(30,80,50,.22)] transition-transform group-hover:rotate-3" />
@@ -155,7 +155,7 @@ export function AskScreen({
             </span>
             <span>
               <span className="block font-[family-name:var(--font-display)] text-[20px] font-bold leading-none">Chụp món rác</span>
-              <span className="mt-1.5 block text-[13px] font-semibold opacity-85">Mun nhận ra ngay trong 3 giây</span>
+              <span className="mt-1.5 block text-[13px] font-semibold opacity-85">Bini nhận ra ngay trong 3 giây</span>
             </span>
           </span>
         </Button>
@@ -237,7 +237,7 @@ export function AskScreen({
       <button
         type="button"
         onClick={onXemLich}
-        className="relative z-10 mt-3.5 flex items-center gap-3 rounded-[20px] bg-recycle-soft border border-recycle/20 px-4 py-3.5 text-left shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer"
+        className="relative z-10 mt-3.5 flex items-center gap-3 rounded-[20px] bg-recycle-soft border border-recycle/20 px-4 py-3.5 text-left shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer group"
       >
         <span className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] bg-white shadow-xs">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2f7fe0" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
@@ -259,7 +259,7 @@ export function AskScreen({
         <button
           type="button"
           onClick={onDatLich}
-          className="relative z-10 mt-3.5 flex items-center gap-3 rounded-[20px] bg-bulky-soft border border-bulky/20 px-4 py-3.5 text-left shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer"
+          className="relative z-10 mt-3.5 flex items-center gap-3 rounded-[20px] bg-bulky-soft border border-bulky/20 px-4 py-3.5 text-left shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer group"
         >
           <span className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] bg-white shadow-xs">
             <IconXeThuGom className="h-[22px] w-[22px] text-bulky-dark" />
