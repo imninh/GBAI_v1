@@ -2,200 +2,529 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>GreenBin AI — Mô phỏng thiết bị</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BOTOL™ Smart Recycler — 3D Visual Simulation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- Three.js: Local Bundle with CDN Fallback -->
+<script src="three.min.js"></script>
+<script src="qrcode.min.js"></script>
+<script>
+  if (typeof THREE === "undefined") {
+    document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.145.0/three.min.js"><\\/script>');
+  }
+</script>
+
 <style>
-  :root{
-    --bg:#0b1220; --panel:#121a2b; --panel2:#0e1626; --line:#233049;
-    --text:#e7edf7; --muted:#8ea0bd; --accent:#35d07f; --accent2:#3aa0ff;
-    --warn:#ffb020; --danger:#ff5566; --ok:#35d07f;
-    --plastic:#3aa0ff; --metal:#b7bfca; --paper:#e0a84e; --other:#8a8fa3;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:linear-gradient(180deg,#070c16,#0b1220 30%);color:var(--text);
-    font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;overflow:hidden}
-  header{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);
-    flex-wrap:wrap;background:rgba(255,255,255,.02)}
-  header h1{font-size:14px;margin:0;font-weight:700;letter-spacing:.3px}
-  header h1 span{color:var(--accent)}
-  .pill{padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid var(--line);
-    background:var(--panel2);color:var(--muted);white-space:nowrap}
-  .pill.idle{color:var(--muted)}
-  .pill.active{color:#00131c;background:var(--accent);border-color:var(--accent)}
-  .pill.wait{color:#241900;background:var(--warn);border-color:var(--warn)}
-  .pill.err{color:#2a0007;background:var(--danger);border-color:var(--danger)}
-  button.btn{cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--text);
-    padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600}
-  button.btn:hover{border-color:var(--accent2)}
-  button.btn.primary{background:var(--accent);border-color:var(--accent);color:#00170d}
-  button.btn:disabled{opacity:.35;cursor:not-allowed}
-  .spacer{flex:1}
-  details#cfg{margin-left:auto}
-  details#cfg summary{cursor:pointer;color:var(--muted);font-size:11px;list-style:none}
-  #cfgBody{position:absolute;right:16px;margin-top:8px;background:var(--panel);border:1px solid var(--line);
-    padding:14px;border-radius:10px;z-index:50;width:340px;font-size:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);
-    max-height:80vh;overflow:auto}
-  #cfgBody label{display:block;margin-top:8px;color:var(--muted)}
-  #cfgBody input{width:100%;margin-top:3px;background:var(--panel2);border:1px solid var(--line);color:var(--text);
-    padding:6px 8px;border-radius:6px;font-size:12px}
-  #cfgBody .note{margin-top:10px;color:var(--warn);font-size:11px;line-height:1.5}
+  :root {
+    --bg-main: #0c1527;
+    --panel-bg: rgba(15, 23, 42, 0.88);
+    --panel-border: rgba(51, 65, 85, 0.75);
+    --botol-teal: #10b981;
+    --botol-teal-dark: #059669;
+    --accent-blue: #0284c7;
+    --accent-amber: #d97706;
+    --accent-red: #ef4444;
+    --accent-green: #10b981;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
 
-  main{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0;height:calc(100vh - 42px);min-height:0;
-    grid-template-areas:"three mech" "three console"}
-  @media(max-width:980px){
-    main{grid-template-columns:1fr;grid-template-rows:auto;grid-template-areas:"three" "mech" "console";height:auto;overflow:auto}
-    #threePane{height:60vh}
+    --plastic: #0284c7;
+    --metal: #94a3b8;
+    --paper: #10b981;
+    --other: #f59e0b;
+    --danger: #ef4444;
   }
 
-  /* ---------- top-right: mechanical cutaway (SVG) ---------- */
-  #bandMech{grid-area:mech;min-height:0;display:flex;flex-direction:column;padding:6px 8px 4px;
-    background:var(--panel);border-bottom:1px solid var(--line);height:100%}
-  #bandMech h3{margin:0 0 3px;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
-  #mechSvg{flex:1;min-height:0;width:100%}
-  .housing{fill:var(--panel);stroke:var(--line);stroke-width:2}
-  .funnel{fill:#182238;stroke:var(--line);stroke-width:1.5}
-  .chute{fill:#182238;stroke:var(--line);stroke-width:1.5}
-  .camBox{fill:#0c1424;stroke:var(--line);stroke-width:1.5}
-  .camFO{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
-  #previewImg{width:100%;height:100%;object-fit:cover;display:none;border-radius:4px}
-  #previewPlaceholder{font-size:18px;color:#3a4560}
-  .flashRect{fill:#fff;opacity:0;pointer-events:none}
-  .flashRect.go{animation:flashpop .35s ease-out}
-  @keyframes flashpop{0%{opacity:.95}100%{opacity:0}}
-  .camBadgeText{fill:var(--accent);font-size:7px;font-family:inherit;text-anchor:middle}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #090d16;
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    user-select: none;
+  }
 
-  .duct{fill:none;stroke:#232c44;stroke-width:11;stroke-linecap:round;transition:stroke .3s}
-  .duct.active{stroke:var(--accent2)}
-  .pivotDot{fill:#20283c;stroke:var(--accent2);stroke-width:2}
-  .flap{fill:#586a90;transform-box:fill-box;transform-origin:center;transition:transform .6s cubic-bezier(.34,1.56,.64,1)}
-  .flap.left{transform:rotate(-30deg)}
-  .flap.right{transform:rotate(30deg)}
-  .servoTagText{fill:var(--muted);font-size:7px;font-family:inherit;text-anchor:middle}
-  .pivotGroup.dim{opacity:.35}
+  /* Top Navigation Bar */
+  header.top-nav {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: rgba(15, 23, 42, 0.92);
+    border-bottom: 1px solid var(--panel-border);
+    backdrop-filter: blur(16px);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 14px;
+    z-index: 30;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 900;
+    font-size: 16px;
+    letter-spacing: -0.3px;
+    color: #10b981;
+  }
+  .brand-badge {
+    background: #10b981;
+    color: #042f2e;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .state-pill {
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .state-pill.idle { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+  .state-pill.wait { background: #451a03; color: #f59e0b; border: 1px solid #78350f; }
+  .state-pill.active { background: #064e3b; color: #34d399; border: 1px solid #059669; }
+  .state-pill.err { background: #450a0a; color: #f87171; border: 1px solid #991b1b; }
 
-  .compBox{fill:var(--panel2);stroke:var(--c);stroke-width:1.5}
-  .fillRect{fill:var(--c);transition:y .5s ease,height .5s ease}
-  .beam{stroke:#3a4560;stroke-width:1;stroke-dasharray:2,2;transition:y2 .5s ease}
-  .sensor{fill:#0a0f1c;stroke:var(--muted);stroke-width:1}
-  .compLabel{fill:var(--text);font-size:10.5px;font-weight:600;font-family:inherit;text-anchor:middle}
-  .pctLabel{fill:var(--muted);font-size:9.5px;font-family:inherit;text-anchor:middle}
-  .fullBadge{opacity:0;transition:opacity .3s}
-  .fullBadge rect{fill:var(--danger)}
-  .fullBadge text{fill:#fff;font-size:7.5px;font-weight:800;font-family:inherit;text-anchor:middle}
-  .fullBadge.show{opacity:1;animation:pulse 1s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-  .compBox.flashGo{animation:binflash .5s ease-out}
-  @keyframes binflash{0%{filter:brightness(2)}100%{filter:brightness(1)}}
-  .resetFO{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
-  .resetbtn{font-size:8.5px;color:var(--muted);background:none;border:1px dashed var(--line);border-radius:6px;
-    padding:1px 5px;cursor:pointer;font-family:inherit}
-  .resetbtn:hover{color:var(--text);border-color:var(--muted)}
-  #fallItem{position:absolute;font-size:20px;left:50%;top:160px;transform:translate(-50%,-50%);
-    transition:top .5s ease-in-out,left .5s ease-in-out;opacity:0;z-index:20;pointer-events:none}
+  .spacer { flex: 1; }
 
-  /* ---------- left: 3D scene (Three.js) ---------- */
-  #threePane{grid-area:three;position:relative;background:#eef2f8;overflow:hidden;border-right:1px solid var(--line)}
-  #threeCanvasHost{position:absolute;inset:0}
-  #threeCanvasHost canvas{display:block}
-  .hud{position:absolute;background:rgba(18,26,43,.85);backdrop-filter:blur(4px);border:1px solid var(--line);
-    border-radius:10px;color:var(--text);padding:8px 12px;font-size:11px;z-index:5}
-  #hudTop{top:10px;left:10px;right:10px;display:flex;align-items:center;gap:10px}
-  #hudTop #moveHint{flex:1}
-  #hudTop b{color:var(--accent2)}
-  .pir-led{width:13px;height:13px;border-radius:50%;background:#2a3145;box-shadow:inset 0 0 4px #000;transition:.25s;flex:none}
-  .pir-led.on{background:var(--warn);box-shadow:0 0 14px 3px var(--warn)}
-  #oledHud{left:50%;bottom:12px;transform:translateX(-50%);text-align:center;min-width:230px}
-  #oledHud .oled{margin-bottom:6px}
-  #oledHud .btnrow{margin-top:6px}
-  #webcamVideo{display:none;width:220px;max-width:60vw;border-radius:8px;margin-top:6px;background:#000}
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  button.btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid var(--panel-border);
+    background: #1e293b;
+    color: #f8fafc;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s;
+  }
+  button.btn:hover:not(:disabled) { border-color: var(--botol-teal); background: #334155; transform: translateY(-1px); }
+  button.btn.primary { background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border-color: #10b981; font-weight: 800; }
+  button.btn.primary:hover:not(:disabled) { box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4); }
+  button.btn.qr-btn { background: #064e3b; border-color: #059669; color: #6ee7b7; }
+  button.btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-  /* OLED band */
-  .oled{background:#04140a;border:2px solid #163020;border-radius:6px;padding:6px;font-family:'Consolas',monospace;
-    color:#5dffa0;font-size:11px;min-height:34px;display:flex;align-items:center;justify-content:center;text-align:center;
-    line-height:1.35;white-space:pre-line}
-  .oled .qr{display:inline-block;width:42px;height:42px;background:
-     repeating-conic-gradient(#5dffa0 0% 25%, #04140a 0% 50%) 0 0/9px 9px;border:3px solid #5dffa0;margin:3px auto}
-  .btnrow{display:flex;gap:8px;justify-content:center}
-  .hwbtn{padding:4px 14px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);color:var(--text);
-    font-weight:700;font-size:11px;cursor:pointer}
-  .hwbtn:hover:not(:disabled){border-color:var(--accent2)}
-  .hwbtn:disabled{opacity:.3;cursor:not-allowed}
-  .hwbtn.skip{color:var(--warn)}
-  .hwbtn.qr{color:var(--accent2)}
+  /* 3D Viewport Fullscreen */
+  #threeCanvasHost {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    cursor: grab;
+  }
+  #threeCanvasHost:active { cursor: grabbing; }
 
-  /* console */
-  .console{grid-area:console;background:#060b14;height:100%;display:flex;flex-direction:column;border-left:1px solid var(--line);min-height:0}
-  .console-head{padding:6px 12px;border-bottom:1px solid var(--line);font-size:10.5px;color:var(--muted);
-    display:flex;justify-content:space-between;align-items:center;flex:none}
-  .console-head b{color:var(--accent)}
-  #log{flex:1;overflow-y:auto;padding:8px 12px;font-family:'Consolas',Menlo,monospace;font-size:11px;line-height:1.5;min-height:0}
-  #log div{white-space:pre-wrap;word-break:break-word}
-  .tag-STATE{color:#3aa0ff}
-  .tag-TIMER{color:#ffb020}
-  .tag-PIR{color:#c58bff}
-  .tag-QR{color:#3aa0ff}
-  .tag-CAM{color:#eee}
-  .tag-NET{color:#8ea0bd}
-  .tag-AI{color:#35d07f;font-weight:700}
-  .tag-SERVO{color:#e0a84e}
-  .tag-BIN{color:#ff8f6b}
-  .tag-ERR{color:#ff5566;font-weight:700}
-  .ts{color:#3d4a63;margin-right:6px}
+  /* Flash effect */
+  #fullscreenFlash {
+    position: absolute;
+    inset: 0;
+    background: #ffffff;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 50;
+    transition: opacity 0.08s ease-out;
+  }
+  #fullscreenFlash.flash-pop {
+    opacity: 0.85;
+    transition: none;
+  }
 
-  .resultcard{margin:8px 12px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);flex:none}
-  .resultcard h3{margin:0 0 6px;font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:.06em}
-  .resultgrid{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:11.5px}
-  .resultgrid .k{color:var(--muted)}
-  .resultgrid .v{font-weight:700}
-  #confbar{height:5px;border-radius:4px;background:#1c2438;overflow:hidden;margin-top:3px;grid-column:1/-1}
-  #confbarFill{height:100%;background:var(--accent);width:0%;transition:width .4s}
+  /* Top Left HUD & Camera Presets */
+  .hud-top-info {
+    position: absolute;
+    top: 66px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 20;
+  }
+  .hud-pill-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: blur(16px);
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 11.5px;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    width: fit-content;
+  }
+  .pir-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #475569;
+    transition: all 0.3s;
+  }
+  .pir-dot.on { background: #10b981; box-shadow: 0 0 12px #10b981; }
+
+  .camera-presets-bar {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: blur(16px);
+    border-radius: 10px;
+    padding: 5px 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .cam-btn {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .cam-btn:hover { background: #334155; color: #f8fafc; }
+  .cam-btn.active { background: #10b981; color: #042f2e; }
+
+  /* Right Side Inspector & Mechanical Cutaway Panels */
+  #sideContainer {
+    position: absolute;
+    top: 66px;
+    right: 20px;
+    width: 360px;
+    max-height: calc(100vh - 180px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 20;
+  }
+
+  /* Mechanical Cutaway SVG Card */
+  .mech-card {
+    background: rgba(11, 19, 38, 0.94);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: blur(20px);
+    border-radius: 14px;
+    padding: 10px 12px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  }
+  .mech-card-title {
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #38bdf8;
+    letter-spacing: 0.4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #mechSvg {
+    width: 100%;
+    height: 250px;
+    display: block;
+  }
+
+  /* SVG Mechanical Styles */
+  .housing { fill: #0b1328; stroke: #1e293b; stroke-width: 1.5; }
+  .funnel { fill: #162035; stroke: #334155; stroke-width: 1.5; }
+  .chute { fill: #162035; stroke: #334155; stroke-width: 1.5; }
+  .camBox { fill: #070d19; stroke: #0284c7; stroke-width: 1.2; }
+  .camFO { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  #previewImg { width: 100%; height: 100%; object-fit: cover; display: none; border-radius: 3px; }
+  #previewPlaceholder { font-size: 15px; color: #475569; }
+  .flashRect { fill: #fff; opacity: 0; pointer-events: none; }
+  .flashRect.go { animation: flashpop .35s ease-out; }
+  @keyframes flashpop { 0% { opacity: .95; } 100% { opacity: 0; } }
+  .camBadgeText { fill: #38bdf8; font-size: 7.5px; font-family: inherit; text-anchor: middle; font-weight: 700; }
+
+  .duct { fill: none; stroke: #1e293b; stroke-width: 10; stroke-linecap: round; transition: stroke .3s; }
+  .duct.active { stroke: #38bdf8; filter: drop-shadow(0 0 6px #38bdf8); }
+  .pivotDot { fill: #0f172a; stroke: #38bdf8; stroke-width: 2; }
+  .flap { fill: #475569; transform-box: fill-box; transform-origin: center; transition: transform .5s cubic-bezier(.34,1.56,.64,1); }
+  .flap.left { transform: rotate(-30deg); fill: #38bdf8; }
+  .flap.right { transform: rotate(30deg); fill: #38bdf8; }
+  .servoTagText { fill: #64748b; font-size: 7.5px; font-weight: 800; font-family: inherit; text-anchor: middle; }
+  .pivotGroup.dim { opacity: 0.35; }
+
+  .compBox { fill: #090e1c; stroke: var(--c); stroke-width: 1.5; }
+  .fillRect { fill: var(--c); opacity: 0.75; transition: y .5s ease, height .5s ease; }
+  .sensor { fill: #0f172a; stroke: #475569; stroke-width: 1; }
+  .compLabel { fill: #f8fafc; font-size: 9.5px; font-weight: 700; font-family: inherit; text-anchor: middle; }
+  .pctLabel { fill: #94a3b8; font-size: 9px; font-weight: 800; font-family: 'JetBrains Mono', monospace; text-anchor: middle; }
+  .fullBadge { opacity: 0; transition: opacity .3s; }
+  .fullBadge rect { fill: #ef4444; }
+  .fullBadge text { fill: #fff; font-size: 7.5px; font-weight: 800; font-family: inherit; text-anchor: middle; }
+  .fullBadge.show { opacity: 1; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+  .compBox.flashGo { animation: binflash .5s ease-out; }
+  @keyframes binflash { 0% { filter: brightness(2); } 100% { filter: brightness(1); } }
+  .resetFO { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .resetbtn { font-size: 8px; font-weight: 700; color: #94a3b8; background: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 1px 4px; cursor: pointer; }
+  .resetbtn:hover { color: #f8fafc; border-color: #38bdf8; }
+  #fallItem { transition: transform .4s ease-in-out; opacity: 0; pointer-events: none; }
+
+  /* Drawer for AI Response & Console */
+  #inspectorDrawer {
+    background: rgba(11, 19, 38, 0.94);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: blur(20px);
+    border-radius: 14px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  }
+  .drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    font-weight: 800;
+    color: #10b981;
+    letter-spacing: 0.5px;
+  }
+  .ai-response-box {
+    background: #070d19;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+  }
+  .ai-res-row { display: flex; justify-content: space-between; align-items: center; }
+  .ai-res-row .k { color: #64748b; font-weight: 600; }
+  .ai-res-row .v { font-weight: 800; font-family: 'JetBrains Mono', monospace; color: #38bdf8; }
+  #confbar { height: 4px; background: #1e293b; border-radius: 99px; overflow: hidden; margin-top: 2px; }
+  #confbarFill { height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #10b981); transition: width 0.3s; }
+
+  /* Log serial box */
+  #log {
+    background: #070d19;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    line-height: 1.45;
+    height: 95px;
+    overflow-y: auto;
+    color: #94a3b8;
+  }
+  #log .ts { color: #475569; margin-right: 4px; }
+  #log .tag-STATE { color: #38bdf8; font-weight: 700; }
+  #log .tag-PIR { color: #34d399; font-weight: 700; }
+  #log .tag-QR { color: #60a5fa; font-weight: 700; }
+  #log .tag-HC-SR04 { color: #a78bfa; font-weight: 700; }
+  #log .tag-CAM { color: #fbbf24; font-weight: 700; }
+  #log .tag-AI { color: #34d399; font-weight: 700; }
+  #log .tag-SERVO { color: #f472b6; font-weight: 700; }
+  #log .tag-BIN { color: #38bdf8; font-weight: 700; }
+  #log .tag-TIMEOUT { color: #fbbf24; font-weight: 700; }
+  #log .tag-HAZARD { color: #f87171; font-weight: 700; }
+  #log .tag-ERR { color: #f87171; font-weight: 700; }
+
+  /* Floating Bottom Dock: Sample Waste Selector */
+  #bottomDock {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid var(--panel-border);
+    backdrop-filter: blur(20px);
+    border-radius: 14px;
+    padding: 8px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 20;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.5);
+  }
+  .dock-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10.5px;
+    font-weight: 800;
+    color: #94a3b8;
+  }
+  .waste-cards-grid { display: flex; gap: 8px; }
+  .waste-card {
+    background: #0f172a;
+    border: 1.5px solid #334155;
+    border-radius: 10px;
+    padding: 6px 10px;
+    width: 128px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: all 0.2s;
+  }
+  .waste-card:hover { border-color: #10b981; transform: translateY(-2px); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2); }
+  .waste-card.active { border-color: #10b981; background: #064e3b; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35); }
+  .waste-card-img {
+    height: 58px;
+    background: #090e1c;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .waste-card-img img { max-height: 100%; max-width: 100%; object-fit: contain; }
+  .waste-card-title { font-size: 10.5px; font-weight: 700; line-height: 1.2; color: #f8fafc; }
+  .waste-card-badge { font-size: 9px; font-weight: 800; padding: 2px 4px; border-radius: 4px; width: fit-content; }
+  .badge-plastic { background: #0c4a6e; color: #38bdf8; }
+  .badge-metal   { background: #1e293b; color: #cbd5e1; }
+  .badge-paper   { background: #064e3b; color: #34d399; }
+  .badge-other   { background: #451a03; color: #fbbf24; }
+  .badge-hazard  { background: #450a0a; color: #f87171; }
+
+  /* Config popover */
+  details#cfg { position: relative; }
+  #cfgBody {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+    background: #0f172a;
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    padding: 14px;
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    font-size: 11px;
+    z-index: 100;
+  }
+  #cfgBody label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; color: #94a3b8; }
+  #cfgBody input {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 5px 8px;
+    color: #f8fafc;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>GreenBin <span>AI</span> — Mô phỏng thiết bị phân loại</h1>
-  <span id="statePill" class="pill idle">IDLE</span>
-  <button class="btn primary" id="startBtn">▶ Bắt đầu mô phỏng</button>
-  <button class="btn" id="resetAllBtn">↺ Reset toàn bộ</button>
+<header class="top-nav">
+  <div class="brand">
+    <span>♻ BOTOL™</span>
+    <span class="brand-badge">AI 3D RECYCLER</span>
+  </div>
+
+  <div class="state-pill idle" id="statePill">IDLE</div>
+
   <div class="spacer"></div>
-  <details id="cfg">
-    <summary class="pill">⚙ Cấu hình backend</summary>
-    <div id="cfgBody">
-      <label>Backend base URL
-        <input id="cfgBase" value="http://localhost:8000/api/v1">
-      </label>
-      <label>Device ID (X-Device-Key phải khớp IOT_DEVICE_KEYS)
-        <input id="cfgDevice" value="GBIN-001">
-      </label>
-      <label>Device Key cho /iot/captures (khớp IOT_DEVICE_KEYS trong .env)
-        <input id="cfgKey" value="sim-test-key">
-      </label>
-      <label>Device Key cho /bins/{code}/readings (khớp BIN_DEVICE_KEY trong .env)
-        <input id="cfgBinKey" value="dev-local-doi-truoc-khi-deploy">
-      </label>
-      <label>Bin code — Plastic <input id="cfgBinPlastic" value="BIN-01"></label>
-      <label>Bin code — Aluminum (metal) <input id="cfgBinMetal" value="BIN-02"></label>
-      <label>Bin code — Paper <input id="cfgBinPaper" value="BIN-03"></label>
-      <label>Bin code — Other <input id="cfgBinOther" value="BIN-04"></label>
-      <div class="note">Gọi thẳng /iot/captures và /bins/{code}/readings — hai endpoint xác thực bằng header X-Device-Key, không cần JWT người dùng, nhưng dùng 2 khoá KHÁC NHAU (IOT_DEVICE_KEYS vs BIN_DEVICE_KEY trong .env). CORS_ORIGINS hiện tại của backend chỉ cho phép http://localhost:3000 và http://localhost:5173 — hãy mở file demo này qua static server ở cổng 5173, không dùng 3000 (cổng đó dành cho `frontend/` Next.js thật): `npx serve iot/simulation -l 5173`. Không mở trực tiếp bằng file:// — vừa bị chặn CORS, vừa khiến webcam không mở được (yêu cầu secure context là localhost). Sau khi sửa .env phải khởi động lại uvicorn để áp dụng.</div>
-    </div>
-  </details>
+
+  <div class="header-actions">
+    <button class="btn primary" id="startBtn">⚡ Chạy tự động A-Z</button>
+    <button class="btn" id="walkBtn">🏃 Lại gần máy</button>
+    <button class="btn qr-btn" id="scanQrBtn">📱 Quét mã QR App</button>
+    <button class="btn" id="depositBtn" disabled>📥 Bỏ rác vào lỗ</button>
+    <button class="btn" id="resetAllBtn">↺ Reset</button>
+
+    <details id="cfg">
+      <summary class="btn" style="padding:6px 10px">⚙ Cấu hình</summary>
+      <div id="cfgBody">
+        <h4 style="color:#10b981;font-size:12px;margin-bottom:8px">Cấu hình kết nối IoT</h4>
+        <label>Backend Base URL:
+          <input id="cfgBase" value="http://localhost:8000/api/v1">
+        </label>
+        <label>Device ID:
+          <input id="cfgDevice" value="GBIN-001">
+        </label>
+        <label>X-Device-Key cho /iot/captures:
+          <input id="cfgKey" value="sim-test-key">
+        </label>
+        <label>X-Device-Key cho /bins/{code}/readings:
+          <input id="cfgBinKey" value="dev-local-doi-truoc-khi-deploy">
+        </label>
+      </div>
+    </details>
+  </div>
 </header>
 
-<main>
-  <div id="bandMech">
-    <h3>Cắt lát cơ khí — phễu hứng → servo 1 → servo 2/3 → 4 ngăn chứa</h3>
-    <svg id="mechSvg" viewBox="0 0 340 400" preserveAspectRatio="xMidYMid meet">
-      <rect x="2" y="2" width="336" height="396" rx="14" class="housing"/>
+<div id="fullscreenFlash"></div>
+<div id="threeCanvasHost"></div>
 
-      <!-- hopper / funnel -->
+<!-- Top Left HUD & Camera Toolbar -->
+<div class="hud-top-info">
+  <div class="hud-pill-card">
+    <div class="pir-dot" id="pirLed"></div>
+    <div>Cảm biến PIR: <b id="pirStatus" style="color:#10b981">Đang quét vùng (~2m)...</b></div>
+  </div>
+
+  <div class="hud-pill-card" id="sessionPill" style="display:none;color:#fbbf24;font-weight:700">
+    <span style="font-size:13px">⏱️</span>
+    <span>Thời gian phiên: <b id="sessionSec" style="font-family:'JetBrains Mono',monospace;color:#f59e0b">30</b>s (Tự ngắt khi không thao tác)</span>
+  </div>
+
+  <div class="camera-presets-bar">
+    <span style="font-size:10.5px;font-weight:800;color:#64748b;margin-right:2px">🎥 GÓC MÁY:</span>
+    <button class="cam-btn active" data-preset="overview">👁️ Toàn cảnh</button>
+    <button class="cam-btn" data-preset="front">🎯 Chính diện</button>
+    <button class="cam-btn" data-preset="qr">📱 Màn hình QR</button>
+    <button class="cam-btn" data-preset="bins">📦 Ngăn kính</button>
+    <button class="cam-btn" data-preset="follow">🚶 Theo người dùng</button>
+    <button class="cam-btn" data-preset="autorotate">🔄 Tự xoay</button>
+  </div>
+
+  <div class="hud-pill-card" style="color:#64748b;font-size:10.5px">
+    🖱️ <b>Chuột trái:</b> Xoay 360° · <b>Chuột phải:</b> Pan di chuyển · <b>Cuộn:</b> Zoom · ⌨️ <b>WASD:</b> Đi bộ
+  </div>
+</div>
+
+<!-- Right Side: Mechanical Cutaway + Live AI Output & Log -->
+<div id="sideContainer">
+  <!-- Mechanical Cutaway SVG Diagram -->
+  <div class="mech-card">
+    <div class="mech-card-title">
+      <span>CẮT LÁT CƠ KHÍ — PHỄU → SERVO 1 → SERVO 2/3 → 4 NGĂN</span>
+      <span style="font-size:10px;color:#10b981">● LIVE</span>
+    </div>
+
+    <svg id="mechSvg" viewBox="0 0 340 400" preserveAspectRatio="xMidYMid meet">
+      <rect x="2" y="2" width="336" height="396" rx="12" class="housing"/>
+
+      <!-- Hopper / Funnel -->
       <polygon points="56,10 276,10 186,72 146,72" class="funnel"/>
       <rect x="146" y="72" width="40" height="30" class="chute"/>
 
-      <!-- camera at the hopper mouth -->
-      <g transform="translate(292,54)">
+      <!-- ESP32-CAM Preview Box -->
+      <g transform="translate(292,52)">
         <rect x="-32" y="-16" width="64" height="42" rx="6" class="camBox"/>
         <foreignObject x="-30" y="-14" width="60" height="38">
           <div xmlns="http://www.w3.org/1999/xhtml" class="camFO">
@@ -207,7 +536,7 @@
         <text id="camBadge" y="34" class="camBadgeText">chưa có ảnh</text>
       </g>
 
-      <!-- duct pipework -->
+      <!-- Duct pipework -->
       <path d="M166,106 L86,168" class="duct" id="duct-1L"/>
       <path d="M166,106 L246,168" class="duct" id="duct-1R"/>
       <path d="M86,174 L46,222" class="duct" id="duct-2plastic"/>
@@ -215,28 +544,28 @@
       <path d="M246,174 L206,222" class="duct" id="duct-3paper"/>
       <path d="M246,174 L286,222" class="duct" id="duct-3other"/>
 
-      <!-- servo 1 -->
-      <text x="166" y="94" class="servoTagText">SERVO1</text>
+      <!-- Servo 1 -->
+      <text x="166" y="94" class="servoTagText">SERVO 1</text>
       <g class="pivotGroup" transform="translate(166,102)">
         <circle r="6" class="pivotDot"/>
         <rect id="flap1" x="-34" y="-4" width="68" height="8" rx="4" class="flap"/>
       </g>
 
-      <!-- servo 2 (left branch) -->
-      <text x="86" y="164" class="servoTagText">SERVO2</text>
+      <!-- Servo 2 (Left branch: Plastic / Metal) -->
+      <text x="86" y="164" class="servoTagText">SERVO 2</text>
       <g class="pivotGroup" id="pivot2" transform="translate(86,170)">
         <circle r="5" class="pivotDot"/>
         <rect id="flap2" x="-26" y="-3" width="52" height="6" rx="3" class="flap"/>
       </g>
 
-      <!-- servo 3 (right branch) -->
-      <text x="246" y="164" class="servoTagText">SERVO3</text>
+      <!-- Servo 3 (Right branch: Paper / Other) -->
+      <text x="246" y="164" class="servoTagText">SERVO 3</text>
       <g class="pivotGroup" id="pivot3" transform="translate(246,170)">
         <circle r="5" class="pivotDot"/>
         <rect id="flap3" x="-26" y="-3" width="52" height="6" rx="3" class="flap"/>
       </g>
 
-      <!-- 4 compartments -->
+      <!-- Compartment 1: Plastic -->
       <g style="--c:var(--plastic)">
         <rect id="compBox-plastic" x="8" y="224" width="76" height="148" rx="6" class="compBox"/>
         <rect x="38" y="230" width="16" height="6" rx="2" class="sensor"/>
@@ -247,10 +576,14 @@
         <g id="badge-plastic" class="fullBadge" transform="translate(80,222)">
           <rect x="-16" y="-8" width="32" height="16" rx="8"/><text y="4">ĐẦY</text>
         </g>
-        <foreignObject x="8" y="374" width="76" height="20"><div xmlns="http://www.w3.org/1999/xhtml" class="resetFO">
-          <button class="resetbtn" data-bin="plastic">🚚 đã gom</button></div></foreignObject>
+        <foreignObject x="8" y="374" width="76" height="20">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="resetFO">
+            <button class="resetbtn" data-bin="plastic">🚚 đã gom</button>
+          </div>
+        </foreignObject>
       </g>
 
+      <!-- Compartment 2: Metal / Aluminum -->
       <g style="--c:var(--metal)">
         <rect id="compBox-metal" x="88" y="224" width="76" height="148" rx="6" class="compBox"/>
         <rect x="118" y="230" width="16" height="6" rx="2" class="sensor"/>
@@ -261,10 +594,14 @@
         <g id="badge-metal" class="fullBadge" transform="translate(160,222)">
           <rect x="-16" y="-8" width="32" height="16" rx="8"/><text y="4">ĐẦY</text>
         </g>
-        <foreignObject x="88" y="374" width="76" height="20"><div xmlns="http://www.w3.org/1999/xhtml" class="resetFO">
-          <button class="resetbtn" data-bin="metal">🚚 đã gom</button></div></foreignObject>
+        <foreignObject x="88" y="374" width="76" height="20">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="resetFO">
+            <button class="resetbtn" data-bin="metal">🚚 đã gom</button>
+          </div>
+        </foreignObject>
       </g>
 
+      <!-- Compartment 3: Paper -->
       <g style="--c:var(--paper)">
         <rect id="compBox-paper" x="168" y="224" width="76" height="148" rx="6" class="compBox"/>
         <rect x="198" y="230" width="16" height="6" rx="2" class="sensor"/>
@@ -275,10 +612,14 @@
         <g id="badge-paper" class="fullBadge" transform="translate(240,222)">
           <rect x="-16" y="-8" width="32" height="16" rx="8"/><text y="4">ĐẦY</text>
         </g>
-        <foreignObject x="168" y="374" width="76" height="20"><div xmlns="http://www.w3.org/1999/xhtml" class="resetFO">
-          <button class="resetbtn" data-bin="paper">🚚 đã gom</button></div></foreignObject>
+        <foreignObject x="168" y="374" width="76" height="20">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="resetFO">
+            <button class="resetbtn" data-bin="paper">🚚 đã gom</button>
+          </div>
+        </foreignObject>
       </g>
 
+      <!-- Compartment 4: Other -->
       <g style="--c:var(--other)">
         <rect id="compBox-other" x="248" y="224" width="76" height="148" rx="6" class="compBox"/>
         <rect x="278" y="230" width="16" height="6" rx="2" class="sensor"/>
@@ -289,57 +630,104 @@
         <g id="badge-other" class="fullBadge" transform="translate(320,222)">
           <rect x="-16" y="-8" width="32" height="16" rx="8"/><text y="4">ĐẦY</text>
         </g>
-        <foreignObject x="248" y="374" width="76" height="20"><div xmlns="http://www.w3.org/1999/xhtml" class="resetFO">
-          <button class="resetbtn" data-bin="other">🚚 đã gom</button></div></foreignObject>
+        <foreignObject x="248" y="374" width="76" height="20">
+          <div xmlns="http://www.w3.org/1999/xhtml" class="resetFO">
+            <button class="resetbtn" data-bin="other">🚚 đã gom</button>
+          </div>
+        </foreignObject>
       </g>
 
-      <g id="fallItem"><text x="0" y="6" text-anchor="middle" font-size="18">🗑️</text></g>
+      <!-- Animated Falling Waste Emoji Element -->
+      <g id="fallItem"><text id="fallEmoji" x="0" y="6" text-anchor="middle" font-size="18">🧴</text></g>
     </svg>
   </div>
 
-  <div id="threePane">
-    <div id="threeCanvasHost"></div>
-    <div id="hudTop" class="hud">
-      <div class="pir-led" id="pirLed"></div>
-      <div id="moveHint">Dùng <b>W A S D</b> (hoặc phím mũi tên) để di chuyển nhân vật lại gần thùng rác 🗑️ — chạm phạm vi cảm biến sẽ tự kích hoạt.</div>
+  <!-- AI Response & Log Box -->
+  <div id="inspectorDrawer">
+    <div class="drawer-head">
+      <span>⚡ AI RESPONSE (TỪ BACKEND)</span>
+      <span id="clock" style="font-family:'JetBrains Mono',monospace;color:#64748b"></span>
     </div>
-    <div id="oledHud" class="hud">
-      <div class="oled" id="oled">Đang chờ người dùng...</div>
-      <div class="btnrow" id="choiceBtnRow">
-        <button class="hwbtn skip" id="btnSkip" disabled>⏭ SKIP</button>
-        <button class="hwbtn qr" id="btnQr" disabled>▦ QR</button>
-      </div>
-      <div class="btnrow" id="captureBtnRow" style="display:none">
-        <button class="hwbtn qr" id="btnUseWebcam">📷 Dùng webcam</button>
-        <button class="hwbtn skip" id="btnUseUpload">📁 Tải ảnh lên</button>
-      </div>
-      <video id="webcamVideo" autoplay playsinline muted></video>
-      <div class="btnrow" id="snapBtnRow" style="display:none">
-        <button class="hwbtn qr" id="btnSnap">📸 Chụp ảnh</button>
-        <button class="hwbtn skip" id="btnRetake">↺ Chọn lại</button>
-      </div>
-      <input type="file" id="fileInput" accept="image/*" style="display:none">
-    </div>
-  </div>
 
-  <div class="console">
-    <div class="console-head"><b>SERIAL CONSOLE</b><span id="clock"></span></div>
+    <div class="ai-response-box">
+      <div class="ai-res-row"><span class="k">Status:</span><span class="v" id="rStatus">—</span></div>
+      <div class="ai-res-row"><span class="k">Label AI:</span><span class="v" id="rLabel">—</span></div>
+      <div class="ai-res-row"><span class="k">Route Ngăn:</span><span class="v" id="rRoute">—</span></div>
+      <div class="ai-res-row"><span class="k">Confidence:</span><span class="v" id="rConf">—</span></div>
+      <div id="confbar"><div id="confbarFill"></div></div>
+    </div>
+
+    <div class="drawer-head" style="margin-top:2px">
+      <span>SERIAL CONSOLE (HTTP & SENSORS)</span>
+    </div>
     <div id="log"></div>
-    <div class="resultcard">
-      <h3>Kết quả AI thật (từ backend)</h3>
-      <div class="resultgrid">
-        <span class="k">status</span><span class="v" id="rStatus">—</span>
-        <span class="k">label</span><span class="v" id="rLabel">—</span>
-        <span class="k">route</span><span class="v" id="rRoute">—</span>
-        <span class="k">confidence</span><span class="v" id="rConf">—</span>
-        <div id="confbar"><div id="confbarFill"></div></div>
+  </div>
+</div>
+
+<!-- Floating Bottom Dock: Sample Waste Selector -->
+<div id="bottomDock">
+  <div class="dock-header">
+    <span>Chọn vật rác mẫu để nhân vật cầm trên tay:</span>
+    <span style="color:#10b981">Rác 3D sẽ rơi thực tế vào ngăn kính & sơ đồ cơ khí</span>
+  </div>
+  <div class="waste-cards-grid">
+    <div class="waste-card active" data-key="plastic">
+      <div class="waste-card-img">
+        <img src="fixtures/plastic_bottle.jpg" alt="Chai nhựa PET">
       </div>
+      <div class="waste-card-title">Chai Aquafina 500ml</div>
+      <span class="waste-card-badge badge-plastic">Chai nhựa (PET)</span>
+    </div>
+
+    <div class="waste-card" data-key="metal">
+      <div class="waste-card-img">
+        <img src="fixtures/aluminum_can.jpg" alt="Lon nhôm Coca-Cola">
+      </div>
+      <div class="waste-card-title">Lon Coca-Cola 330ml</div>
+      <span class="waste-card-badge badge-metal">Lon nhôm (Can)</span>
+    </div>
+
+    <div class="waste-card" data-key="paper">
+      <div class="waste-card-img">
+        <img src="fixtures/paper_cardboard.jpg" alt="Giấy & Bìa carton">
+      </div>
+      <div class="waste-card-title">Cốc giấy / Bìa carton</div>
+      <span class="waste-card-badge badge-paper">Giấy & Carton</span>
+    </div>
+
+    <div class="waste-card" data-key="other">
+      <div class="waste-card-img">
+        <img src="fixtures/other_snack_bag.jpg" alt="Bao bì snack">
+      </div>
+      <div class="waste-card-title">Bao bì bim bim</div>
+      <span class="waste-card-badge badge-other">Bao bì nilon / Khác</span>
+    </div>
+
+    <div class="waste-card" data-key="battery">
+      <div class="waste-card-img">
+        <img src="fixtures/battery_hazard.jpg" alt="Pin AA nguy hại">
+      </div>
+      <div class="waste-card-title">Pin AA Duracell</div>
+      <span class="waste-card-badge badge-hazard">🚨 Nguy hại (Từ chối)</span>
     </div>
   </div>
-</main>
+</div>
 
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script src="scene3d.js"></script>
 <script src="app.js"></script>
+
+<script>
+  // Camera toolbar active toggle
+  document.querySelectorAll(".cam-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".cam-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      if(window.Scene3D){
+        window.Scene3D.setCameraPreset(btn.dataset.preset);
+      }
+    });
+  });
+</script>
+
 </body>
 </html>
