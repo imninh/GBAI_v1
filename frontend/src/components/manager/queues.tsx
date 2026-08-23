@@ -11,6 +11,7 @@ import * as React from "react";
 
 import { Button, Card, Chip, EmptyState, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { AnhCoToken } from "@/lib/anh-co-token";
+import { KipVaSuCo } from "@/components/manager/kip_va_su_co";
 import { api } from "@/lib/api";
 import { doTinCay, kg, ngayGioVn, ngayVn, phanTram, soVn } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -884,6 +885,12 @@ export function RouteApproval() {
           </div>
         </>
       )}
+
+      {/* Lối vào quản lý kíp & sự cố — gắn với nghiệp vụ tuyến: duyệt xong tuyến
+          là xếp kíp cho chuyến, sự cố phát sinh trên chuyến cũng xử lý tại đây.
+          Đặt ngay trong màn hàng đợi này thay vì sửa nav console, ai mở tab
+          Tuyến gộp cũng thấy, kể cả khi chưa có tuyến nào chờ duyệt. */}
+      <KipVaSuCo />
     </>
   );
 }

@@ -34,12 +34,30 @@ const CleanerNavigationMap = dynamic(() => import("@/components/cleaner/navigati
   loading: () => <Skeleton className="h-[500px] w-full rounded-2xl" />,
 });
 
+/** Bốn loại sự cố backend chấp nhận — nguồn sự thật là ``LOAI_HOP_LE`` trong
+ *  ``src/services/su_co_thu_gom.py``, giá trị ngoài danh sách bị từ chối 400.
+ *  Nhãn hiển thị nằm ở đây chứ không mượn enum của việc khác. */
+const LOAI_SU_CO: { code: string; label: string }[] = [
+  { code: "phan_loai_sai", label: "Phân loại sai" },
+  { code: "thung_day", label: "Thùng đầy / quá tải" },
+  { code: "khong_tiep_can", label: "Không tiếp cận được điểm dừng" },
+  { code: "khac", label: "Khác" },
+];
+
 export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) {
   const [tuyen, setTuyen] = React.useState<PickupRoute | null>(null);
   const [dsSuCo, setDsSuCo] = React.useState<{ code: string; label_vi: string }[]>([]);
   const [loi, setLoi] = React.useState("");
   const [dangMoBaoLoi, setDangMoBaoLoi] = React.useState<number | null>(null);
   const [cheDo, setCheDo] = React.useState<"danh-sach" | "ban-do">("danh-sach");
+  // Báo sự cố cả chuyến (api.baoSuCo): khác với nút "Báo lỗi" từng điểm dừng —
+  // cái đó gắn issue vào điểm dừng khi hoàn thành, cái này là sự cố tự do của
+  // chuyến đang làm (xe hỏng, đường chặn…), ban quản lý xử lý riêng.
+  const [moBaoSuCo, setMoBaoSuCo] = React.useState(false);
+  const [loaiSuCo, setLoaiSuCo] = React.useState("");
+  const [moTaSuCo, setMoTaSuCo] = React.useState("");
+  const [dangGuiSuCo, setDangGuiSuCo] = React.useState(false);
+  const [thongBaoSuCo, setThongBaoSuCo] = React.useState("");
 
   const tai = React.useCallback(() => {
     api
@@ -75,6 +93,27 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
       setDangMoBaoLoi(null);
     } catch (e) {
       setLoi(e instanceof Error ? e.message : "Không lưu được");
+    }
+  }
+
+  async function guiBaoSuCo() {
+    if (!tuyen || !loaiSuCo || dangGuiSuCo) return;
+    setDangGuiSuCo(true);
+    setThongBaoSuCo("");
+    try {
+      const sc = await api.baoSuCo({
+        route_id: tuyen.id,
+        loai: loaiSuCo,
+        mo_ta: moTaSuCo.trim() || undefined,
+      });
+      setThongBaoSuCo(`Đã báo sự cố #${sc.id} — ban quản lý sẽ xử lý.`);
+      setMoBaoSuCo(false);
+      setLoaiSuCo("");
+      setMoTaSuCo("");
+    } catch (e) {
+      setThongBaoSuCo(e instanceof Error ? e.message : "Không gửi được báo cáo sự cố.");
+    } finally {
+      setDangGuiSuCo(false);
     }
   }
 
@@ -158,6 +197,77 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                       {daThu === stops.length && stops.length > 0 ? `🎉 Đã thu gom hoàn tất toàn bộ ${stops.length}/${stops.length} điểm` : `${daThu}/${stops.length} điểm đã thu`}
                     </div>
                   </div>
+
+                  {/* Nút báo sự cố cho cả chuyến đang làm — chỉ hiện khi chuyến
+                      chưa kết thúc; xong tuyến rồi thì không còn gì để báo. */}
+                  {tuyen.status !== "done" && (
+                    <div className="mb-4">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        block
+                        className="border-amber-line text-amber"
+                        onClick={() => setMoBaoSuCo((v) => !v)}
+                      >
+                        <IconCanhBao className="h-5 w-5" />
+                        Báo sự cố chuyến này
+                      </Button>
+                      {moBaoSuCo && (
+                        <Card className="mt-2.5 p-4">
+                          <div className="mb-2 text-[13px] font-bold">Loại sự cố</div>
+                          <div className="grid grid-cols-1 gap-2">
+                            {LOAI_SU_CO.map((ls) => {
+                              const dangChon = loaiSuCo === ls.code;
+                              return (
+                                <button
+                                  key={ls.code}
+                                  type="button"
+                                  onClick={() => setLoaiSuCo(ls.code)}
+                                  className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left text-[14px] font-bold transition-all ${
+                                    dangChon ? "border-leaf bg-leaf-soft" : "border-line bg-white hover:border-line-2"
+                                  }`}
+                                >
+                                  <span
+                                    className={`flex h-5 w-5 flex-none items-center justify-center rounded-md border ${
+                                      dangChon ? "border-leaf bg-leaf text-white" : "border-line-2"
+                                    }`}
+                                  >
+                                    {dangChon && <IconDuyet className="h-3.5 w-3.5" />}
+                                  </span>
+                                  {ls.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <label htmlFor="mo-ta-su-co" className="mb-1 mt-3 block text-[11px] font-extrabold text-muted">
+                            Mô tả thêm (tuỳ chọn)
+                          </label>
+                          <input
+                            id="mo-ta-su-co"
+                            value={moTaSuCo}
+                            onChange={(e) => setMoTaSuCo(e.target.value)}
+                            placeholder="vd: đường xuống hố, xe không qua được"
+                            className="h-12 w-full rounded-xl border border-line-2 bg-white px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                          />
+                          <Button
+                            variant="leaf"
+                            size="lg"
+                            block
+                            className="mt-3"
+                            disabled={!loaiSuCo || dangGuiSuCo}
+                            onClick={guiBaoSuCo}
+                          >
+                            {dangGuiSuCo ? "Đang gửi…" : "Gửi báo cáo sự cố"}
+                          </Button>
+                        </Card>
+                      )}
+                      {thongBaoSuCo && (
+                        <div className="mt-2.5 rounded-xl bg-leaf-soft px-4 py-3 text-[13px] font-bold leading-relaxed text-leaf-dark">
+                          {thongBaoSuCo}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {stops.map((s) => (
                     <Card key={s.stop_id} className="mb-3 p-4" style={{ opacity: s.done_at ? 0.7 : 1 }}>
