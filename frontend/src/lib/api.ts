@@ -6,18 +6,31 @@ import type { Bin, BinReading, BinStats, DiemGui, NhanVien } from "./bins";
 import { nenAnh } from "./nen_anh";
 import type {
   AgentRunDetail,
+  BaoSuCoPayload,
   ChatbotResponse,
   Classification,
+  DanhSachKip,
+  DanhSachNhiemVu,
   EvalSummary,
+  GanKipPayload,
+  KetQuaGanKip,
+  KetQuaKiemNhiemVu,
+  KetQuaTaoLichTuan,
   NavigationResult,
+  NhanVienKhaDung,
   OpsMetrics,
   Overview,
   Permissions,
+  PhienBoRac,
   PickupRequest,
   PickupRoute,
   PrivacyReport,
+  SuCoThuGom,
+  TongQuanDiemNhanThuc,
   User,
   WasteCategory,
+  TrangThaiSuCoThuGom,
+  XuLySuCoPayload,
 } from "./types";
 
 /** Địa chỉ backend, **đã cắt dấu `/` thừa ở cuối**.
@@ -327,6 +340,69 @@ export const api = {
       `/bins/${encodeURIComponent(code)}/nhan-vien`,
       { method: "PATCH", body: JSON.stringify({ cleaner_id: cleanerId }) },
     ),
+
+  // --- Phiên bỏ rác bằng mã QR ---
+  /** Mở phiên bỏ rác bằng mã đọc từ tham số `?ma=` của link QR in trên thùng.
+   *  Ba câu lỗi backend trả NGUYÊN VĂN qua `ApiError.message`, hiện đúng chữ,
+   *  đừng diễn lại: "Mã QR không hợp lệ." · "Mã QR đã được sử dụng." ·
+   *  "Mã QR đã hết hạn." Đường XIN mã QR thuộc về thiết bị (header
+   *  `X-Device-Key`) — gọi từ app luôn 401, app chỉ dùng mã thiết bị đã hiện
+   *  lên màn, đừng thêm hàm nào cho nó ở đây. */
+  batDauPhienBangMa: (ma: string) =>
+    request<PhienBoRac>("/phien/bat-dau-bang-ma", {
+      method: "POST",
+      body: JSON.stringify({ ma }),
+    }),
+
+  // --- Điểm nhận thức & nhiệm vụ ---
+  /** ⚠️ Đây là điểm NHẬN THỨC — chỉ xếp hạng và huy hiệu, KHÔNG đổi được quà.
+   *  Đừng lẫn với Điểm xanh (`User.green_points`) — điểm cân thật có giá trị
+   *  đổi quà; hai loại không bao giờ cộng dồn. */
+  diemNhanThuc: () => request<TongQuanDiemNhanThuc>("/diem/nhan-thuc"),
+  nhiemVuNhanThuc: () => request<DanhSachNhiemVu>("/diem/nhiem-vu"),
+  /** Bấm "nhận thưởng nhiệm vụ": backend tự kiểm điều kiện rồi trao điểm.
+   *  Gọi lại nhiều lần vô hại — đã trao thì nhiệm vụ biến khỏi danh sách mới. */
+  kiemNhiemVu: () =>
+    request<KetQuaKiemNhiemVu>("/diem/nhiem-vu/kiem", { method: "POST" }),
+
+  // --- Kíp thu gom ---
+  /** Nhân viên đang hoạt động để xếp kíp. Chỉ người có quyền duyệt tuyến gọi
+   *  được — kiểm quyền trước như `nhanVien` của thùng. Backend CỐ Ý không trả
+   *  số điện thoại/email, đừng tìm cách hiện chúng trên màn hình. */
+  nhanVienKhaDung: () => request<{ items: NhanVienKhaDung[] }>("/routes/nhan-vien-kha-dung"),
+  kipCuaChuyen: (routeId: number) => request<DanhSachKip>(`/routes/${routeId}/kip`),
+  /** Một kíp phải đúng số người quy định, không trùng nhau; bỏ `truong_kip_id`
+   *  thì trưởng kíp là người đầu tiên trong danh sách. */
+  ganKip: (routeId: number, payload: GanKipPayload) =>
+    request<KetQuaGanKip>(`/routes/${routeId}/kip`, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }),
+  /** Gọi một lần đầu tuần: tạo chuyến cho 7 ngày từ `tuanBatDau` (`YYYY-MM-DD`)
+   *  + gán kíp theo vòng tròn. Số liệu trả về để trang báo cáo nói thật. */
+  taoLichTuan: (tuanBatDau: string) =>
+    request<KetQuaTaoLichTuan>("/routes/tao-lich-tuan", {
+      method: "POST",
+      body: JSON.stringify({ tuan_bat_dau: tuanBatDau }),
+    }),
+
+  // --- Sự cố thu gom ---
+  suCoThuGom: (params: { trang_thai?: TrangThaiSuCoThuGom; route_id?: number; limit?: number } = {}) => {
+    const query = new URLSearchParams(
+      Object.entries(params)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, String(v)]),
+    );
+    const chuoi = query.toString();
+    return request<{ items: SuCoThuGom[]; total: number }>(`/pickups/su-co${chuoi ? `?${chuoi}` : ""}`);
+  },
+  baoSuCo: (payload: BaoSuCoPayload) =>
+    request<SuCoThuGom>("/pickups/su-co", { method: "POST", body: JSON.stringify(payload) }),
+  xuLySuCo: (suCoId: number, payload: XuLySuCoPayload) =>
+    request<SuCoThuGom>(`/pickups/su-co/${suCoId}/xu-ly`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 
   // --- Chatbot RAG ---
   chatbotAsk: (payload: { question: string; building_id?: number | null; lat?: number | null; lng?: number | null }) =>

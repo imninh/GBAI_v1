@@ -440,3 +440,154 @@ export interface ChatbotResponse {
   tokens_used: number;
   cost_usd: number;
 }
+
+// --- Phiên bỏ rác tại thùng ---
+
+/** Một phiên bỏ rác tại thùng thông minh. Mở bằng mã QR đọc từ tham số `?ma=`
+ *  của link in trên thùng — app chỉ DÙNG mã, việc xin mã là của thiết bị. */
+export interface PhienBoRac {
+  ma_phien: string;
+  trang_thai: string;
+  so_vat: number;
+  /** Điểm nhận thức tạm tính của phiên — xem cảnh báo ở `TongQuanDiemNhanThuc`. */
+  diem_nhan_thuc: number;
+  bat_dau: string;
+  ket_thuc: string | null;
+}
+
+// --- Điểm nhận thức & nhiệm vụ ---
+
+/** ⚠️ ĐIỂM NHẬN THỨC — KHÔNG PHẢI ĐIỂM XANH.
+ *
+ *  Điểm nhận thức chỉ phục vụ xếp hạng và huy hiệu trong app, **không đổi được
+ *  quà**. Điểm xanh (`User.green_points`) mới là điểm cân thật, có giá trị đổi
+ *  quà. Hai loại điểm sống ở hai bảng khác nhau và không bao giờ cộng dồn —
+ *  đừng gộp chúng vào một kiểu chung hay một biến đếm duy nhất.
+ */
+export interface DongSoCaiDiemNhanThuc {
+  nguon: string;
+  diem: number;
+  ref_bang: string;
+  /** Bảng nguồn có thể không định danh dòng cụ thể → null. */
+  ref_id: number | null;
+  ngay: string;
+  ghi_chu: string;
+  created_at: string;
+}
+
+export interface TongQuanDiemNhanThuc {
+  tong_diem_nhan_thuc: number;
+  hom_nay: string;
+  gan_day: DongSoCaiDiemNhanThuc[];
+}
+
+/** Chu kỳ của một nhiệm vụ nhận thức: theo ngày hoặc theo tuần ISO. */
+export type ChuKyNhiemVu = "ngay" | "tuan";
+
+export interface NhiemVuDiemNhanThuc {
+  ma: string;
+  ten: string;
+  mo_ta: string;
+  chu_ky: ChuKyNhiemVu;
+  dieu_kien_ma: string;
+  dieu_kien_nguong: number;
+  diem: number;
+  tien_do: number;
+  da_nhan: boolean;
+}
+
+export interface DanhSachNhiemVu {
+  ngay: string;
+  items: NhiemVuDiemNhanThuc[];
+}
+
+/** Một nhiệm vụ vừa được trao điểm trong lần bấm "kiểm nhiệm vụ". */
+export interface NhiemVuVuaHoanThanh {
+  ma: string;
+  ten: string;
+  diem: number;
+  /** Kỳ trao điểm: `YYYY-MM-DD` (theo ngày) hoặc `YYYY-Www` ISO (theo tuần). */
+  ky: string;
+  tien_do: number;
+}
+
+export interface KetQuaKiemNhiemVu {
+  ngay: string;
+  da_hoan_thanh: NhiemVuVuaHoanThanh[];
+  tong_diem_nhan_thuc: number;
+}
+
+// --- Kíp thu gom ---
+
+/** Nhân viên thu gom khả dụng để xếp kíp. Backend CỐ Ý chỉ trả ba trường này —
+ *  không trả số điện thoại, không trả email; đừng khai thêm. */
+export interface NhanVienKhaDung {
+  id: number;
+  full_name: string;
+  role: string;
+}
+
+export interface ThanhVienKip {
+  id: number;
+  full_name: string;
+  vai_tro: "truong_kip" | "thanh_vien";
+}
+
+export interface DanhSachKip {
+  items: ThanhVienKip[];
+}
+
+export interface GanKipPayload {
+  user_ids: number[];
+  /** Bỏ trống thì trưởng kíp là người đầu tiên trong `user_ids`. */
+  truong_kip_id?: number | null;
+}
+
+export interface KetQuaGanKip {
+  route_id: number;
+  user_ids: number[];
+  truong_kip_id: number;
+}
+
+/** Kết quả lên lịch cả tuần — đếm số liệu để trang báo cáo nói thật. */
+export interface KetQuaTaoLichTuan {
+  so_ngay_xet: number;
+  so_chuyen_tao: number;
+  so_chuyen_da_gan_kip: number;
+  so_chuyen_chua_gan_kip: number;
+  so_lich_bo_vi_da_co: number;
+  so_lich_bo_vi_khong_yeu_cau: number;
+}
+
+// --- Sự cố thu gom ---
+
+export type TrangThaiSuCoThuGom = "cho_xu_ly" | "da_xu_ly" | "tu_choi";
+
+export interface SuCoThuGom {
+  id: number;
+  route_id: number;
+  stop_id: number | null;
+  nguoi_bao_id: number;
+  /** Mã loại sự cố, tối đa 40 ký tự — nhãn hiển thị lấy từ enum phía màn hình. */
+  loai: string;
+  mo_ta: string;
+  anh_media_id: number | null;
+  trang_thai: TrangThaiSuCoThuGom;
+  nguoi_xu_ly_id: number | null;
+  ghi_chu_xu_ly: string;
+  xu_ly_luc: string | null;
+  created_at: string | null;
+}
+
+export interface BaoSuCoPayload {
+  route_id: number;
+  stop_id?: number | null;
+  loai: string;
+  mo_ta?: string;
+  anh_media_id?: number | null;
+}
+
+export interface XuLySuCoPayload {
+  chap_nhan: boolean;
+  ghi_chu?: string;
+}
