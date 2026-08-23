@@ -306,6 +306,16 @@ function ResidentApp() {
       <PhoneFrame
         bg={nenMan}
         statusDark={man === "processing"}
+        items={hienTabBar ? tabs : undefined}
+        active={man}
+        onChange={(k) => {
+          // Nút Chụp nổi giờ mở màn Chụp & quét (scan.tsx) — hai lối vào:
+          // quét mã thùng và chụp phân loại. Đường chụp cũ vẫn nguyên vẹn:
+          // nút "Chụp để phân loại" trong đó quay về Trang chủ và nhờ
+          // AskScreen mở camera qua `lanChup` như trước.
+          setMan(k as ManCuDan);
+        }}
+        accent="#2fae66"
         tabBar={
           hienTabBar ? (
             <TabBar
@@ -319,9 +329,9 @@ function ResidentApp() {
                 setMan(k as ManCuDan);
               }}
             />
-        ) : undefined
-      }
-    >
+          ) : undefined
+        }
+      >
       {loi && man === "ask" && (
         <div className="px-4 pt-14">
           <ErrorState message={loi.message} code={loi.code} onRetry={() => setLoi(null)} />
@@ -482,6 +492,10 @@ function CleanerApp() {
   return (
     <PhoneFrame
       bg="#eef2f6"
+      items={tabs}
+      active={man}
+      onChange={setMan}
+      accent="#2f7fe0"
       tabBar={<TabBar items={tabs} active={man} onChange={setMan} accent="#2f7fe0" />}
     >
       {man === "route" && <RouteTodayScreen onXemLichSu={() => setMan("history")} />}
