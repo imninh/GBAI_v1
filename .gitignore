@@ -160,6 +160,10 @@ docs/TECH_STACK.md
 # thêm một dòng ngoại lệ, ví dụ:  !docs/ai-logs-trich-dan.md
 *.md
 
+# Hai deliverable phải nằm trong repo — người chấm mở ra đọc.
+!docs/evaluation.md
+!docs/ai-logs-trich-dan.md
+
 # Khoá Firebase — KHÔNG BAO GIỜ đẩy lên kho mã.
 # Khoá tài khoản dịch vụ = toàn quyền quản trị dự án Firebase.
 *firebase-adminsdk*.json
