@@ -153,6 +153,53 @@ _INJECTION_PATTERNS = [
     r"canary_token|canary\s+token",
 ]
 
+# --- 1b. Chặn ý đồ tấn công hệ thống (lớp bổ sung cho 5.1) ----------------
+# Ràng buộc chặt để không chặn nhầm câu môi trường hợp lệ: cụm "tấn công /
+# phá hoại" chỉ bị chặn khi có động từ yêu cầu (chỉ tôi, hướng dẫn, làm sao
+# để...) đứng TRƯỚC, hoặc đối tượng kỹ thuật (server, api, tài khoản...)
+# đứng SAU trong cùng một câu.
+
+_ATTACK_REQ = (
+    r"(?:chỉ\s*tôi|hướng\s+dẫn|làm\s+sao\s+để|làm\s+sao\s+nào|"
+    r"cách\s+để|cách\s+nào|giúp\s*tôi|có\s+cách\s+nào|dạy\s*tôi|"
+    r"muốn\s*biết|muốn\s*học\s+cách)"
+)
+_TECH_OBJ = (
+    r"(?:hệ\s+thống|server|máy\s+chủ|api|website|trang\s+web|ứng\s+dụng|app|"
+    r"cơ\s+sở\s+dữ\s+liệu|csdl|tài\s+khoản|cảm\s+biến|firmware|thiết\s+bị|"
+    r"mạng|database)"
+)
+
+_TAN_CONG_PATTERNS = [
+    r"\bhack",
+    r"sql\s*(injection|inject)",
+    r"\bbypass\b",
+    r"bẻ\s*khoá",
+    r"leo\s+thang\s+đặc\s+quyền",
+    r"chiếm\s+quyền",
+    r"\bddos\b",
+    # dump dữ liệu: chỉ khi nhắm vào CSDL
+    r"dump[^.?!]{0,20}(database|db|csdl|cơ\s*sở\s*dữ\s*liệu)",
+    r"(database|cơ\s+sở\s+dữ\s+liệu|csdl)[^.?!]{0,40}(dump|xuống|toàn\s+bộ|ra\s+ngoài)",
+    # đánh cắp thông tin cá nhân
+    r"(đọc\s+trộm|đánh\s+cắp|ăn\s+cắp|trộm)[^.?!]{0,30}(mật\s+khẩu|otp)",
+    r"(xem|lấy|đọc|liệt\s+kê|cho\s+tôi)\s+(tất\s+cả\s+)?(mật\s+khẩu|otp)"
+    r"[^.?!]{0,40}(người\s+khác|của\s+ai|admin)",
+    r"(thông\s+tin|dữ\s+liệu)[^.?!]{0,60}"
+    r"(của\s+người\s+khác|của\s+cư\s+dân\s+khác|cư\s+dân\s+khác|người\s+dùng\s+khác)",
+    r"số\s+điện\s+thoại[^.?!]{0,60}"
+    r"(của\s+cư\s+dân|của\s+người\s+dùng|của\s+người\s+khác|"
+    r"cư\s+dân\s+khác|người\s+dùng\s+khác)",
+    # gian lận điểm thưởng
+    r"tự\s+cộng[^.?!]{0,20}điểm",
+    r"(lách|qua mặt)\s+hệ\s+thống\s+điểm",
+    # tấn công / phá hoại: yêu cầu rõ ràng hoặc nhắm vào đối tượng kỹ thuật
+    r"(?:" + _ATTACK_REQ + r")[^.?!]{0,40}tấn\s*công",
+    r"tấn\s*công[^.?!]{0,30}?" + _TECH_OBJ,
+    r"(?:" + _ATTACK_REQ + r")[^.?!]{0,40}phá\s+(hoại|hủy|huỷ)",
+    r"phá\s+(hoại|hủy|huỷ)[^.?!]{0,30}?" + _TECH_OBJ,
+]
+
 
 def normalize_input(text: str) -> str:
     """Chuẩn hoá Unicode NFKC và loại bỏ ký tự vô hình (Zero-width chars)."""
@@ -167,7 +214,7 @@ def normalize_input(text: str) -> str:
 def check_prompt_injection(text: str) -> bool:
     """Quét phát hiện Prompt Injection / Jailbreak."""
     lower = text.lower()
-    for pattern in _INJECTION_PATTERNS:
+    for pattern in _INJECTION_PATTERNS + _TAN_CONG_PATTERNS:
         if re.search(pattern, lower, re.IGNORECASE):
             return True
     return False
