@@ -15,7 +15,7 @@ from sqlalchemy import select
 from src.api.deps import CurrentUser, DbSession
 from src.api.errors import bad_request, not_found
 from src.config import get_settings
-from src.db.models import PhienThung
+from src.db.models import Bin, PhienThung, User
 from src.services import ma_qr_phien, phien_thung
 from src.services.device_auth import DeviceAuthError, authenticate
 
@@ -129,3 +129,26 @@ def dong_phien(ma_phien: str, session: DbSession, user: CurrentUser) -> dict:
     except ValueError as exc:
         raise bad_request(str(exc), code="PHIEN-400") from exc
     return _khuon(da_dong)
+
+
+@router.get("/thung/{bin_code}/hien-tai")
+def phien_hien_tai_cua_thung(bin_code: str, session: DbSession) -> dict:
+    """Kiểm tra phiên đang mở của thùng (dành cho Kiosk/IoT polling)."""
+    thung = session.scalar(select(Bin).where(Bin.code == bin_code))
+    if thung is None:
+        return {"co_phien": False, "ma_phien": None, "bin_code": bin_code}
+
+    phien = phien_thung.phien_dang_mo_cua_thung(session, thung.id)
+    if phien is None:
+        return {"co_phien": False, "ma_phien": None, "bin_code": bin_code}
+
+    u = session.get(User, phien.user_id)
+    return {
+        "co_phien": True,
+        "ma_phien": phien.ma_phien,
+        "bin_code": bin_code,
+        "so_vat": phien.so_vat,
+        "diem_nhan_thuc": phien.diem_nhan_thuc,
+        "user_id": phien.user_id,
+        "user_name": u.full_name if u else f"USER #{phien.user_id}",
+    }

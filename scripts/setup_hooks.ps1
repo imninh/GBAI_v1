@@ -21,7 +21,11 @@ fi
 exit 0
 '@
 
-Set-Content -Path $HookFile -Value $HookBody -Encoding UTF8 -NoNewline
+$HookBody = $HookBody -replace "`r`n", "`n"
+# Write LF-only, no BOM: a BOM or CRLF before `#!/bin/sh` breaks the shebang
+# for Git Bash's sh, which fails silently (hook exits 0) and skips every step.
+$FullHookPath = Join-Path (Get-Location) $HookFile
+[System.IO.File]::WriteAllText($FullHookPath, $HookBody, (New-Object System.Text.UTF8Encoding($false)))
 Write-Host "[ai-log] Git pre-push hook installed."
 
 if (-not (Test-Path .ai-log)) { New-Item -ItemType Directory -Path .ai-log | Out-Null }
