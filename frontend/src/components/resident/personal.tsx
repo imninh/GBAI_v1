@@ -5,6 +5,7 @@
 import * as React from "react";
 
 import { CaiAppCard } from "@/components/pwa/cai-app";
+import { DiemNhanThucScreen } from "@/components/resident/diem_nhan_thuc";
 import { Button, Card, EmptyState, Skeleton } from "@/components/ui/primitives";
 import { ScreenHeader } from "@/components/ui/shell";
 import { api } from "@/lib/api";
@@ -735,6 +736,11 @@ function CayCapDo({ level }: { level: number }) {
 
 export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User; onPrivacy: () => void; onLogout: () => void; onDiemXanh: () => void }) {
   const [dangSua, setDangSua] = React.useState(false);
+  const [xemDiemNhanThuc, setXemDiemNhanThuc] = React.useState(false);
+
+  if (xemDiemNhanThuc) {
+    return <DiemNhanThucScreen onBack={() => setXemDiemNhanThuc(false)} />;
+  }
 
   return (
     <div className="min-h-full bg-cream px-[18px] pb-[108px] pt-[54px]">
@@ -783,6 +789,14 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
           <IconMamXanh className="h-[18px] w-[18px] text-leaf" />
           <span className="flex-1 text-sm font-bold">Điểm xanh</span>
           <span className="text-sm font-extrabold text-leaf-dark">{user.green_points}</span>
+          <IconTiepTuc className="h-[18px] w-[18px] text-[#c3cbc2]" />
+        </button>
+        <button
+          onClick={() => setXemDiemNhanThuc(true)}
+          className="flex w-full cursor-pointer items-center gap-3 px-4 py-4 text-left"
+        >
+          <IconNguoiDung className="h-[18px] w-[18px] text-amber" />
+          <span className="flex-1 text-sm font-bold">Điểm nhận thức</span>
           <IconTiepTuc className="h-[18px] w-[18px] text-[#c3cbc2]" />
         </button>
       </Card>
