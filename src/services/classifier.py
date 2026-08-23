@@ -22,6 +22,7 @@ Vận hành (4.16) có số liệu thật, không phải số ước.
 
 from __future__ import annotations
 
+import logging
 import time
 
 from sqlalchemy.orm import Session
@@ -55,6 +56,8 @@ from src.services.vision import (
     get_vision_client,
 )
 
+logger = logging.getLogger(__name__)
+
 __all__ = [
     "TIER_T0_CACHE",
     "TIER_T05_LOCAL",
@@ -76,7 +79,38 @@ def classify_waste(
     image_phash: str = "",
     text_query: str = "",
 ) -> ClassifyOutcome:
-    """Chạy trọn định tuyến 4 tầng cho một món rác.
+    """Giao diện công khai — bọc ``_classify_waste`` và gắn trace Langfuse (P98).
+
+    Langfuse chỉ là lớp quan sát: dù nó có hỏng, kết quả phân loại vẫn không đổi
+    (xem ``src/services/theo_doi.py``). Trace không làm chậm đường phục vụ — bọc
+    này không ``flush()`` đồng bộ, client Langfuse tự gửi nền.
+    """
+    from src.services.theo_doi import ghi_trace_phan_loai
+
+    bat_dau = time.perf_counter()
+    outcome = _classify_waste(
+        session, image_bytes=image_bytes, image_phash=image_phash, text_query=text_query
+    )
+    try:
+        ghi_trace_phan_loai(
+            outcome=outcome,
+            bat_dau=bat_dau,
+            text_query=text_query,
+            image_phash=image_phash,
+        )
+    except Exception:
+        logger.warning("Ghi trace phân loại thất bại, bỏ qua.", exc_info=True)
+    return outcome
+
+
+def _classify_waste(
+    session: Session,
+    *,
+    image_bytes: bytes | None = None,
+    image_phash: str = "",
+    text_query: str = "",
+) -> ClassifyOutcome:
+    """Chạy trọn định tuyến 4 tầng cho một món rác (lõi; xem :func:`classify_waste`).
 
     Args:
         session: phiên CSDL để đọc danh mục và cache.

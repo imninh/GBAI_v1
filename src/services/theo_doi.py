@@ -180,6 +180,80 @@ class TheoDoiAI:
         except Exception:
             logger.warning("Langfuse ghi trace chatbot thất bại.", exc_info=True)
 
+    def trace_phan_loai(
+        self,
+        *,
+        outcome: Any,
+        bat_dau: float,
+        text_query: str = "",
+        image_phash: str = "",
+        user_id: str = "khach",
+        ten_nguoi: str | None = None,
+    ) -> None:
+        """Ghi một trace ``phan_loai`` kèm span cho từng tầng đã chạy.
+
+        Không gửi ảnh (chỉ ``image_phash``), mọi chữ người dùng qua ``che_du_lieu``.
+        Hỏng thì ghi warning rồi thôi, không ném lỗi. Không ``flush()`` đồng bộ —
+        client Langfuse gửi nền, đường phân loại là đường găng không được chờ mạng.
+        """
+        if not self.enabled or self.client is None:
+            return
+        try:
+            inp: dict[str, Any] = {}
+            if text_query:
+                # Che số điện thoại / email / toạ độ / họ tên trước khi lên dịch vụ.
+                inp["text_query"] = che_du_lieu(text_query, ten_nguoi=ten_nguoi)
+            # Chỉ pHash — tuyệt đối không đưa ảnh gốc / base64 lên Langfuse.
+            if image_phash:
+                inp["image_phash"] = image_phash
+            out = {
+                "item_name": outcome.item_name,
+                "category_code": outcome.category_code,
+                "confidence": round(outcome.confidence, 4),
+                "confidence_level": outcome.confidence_level,
+            }
+            tags = [
+                outcome.tier or "unknown",
+                outcome.provider or "unknown",
+                get_settings().app_env,
+                f"refused:{outcome.refused}",
+                f"suspect_hazardous:{outcome.suspect_hazardous}",
+            ]
+            ctx = {"user_id": str(user_id), "tags": tags, "name": "phan_loai"}
+            # Giá không biết thì đừng báo là 0đ — gửi None kèm cờ price_known.
+            cost = round(outcome.cost_usd, 6) if outcome.price_known else None
+            trace = self.client.start_observation(
+                name="phan_loai",
+                as_type="chain",
+                input=inp,
+                output=out,
+                trace_context=ctx,
+                metadata={
+                    "latency_ms": outcome.latency_ms,
+                    "cost_usd": cost,
+                    "price_known": outcome.price_known,
+                },
+            )
+            # Mỗi tầng xử lý thành một span con — thấy món rác đi T0→T0.5→T1→T2 ra sao,
+            # tầng nào chốt, tầng nào tốn tiền.
+            for node in outcome.nodes:
+                trace.start_observation(
+                    name=node.node,
+                    as_type="chain",
+                    input={"status": node.status},
+                    output={
+                        "duration_ms": node.duration_ms,
+                        "tokens_in": node.tokens_in,
+                        "tokens_out": node.tokens_out,
+                        "cost_usd": round(node.cost_usd, 6),
+                        "cache_hits": node.cache_hits,
+                        "llm_calls": node.llm_calls,
+                    },
+                ).end()
+            trace.end()
+        except Exception:
+            logger.warning("Langfuse ghi trace phân loại thất bại.", exc_info=True)
+
 
 _theo_doi: TheoDoiAI | None = None
 
@@ -215,6 +289,35 @@ def ghi_trace_chatbot(
     except Exception:
         logger.warning(
             "Ghi trace chatbot bị lỗi, bỏ qua để không ảnh hưởng người dùng.",
+            exc_info=True,
+        )
+
+
+def ghi_trace_phan_loai(
+    *,
+    outcome: Any,
+    bat_dau: float,
+    text_query: str = "",
+    image_phash: str = "",
+    user_id: str = "khach",
+    ten_nguoi: str | None = None,
+) -> None:
+    """Gắn trace cho một lượt phân loại rác. Không bao giờ ném lỗi ra ngoài."""
+    try:
+        td = lay_theo_doi()
+        if td is None:
+            return
+        td.trace_phan_loai(
+            outcome=outcome,
+            bat_dau=bat_dau,
+            text_query=text_query,
+            image_phash=image_phash,
+            user_id=user_id,
+            ten_nguoi=ten_nguoi,
+        )
+    except Exception:
+        logger.warning(
+            "Ghi trace phân loại bị lỗi, bỏ qua để không ảnh hưởng người dùng.",
             exc_info=True,
         )
 

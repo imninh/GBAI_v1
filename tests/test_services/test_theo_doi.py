@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import logging
 import re
 from pathlib import Path
@@ -12,7 +13,13 @@ from sqlalchemy.orm import Session
 
 from src.config import get_settings, reset_settings_cache
 from src.services.chatbot import ChatbotResponse, ask_chatbot
-from src.services.theo_doi import TheoDoiAI, che_du_lieu
+from src.services.classifier import classify_waste
+from src.services.classifier_types import ClassifyOutcome, NodeMetric
+from src.services.theo_doi import (
+    TheoDoiAI,
+    che_du_lieu,
+    ghi_trace_phan_loai,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -160,3 +167,162 @@ def test_khong_nuot_loi_im_lang():
             # Phải có logger.warning hoặc gán cờ ngắt
             block = "\n".join(lines[idx : idx + 4])
             assert "logger.warning" in block or "_CO_LANGFUSE = False" in block
+
+
+# --- Trace phân loại rác (P98) -------------------------------------------------
+
+
+class _CapObs:
+    """Observation giả ghi lại mọi kwarg để test soi payload gửi đi."""
+
+    def __init__(self, name, **kw):
+        self.name = name
+        self.kw = kw
+        self.children = []
+
+    def start_observation(self, **kw):
+        name = kw.pop("name", "?")
+        child = _CapObs(name, **kw)
+        self.children.append(child)
+        return child
+
+    def end(self):
+        return self
+
+    def score_trace(self, **kw):
+        return self
+
+
+class _CapClient:
+    def __init__(self, **kw):
+        self.init_kwargs = kw
+        self.traces = []
+        self.flushed = False
+
+    def start_observation(self, **kw):
+        name = kw.pop("name", "trace")
+        t = _CapObs(name, **kw)
+        self.traces.append(t)
+        return t
+
+    def flush(self):
+        self.flushed = True
+
+
+def _enable_langfuse(monkeypatch, client_cls):
+    """Bật Langfuse thật sự (với client giả) và ép tạo lại singleton."""
+    monkeypatch.setenv("LANGFUSE_ENABLED", "true")
+    monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-test")
+    monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-test")
+    monkeypatch.setenv("LANGFUSE_BASE_URL", "https://jp.cloud.langfuse.com")
+    reset_settings_cache()
+    monkeypatch.setattr("src.services.theo_doi.Langfuse", client_cls)
+    # Singleton đã tạo từ test trước (tắt) phải bị ép tạo lại.
+    monkeypatch.setattr("src.services.theo_doi._theo_doi", None)
+
+
+def _dump(client: _CapClient) -> str:
+    parts = []
+    for t in client.traces:
+        parts.append(str(t.kw))
+        for c in t.children:
+            parts.append(str(c.kw))
+    return "\n".join(parts)
+
+
+def test_phan_loai_tat_khong_tao_client(monkeypatch):
+    """1. Langfuse tắt -> ghi_trace_phan_loai không ném, không tạo client."""
+    monkeypatch.setenv("LANGFUSE_ENABLED", "false")
+    reset_settings_cache()
+    monkeypatch.setattr("src.services.theo_doi._theo_doi", None)
+    fake = MagicMock()
+    monkeypatch.setattr("src.services.theo_doi.Langfuse", fake)
+    out = ClassifyOutcome(item_name="x")
+    ghi_trace_phan_loai(outcome=out, bat_dau=0.0)  # phải không ném
+    fake.assert_not_called()
+
+
+def test_phan_loai_client_hong_khong_nem(monkeypatch, caplog):
+    """2. Langfuse bật, client ném giữa chừng -> không ném ra ngoài, có warning."""
+
+    class _Boom:
+        def __init__(self, **kw):
+            self.kw = kw
+
+        def start_observation(self, **kw):
+            raise RuntimeError("mid crash")
+
+        def flush(self):
+            pass
+
+    _enable_langfuse(monkeypatch, _Boom)
+    out = ClassifyOutcome(item_name="chai", confidence=0.9)
+    with caplog.at_level(logging.WARNING):
+        ghi_trace_phan_loai(outcome=out, bat_dau=0.0, text_query="chai nhựa")
+    assert any("trace phân loại" in r.message for r in caplog.records)
+
+
+def test_phan_loai_khong_ro_anh(monkeypatch):
+    """3. Ảnh không bao giờ rò: classifier truyền image_bytes nhưng trace chỉ nhận phash."""
+    client = _CapClient()
+    _enable_langfuse(monkeypatch, lambda **kw: client)
+    fixed = ClassifyOutcome(item_name="chai", confidence=0.9)
+    monkeypatch.setattr(
+        "src.services.classifier._classify_waste",
+        lambda *a, **k: copy.deepcopy(fixed),
+    )
+    sentinel = b"LEAKME_RAW_BYTES_XYZ"
+    classify_waste(MagicMock(), image_bytes=sentinel, image_phash="phashABC")
+    dump = _dump(client)
+    assert "phashABC" in dump  # pHash được ghi
+    assert "LEAKME_RAW_BYTES_XYZ" not in dump  # ảnh gốc tuyệt đối không lọt ra
+
+
+def test_phan_loai_che_du_lieu(monkeypatch):
+    """4. Số điện thoại trong text_query phải bị che trước khi gửi."""
+    client = _CapClient()
+    _enable_langfuse(monkeypatch, lambda **kw: client)
+    out = ClassifyOutcome(item_name="x")
+    ghi_trace_phan_loai(
+        outcome=out, bat_dau=0.0, text_query="Số của tôi là 0901000001 vui lòng gọi"
+    )
+    dump = _dump(client)
+    assert "0901000001" not in dump
+    assert "[SDT]" in dump
+
+
+def test_phan_loai_moi_node_la_mot_span(monkeypatch):
+    """5. Mỗi NodeMetric -> đúng một span con, đúng tên."""
+    client = _CapClient()
+    _enable_langfuse(monkeypatch, lambda **kw: client)
+    out = ClassifyOutcome()
+    out.nodes = [
+        NodeMetric(node="safety_precheck"),
+        NodeMetric(node="cache_lookup"),
+        NodeMetric(node="t1_mini"),
+    ]
+    ghi_trace_phan_loai(outcome=out, bat_dau=0.0)
+    assert len(client.traces) == 1
+    child_names = {c.name for c in client.traces[0].children}
+    assert child_names == {"safety_precheck", "cache_lookup", "t1_mini"}
+
+
+def test_ket_qua_phan_loai_khong_doi_khi_trace_hong(monkeypatch):
+    """6. classify_waste trả outcome GIỐNG NHAU dù trace tắt hay trace hỏng."""
+    fixed = ClassifyOutcome(
+        item_name="Chai nhựa", confidence=0.9, tier="t1_mini", latency_ms=123
+    )
+
+    def _core(*a, **k):
+        return copy.deepcopy(fixed)
+
+    monkeypatch.setattr("src.services.classifier._classify_waste", _core)
+    sess = MagicMock()
+    out_off = classify_waste(sess, text_query="chai nhựa")  # Langfuse tắt mặc định
+
+    def _raise(*a, **k):
+        raise RuntimeError("trace crash")
+
+    monkeypatch.setattr("src.services.theo_doi.ghi_trace_phan_loai", _raise)
+    out_broken = classify_waste(sess, text_query="chai nhựa")
+    assert out_off == out_broken
