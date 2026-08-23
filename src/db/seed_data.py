@@ -354,7 +354,7 @@ SEED_BINS: list[dict[str, Any]] = [
         "category_codes": ["hazardous"],
         "capacity_liters": 240,
         "fill_percent": 30.0,
-        "battery_percent": 5.0,
+        "battery_percent": 70.0,
         "last_seen_ago_minutes": 6,
         "is_active": True,
     },
@@ -368,7 +368,7 @@ SEED_BINS: list[dict[str, Any]] = [
         "capacity_liters": 500,
         "fill_percent": 18.0,
         "battery_percent": 80.0,
-        "last_seen_ago_minutes": 60 * 72,
+        "last_seen_ago_minutes": 8,
         "is_active": True,
     },
     {
@@ -650,6 +650,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
         "chunks": [
             {
                 "section": "Điều 75.1 — 3 Nhóm phân loại CTRSH bắt buộc",
+                "needs_verification": False,
                 "content": (
                     "Chất thải rắn sinh hoạt từ hộ gia đình, cá nhân phải phân loại thành 3 nhóm: "
                     "(1) Rác có khả năng tái sử dụng, tái chế (giấy, nhựa, kim loại, thủy tinh, vải, gỗ, cao su, e-waste); "
@@ -663,25 +664,27 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                 ],
             },
             {
-                "section": "Điều 77 — Nguyên tắc chi trả giá dịch vụ thu gom",
+                "section": "Điều 79 — Nguyên tắc chi trả giá dịch vụ thu gom",
+                "needs_verification": True,
                 "content": (
                     "Cơ chế giá dịch vụ thu gom, vận chuyển và xử lý chất thải rắn sinh hoạt được tính dựa trên "
                     "nguyên tắc Người gây ô nhiễm phải trả tiền, định lượng theo khối lượng hoặc thể tích chất thải. "
                     "Hộ gia đình không phân loại sẽ phải trả mức phí cao hơn như đối với rác thải sinh hoạt khác."
                 ),
                 "keywords": [
-                    "điều 77", "chi phí thu gom", "người gây ô nhiễm phải trả tiền", "khối lượng", "thể tích", "giá dịch vụ"
+                    "điều 79", "chi phí thu gom", "người gây ô nhiễm phải trả tiền", "khối lượng", "thể tích", "giá dịch vụ"
                 ],
             },
             {
-                "section": "Điều 79 — Trách nhiệm Ban quản lý chung cư và Chủ đầu tư",
+                "section": "Điều 75 — Trách nhiệm Ban quản lý chung cư và Chủ đầu tư",
+                "needs_verification": True,
                 "content": (
                     "Ban quản lý chung cư có trách nhiệm bố trí thiết bị chứa và điểm tập kết riêng biệt cho từng "
                     "loại rác (tái chế, hữu cơ, rác khác, rác nguy hại, rác cồng kềnh). BQL có quyền từ chối tiếp nhận "
                     "chất thải của cư dân nếu không phân loại đúng quy định."
                 ),
                 "keywords": [
-                    "điều 79", "ban quản lý chung cư", "trách nhiệm bql", "từ chối thu gom", "quyền từ chối",
+                    "điều 75", "ban quản lý chung cư", "trách nhiệm bql", "từ chối thu gom", "quyền từ chối",
                     "có quyền từ chối không", "điểm tập kết", "chủ đầu tư"
                 ],
             },
@@ -696,6 +699,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
         "chunks": [
             {
                 "section": "Điều 26.1 — Mức phạt không phân loại rác tại nguồn",
+                "needs_verification": False,
                 "content": (
                     "Phạt tiền từ 500.000 đồng đến 1.000.000 đồng đối với hành vi hộ gia đình, cá nhân không "
                     "phân loại chất thải rắn sinh hoạt theo quy định; không sử dụng bao bì chứa chất thải rắn sinh hoạt đúng quy chuẩn."
@@ -707,6 +711,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
             },
             {
                 "section": "Điều 26.2 — Phạt vứt rác bừa bãi tại chung cư và nơi công cộng",
+                "needs_verification": True,
                 "content": (
                     "Phạt tiền từ 500.000 đồng đến 1.000.000 đồng đối với hành vi vứt, thải, bỏ rác thải sinh hoạt, "
                     "đổ nước thải không đúng nơi quy định tại khu chung cư, thương mại, dịch vụ hoặc nơi công cộng."
@@ -718,6 +723,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
             },
             {
                 "section": "Điều 29 — Phạt vi phạm về quản lý rác nguy hại sinh hoạt",
+                "needs_verification": True,
                 "content": (
                     "Phạt tiền từ 1.000.000 đồng đến 2.000.000 đồng đối với hành vi không lưu giữ riêng chất thải nguy hại "
                     "(pin, ắc quy, bóng đèn huỳnh quang, chai lọ hóa chất) mà để lẫn vào rác sinh hoạt thông thường. "

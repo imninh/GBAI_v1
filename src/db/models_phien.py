@@ -59,3 +59,23 @@ class TokenThietBi(Base):
     nen_tang: Mapped[str] = mapped_column(String(20), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     last_seen: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class MaQrThung(Base):
+    """Mã QR thay đổi mỗi phiên —防伪, mã dùng một lần.
+
+    Mỗi lần thiết bị xin mã, một mã mới được sinh ra và mã cũ chưa dùng
+    của thùng đó bị vô hiệu. Mã chứa đường link web, ai quét cũng mở được
+    (không cần app GreenBin).
+    """
+
+    __tablename__ = "ma_qr_thung"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    bin_id: Mapped[int] = mapped_column(ForeignKey("bins.id"), index=True)
+    ma: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    het_han_luc: Mapped[datetime] = mapped_column(DateTime, index=True)
+    da_dung: Mapped[bool] = mapped_column(default=False, index=True)
+    da_dung_luc: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    phien_id: Mapped[int | None] = mapped_column(ForeignKey("phien_thung.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

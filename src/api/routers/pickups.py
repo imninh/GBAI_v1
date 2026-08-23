@@ -11,12 +11,12 @@ from sqlalchemy import desc, select
 from src.api.deps import CurrentUser, DbSession, require
 from src.api.errors import bad_request, forbidden, not_found
 from src.api.serializers import pickup_dict
-from src.db.models import PickupRequest, Unit, User
+from src.db.models import PickupRequest, SuCoThuGom, Unit, User
 from src.db.seed_data import PICKUP_REJECT_REASONS
 from src.models.schemas import CreatePickupRequest, ReviewPickupRequest
 from src.services import pickup as pickup_service
-from src.services import pickup_flow
-from src.services.auth import write_audit
+from src.services import pickup_flow, su_co_thu_gom
+from src.services.auth import can, write_audit
 from src.services.pickup_lifecycle import (
     CHO_DUYET,
     CHO_NHAN,
@@ -117,6 +117,109 @@ def list_pickups(
         "page_size": page_size,
         "reject_reasons": PICKUP_REJECT_REASONS,
     }
+
+
+# --- Sự cố thu gom & xác nhận hoàn thành chuyến (Gói P73) -------------------
+# Các route có đoạn đường dẫn là CHỮ CỐ ĐỊNH phải khai TRƯỚC mọi route dùng
+# tham số `/{request_id}` — nếu không FastAPI khớp theo thứ tự đăng ký, chuỗi
+# "su-co" rơi vào `/{request_id}` và bị ép parse thành int → 422 (lỗi P84).
+
+
+class BaoSuCoRequest(BaseModel):
+    """Body người thu gom báo sự cố thu gom."""
+
+    route_id: int = Field(..., gt=0)
+    stop_id: int | None = Field(default=None)
+    loai: str = Field(..., min_length=1, max_length=40)
+    mo_ta: str = Field(default="", max_length=2000)
+    anh_media_id: int | None = Field(default=None)
+
+
+class XuLySuCoRequest(BaseModel):
+    """Body ĐVTG xử lý một sự cố thu gom."""
+
+    chap_nhan: bool
+    ghi_chu: str = Field(default="", max_length=500)
+
+
+def _su_co_dict(s: SuCoThuGom) -> dict:
+    return {
+        "id": s.id,
+        "route_id": s.route_id,
+        "stop_id": s.stop_id,
+        "nguoi_bao_id": s.nguoi_bao_id,
+        "loai": s.loai,
+        "mo_ta": s.mo_ta,
+        "anh_media_id": s.anh_media_id,
+        "trang_thai": s.trang_thai,
+        "nguoi_xu_ly_id": s.nguoi_xu_ly_id,
+        "ghi_chu_xu_ly": s.ghi_chu_xu_ly,
+        "xu_ly_luc": s.xu_ly_luc.isoformat() if s.xu_ly_luc else None,
+        "created_at": s.created_at.isoformat() if s.created_at else None,
+    }
+
+
+@router.post("/su-co")
+def bao_su_co_endpoint(payload: BaoSuCoRequest, session: DbSession, user: CurrentUser) -> dict:
+    """Người thu gom báo sự cố phân loại / thùng đầy / không tiếp nhận (P73)."""
+    try:
+        su_co = su_co_thu_gom.bao_su_co(
+            session,
+            nguoi_bao=user,
+            route_id=payload.route_id,
+            stop_id=payload.stop_id,
+            loai=payload.loai,
+            mo_ta=payload.mo_ta,
+            anh_media_id=payload.anh_media_id,
+        )
+    except ValueError as exc:
+        raise bad_request(str(exc), code="SUCO-400") from exc
+    return _su_co_dict(su_co)
+
+
+@router.get("/su-co")
+def danh_sach_su_co_endpoint(
+    session: DbSession,
+    user: CurrentUser,
+    trang_thai: str | None = None,
+    route_id: int | None = None,
+    limit: int = Query(default=50, ge=1, le=200),
+) -> dict:
+    """Danh sách sự cố: ĐVTG (review_pickup) thấy của đơn vị, người thu gom thấy của mình."""
+    if not can(user, "review_pickup") and user.role != "cleaner":
+        raise forbidden("Bạn không có quyền xem danh sách sự cố thu gom.")
+    try:
+        cac_su_co = su_co_thu_gom.danh_sach_su_co(
+            session,
+            nguoi_xem=user,
+            trang_thai=trang_thai,
+            route_id=route_id,
+            limit=limit,
+        )
+    except ValueError as exc:
+        raise bad_request(str(exc), code="SUCO-400") from exc
+    return {"items": [_su_co_dict(s) for s in cac_su_co], "total": len(cac_su_co)}
+
+
+@router.post("/su-co/{su_co_id}/xu-ly")
+def xu_ly_su_co_endpoint(
+    su_co_id: int,
+    payload: XuLySuCoRequest,
+    session: DbSession,
+    user: Annotated[User, Depends(require("review_pickup"))],
+) -> dict:
+    """ĐVTG xử lý một sự cố thu gom (chấp nhận hoặc từ chối)."""
+    try:
+        su_co = su_co_thu_gom.xu_ly_su_co(
+            session,
+            nguoi_xu_ly=user,
+            su_co_id=su_co_id,
+            chap_nhan=payload.chap_nhan,
+            ghi_chu=payload.ghi_chu,
+        )
+    except ValueError as exc:
+        raise bad_request(str(exc), code="SUCO-400") from exc
+    return _su_co_dict(su_co)
 
 
 @router.get("/{request_id}")
@@ -282,3 +385,26 @@ def xac_nhan_khoi_luong_pickup(
         detail={"weight_confirmed_kg": payload.weight_confirmed_kg},
     )
     return pickup_dict(session, request, full=True)
+
+
+@router.post("/routes/{route_id}/xac-nhan")
+def xac_nhan_chuyen_endpoint(
+    route_id: int,
+    session: DbSession,
+    user: Annotated[User, Depends(require("review_route"))],
+) -> dict:
+    """ĐVTG xác nhận hoàn thành chuyến đã đi hết điểm dừng (P73)."""
+    try:
+        route = su_co_thu_gom.xac_nhan_hoan_thanh_chuyen(
+            session,
+            nguoi_xac_nhan=user,
+            route_id=route_id,
+        )
+    except ValueError as exc:
+        raise bad_request(str(exc), code="SUCO-400") from exc
+    return {
+        "id": route.id,
+        "status": route.status,
+        "xac_nhan_boi": route.xac_nhan_boi,
+        "xac_nhan_luc": route.xac_nhan_luc.isoformat() if route.xac_nhan_luc else None,
+    }

@@ -30,7 +30,7 @@ import { Button, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { PhoneFrame, TabBar, type TabItem } from "@/components/ui/shell";
 import { api, ApiError } from "@/lib/api";
 import { ghiHoatDong } from "@/lib/gamification";
-import { IconManHinhRong, IconXeThuGom } from "@/lib/icons";
+import { IconManHinhRong } from "@/lib/icons";
 import { laAppNative } from "@/lib/platform";
 import { SessionProvider, useSession } from "@/lib/session";
 import type { Classification } from "@/lib/types";
@@ -296,28 +296,16 @@ function ResidentApp() {
             unit={user!.unit}
             lanChup={lanChup}
             onXemLich={() => setMan("schedule")}
-            onAskText={(q) => chay(() => api.classifyText(q, user!.building_id), false)}
-            onPickImage={(f) => chay(() => api.classifyImage(f, user!.building_id), true)}
-          />
-          {/* Lối vào nhanh wizard ở màn chính (phát hiện A-02): wizard nằm sâu
-              trong tab Yêu cầu nên người mới tưởng app chỉ có chụp ảnh. Đây chỉ
-              là chỗ đặt lối vào — không thay đường cũ, không đổi luồng wizard. */}
-          <button
-            type="button"
-            onClick={() => {
+            // Lối vào nhanh wizard ở màn chính (phát hiện A-02): wizard nằm sâu
+            // trong tab Yêu cầu nên người mới tưởng app chỉ có chụp ảnh. Đây chỉ
+            // là chỗ đặt lối vào — không thay đường cũ, không đổi luồng wizard.
+            onDatLich={() => {
               setNguonPickup("requests");
               setMan("pickup");
             }}
-            aria-label="Đặt lịch thu gom đồ cồng kềnh"
-            className="fixed bottom-[calc(84px+env(safe-area-inset-bottom)+12px)] left-[max(14px,calc((100vw_-_560px)/2_+_14px))] z-40 flex cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-[#d9cef0] bg-white py-2 pl-2.5 pr-4 shadow-[0_12px_28px_-14px_rgba(106,77,196,.75)]"
-          >
-            <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-bulky-soft text-bulky-dark">
-              <IconXeThuGom className="h-4 w-4" />
-            </span>
-            <span className="text-[13px] font-extrabold text-bulky-dark">
-              Đặt lịch thu gom đồ cồng kềnh
-            </span>
-          </button>
+            onAskText={(q) => chay(() => api.classifyText(q, user!.building_id), false)}
+            onPickImage={(f) => chay(() => api.classifyImage(f, user!.building_id), true)}
+          />
         </>
       )}
 

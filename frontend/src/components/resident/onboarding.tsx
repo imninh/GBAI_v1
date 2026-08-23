@@ -12,7 +12,7 @@ import * as React from "react";
 
 import { Button } from "@/components/ui/primitives";
 import { api } from "@/lib/api";
-import { IconChao, IconTiepTuc } from "@/lib/icons";
+import { IconChao, IconManHinhRong, IconTiepTuc } from "@/lib/icons";
 import { useSession } from "@/lib/session";
 
 /** Ba tư thế, map đúng ba tình huống trong luồng cư dân. */
@@ -459,6 +459,30 @@ export function LoginScreen() {
           </button>
         );
       })}
+
+      {/* Lối vào bản mô phỏng thiết bị. Là trang tĩnh trong `public/` nên đi
+          thẳng bằng thẻ <a>, không qua bộ định tuyến của ứng dụng — bản xuất
+          tĩnh chỉ có ba đường thật, thêm route mới là 404.
+          ⚠️ Đường dẫn PHẢI có dấu `/` ở cuối và KHÔNG có đuôi `.html`, vì
+          `next.config.ts` đặt `trailingSlash: true`. Đo trên bản chạy thật:
+          `/demo-thiet-bi/` → 200 · `/demo-thiet-bi` → 308 · `/demo-thiet-bi.html`
+          → 404. Máy chủ phát triển thì ngược lại (chỉ mở được đuôi `.html`) —
+          hai môi trường vênh nhau, và bản chạy thật mới là bản phải đúng. */}
+      <a
+        href="/demo-thiet-bi/"
+        className="mb-4 mt-1 flex w-full cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] border-dashed border-line-2 bg-white p-3.5 text-left no-underline"
+      >
+        <span className="flex h-[42px] w-[42px] flex-none items-center justify-center rounded-xl bg-leaf-soft">
+          <IconManHinhRong className="h-[22px] w-[22px] text-leaf-dark" />
+        </span>
+        <span className="flex-1">
+          <span className="block text-[15px] font-bold text-ink">Xem mô phỏng thiết bị</span>
+          <span className="block text-xs font-semibold text-muted">
+            Thùng thông minh chạy thử — không cần đăng nhập
+          </span>
+        </span>
+        <IconTiepTuc className="h-[18px] w-[18px] text-muted" />
+      </a>
 
       <p className="m-0 text-center text-[11px] font-semibold leading-relaxed text-[#9aa39a]">
         {demo?.notice ??

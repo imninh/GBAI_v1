@@ -28,7 +28,7 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r requirements.lock.txt
 
       - name: Lint with ruff
         # `scripts/` PHẢI có mặt: cổng kiểm ở máy dev là
@@ -43,6 +43,9 @@ jobs:
         env:
           APP_ENV: test
           OPENAI_API_KEY: test-key
+          # Chạy model ở chế độ stub (không gọi mạng). CI không có khoá Mistral,
+          # và test chậm gọi model thật đã bị loại qua marker `slow` ở pyproject.toml.
+          VISION_PROVIDER: stub
 
       - name: Publish Test Summary
         if: always()

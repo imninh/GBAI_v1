@@ -6,9 +6,11 @@ deploy chỉ cần đổi ``DATABASE_URL`` sang PostgreSQL, không sửa code.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from urllib.parse import urlparse
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -16,6 +18,9 @@ from sqlalchemy.orm import Session, sessionmaker
 from src.config import get_settings
 from src.db.models import Base
 from src.db.schema_patch import va_cot_thieu
+
+# Các host được coi là MÁY CỤC BỘ — kết nối tới chúng không phải CSDL xa.
+_CAC_HOST_DIA_PHUONG = {"localhost", "127.0.0.1", "::1", "0.0.0.0"}
 
 _engine: Engine | None = None
 _SessionFactory: sessionmaker[Session] | None = None
@@ -87,6 +92,58 @@ def get_session_factory() -> sessionmaker[Session]:
     return _SessionFactory
 
 
+def _la_csdl_xa(url: str) -> bool:
+    """CSDL XA = không phải sqlite VÀ host không thuộc nhóm máy cục bộ."""
+    if url.startswith("sqlite"):
+        return False
+    host = (urlparse(url).hostname or "").lower()
+    return host not in _CAC_HOST_DIA_PHUONG
+
+
+def chan_khong_ghi_csdl_xa() -> None:
+    """Chốt chặn: từ chối tự tạo/vá bảng trên CSDL xa khi chưa deploy production.
+
+    Được gọi ở dòng đầu của :func:`init_db`, TRƯỚC ``create_all``. Trước đây
+    ``.env`` trên máy phát triển trỏ thẳng vào Supabase production, nên chỉ cần
+    chạy app (hoặc một script dùng ``.env`` mặc định) là bảng tự mọc trên CSDL
+    thật — đã xảy ra với bốn bảng mới đợt vừa qua. Chốt này chặn đường đó.
+
+    Luật:
+        CSDL XA = database_url không bắt đầu bằng "sqlite"
+                   VÀ host không thuộc {localhost, 127.0.0.1, ::1, 0.0.0.0}.
+
+        TỪ CHỐI (ném RuntimeError) khi: là CSDL XA
+                                  VÀ app_env != "production"
+                                  VÀ biến môi trường CHO_PHEP_GHI_DB_XA != "1".
+
+    Cửa thoát hai lớp ``CHO_PHEP_GHI_DB_XA=1`` là CỐ Ý — đi đúng khuôn dự án đã
+    dùng cho ``--reset`` (``CHO_PHEP_XOA_DB=1``): người vận hành muốn vá lược đồ
+    production bằng tay vẫn làm được, nhưng phải gõ thêm một biến, không lỡ tay.
+
+    Raises:
+        RuntimeError: khi phát hiện nguy hiểm. Thông báo viết tiếng Việt, che mật
+        khẩu (không in ``user:pass``), không in nguyên chuỗi kết nối.
+    """
+    settings = get_settings()
+    url = settings.database_url
+    if not _la_csdl_xa(url):
+        return
+    if settings.app_env == "production":
+        return
+    if os.environ.get("CHO_PHEP_GHI_DB_XA") == "1":
+        return
+
+    host = urlparse(url).hostname or "?"
+    cong = urlparse(url).port or ""
+    thong_bao = (
+        f"CHỐT CHẶN: không được tự tạo/vá bảng trên CSDL xa ({host}:{cong}) "
+        f"khi APP_ENV={settings.app_env!r}. Chỉ bản deploy production được phép "
+        f"làm việc này. Nếu thật sự muốn mở khoá để vá lược đồ bằng tay, đặt "
+        f"biến môi trường CHO_PHEP_GHI_DB_XA=1 rồi chạy lại."
+    )
+    raise RuntimeError(thong_bao)
+
+
 def init_db() -> None:
     """Tạo toàn bộ bảng nếu chưa tồn tại, rồi vá những cột thêm sau.
 
@@ -98,6 +155,8 @@ def init_db() -> None:
     lần deploy đầu. Trên Render không có chỗ chạy lệnh tay, vá lúc khởi động là
     cách duy nhất chắc chắn chạy.
     """
+    # Chốt chặn phải chạy TRƯỚC create_all: không được để bảng mọc lên CSDL xa.
+    chan_khong_ghi_csdl_xa()
     engine = get_engine()
     Base.metadata.create_all(bind=engine)
     va_cot_thieu(engine)

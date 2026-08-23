@@ -114,24 +114,28 @@ def test_hai_cot_duoc_khai_trong_cot_can_va() -> None:
     assert ("bins", "organization_id") in cap_bang_cot
 
 
-def test_loc_theo_to_chuc_chi_nam_trong_bins_service() -> None:
-    """Bộ lọc tổ chức chỉ được nằm trong ``src/services/bins.py``.
+def test_loc_theo_to_chuc_chi_nam_trong_hai_file() -> None:
+    """Bộ lọc tổ chức chỉ được nằm trong ĐÚNG HAI file quy định.
 
-    Test này thay cho ``test_chua_co_cho_nao_loc_theo_to_chuc`` sau gói A1b:
-    khẳng định "chưa có bộ lọc" đã hết hạn vì A1b sinh ra để làm điều ngược lại.
-    Tinh thần của nó giữ nguyên — đừng rải bộ lọc lẻ tẻ ra khắp nơi.
+    Gói P83 tách phạm vi đơn vị ra module riêng (``pham_vi_to_chuc``) để mọi
+    thực thể đều hỏi một chỗ duy nhất, thay vì giam chữ ``organization_id`` trong
+    mỗi module quản lý thùng. Nơi quyết định phạm vi bây giờ là ĐÚNG HAI file:
+    ``bins.py`` (phạm vi nhân viên + các mệnh đề thùng) và
+    ``pham_vi_to_chuc.py`` (phạm vi đơn vị).
 
-    Hai hàm quyết định phạm vi — ``loc_theo_nguoi_xem`` (nhân viên) và
-    ``to_chuc_cua_nguoi_xem`` (đơn vị) — đứng cạnh nhau trong cùng một file.
-    Thêm vai trò hay phạm vi mới chỉ phải sửa một chỗ; còn rải điều kiện ra
-    từng endpoint thì mỗi endpoint mới là một chỗ quên. Router chỉ được hỏi
-    service rồi truyền tiếp, không được tự viết mệnh đề lọc.
+    So sánh BẰNG ĐÚNG danh sách — không dùng ``issubset`` hay ``in``: thêm file
+    thứ ba chứa ``organization_id`` là phải bàn lại (mở rộng quy ước), không phải
+    cứ nới test cho xanh. Router vẫn chỉ được hỏi service rồi truyền tiếp.
     """
     cac_tep = sorted(_THU_MUC_GHI.glob("*.py")) + sorted(_THU_MUC_API.rglob("*.py"))
     tep_chua_bien = [
         tep.relative_to(Path(__file__).resolve().parents[2]) for tep in cac_tep if "organization_id" in tep.read_text(encoding="utf-8")
     ]
-    assert tep_chua_bien == [Path("src/services/bins.py")], (
-        "organization_id phải chỉ xuất hiện trong src/services/bins.py — "
+    assert tep_chua_bien == [
+        Path("src/services/bins.py"),
+        Path("src/services/pham_vi_to_chuc.py"),
+    ], (
+        "organization_id phải chỉ xuất hiện trong đúng hai file "
+        "src/services/bins.py và src/services/pham_vi_to_chuc.py — "
         f"còn xuất hiện ở: {tep_chua_bien}"
     )

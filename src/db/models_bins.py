@@ -59,6 +59,9 @@ class Bin(Base):
     # Đơn vị thu gom sở hữu thùng này. NULL = chưa gắn tổ chức nào.
     # ⚠️ CHƯA CÓ CHỖ NÀO LỌC THEO CỘT NÀY — xem chú thích ở `User.organization_id`.
     organization_id: Mapped[int | None] = mapped_column(ForeignKey("organizations.id"), nullable=True, index=True)
+    # Gói P72 — cờ "coi như đầy" khi không có người vận chuyển tới gom. FALSE =
+    # báo đầy bình thường từ cảm biến; TRUE = người vận hành tự đánh dấu đầy.
+    dat_day_thu_cong: Mapped[bool] = mapped_column(default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     readings: Mapped[list[BinReading]] = relationship(back_populates="bin", cascade="all, delete-orphan")

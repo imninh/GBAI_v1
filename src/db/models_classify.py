@@ -56,6 +56,11 @@ class Media(Base):
     # Hạn lưu trữ. Job dọn dẹp xoá ảnh quá hạn; ảnh dùng cho eval tách riêng.
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     kept_for_eval: Mapped[bool] = mapped_column(default=False)
+    # Gói P74 — ảnh thuộc lô gán nhãn nào (batch_gan_nhan.id). NULL = chưa thuộc
+    # lô nào. Không khoá ngoại ở mệnh đề ALTER (SQLite không thêm được FK).
+    batch_id: Mapped[int | None] = mapped_column(ForeignKey("batch_gan_nhan.id"), nullable=True, index=True)
+    # Gói P74 — ảnh cần đưa vào lô huấn luyện lại. FALSE = bình thường.
+    can_gan_nhan: Mapped[bool] = mapped_column(default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
