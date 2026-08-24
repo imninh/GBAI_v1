@@ -108,13 +108,44 @@
     }
   };
 
-  // ---------- Cấu hình Backend ----------
+  // ---------- Cấu hình Backend & Tự động kết nối ----------
+  function initBackendConfig(){
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const defaultBase = isLocal
+      ? "http://localhost:8000/api/v1"
+      : "https://greenbin-api-production-d08d.up.railway.app/api/v1";
+
+    const params = new URLSearchParams(window.location.search);
+    const queryApi = params.get("api_url") || params.get("api");
+    const savedApi = localStorage.getItem("greenbin_backend_api");
+    const cfgBaseEl = $("cfgBase");
+
+    if (cfgBaseEl) {
+      if (queryApi) {
+        cfgBaseEl.value = queryApi.endsWith("/api/v1") ? queryApi : (queryApi.replace(/\/+$/, "") + "/api/v1");
+      } else if (savedApi) {
+        cfgBaseEl.value = savedApi;
+      } else {
+        cfgBaseEl.value = defaultBase;
+      }
+      cfgBaseEl.addEventListener("change", (e) => {
+        localStorage.setItem("greenbin_backend_api", e.target.value.trim());
+      });
+    }
+  }
+
   function cfg(){
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const defaultBase = isLocal
+      ? "http://localhost:8000/api/v1"
+      : "https://greenbin-api-production-d08d.up.railway.app/api/v1";
+    const baseVal = ($("cfgBase") && $("cfgBase").value.trim()) ? $("cfgBase").value.trim() : defaultBase;
+
     return {
-      base: $("cfgBase").value.replace(/\/$/,""),
-      device: $("cfgDevice").value.trim(),
-      key: $("cfgKey").value.trim(),
-      binKey: $("cfgBinKey").value.trim(),
+      base: baseVal.replace(/\/$/,""),
+      device: ($("cfgDevice") && $("cfgDevice").value.trim()) || "GBIN-001",
+      key: ($("cfgKey") && $("cfgKey").value.trim()) || "sim-test-key",
+      binKey: ($("cfgBinKey") && $("cfgBinKey").value.trim()) || "M4c7_1EJaTo2vUgKkS4zXmKghjCmPlh5LQ3Vg7hTs3o",
       bins: {
         plastic: "BIN-01",
         metal: "BIN-02",
@@ -472,9 +503,14 @@
           log("QR", `✨ Backend đã tự động gắn kết quả vào phiên ${data.ma_phien.slice(0,8)}... (Tổng số vật hiện tại: ${data.so_vat})`);
         }
       } catch (netErr) {
-        log("ERR", `Lỗi kết nối Backend: ${netErr.message}`);
-        setState("ERROR", "err");
-        return;
+        log("WARN", `⚠️ Không thể kết nối Backend (${c.base}): ${netErr.message} → Tự động chạy mô phỏng AI offline.`);
+        data = {
+          status: item.key === "battery" ? "hazard" : "ok",
+          label: item.expectedLabel,
+          route: item.route,
+          confidence: "0.96",
+          ma_phien: activeSessionId || null
+        };
       }
 
       // 4. Cập nhật kết quả AI lên HUD
@@ -730,13 +766,15 @@
 
   // Khởi tạo Three.js
   window.addEventListener("DOMContentLoaded", () => {
+    initBackendConfig();
     if(window.Scene3D){
       window.Scene3D.init("threeCanvasHost");
       window.Scene3D.armApproach(onPlayerApproached, onPlayerLeft);
     }
     Object.keys(binState).forEach(paintBin);
     selectWasteItem("plastic");
+    const c = cfg();
     log("STATE", "Hệ thống MUN™ AI Recycler 3D (Đồng bộ Realtime Backend & App Cư Dân) đã sẵn sàng.");
-    log("NET", "Backend API: http://localhost:8000/api/v1/iot/captures (X-Device-Key: sim-test-key)");
+    log("NET", `Backend API: ${c.base}/iot/captures (X-Device-Key: ${c.key})`);
   });
 })();

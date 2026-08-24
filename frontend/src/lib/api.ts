@@ -29,7 +29,12 @@ import type {
  * đường dẫn, không lo dấu thừa ở đầu. Chuẩn hoá ngay tại nguồn thì lần sau ai
  * dán kiểu gì cũng không hỏng.
  */
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
+export const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? "http://localhost:8000"
+    : "https://greenbin-api-production-d08d.up.railway.app")
+).replace(/\/+$/, "");
 const TOKEN_KEY = "greenbin_token";
 
 export class ApiError extends Error {

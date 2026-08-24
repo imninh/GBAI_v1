@@ -65,11 +65,10 @@ export default function DemoThietBiPage() {
             <button
               type="button"
               onClick={() => setIframeSrc("http://localhost:5173/demo_visual")}
-              className={`rounded px-1.5 py-0.5 font-medium transition-colors ${
-                iframeSrc.includes("5173")
+              className={`rounded px-1.5 py-0.5 font-medium transition-colors ${iframeSrc.includes("5173")
                   ? "bg-[#10b981]/20 font-bold text-[#10b981]"
                   : "text-[#94a3b8] hover:text-white"
-              }`}
+                }`}
             >
               Port 5173 {isPort5173Online === true && "●"}
             </button>
@@ -77,11 +76,10 @@ export default function DemoThietBiPage() {
             <button
               type="button"
               onClick={() => setIframeSrc("/simulation/demo_visual.html")}
-              className={`rounded px-1.5 py-0.5 font-medium transition-colors ${
-                iframeSrc.includes("/simulation/")
+              className={`rounded px-1.5 py-0.5 font-medium transition-colors ${iframeSrc.includes("/simulation/")
                   ? "bg-[#10b981]/20 font-bold text-[#10b981]"
                   : "text-[#94a3b8] hover:text-white"
-              }`}
+                }`}
             >
               Static
             </button>
