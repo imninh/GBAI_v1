@@ -181,7 +181,10 @@ class Settings(BaseSettings):
     # ``https://localhost`` và ``capacitor://localhost`` là origin mà app Android
     # đóng gói bằng Capacitor tự dùng khi phục vụ giao diện từ trong máy. Thiếu
     # hai dòng này thì app cài về gọi API bị CORS chặn.
-    cors_origins: str = "https://gbai-v1.vercel.app,http://localhost:3000,http://localhost:3001,https://localhost,capacitor://localhost"
+    cors_origins: str = (
+        "https://gbai-v1.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:5173,"
+        "http://127.0.0.1:3000,http://127.0.0.1:5173,https://localhost,capacitor://localhost"
+    )
 
     # Địa chỉ gốc của ứng dụng WEB (bản xuất tĩnh) — nơi mã QR trỏ tới. KHÁC
     # ``cors_origins`` (danh sách origin được phép gọi API): hai thứ tình cờ hay
