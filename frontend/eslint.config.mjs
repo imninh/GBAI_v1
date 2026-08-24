@@ -24,6 +24,7 @@ const config = [
       "node_modules/**",
       "android/**", // khung Capacitor sinh tự động, không phải code của nhóm
       "public/sw.js", // service worker viết tay, chạy ngoài bundler nên không theo module graph
+      "public/simulation/**", // static simulation 3D third-party bundles (three.min.js, etc.)
       "next-env.d.ts", // Next sinh lại file này mỗi lần build, sửa vào là mất
     ],
   },

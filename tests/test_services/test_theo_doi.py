@@ -35,6 +35,7 @@ def test_mac_dinh_tat(monkeypatch):
 
 def test_thieu_khoa_thi_tat_du_bat_co(monkeypatch, caplog):
     """2. Bật cờ nhưng thiếu khoá -> vẫn tắt, và ghi log warning."""
+    monkeypatch.setattr("src.services.theo_doi._CO_LANGFUSE", True)
     monkeypatch.setenv("LANGFUSE_ENABLED", "true")
     monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "")
     monkeypatch.setenv("LANGFUSE_SECRET_KEY", "")
@@ -47,6 +48,7 @@ def test_thieu_khoa_thi_tat_du_bat_co(monkeypatch, caplog):
 
 def test_doc_dung_bien_base_url(monkeypatch):
     """3. Đặt LANGFUSE_BASE_URL -> cấu hình đọc đúng giá trị đó, không rơi về mặc định."""
+    monkeypatch.setattr("src.services.theo_doi._CO_LANGFUSE", True)
     custom_url = "https://custom-langfuse.example.com"
     monkeypatch.setenv("LANGFUSE_BASE_URL", custom_url)
     monkeypatch.setenv("LANGFUSE_ENABLED", "true")

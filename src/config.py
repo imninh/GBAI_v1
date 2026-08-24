@@ -410,6 +410,7 @@ class Settings(BaseSettings):
     # --- Database ---------------------------------------------------------
     database_url: str = "sqlite:///./data/app.db"
     chroma_persist_dir: str = "./data/chroma"
+    cho_phep_ghi_db_xa: bool = False
 
     # Vision / classification (IoT compatibility)
     vision_model_name: str = "gpt-4o-mini"
