@@ -1,4 +1,4 @@
-// scene3d.js — Mô phỏng 3D thiết bị thu đổi tái chế BOTOL™
+// scene3d.js — Mô phỏng 3D thiết bị thu đổi tái chế MUN™
 (function(window){
   "use strict";
 
@@ -142,7 +142,7 @@
       ctx.fillStyle = "#334155";
       ctx.font = "bold 13px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("BOTOL™ STANDBY", size/2, 45);
+      ctx.fillText("MUN™ STANDBY", size/2, 45);
 
       ctx.font = "46px sans-serif";
       ctx.fillText("🌱", size/2, 115);
@@ -372,7 +372,7 @@
   }
 
   // ---------- 2. Xây dựng Mô hình 3D Kiosk ----------
-  function buildBotolKiosk(){
+  function buildMunKiosk(){
     const g = new THREE.Group();
 
     // A. Chân đế đáy
@@ -440,7 +440,7 @@
 
     const frontZ = K_D/2 + 0.01;
 
-    // D. Header Logo BOTOL™ Căn Giữa Nổi Bật
+    // D. Header Logo MUN™ Căn Giữa Nổi Bật
     const brandCanvas = document.createElement("canvas");
     brandCanvas.width = 800; brandCanvas.height = 200;
     const bctx = brandCanvas.getContext("2d");
@@ -449,7 +449,7 @@
     bctx.fillStyle = "#ffffff";
     bctx.font = "900 84px sans-serif";
     bctx.textAlign = "center";
-    bctx.fillText("BOTOL™", 400, 85);
+    bctx.fillText("MUN™", 400, 85);
     bctx.font = "700 40px sans-serif";
     bctx.fillText("SMART AI RECYCLER", 400, 145);
     const brandTex = new THREE.CanvasTexture(brandCanvas);
@@ -1386,7 +1386,7 @@
 
     initQrScreenTexture();
 
-    kioskGroup = buildBotolKiosk();
+    kioskGroup = buildMunKiosk();
     kioskGroup.position.set(0, 0, 0);
     scene.add(kioskGroup);
 

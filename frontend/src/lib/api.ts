@@ -336,7 +336,7 @@ export const api = {
   chatbotSuggestions: () =>
     request<{ suggestions: { category: string; label: string; question: string }[] }>("/chatbot/suggested-questions"),
 
-  // --- Phiên Bỏ Rác Tại Thùng (P63 / BOTOL QR Integration) ---
+  // --- Phiên Bỏ Rác Tại Thùng (P63 / MUN QR Integration) ---
   batDauPhien: (binCode: string) =>
     request<{
       ma_phien: string;

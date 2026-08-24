@@ -53,7 +53,7 @@ export default function DemoThietBiPage() {
           <div className="flex items-center gap-2">
             <span className="flex h-2.5 w-2.5 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]" />
             <h1 className="text-sm font-bold tracking-wide text-white">
-              BOTOL™ <span className="font-normal text-[#94a3b8]">Mô phỏng 3D Thùng Thông Minh</span>
+              MUN™ <span className="font-normal text-[#94a3b8]">Mô phỏng 3D Thùng Thông Minh</span>
             </h1>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function DemoThietBiPage() {
           key={reloadKey}
           ref={iframeRef}
           src={iframeSrc}
-          title="BOTOL 3D Smart Recycler Simulation"
+          title="MUN 3D Smart Recycler Simulation"
           className="h-full w-full border-0"
           allow="camera; microphone; geolocation"
         />

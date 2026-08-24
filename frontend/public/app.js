@@ -1,4 +1,4 @@
-// app.js — Điều khiển logic toàn diện cho mô phỏng 3D BOTOL™ AI Recycler
+// app.js — Điều khiển logic toàn diện cho mô phỏng 3D MUN™ AI Recycler
 // Đồng bộ 2 chiều với Backend FastAPI: Mở phiên qua QR điện thoại & Cập nhật Realtime mức đầy 4 ngăn
 (function(){
   "use strict";
@@ -420,7 +420,7 @@
     try {
       // 1. Hoạt ảnh 5 pha trên Three.js
       setState("DEPOSITING", "active");
-      log("STATE", `Người dùng đưa ${item.title} vào lỗ nhận rác của BOTOL™...`);
+      log("STATE", `Người dùng đưa ${item.title} vào lỗ nhận rác của MUN™...`);
       
       if(window.Scene3D){
         window.Scene3D.updateKioskScreen({ state: "COUNTDOWN", sec: 3 });
@@ -567,7 +567,7 @@
     if(playerNear){
       setState("PRESENCE", "active");
       $("depositBtn").disabled = false;
-      log("STATE", "BOTOL™ sẵn sàng cho món rác tiếp theo (Gia hạn 30s).");
+      log("STATE", "MUN™ sẵn sàng cho món rác tiếp theo (Gia hạn 30s).");
       startSessionTimer();
       startBackendSessionPolling();
       if(window.Scene3D){
@@ -581,7 +581,7 @@
       stopBackendSessionPolling();
       setState("IDLE", "idle");
       $("depositBtn").disabled = true;
-      log("STATE", "BOTOL™ Recycler trở về trạng thái IDLE — sẵn sàng đón người dùng tiếp theo.");
+      log("STATE", "MUN™ Recycler trở về trạng thái IDLE — sẵn sàng đón người dùng tiếp theo.");
       if(window.Scene3D){
         window.Scene3D.setWasteItem(selectedKey);
         window.Scene3D.setLedRing(0x00e676, 1.0);
@@ -627,7 +627,7 @@
   // ---------- Các nút điều khiển trên Header & Dock ----------
   $("walkBtn").addEventListener("click", async () => {
     if(isBusy) return;
-    log("STATE", "Nhân vật tự động tiến lại gần máy BOTOL™...");
+    log("STATE", "Nhân vật tự động tiến lại gần máy MUN™...");
     if(window.Scene3D){
       await window.Scene3D.autoWalkToBin();
       onPlayerApproached();
@@ -637,13 +637,13 @@
   if($("scanQrBtn")){
     $("scanQrBtn").addEventListener("click", async () => {
       if(isBusy) return;
-      log("QR", "📱 Người dùng mở ứng dụng BOTOL trên điện thoại và quét màn hình nhỏ QR trên thùng rác!");
+      log("QR", "📱 Người dùng mở ứng dụng MUN trên điện thoại và quét màn hình nhỏ QR trên thùng rác!");
       if(window.Scene3D){
         window.Scene3D.setCameraPreset("qr");
         window.Scene3D.updateQrScreenState("SCANNED", "Đã xác thực tài khoản");
       }
       isQrScanned = true;
-      log("QR", "✅ Xác thực thành công tài khoản: BOTOL_USER_VIP (ID: #VN-8829). Tích lũy +10 điểm sẵn sàng!");
+      log("QR", "✅ Xác thực thành công tài khoản: MUN_USER_VIP (ID: #VN-8829). Tích lũy +10 điểm sẵn sàng!");
       startSessionTimer();
       await sleep(1200);
     });
@@ -736,7 +736,7 @@
     }
     Object.keys(binState).forEach(paintBin);
     selectWasteItem("plastic");
-    log("STATE", "Hệ thống BOTOL™ AI Recycler 3D (Đồng bộ Realtime Backend & App Cư Dân) đã sẵn sàng.");
+    log("STATE", "Hệ thống MUN™ AI Recycler 3D (Đồng bộ Realtime Backend & App Cư Dân) đã sẵn sàng.");
     log("NET", "Backend API: http://localhost:8000/api/v1/iot/captures (X-Device-Key: sim-test-key)");
   });
 })();
