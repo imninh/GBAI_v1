@@ -4,24 +4,28 @@ import Link from "next/link";
 import * as React from "react";
 
 export default function DemoThietBiPage() {
-  const [iframeSrc, setIframeSrc] = React.useState("http://localhost:5173/demo_visual");
+  const [iframeSrc, setIframeSrc] = React.useState<string>("/demo-thiet-bi.html");
   const [isPort5173Online, setIsPort5173Online] = React.useState<boolean | null>(null);
   const [reloadKey, setReloadKey] = React.useState(0);
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
-  // Kiểm tra xem port 5173 có đang chạy không
+  // Khởi tạo nguồn phù hợp theo môi trường (localhost hay production)
   React.useEffect(() => {
-    let active = true;
-    fetch("http://localhost:5173/demo_visual", { mode: "no-cors" })
-      .then(() => {
-        if (active) setIsPort5173Online(true);
-      })
-      .catch(() => {
-        if (active) setIsPort5173Online(false);
-      });
-    return () => {
-      active = false;
-    };
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    if (isLocal) {
+      fetch("http://localhost:5173/demo_visual", { mode: "no-cors" })
+        .then(() => {
+          setIsPort5173Online(true);
+          setIframeSrc("http://localhost:5173/demo_visual");
+        })
+        .catch(() => {
+          setIsPort5173Online(false);
+          setIframeSrc("/demo-thiet-bi.html");
+        });
+    } else {
+      setIsPort5173Online(false);
+      setIframeSrc("/demo-thiet-bi.html");
+    }
   }, [reloadKey]);
 
   const handleReload = () => {
