@@ -1,4 +1,4 @@
-// app.js — Điều khiển logic toàn diện cho mô phỏng 3D BOTOL™ AI Recycler
+// app.js — Điều khiển logic toàn diện cho mô phỏng 3D MUN™ AI Recycler
 // Đồng bộ 2 chiều với Backend FastAPI: Mở phiên qua QR điện thoại & Cập nhật Realtime mức đầy 4 ngăn
 (function(){
   "use strict";
@@ -108,13 +108,44 @@
     }
   };
 
-  // ---------- Cấu hình Backend ----------
+  // ---------- Cấu hình Backend & Tự động kết nối ----------
+  function initBackendConfig(){
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const defaultBase = isLocal
+      ? "http://localhost:8000/api/v1"
+      : "https://greenbin-api-production-d08d.up.railway.app/api/v1";
+
+    const params = new URLSearchParams(window.location.search);
+    const queryApi = params.get("api_url") || params.get("api");
+    const savedApi = localStorage.getItem("greenbin_backend_api");
+    const cfgBaseEl = $("cfgBase");
+
+    if (cfgBaseEl) {
+      if (queryApi) {
+        cfgBaseEl.value = queryApi.endsWith("/api/v1") ? queryApi : (queryApi.replace(/\/+$/, "") + "/api/v1");
+      } else if (savedApi) {
+        cfgBaseEl.value = savedApi;
+      } else {
+        cfgBaseEl.value = defaultBase;
+      }
+      cfgBaseEl.addEventListener("change", (e) => {
+        localStorage.setItem("greenbin_backend_api", e.target.value.trim());
+      });
+    }
+  }
+
   function cfg(){
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const defaultBase = isLocal
+      ? "http://localhost:8000/api/v1"
+      : "https://greenbin-api-production-d08d.up.railway.app/api/v1";
+    const baseVal = ($("cfgBase") && $("cfgBase").value.trim()) ? $("cfgBase").value.trim() : defaultBase;
+
     return {
-      base: $("cfgBase").value.replace(/\/$/,""),
-      device: $("cfgDevice").value.trim(),
-      key: $("cfgKey").value.trim(),
-      binKey: $("cfgBinKey").value.trim(),
+      base: baseVal.replace(/\/$/,""),
+      device: ($("cfgDevice") && $("cfgDevice").value.trim()) || "GBIN-001",
+      key: ($("cfgKey") && $("cfgKey").value.trim()) || "sim-test-key",
+      binKey: ($("cfgBinKey") && $("cfgBinKey").value.trim()) || "M4c7_1EJaTo2vUgKkS4zXmKghjCmPlh5LQ3Vg7hTs3o",
       bins: {
         plastic: "BIN-01",
         metal: "BIN-02",
@@ -420,7 +451,7 @@
     try {
       // 1. Hoạt ảnh 5 pha trên Three.js
       setState("DEPOSITING", "active");
-      log("STATE", `Người dùng đưa ${item.title} vào lỗ nhận rác của BOTOL™...`);
+      log("STATE", `Người dùng đưa ${item.title} vào lỗ nhận rác của MUN™...`);
       
       if(window.Scene3D){
         window.Scene3D.updateKioskScreen({ state: "COUNTDOWN", sec: 3 });
@@ -472,9 +503,14 @@
           log("QR", `✨ Backend đã tự động gắn kết quả vào phiên ${data.ma_phien.slice(0,8)}... (Tổng số vật hiện tại: ${data.so_vat})`);
         }
       } catch (netErr) {
-        log("ERR", `Lỗi kết nối Backend: ${netErr.message}`);
-        setState("ERROR", "err");
-        return;
+        log("WARN", `⚠️ Không thể kết nối Backend (${c.base}): ${netErr.message} → Tự động chạy mô phỏng AI offline.`);
+        data = {
+          status: item.key === "battery" ? "hazard" : "ok",
+          label: item.expectedLabel,
+          route: item.route,
+          confidence: "0.96",
+          ma_phien: activeSessionId || null
+        };
       }
 
       // 4. Cập nhật kết quả AI lên HUD
@@ -567,7 +603,7 @@
     if(playerNear){
       setState("PRESENCE", "active");
       $("depositBtn").disabled = false;
-      log("STATE", "BOTOL™ sẵn sàng cho món rác tiếp theo (Gia hạn 30s).");
+      log("STATE", "MUN™ sẵn sàng cho món rác tiếp theo (Gia hạn 30s).");
       startSessionTimer();
       startBackendSessionPolling();
       if(window.Scene3D){
@@ -581,7 +617,7 @@
       stopBackendSessionPolling();
       setState("IDLE", "idle");
       $("depositBtn").disabled = true;
-      log("STATE", "BOTOL™ Recycler trở về trạng thái IDLE — sẵn sàng đón người dùng tiếp theo.");
+      log("STATE", "MUN™ Recycler trở về trạng thái IDLE — sẵn sàng đón người dùng tiếp theo.");
       if(window.Scene3D){
         window.Scene3D.setWasteItem(selectedKey);
         window.Scene3D.setLedRing(0x00e676, 1.0);
@@ -627,7 +663,7 @@
   // ---------- Các nút điều khiển trên Header & Dock ----------
   $("walkBtn").addEventListener("click", async () => {
     if(isBusy) return;
-    log("STATE", "Nhân vật tự động tiến lại gần máy BOTOL™...");
+    log("STATE", "Nhân vật tự động tiến lại gần máy MUN™...");
     if(window.Scene3D){
       await window.Scene3D.autoWalkToBin();
       onPlayerApproached();
@@ -637,13 +673,13 @@
   if($("scanQrBtn")){
     $("scanQrBtn").addEventListener("click", async () => {
       if(isBusy) return;
-      log("QR", "📱 Người dùng mở ứng dụng BOTOL trên điện thoại và quét màn hình nhỏ QR trên thùng rác!");
+      log("QR", "📱 Người dùng mở ứng dụng MUN trên điện thoại và quét màn hình nhỏ QR trên thùng rác!");
       if(window.Scene3D){
         window.Scene3D.setCameraPreset("qr");
         window.Scene3D.updateQrScreenState("SCANNED", "Đã xác thực tài khoản");
       }
       isQrScanned = true;
-      log("QR", "✅ Xác thực thành công tài khoản: BOTOL_USER_VIP (ID: #VN-8829). Tích lũy +10 điểm sẵn sàng!");
+      log("QR", "✅ Xác thực thành công tài khoản: MUN_USER_VIP (ID: #VN-8829). Tích lũy +10 điểm sẵn sàng!");
       startSessionTimer();
       await sleep(1200);
     });
@@ -730,13 +766,15 @@
 
   // Khởi tạo Three.js
   window.addEventListener("DOMContentLoaded", () => {
+    initBackendConfig();
     if(window.Scene3D){
       window.Scene3D.init("threeCanvasHost");
       window.Scene3D.armApproach(onPlayerApproached, onPlayerLeft);
     }
     Object.keys(binState).forEach(paintBin);
     selectWasteItem("plastic");
-    log("STATE", "Hệ thống BOTOL™ AI Recycler 3D (Đồng bộ Realtime Backend & App Cư Dân) đã sẵn sàng.");
-    log("NET", "Backend API: http://localhost:8000/api/v1/iot/captures (X-Device-Key: sim-test-key)");
+    const c = cfg();
+    log("STATE", "Hệ thống MUN™ AI Recycler 3D (Đồng bộ Realtime Backend & App Cư Dân) đã sẵn sàng.");
+    log("NET", `Backend API: ${c.base}/iot/captures (X-Device-Key: ${c.key})`);
   });
 })();

@@ -1,6 +1,6 @@
 "use client";
 
-/** Màn Chụp & quét — Tích hợp Quét QR thật & Mở phiên bỏ rác Realtime BOTOL™ (P63/P64).
+/** Màn Chụp & quét — Tích hợp Quét QR thật & Mở phiên bỏ rác Realtime MUN™ (P63/P64).
  *
  *  1. **"Quét mã thùng rác"** — mở khung quét QR kiểu iPhone: lớp phủ tối khoét
  *     ô bo góc ở giữa, bốn dấu góc, vạch sáng chạy lên xuống. Mã QR được đọc ngay
@@ -316,7 +316,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           <span className="flex-1">
             <span className="block text-[15px] font-extrabold">Quét mã thùng rác</span>
             <span className="mt-0.5 block text-[12.5px] font-semibold text-ink-soft">
-              Đưa camera vào màn hình QR trên thùng BOTOL™
+              Đưa camera vào màn hình QR trên thùng MUN™
             </span>
           </span>
           <span className="text-[18px] font-bold text-muted">›</span>
@@ -398,7 +398,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           </div>
 
           <p className="pointer-events-none absolute bottom-[16%] left-0 w-full px-8 text-center text-[15px] font-bold text-white">
-            Đưa mã QR trên thùng BOTOL™ vào khung
+            Đưa mã QR trên thùng MUN™ vào khung
           </p>
 
           {dangChoCamera && (
@@ -446,7 +446,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           Xác thực thùng rác
         </h1>
         <p className="m-0 mb-5 text-[13px] font-semibold text-muted">
-          Đã nhận diện thiết bị BOTOL™. Bấm bên dưới để mở phiên và bắt đầu tích điểm.
+          Đã nhận diện thiết bị MUN™. Bấm bên dưới để mở phiên và bắt đầu tích điểm.
         </p>
 
         <Card className="mb-4 border-2 border-leaf-soft bg-white p-5 text-center shadow-[0_4px_16px_rgba(20,40,25,.06)]">
@@ -515,7 +515,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           Hãy bỏ rác vào thùng
         </h1>
         <p className="m-0 mb-4 text-[12.5px] font-semibold text-muted">
-          Đưa từng chai, lon hoặc giấy vào lỗ nhận của máy BOTOL™.
+          Đưa từng chai, lon hoặc giấy vào lỗ nhận của máy MUN™.
         </p>
 
         {/* Thẻ thống kê nhảy số Realtime */}
