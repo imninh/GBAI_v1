@@ -228,7 +228,7 @@ export default function DieuPhoiPage() {
           )}
         </aside>
 
-        <main className="relative min-h-[58vh] min-w-0 flex-1 lg:min-h-0">
+        <main className="relative min-h-[58vh] min-w-0 flex-1 lg:min-h-0" suppressHydrationWarning>
           <BinMap bins={hienThi} selected={dangChon} onSelect={(b) => setMaDangChon(b.code)} />
           {dangChon && (
             <BinDetail

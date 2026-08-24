@@ -144,7 +144,7 @@
     return {
       base: baseVal.replace(/\/$/,""),
       device: ($("cfgDevice") && $("cfgDevice").value.trim()) || "GBIN-001",
-      key: ($("cfgKey") && $("cfgKey").value.trim()) || "sim-test-key",
+      key: ($("cfgKey") && $("cfgKey").value.trim()) || "HcNMYz8ugjdiC9nizo9M5RC55bSsVuXefKkwAg73Ux4",
       binKey: ($("cfgBinKey") && $("cfgBinKey").value.trim()) || "M4c7_1EJaTo2vUgKkS4zXmKghjCmPlh5LQ3Vg7hTs3o",
       bins: {
         plastic: "BIN-01",
