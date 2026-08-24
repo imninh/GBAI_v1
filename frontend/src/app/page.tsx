@@ -13,6 +13,7 @@ import { CleanerHistoryScreen, CleanerMeScreen, RouteTodayScreen } from "@/compo
 import { ManagerConsole } from "@/components/manager/console";
 import { AskScreen, BUOC_MAC_DINH, ProcessingScreen, buocTuKetQua } from "@/components/resident/ask";
 import { NearbyBinsScreen } from "@/components/resident/nearby-bins";
+import { ChatbotModal } from "@/components/resident/ChatbotModal";
 import { LoginScreen, OnboardingScreen, Mascot } from "@/components/resident/onboarding";
 import {
   DiemXanhScreen,
@@ -24,6 +25,7 @@ import {
 } from "@/components/resident/personal";
 import { PickupWizard } from "@/components/resident/pickup-wizard";
 import { HazardResultScreen, ResultScreen, UnsureScreen } from "@/components/resident/result";
+import { ScanScreen } from "@/components/resident/scan";
 import { Button, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { PhoneFrame, TabBar, type TabItem } from "@/components/ui/shell";
 import { api, ApiError } from "@/lib/api";
@@ -34,10 +36,16 @@ import { SessionProvider, useSession } from "@/lib/session";
 import type { Classification } from "@/lib/types";
 
 export default function Page() {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <SessionProvider>
       <main className="min-h-dvh w-full" suppressHydrationWarning>
-        <AppShell />
+        {mounted ? <AppShell /> : <Skeleton className="h-dvh w-full" />}
       </main>
     </SessionProvider>
   );
@@ -113,6 +121,7 @@ function ManagerTrenAppScreen() {
 type ManCuDan =
   | "ask"
   | "diem"
+  | "scan"
   | "processing"
   | "result"
   | "privacy"
@@ -244,7 +253,7 @@ function ResidentApp() {
   ];
   // Lịch thu gom không còn là tab riêng: vào từ thẻ lịch trên Trang chủ hoặc nút
   // trong tab Yêu cầu. Khi ở màn con (schedule, kết quả…) thì ẩn tab bar.
-  const hienTabBar = ["ask", "diem", "requests", "me"].includes(man);
+  const hienTabBar = ["ask", "diem", "scan", "requests", "me"].includes(man);
   const nenMan =
     man === "processing"
       ? "#0c0f0c"
@@ -265,15 +274,13 @@ function ResidentApp() {
               items={tabs}
               active={man}
               onChange={(k) => {
-              if (k === "scan") {
-                // Nút Chụp nổi: quay về Trang chủ và nhờ AskScreen mở camera.
-                setMan("ask");
-                setLanChup((n) => n + 1);
-              } else {
+                // Nút Chụp nổi giờ mở màn Chụp & quét (scan.tsx) — hai lối vào:
+                // quét mã thùng và chụp phân loại. Đường chụp cũ vẫn nguyên vẹn:
+                // nút "Chụp để phân loại" trong đó quay về Trang chủ và nhờ
+                // AskScreen mở camera qua `lanChup` như trước.
                 setMan(k as ManCuDan);
-              }
-            }}
-          />
+              }}
+            />
         ) : undefined
       }
     >
@@ -284,12 +291,30 @@ function ResidentApp() {
       )}
 
       {man === "ask" && (
-        <AskScreen
-          unit={user!.unit}
-          lanChup={lanChup}
-          onXemLich={() => setMan("schedule")}
-          onAskText={(q) => chay(() => api.classifyText(q, user!.building_id), false)}
-          onPickImage={(f) => chay(() => api.classifyImage(f, user!.building_id), true)}
+        <>
+          <AskScreen
+            unit={user!.unit}
+            lanChup={lanChup}
+            onXemLich={() => setMan("schedule")}
+            // Lối vào nhanh wizard ở màn chính (phát hiện A-02): wizard nằm sâu
+            // trong tab Yêu cầu nên người mới tưởng app chỉ có chụp ảnh. Đây chỉ
+            // là chỗ đặt lối vào — không thay đường cũ, không đổi luồng wizard.
+            onDatLich={() => {
+              setNguonPickup("requests");
+              setMan("pickup");
+            }}
+            onAskText={(q) => chay(() => api.classifyText(q, user!.building_id), false)}
+            onPickImage={(f) => chay(() => api.classifyImage(f, user!.building_id), true)}
+          />
+        </>
+      )}
+
+      {man === "scan" && (
+        <ScanScreen
+          onChup={() => {
+            setMan("ask");
+            setLanChup((n) => n + 1);
+          }}
         />
       )}
 
@@ -373,12 +398,19 @@ function ResidentApp() {
       )}
     </PhoneFrame>
 
+    {/* Trợ lý AI Chatbot nổi — đặt ngoài PhoneFrame để phủ toàn màn hình thiết bị */}
+    <ChatbotModal
+      buildingId={user?.building_id}
+      userLat={user?.building_lat}
+      userLng={user?.building_lng}
+    />
+
     {/* Overlay chúc mừng sau phân loại đúng — Mun nhảy, người dùng bấm để đóng.
         Nằm ngoài PhoneFrame để phủ toàn màn hình thiết bị. */}
     {chucMung && (
       <div
         onClick={() => setChucMung(false)}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-8 backdrop-blur-[3px]"
+        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 p-8 backdrop-blur-[3px]"
         role="dialog"
         aria-modal="true"
         aria-label="Phân loại thành công"

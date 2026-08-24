@@ -1,3 +1,14 @@
+# =====================================================================
+#  File này dùng để CÀI LÚC PHÁT TRIỂN (máy dev, môi trường mới).
+#  Bản chạy thật (Docker / CI) cài từ `requirements.lock.txt` — file đó
+#  đã ghim cứng mọi phiên bản theo môi trường đang chạy được.
+#
+#  Khi thêm / nâng cấp thư viện: sửa file này (giữ kiểu `>=`), rồi sinh
+#  lại file lock bằng `pip freeze > requirements.lock.txt` trên môi trường
+#  đã chạy thử thành công. Đừng sửa tay file lock — dễ sót và gây lệch
+#  phiên bản giữa máy dev và bản deploy (lỗi đã cắn dự án 4 lần).
+# =====================================================================
+
 # Core
 fastapi>=0.115.0
 uvicorn[standard]>=0.34.0
@@ -25,6 +36,12 @@ opencv-python-headless>=4.10.0,<5.0.0
 # Upload file cho FastAPI
 python-multipart>=0.0.20
 
+# Doc workbook GIS — scripts/nhap_cu_dan_gis.py dung de nhap va KHOI PHUC
+# 600 tai khoan cu dan sau su co mat du lieu. Truoc day khong khai o dau,
+# nen script chi chay duoc tren may da cai san — dung luc can khoi phuc
+# thi no vang ModuleNotFoundError.
+openpyxl>=3.1.0
+
 # Xác thực — tự làm auth thay vì Supabase, xem ADR-0004
 pyjwt>=2.10.0
 
@@ -41,3 +58,7 @@ ruff>=0.8.0
 pytest>=8.0.0
 pytest-asyncio>=0.24.0
 httpx>=0.28.0
+
+# Theo dõi hệ AI qua Langfuse (P87, bước 1). Chỉ bước quan sát — không ảnh
+# hưởng câu trả lời người dùng khi dịch vụ chết. API dùng: langfuse>=4.
+langfuse>=4.0.0

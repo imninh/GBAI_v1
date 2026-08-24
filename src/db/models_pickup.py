@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, String, Text
+from sqlalchemy import JSON, Date, DateTime, Float, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.models_base import Base, utcnow
@@ -22,7 +22,17 @@ class PickupRequest(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     resident_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    unit_id: Mapped[int] = mapped_column(ForeignKey("units.id"), index=True)
+    # Liên kết hành chính tới căn hộ — NULL khi cư dân là hộ dân lẻ (không thuộc
+    # căn hộ nào) hoặc chọn điểm lấy hàng khác nơi ở. Toạ độ lấy hàng khi đó nằm
+    # ở ba cột `address` / `lat` / `lng` dưới đây.
+    unit_id: Mapped[int | None] = mapped_column(ForeignKey("units.id"), nullable=True, index=True)
+    # Điểm lấy hàng của RIÊNG yêu cầu này — xe đi đến đây để lấy đồ, có thể khác
+    # nơi ở đăng ký trên `users`. `address` rỗng nghĩa là không có điểm riêng
+    # (lấy ở nơi ở theo `users`); `lat` / `lng` cho phép NULL vì không phải lúc
+    # nào cũng có toạ độ.
+    address: Mapped[str] = mapped_column(String(300), default="")
+    lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     items: Mapped[list] = mapped_column(JSON, default=list)  # [{name, category_code, qty, media_id}]
     # Khối lượng lưu thành KHOẢNG (ADR-0003): vision ước lượng kg từ ảnh sai
     # vài lần là bình thường, nên ngưỡng HITL so với ``weight_max_kg`` —
@@ -98,6 +108,13 @@ class PickupRoute(Base):
     approved_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     run_id: Mapped[int | None] = mapped_column(ForeignKey("agent_runs.id"), nullable=True)
     is_seed: Mapped[bool] = mapped_column(default=False, index=True)
+    # Gói P72 — phân biệt chuyến tự tạo (agent gộp lịch) với chuyến người tạo thủ
+    # công. Giá trị: "thu_cong" (mặc định) | "tu_dong".
+    nguon_tao: Mapped[str] = mapped_column(String(20), default="thu_cong", index=True)
+    # Gói P73 — ai xác nhận chuyến xong. NULL = chưa ai xác nhận.
+    xac_nhan_boi: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    # Gói P73 — thời điểm xác nhận chuyến xong.
+    xac_nhan_luc: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     stops: Mapped[list[RouteStop]] = relationship(back_populates="route", cascade="all, delete-orphan")
@@ -161,3 +178,53 @@ class GPSLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     route: Mapped[PickupRoute] = relationship()
+
+
+class SuCoThuGom(Base):
+    """Sự cố thu gom do người thu gom báo lên, ĐVTG duyệt (dùng ở P73).
+
+    Người thu gom gặp rác phân loại sai, thùng đã đầy, hoặc chủ nhà không tiếp
+    nhận thì báo lên; ĐVTG xem xét và xử lý (đã xử lý / từ chối).
+    """
+
+    __tablename__ = "su_co_thu_gom"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    route_id: Mapped[int] = mapped_column(ForeignKey("pickup_routes.id"), index=True)
+    # Cho NULL vì sự cố có thể báo ở mức chuyến, chưa chỉ đích danh điểm dừng.
+    stop_id: Mapped[int | None] = mapped_column(ForeignKey("route_stops.id"), nullable=True)
+    nguoi_bao_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    # phan_loai_sai | thung_day | khong_tiep_can | khac
+    loai: Mapped[str] = mapped_column(String(40), default="khac", index=True)
+    mo_ta: Mapped[str] = mapped_column(Text, default="")
+    # Ảnh minh chứng, NULL nếu báo không có ảnh.
+    anh_media_id: Mapped[int | None] = mapped_column(ForeignKey("media.id"), nullable=True)
+    # cho_xu_ly | da_xu_ly | tu_choi
+    trang_thai: Mapped[str] = mapped_column(String(20), default="cho_xu_ly", index=True)
+    nguoi_xu_ly_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    ghi_chu_xu_ly: Mapped[str] = mapped_column(Text, default="")
+    xu_ly_luc: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+
+class RouteThanhVien(Base):
+    """Thành viên của một kíp thu gom — lớp phủ lên ``pickup_routes`` (gói **P80**).
+
+    Gói P80 quản lý kíp: một chuyến (``pickup_routes``) sẽ có nhiều thành viên,
+    mỗi người một vai trò (``truong_kip`` hoặc ``thanh_vien``). Bảng này là lớp
+    phủ thêm — ``pickup_routes.team_id`` (người chịu trách nhiệm duy nhất cũ)
+    **giữ nguyên**, không xoá, để màn theo dõi xe và các test đang dùng nó không
+    bị phá. Ràng buộc duy nhất trên ``(route_id, user_id)`` chặn việc gán một
+    người hai lần vào cùng một chuyến.
+    """
+
+    __tablename__ = "route_thanh_vien"
+    __table_args__ = (
+        UniqueConstraint("route_id", "user_id", name="uq_route_thanh_vien_route_user"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    route_id: Mapped[int] = mapped_column(ForeignKey("pickup_routes.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    vai_tro: Mapped[str] = mapped_column(String(20), default="thanh_vien")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

@@ -36,3 +36,12 @@ Repository = "https://github.com/AI20K-Build-Phase-Cohort-3/P-075"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*"]
+
+[tool.pytest.ini_options]
+# Marker `slow`: test gọi model thật, tốn tiền và chậm — không chạy mặc định.
+# Đăng ký ở đây để `pytest` không báo PytestUnknownMarkWarning, và `addopts`
+# loại chúng khỏi bộ mặc định (chạy riêng bằng `pytest -m slow`).
+markers = [
+    "slow: test gọi model thật, tốn tiền và chậm — không chạy mặc định",
+]
+addopts = ["-m", "not slow"]

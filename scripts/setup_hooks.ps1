@@ -5,17 +5,27 @@ $ErrorActionPreference = 'Stop'
 
 $HookFile = '.git/hooks/pre-push'
 
-# Git on Windows runs hooks via Git Bash, so the hook body must be bash.
+# Git on Windows runs hooks via Git Bash / sh.
 $HookBody = @'
-#!/usr/bin/env bash
+#!/bin/sh
 # Pre-push: sweep recent Antigravity / Gemini / OpenCode prompts, then submit.
-bash scripts/_pyrun.sh scripts/log_antigravity.py --auto || true
-bash scripts/_pyrun.sh scripts/log_opencode.py --auto || true
-bash scripts/_pyrun.sh scripts/submit_log.py || true
+if [ -f "scripts/_pyrun.cmd" ]; then
+    scripts/_pyrun.cmd scripts/log_antigravity.py --auto 2>/dev/null || true
+    scripts/_pyrun.cmd scripts/log_opencode.py --auto 2>/dev/null || true
+    scripts/_pyrun.cmd scripts/submit_log.py 2>/dev/null || true
+else
+    sh scripts/_pyrun.sh scripts/log_antigravity.py --auto 2>/dev/null || true
+    sh scripts/_pyrun.sh scripts/log_opencode.py --auto 2>/dev/null || true
+    sh scripts/_pyrun.sh scripts/submit_log.py 2>/dev/null || true
+fi
 exit 0
 '@
 
-Set-Content -Path $HookFile -Value $HookBody -Encoding UTF8 -NoNewline
+$HookBody = $HookBody -replace "`r`n", "`n"
+# Write LF-only, no BOM: a BOM or CRLF before `#!/bin/sh` breaks the shebang
+# for Git Bash's sh, which fails silently (hook exits 0) and skips every step.
+$FullHookPath = Join-Path (Get-Location) $HookFile
+[System.IO.File]::WriteAllText($FullHookPath, $HookBody, (New-Object System.Text.UTF8Encoding($false)))
 Write-Host "[ai-log] Git pre-push hook installed."
 
 if (-not (Test-Path .ai-log)) { New-Item -ItemType Directory -Path .ai-log | Out-Null }

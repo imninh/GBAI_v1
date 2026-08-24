@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from src.config import get_settings
 from src.db.models import Bin, BinReading, PickupRoute, RouteStop, User, WasteCategory
 from src.services.auth import write_audit
+from src.services.pham_vi_to_chuc import to_chuc_cua_nguoi_xem
 
 
 def _ve_naive_utc(value: datetime) -> datetime:
@@ -321,21 +322,12 @@ def loc_theo_nguoi_xem(user: User) -> int | None:
 
     Đây là **nơi duy nhất** quyết định "ai thấy gì" cho phần đọc dữ liệu thùng.
     Thêm vai trò mới thì sửa đúng ở đây, đừng rải điều kiện ra từng endpoint.
+
+    Phạm vi theo đơn vị (organization_id) đã tách sang module
+    ``src.services.pham_vi_to_chuc`` (gói P83) — hàm này chỉ quyết định phạm vi
+    nhân viên, không còn giữ hàm ``to_chuc_cua_nguoi_xem`` bên cạnh.
     """
     return user.id if user.role == "cleaner" else None
-
-
-def to_chuc_cua_nguoi_xem(user: User) -> int | None:
-    """Id đơn vị thu gom cần lọc theo, hoặc ``None`` nếu người này không bị lọc.
-
-    Người dùng **chưa gắn đơn vị** (``organization_id is None``) thì không bị lọc
-    lớp này — đúng trạng thái của mọi CSDL trước khi seed gắn đơn vị, và của cư
-    dân. Lọc họ về rỗng là làm cả hệ thống trống trơn mà không ai hiểu vì sao.
-
-    Đây là **nơi duy nhất** quyết định phạm vi đơn vị, y như `loc_theo_nguoi_xem`
-    là nơi duy nhất quyết định phạm vi nhân viên. Đừng rải điều kiện ra endpoint.
-    """
-    return user.organization_id
 
 
 def xem_duoc_thung(thung: Bin, cua_nhan_vien: int | None, cua_to_chuc: int | None = None) -> bool:

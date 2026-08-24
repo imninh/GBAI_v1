@@ -232,6 +232,7 @@ def _trang_thai_truy_hoi(session: Session) -> dict[str, Any]:
 def ops_metrics(session: Session, *, days: int = 30) -> dict[str, Any]:
     """Gói toàn bộ số liệu cho trang Vận hành."""
     from src.db.seed_data import KNOWN_LIMITATIONS
+    from src.services import luu_tru
     from src.services.vision import local_model_loaded, provider_status, yolo_loaded
 
     since = datetime.now() - timedelta(days=days)
@@ -250,6 +251,7 @@ def ops_metrics(session: Session, *, days: int = 30) -> dict[str, Any]:
             "yolo_enabled": get_settings().yolo_enabled,
             "yolo_loaded": yolo_loaded(),
         },
+        "storage": luu_tru.kiem_tra(),
         "retrieval": _trang_thai_truy_hoi(session),
         "known_limitations": KNOWN_LIMITATIONS,
         "has_seed_data": seed_count > 0,

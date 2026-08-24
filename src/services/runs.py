@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from src.db.models import AgentRun, RunNodeMetric
 from src.services.classifier import NodeMetric
+from src.services.kieu_json import lam_sach_gia_tri
 
 
 def start_run(session: Session, *, kind: str = "classify", trigger: str = "user") -> AgentRun:
@@ -24,20 +25,10 @@ def start_run(session: Session, *, kind: str = "classify", trigger: str = "user"
     return run
 
 
-def _sanitize_meta(obj: Any) -> Any:
-    """Đảm bảo mọi giá trị trong meta đều serialize được sang JSON chuẩn (ví dụ: numpy int/float)."""
-    if isinstance(obj, dict):
-        return {str(k): _sanitize_meta(v) for k, v in obj.items()}
-    if isinstance(obj, (list, tuple)):
-        return [_sanitize_meta(v) for v in obj]
-    if hasattr(obj, "item") and callable(getattr(obj, "item")):
-        return obj.item()
-    return obj
-
-
 def record_nodes(session: Session, run: AgentRun, nodes: list[NodeMetric]) -> None:
     """Ghi số liệu từng node vào CSDL."""
     for node in nodes:
+        meta = lam_sach_gia_tri(node.meta or {}, f"meta node {node.node}")
         session.add(
             RunNodeMetric(
                 run_id=run.id,
@@ -52,7 +43,7 @@ def record_nodes(session: Session, run: AgentRun, nodes: list[NodeMetric]) -> No
                 llm_calls=node.llm_calls,
                 retries=node.retries,
                 error_type=node.error_type,
-                meta=_sanitize_meta(node.meta),
+                meta=meta,
             )
         )
     session.flush()

@@ -10,8 +10,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -20,10 +19,8 @@ from src.api.deps import DbSession, require
 from src.api.errors import ApiError, bad_request, not_found
 from src.config import get_settings
 from src.db.models import Bin, User, utcnow
-from src.models.schemas import BinReading
-from src.services import bin_readings, bins, khoa_thiet_bi
+from src.services import bins, khoa_thiet_bi
 from src.services.auth import write_audit
-from src.services.device_auth import DeviceAuthError, authenticate as auth_device
 
 router = APIRouter(tags=["bins"])
 
@@ -226,26 +223,22 @@ def nhan_reading(
 
     Endpoint này KHÔNG cần JWT người dùng — thiết bị không đăng nhập được, nó
     xác thực bằng ``X-Device-Key``.
+
+    Gói P58 gộp ngã ba xác thực về MỘT cửa: trước đây firmware (có ``device_id``
+    trong thân) rẽ sang ``device_auth`` rồi ghi vào kho trong bộ nhớ, còn đường
+    không có ``device_id`` mới chạy ``khoa_thiet_bi`` + CSDL. Firmware ESP32 luôn
+    gửi ``device_id`` nên mọi thùng thật rơi vào nhánh chết (bảng khoá rỗng →
+    401, số liệu không vào CSDL). Giờ chỉ còn MỘT đường: tra thùng theo ``code``
+    → ``khoa_thiet_bi.kiem_khoa`` → ``bins.ghi_nhan_reading`` xuống CSDL thật.
+
+    ``device_id`` trong thân vẫn được chấp nhận (firmware vẫn gửi nguyên vẹn),
+    nhưng khoá ràng theo THÙNG (qua ``code`` trên đường dẫn): một khoá hợp lệ
+    của thùng A không mở được thùng B, vì mỗi thùng có ``device_key_hash`` riêng
+    (hoặc rơi về khoá chung). Xem ``khoa_thiet_bi.kiem_khoa``.
     """
     settings = get_settings()
 
     khoa_nhan = (x_device_key or "").strip()
-
-    if payload.device_id:
-        try:
-            auth_device(khoa_nhan, payload.device_id)
-        except DeviceAuthError:
-            raise HTTPException(status_code=401, detail="Invalid device credentials")
-        if payload.fill_percent < 0.0 or payload.fill_percent > 100.0:
-            raise HTTPException(status_code=422, detail="fill_percent must be between 0 and 100")
-        reading = bin_readings.record_reading(
-            bin_code=code,
-            device_id=payload.device_id,
-            fill_percent=payload.fill_percent,
-            is_full=bool(payload.is_full or (payload.fill_percent >= 80)),
-            uptime_s=payload.uptime_s,
-        )
-        return JSONResponse(status_code=201, content=reading.model_dump(mode="json"))
 
     if payload.source not in NGUON_HOP_LE:
         raise bad_request(
@@ -301,10 +294,25 @@ def nhan_reading(
     )
 
 
-@router.get("/bins/{code}/readings", response_model=list[BinReading])
-def list_bin_readings(code: str, limit: int = 50) -> list[BinReading]:
-    """Recent readings for a bin — used by the ops view and by tests."""
-    return bin_readings.get_repository().list_for_bin(code, limit=limit)
+@router.get("/bins/{code}/readings")
+def list_bin_readings(code: str, session: DbSession, limit: int = 50) -> list[dict]:
+    """Lịch sử báo về của một thùng, mới trước cũ sau.
+
+    Gói P61/P58: POST giờ ghi xuống CSDL thật (bảng ``bin_readings``) qua
+    ``bins.ghi_nhan_reading``, nên GET phải đọc từ CSDL — đọc kho in-memory cũ là
+    trả rỗng vô nghĩa ngoài đời. Dùng đúng hàm ``_phan_hoi_thung`` đang dùng
+    (``bins.lich_su_readings``); giữ nguyên đường dẫn và tham số ``limit``.
+
+    ⚠️ Khuôn trả về đổi từ ``schemas.BinReading`` (yêu cầu device_id/is_full/
+    uptime_s/reading_id mà bảng ``bin_readings`` KHÔNG có) sang đúng khối
+    ``lich_su_readings`` — chính là khuôn ``_phan_hoi_thung`` trả cho frontend
+    (``fill_percent/battery_percent/source/created_at``). Trả khuôn cũ buộc phải
+    bịa 4 trường không tồn tại trong CSDL.
+    """
+    thung = session.scalar(select(Bin).where(Bin.code == code))
+    if thung is None:
+        return []
+    return bins.lich_su_readings(session, thung.id, limit=limit)
 
 
 

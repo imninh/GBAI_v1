@@ -75,3 +75,73 @@ def test_du_lieu_cu_khong_bi_dong_cham() -> None:
     with engine.connect() as ket_noi:
         cac_dong = {r.email: r.full_name for r in ket_noi.execute(text("SELECT email, full_name FROM users"))}
     assert cac_dong == {"a@x.vn": "Nguyễn An", "b@x.vn": "Trần Bình"}
+
+
+# --- Gói P62: hai cột thêm vào bảng đã có phải được vá -------------------------
+
+
+def test_building_id_va_item_id_duoc_khai_trong_cot_can_va() -> None:
+    """Hai cột mới (users.building_id, classifications.item_id) phải trong `COT_CAN_VA`.
+
+    Quên khai là CSDL production thiếu cột mà test vẫn xanh — bẫy đã ghi trong sổ.
+    """
+    cac_cot = {f"{bang}.{cot}" for bang, cot, _ in COT_CAN_VA}
+    assert "users.building_id" in cac_cot
+    assert "classifications.item_id" in cac_cot
+
+
+def test_va_duoc_building_id_va_item_id() -> None:
+    """`va_cot_thieu` thêm được cả hai cột mới lên bảng đã tồn tại."""
+    engine = create_engine("sqlite://")
+    with engine.begin() as ket_noi:
+        ket_noi.execute(
+            text("CREATE TABLE users (id INTEGER PRIMARY KEY, email VARCHAR(255), full_name VARCHAR(120))")
+        )
+        ket_noi.execute(
+            text("CREATE TABLE classifications (id INTEGER PRIMARY KEY, text_query TEXT)")
+        )
+
+    da_them = va_cot_thieu(engine)
+
+    assert "users.building_id" in da_them
+    assert "classifications.item_id" in da_them
+    cot_users = {c["name"] for c in inspect(engine).get_columns("users")}
+    cot_phan_loai = {c["name"] for c in inspect(engine).get_columns("classifications")}
+    assert "building_id" in cot_users
+    assert "item_id" in cot_phan_loai
+
+
+# --- Gói P62: hai bảng mới dựng được bằng `create_all` -------------------------
+
+
+def test_hai_bang_moi_duoc_create_all_dung_ten_cot() -> None:
+    """`create_all` dựng `phien_thung` và `token_thiet_bi` với đúng tên cột."""
+    from sqlalchemy import create_engine, inspect
+
+    from src.db.models import Base
+
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
+
+    cot_phien = {c["name"] for c in inspect(engine).get_columns("phien_thung")}
+    assert {
+        "id",
+        "ma_phien",
+        "user_id",
+        "bin_id",
+        "trang_thai",
+        "bat_dau",
+        "ket_thuc",
+        "so_vat",
+        "diem_nhan_thuc",
+        "ghi_chu",
+    } <= cot_phien, f"Thiếu cột bảng phien_thung: {cot_phien}"
+
+    cot_token = {c["name"] for c in inspect(engine).get_columns("token_thiet_bi")}
+    assert {"id", "user_id", "token", "nen_tang", "created_at", "last_seen"} <= cot_token, (
+        f"Thiếu cột bảng token_thiet_bi: {cot_token}"
+    )
+
+    # Tên cột điểm phải là `diem_nhan_thuc`, không phải `diem` — không quy đổi.
+    assert "diem_nhan_thuc" in cot_phien
+    assert "diem" not in cot_phien

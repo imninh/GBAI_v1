@@ -101,11 +101,11 @@ export default function BinMap({
       center={[21.0285, 105.8522]}
       zoom={15}
       scrollWheelZoom
-      className="h-full w-full"
+      className="h-full w-full relative z-0 isolate"
     >
       <TileLayer
-        attribution='&copy; OpenStreetMap, &copy; CARTO'
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        attribution='&copy; Google Maps'
+        url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi&gl=VN"
       />
       {/* Chỉ vẽ thùng đã có toạ độ — `lat`/`lng` được phép null trong API. */}
       {bins.filter(hasCoords).map((bin) => (

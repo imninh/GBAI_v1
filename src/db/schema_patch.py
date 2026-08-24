@@ -54,6 +54,43 @@ COT_CAN_VA: list[tuple[str, str, str]] = [
     # (SQLite bắt buộc), và không khoá ngoại trong ALTER (SQLite không làm được).
     ("media", "storage_key", "VARCHAR(1024) NOT NULL DEFAULT ''"),
     ("media", "original_storage_key", "VARCHAR(1024) NOT NULL DEFAULT ''"),
+    # Gói P52 — nơi ở của cư dân (địa chỉ + toạ độ) tách khỏi liên kết căn hộ.
+    # `address` dùng `NOT NULL DEFAULT ''` để SQLite chấp nhận ALTER; `lat` / `lng`
+    # để NULL cho phép người không có toạ độ. `DOUBLE PRECISION` hợp lệ trên cả
+    # SQLite (ánh xạ sang REAL affinity) lẫn PostgreSQL — đã kiểm bằng ALTER thật.
+    ("users", "address", "VARCHAR(300) NOT NULL DEFAULT ''"),
+    ("users", "lat", "DOUBLE PRECISION"),
+    ("users", "lng", "DOUBLE PRECISION"),
+    ("pickup_requests", "address", "VARCHAR(300) NOT NULL DEFAULT ''"),
+    ("pickup_requests", "lat", "DOUBLE PRECISION"),
+    ("pickup_requests", "lng", "DOUBLE PRECISION"),
+    # Gói P62 — liên kết CHÍNH người → toà nhà, không phải đi vòng qua căn hộ.
+    # Kiểu để trần `INTEGER`, KHÔNG kèm ràng buộc khoá ngoại: SQLite không thêm
+    # được FK bằng ALTER TABLE, và mệnh đề này phải chạy y hệt trên cả SQLite lẫn
+    # PostgreSQL.
+    ("users", "building_id", "INTEGER"),
+    # Gói P62 — khoá chống-trùng của THIẾT BỊ, cất ở cột riêng thay vì nhét vào
+    # `classifications.text_query` (câu hỏi bằng chữ của cư dân — rò ra frontend).
+    # `NOT NULL` bắt buộc kèm `DEFAULT` để SQLite chấp nhận ALTER.
+    ("classifications", "item_id", "VARCHAR(64) NOT NULL DEFAULT ''"),
+    # Gói P71/ĐVTG — phân biệt chuyến thu gom tự tạo (agent) với chuyến người tạo.
+    # `NOT NULL` bắt buộc kèm `DEFAULT` (SQLite ép vậy).
+    ("pickup_routes", "nguon_tao", "VARCHAR(20) NOT NULL DEFAULT 'thu_cong'"),
+    # Gói P71/ĐVTG — ai xác nhận chuyến xong (P73). Kiểu để trần `INTEGER`, KHÔNG
+    # khoá ngoại trong ALTER: SQLite không thêm được FK bằng ALTER TABLE.
+    ("pickup_routes", "xac_nhan_boi", "INTEGER"),
+    # Gói P71/ĐVTG — thời điểm xác nhận chuyến xong (P73). `TIMESTAMP` hợp lệ trên
+    # cả SQLite (ánh xạ DATETIME) lẫn PostgreSQL.
+    ("pickup_routes", "xac_nhan_luc", "TIMESTAMP"),
+    # Gói P71/ĐVTG — cờ "coi như đầy" khi không có người vận chuyển (P72). `BOOLEAN
+    # NOT NULL DEFAULT FALSE`: SQLite hiểu BOOLEAN (ánh xạ INTEGER) và ép DEFAULT.
+    ("bins", "dat_day_thu_cong", "BOOLEAN NOT NULL DEFAULT FALSE"),
+    # Gói P71/ĐVTG — ảnh thuộc lô gán nhãn nào (P74). Kiểu để trần `INTEGER`, KHÔNG
+    # khoá ngoại trong ALTER (SQLite không thêm được FK bằng ALTER TABLE).
+    ("media", "batch_id", "INTEGER"),
+    # Gói P71/ĐVTG — ảnh cần đưa vào lô huấn luyện lại (P74). `BOOLEAN NOT NULL
+    # DEFAULT FALSE`: SQLite hiểu BOOLEAN và ép DEFAULT.
+    ("media", "can_gan_nhan", "BOOLEAN NOT NULL DEFAULT FALSE"),
 ]
 
 

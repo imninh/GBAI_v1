@@ -146,3 +146,21 @@ iot/firmware/.pio/
 # Device credentials. Only secrets.example.h is committed.
 iot/firmware/include/secrets.h
 
+
+# Sổ nội bộ — không đẩy lên repo
+JOURNAL.md
+WORKLOG.md
+CLAUDE.local.md
+docs/TECH_STACK.md
+
+# Chặn mọi tài liệu .md MỚI khỏi repo, theo yêu cầu 22/08.
+# Lưu ý: quy tắc này KHÔNG ảnh hưởng 29 file .md đã được git theo dõi
+# (ARCHITECTURE.md, README.md, docs/HUONG_DAN_NOI_IOT_BACKEND.md…) — chúng vẫn
+# nằm trong repo và vẫn cập nhật bình thường. Muốn cho một file mới lọt qua thì
+# thêm một dòng ngoại lệ, ví dụ:  !docs/ai-logs-trich-dan.md
+*.md
+
+# Khoá Firebase — KHÔNG BAO GIỜ đẩy lên kho mã.
+# Khoá tài khoản dịch vụ = toàn quyền quản trị dự án Firebase.
+*firebase-adminsdk*.json
+serviceAccountKey.json

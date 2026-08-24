@@ -158,3 +158,50 @@ async def test_khong_lo_bi_mat(api: AsyncClient, api_session: Session) -> None:
     assert "greenbin-dev-secret" not in van_ban
     assert "BIN_DEVICE_KEY" not in van_ban
     assert re.search(r"(postgres(?:ql)?://|sqlite:///)", van_ban) is None, "Không được lộ chuỗi kết nối CSDL"
+
+
+# --- Gói P54 — giới hạn đã biết phải nói thật ---------------------------------
+
+
+async def _ops_metrics(api: AsyncClient) -> dict:
+    token = await _dang_nhap(api, "manager@demo.vn")
+    response = await api.get("/api/v1/ops/metrics", headers=_auth(token))
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+def _noi_dung_limitations(ket_qua: dict) -> str:
+    """Gom toàn bộ văn bản của danh sách `known_limitations` thành một chuỗi."""
+    return "\n".join(ket_qua["known_limitations"])
+
+
+@pytest.mark.asyncio
+async def test_limitations_khong_con_khai_ai_do_khoi_luong(api: AsyncClient) -> None:
+    """QA #5: AI không hề ước lượng khối lượng — cư dân tự nhập con số. Trang
+    Vận hành không được khai ngược lại điều đó."""
+    ket_qua = await _ops_metrics(api)
+
+    assert "do AI ước lượng" not in _noi_dung_limitations(ket_qua)
+    assert "AI ước lượng" not in _noi_dung_limitations(ket_qua)
+
+
+@pytest.mark.asyncio
+async def test_limitations_giu_dung_sai_so_40_phan_tram(api: AsyncClient) -> None:
+    """Dung sai ±40% vẫn đúng và vẫn phải hiện — chỉ bỏ mấy chữ 'do AI ước lượng'."""
+    ket_qua = await _ops_metrics(api)
+
+    assert "±40%" in _noi_dung_limitations(ket_qua)
+    assert "cư dân tự nhập" in _noi_dung_limitations(ket_qua)
+
+
+@pytest.mark.asyncio
+async def test_limitations_khong_khai_anh_mat_khi_restart_vo_dieu_kien(api: AsyncClient) -> None:
+    """Ảnh từ 16/08/2026 lưu trên Supabase Storage — không được khai câu vô điều
+    kiện 'ảnh đã tải lên sẽ mất khi máy chủ khởi động lại' như trước."""
+    ket_qua = await _ops_metrics(api)
+    van_ban = _noi_dung_limitations(ket_qua)
+
+    assert "ảnh đã tải lên sẽ mất khi máy chủ khởi động lại" not in van_ban
+    assert "Supabase Storage" in van_ban
+    assert "16/08/2026" in van_ban
+    assert "ảnh tải lên trước thời điểm đó" in van_ban

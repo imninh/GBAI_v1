@@ -272,7 +272,7 @@ export function RequestsScreen({ onOpen, onCreate }: { onOpen: (id: number) => v
         onClick={onCreate}
         aria-label="Tạo yêu cầu thu gom mới"
         title="Tạo yêu cầu thu gom mới"
-        className="absolute bottom-5 right-[18px] flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-leaf text-white shadow-[0_8px_20px_-4px_rgba(47,174,102,.55)] transition-transform active:scale-95"
+        className="fixed bottom-[calc(84px+env(safe-area-inset-bottom)+12px)] right-[max(14px,calc((100vw_-_560px)/2_+_14px))] z-40 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-leaf text-white shadow-[0_8px_20px_-4px_rgba(47,174,102,.55)] transition-transform active:scale-95"
       >
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
           <path d="M12 5v14M5 12h14" />
@@ -619,7 +619,11 @@ function SuaHoSo({ user, onXong, onHuy }: { user: User; onXong: () => void; onHu
 export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => void }) {
   const diem = user.green_points;
   const cap = tinhCap(diem);
-  const streak = tinhStreak();
+  const [streak, setStreak] = React.useState(0);
+
+  React.useEffect(() => {
+    setStreak(tinhStreak());
+  }, []);
 
   const HUY_HIEU = [
     { icon: "♻️", ten: "Tách đúng nhóm", moTa: "Phân loại đúng món đầu tiên", daMo: diem > 0 },

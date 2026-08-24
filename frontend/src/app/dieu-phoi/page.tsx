@@ -41,7 +41,7 @@ export default function DieuPhoiPage() {
 
   const [chiCanGom, setChiCanGom] = React.useState(false);
   const [maDangChon, setMaDangChon] = React.useState<string | null>(null);
-  const [theoDoi, setTheoDoi] = React.useState(false);
+  const [theoDoi, setTheoDoi] = React.useState(true);
   const [soLanLamMoi, setSoLanLamMoi] = React.useState(0);
 
   const [nhanVien, setNhanVien] = React.useState<NhanVien[] | null>(null);
@@ -120,7 +120,8 @@ export default function DieuPhoiPage() {
   const soLieuHienThi = chiCanGom && bins ? computeStats(hienThi) : stats;
   const dangChon = hienThi.find((b) => b.code === maDangChon) ?? null;
 
-  if (loi && loi.status === 401) return <ManChan tieuDe="Bạn cần đăng nhập" moTa={loi.message} />;
+  if (loi && loi.status === 401)
+    return <ManChan tieuDe="Bạn cần đăng nhập" moTa={loi.message} coGioiThieuDemo />;
   if (loi && loi.status === 403)
     return <ManChan tieuDe="Tài khoản này không có quyền" moTa={loi.message} />;
 
@@ -247,7 +248,15 @@ export default function DieuPhoiPage() {
 
 /** Màn chặn khi chưa đăng nhập hoặc sai vai trò — không để người dùng nhìn một
  *  bản đồ trống mà không hiểu vì sao. */
-function ManChan({ tieuDe, moTa }: { tieuDe: string; moTa: string }) {
+function ManChan({
+  tieuDe,
+  moTa,
+  coGioiThieuDemo = false,
+}: {
+  tieuDe: string;
+  moTa: string;
+  coGioiThieuDemo?: boolean;
+}) {
   return (
     <div className="flex h-screen items-center justify-center bg-background p-6">
       <div className="max-w-sm rounded-2xl border bg-card p-6 text-center">
@@ -257,6 +266,11 @@ function ManChan({ tieuDe, moTa }: { tieuDe: string; moTa: string }) {
         <p className="mt-1.5 text-xs text-muted-foreground">
           Màn này dành cho đội vệ sinh và ban quản lý.
         </p>
+        {coGioiThieuDemo && (
+          <p className="mt-3 rounded-lg bg-muted/60 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+            Ở màn đăng nhập có sẵn ba tài khoản demo — bấm vào là vào thẳng.
+          </p>
+        )}
         <Button asChild size="sm" className="mt-4">
           <Link href="/">Về trang đăng nhập</Link>
         </Button>

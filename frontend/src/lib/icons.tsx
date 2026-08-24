@@ -103,8 +103,8 @@ export const IconSua = defineIcon(Pencil, "IconSua");
 export const IconTang = defineIcon(TrendingUp, "IconTang");
 export const IconGiam = defineIcon(TrendingDown, "IconGiam");
 
-/** Dấu hiệu "chỗ này do AI sinh ra" — trước đây là ✦, dùng ở khối AI đề xuất,
- *  AI giải thích và AI ước lượng khối lượng. */
+/** Dấu hiệu "chỗ này do AI sinh ra" — trước đây là ✦, dùng ở khối AI đề xuất và
+ *  AI giải thích. Khối lượng do cư dân tự nhập, không phải AI ước lượng. */
 export const IconAi = defineIcon(Sparkles, "IconAi");
 
 /** Ca khó hay bị nhầm, rút từ eval — trước đây là ⚑. */

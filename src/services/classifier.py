@@ -27,8 +27,14 @@ import time
 from sqlalchemy.orm import Session
 
 from src.config import get_settings
-from src.services import safety
-from src.services.classifier_helpers import _category_by_code, _refuse, load_category_options
+from src.services import phan_loai_nhieu_vat, safety
+from src.services.classifier_helpers import (
+    _apply_vision_result,
+    _category_by_code,
+    _finalize,
+    _refuse,
+    load_category_options,
+)
 from src.services.classifier_stages import chay_t0_cache, chay_t05_local, chay_t05_yolo, chay_t1_t2
 from src.services.classifier_types import (
     TIER_LABELS_VI,
@@ -41,6 +47,8 @@ from src.services.classifier_types import (
 )
 from src.services.safety import RefusalReason
 from src.services.vision import (
+    Usage,
+    VisionResult,
     classify_image_local,
     get_tier_model,
     get_tier_provider,
@@ -112,6 +120,48 @@ def classify_waste(
     # Chạy YOLO TRƯỚC CLIP: rẻ hơn việc phát hiện muộn, và cờ này còn phải đi
     # tiếp tới T1/T2 dù CLIP có chốt được hay không.
     nghi_dien_tu = chay_t05_yolo(outcome, image_bytes=image_bytes)
+
+    # --- Bước 3.5: phân loại TỪNG VẬT (hướng A) --------------------------
+    # Ảnh nhiều vật mà CLIP chấm cả khung hình thì điểm rơi dưới ngưỡng (trace
+    # #301: 7 chai + bàn phím + cốc → 0,1356) → leo cloud → hỏng/từ chối. Cắt
+    # từng crop rồi CLIP chấm từng cái: crop chỉ có một vật nên điểm cao hẳn,
+    # chốt được ngay tại chỗ, $0. Cờ mặc định TẮT — chưa chuẩn ngưỡng xong.
+    # ⛔ Không chạy khi YOLO nghi đồ điện tử: path này không bao giờ được chốt
+    # nhãn khi có nghi ngờ nguy hại.
+    if settings.phan_loai_tung_vat and image_bytes is not None and not nghi_dien_tu:
+        cac_vat_tung_cai = phan_loai_nhieu_vat.cat_va_cham_tung_vat(
+            image_bytes=image_bytes,
+            categories=categories,
+            classify_image_local=classify_image_local,
+        )
+        if cac_vat_tung_cai is not None and len(cac_vat_tung_cai) >= 2:
+            chac_nhat = max(cac_vat_tung_cai, key=lambda m: m["confidence"])
+            _apply_vision_result(
+                session,
+                outcome,
+                VisionResult(
+                    item_name=chac_nhat["name"],
+                    category_code=chac_nhat["category_code"],
+                    confidence=chac_nhat["confidence"],
+                    items=cac_vat_tung_cai,
+                    model=f"yolo_crop+clip ({settings.clip_model_name})",
+                    provider="local_yolo_clip",
+                    usage=Usage(cost_usd=0.0, price_known=True),
+                ),
+                TIER_T05_LOCAL,
+            )
+            outcome.nodes.append(
+                NodeMetric(
+                    node="phan_loai_tung_vat",
+                    meta={
+                        "so_vat": len(cac_vat_tung_cai),
+                        "cac_lop": [m["lop_yolo"] for m in cac_vat_tung_cai],
+                    },
+                )
+            )
+            outcome.latency_ms = int((time.perf_counter() - started) * 1000)
+            return _finalize(outcome, text_query, categories=categories)
+
     chot_local, nghi_nguy_hai_clip = chay_t05_local(
         session,
         outcome,

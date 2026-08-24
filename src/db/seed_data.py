@@ -354,7 +354,7 @@ SEED_BINS: list[dict[str, Any]] = [
         "category_codes": ["hazardous"],
         "capacity_liters": 240,
         "fill_percent": 30.0,
-        "battery_percent": 5.0,
+        "battery_percent": 70.0,
         "last_seen_ago_minutes": 6,
         "is_active": True,
     },
@@ -368,7 +368,7 @@ SEED_BINS: list[dict[str, Any]] = [
         "capacity_liters": 500,
         "fill_percent": 18.0,
         "battery_percent": 80.0,
-        "last_seen_ago_minutes": 60 * 72,
+        "last_seen_ago_minutes": 8,
         "is_active": True,
     },
     {
@@ -534,6 +534,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                     "rác sinh hoạt khác và rác nguy hại. Đồ cồng kềnh không bỏ tại phòng rác tầng mà "
                     "phải đăng ký lịch thu gom riêng."
                 ),
+                "keywords": ["nội quy s1", "nguyên tắc phân loại", "4 nhóm rác", "phòng rác tầng", "đăng ký riêng"],
             },
             {
                 "section": "Mục 4.2 — Rác tái chế",
@@ -543,6 +544,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                     "KHÔNG cần tách lớp bạc; chỉ cần đổ hết phần sữa thừa và bóp dẹp hộp. "
                     "Thu gom vào thứ Ba, thứ Năm và thứ Bảy, khung 18:00–20:00."
                 ),
+                "keywords": ["rác tái chế", "thùng xanh dương", "vỏ hộp sữa giấy", "tráng nhôm", "tetra pak", "thứ ba thứ năm thứ bảy"],
             },
             {
                 "section": "Mục 4.3 — Rác thực phẩm",
@@ -550,6 +552,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                     "Rác thực phẩm để ráo nước, buộc kín túi, bỏ vào thùng xanh lá. Thu gom tất cả các ngày "
                     "trong tuần, khung 06:00–08:00. Không bỏ vỏ sò, xương lớn và dầu mỡ lỏng vào nhóm này."
                 ),
+                "keywords": ["rác thực phẩm", "thùng xanh lá", "để ráo nước", "khung giờ thu gom", "vỏ sò xương lớn"],
             },
             {
                 "section": "Mục 4.4 — Rác nguy hại",
@@ -558,6 +561,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                     "điện tử hỏng thuộc nhóm rác nguy hại. Cư dân mang tới điểm thu gom tại tầng hầm B1, "
                     "hoặc đăng ký để đội vệ sinh tới nhận. Tuyệt đối không bỏ chung với rác sinh hoạt."
                 ),
+                "keywords": ["rác nguy hại", "pin", "ắc quy", "bóng đèn huỳnh quang", "tầng hầm b1", "điểm thu gom nguy hại"],
             },
             {
                 "section": "Mục 4.5 — Đồ cồng kềnh",
@@ -566,6 +570,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                     "trước ít nhất một ngày. Yêu cầu có tổng khối lượng ước tính vượt 30 kg hoặc trên 3 món "
                     "cần ban quản lý duyệt trước khi xếp lịch. Không để đồ tại hành lang hoặc lối thoát hiểm."
                 ),
+                "keywords": ["đồ cồng kềnh", "sofa", "đệm", "tủ giường", "đăng ký trước 24h", "khối lượng 30kg", "3 món"],
             },
         ],
     },
@@ -582,6 +587,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                     "Toà S2 dùng chung bảng màu thùng với toà S1. Khác biệt: rác tái chế của S2 thu gom "
                     "vào thứ Ba và thứ Sáu, khung 17:00–19:00, sớm hơn S1 một tiếng."
                 ),
+                "keywords": ["nội quy s2", "màu thùng", "lịch thu gom s2", "thứ ba thứ sáu"],
             },
             {
                 "section": "Mục 3.2 — Điểm tập kết",
@@ -589,6 +595,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                     "Phòng rác tầng của S2 chỉ đặt được hai thùng, nên thùng kim loại và thuỷ tinh gộp chung "
                     "với thùng nhựa. Đội vệ sinh tách lại tại khu tập kết sân sau."
                 ),
+                "keywords": ["phòng rác s2", "gộp thùng nhựa kim loại thuỷ tinh", "sân sau"],
             },
         ],
     },
@@ -605,6 +612,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                     "Pin tiểu, pin cúc áo, pin sạc dự phòng và ắc quy chứa kim loại nặng. Không làm thủng, "
                     "không nén, không đốt. Pin phồng hoặc rò rỉ phải để riêng trong hộp kín và báo ban quản lý ngay."
                 ),
+                "keywords": ["pin tiểu", "pin cúc áo", "sạc dự phòng", "ắc quy", "kim loại nặng", "hộp pin riêng"],
             },
             {
                 "section": "Bóng đèn huỳnh quang",
@@ -612,6 +620,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                     "Bóng đèn huỳnh quang chứa thuỷ ngân. Giữ nguyên bóng, bọc giấy báo, không đập vỡ. "
                     "Nếu đã vỡ thì mở cửa thông gió, không dùng máy hút bụi để dọn."
                 ),
+                "keywords": ["bóng đèn huỳnh quang", "thuỷ ngân", "bọc giấy báo", "không đập vỡ"],
             },
             {
                 "section": "Thuốc hết hạn",
@@ -619,6 +628,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                     "Thuốc hết hạn không đổ xuống bồn cầu và không bỏ chung rác sinh hoạt. Giữ nguyên vỉ, "
                     "mang tới điểm thu gom của toà hoặc nhà thuốc có nhận lại."
                 ),
+                "keywords": ["thuốc hết hạn", "vỉ thuốc", "không đổ bồn cầu", "điểm thu gom"],
             },
             {
                 "section": "Vật sắc nhọn y tế",
@@ -627,6 +637,7 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
                     "Hệ thống KHÔNG tự hướng dẫn nhóm này trong mọi trường hợp, luôn chuyển cho ban quản lý "
                     "để xử lý theo quy trình riêng."
                 ),
+                "keywords": ["kim tiêm", "rác y tế", "vật sắc nhọn", "chuyển ban quản lý"],
             },
         ],
     },
@@ -634,18 +645,49 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
         "title": "Luật Bảo vệ môi trường 2020 — phân loại chất thải rắn sinh hoạt tại nguồn",
         "building_code": "",
         "doc_type": "law",
-        "source": "Luật Bảo vệ môi trường số 72/2020/QH14",
+        "source": "Luật số 72/2020/QH14",
         "effective_date": "2022-01-01",
         "chunks": [
             {
-                "section": "Diễn giải — nghĩa vụ phân loại tại nguồn",
+                "section": "Điều 75.1 — 3 Nhóm phân loại CTRSH bắt buộc",
+                "needs_verification": False,
                 "content": (
-                    "Luật Bảo vệ môi trường 2020 đặt ra nghĩa vụ phân loại chất thải rắn sinh hoạt tại nguồn "
-                    "đối với hộ gia đình và cá nhân, và giao trách nhiệm tổ chức thực hiện cho đơn vị quản lý "
-                    "khu chung cư. Đây là nền pháp lý cho việc toà nhà triển khai phân loại rác."
+                    "Chất thải rắn sinh hoạt từ hộ gia đình, cá nhân phải phân loại thành 3 nhóm: "
+                    "(1) Rác có khả năng tái sử dụng, tái chế (giấy, nhựa, kim loại, thủy tinh, vải, gỗ, cao su, e-waste); "
+                    "(2) Rác thực phẩm (thức ăn thừa, rau củ quả, hữu cơ dễ phân hủy); "
+                    "(3) Rác sinh hoạt khác (rác nguy hại hộ gia đình, rác cồng kềnh, rác trơ vô cơ). "
+                    "Hạn chót thực hiện bắt buộc toàn quốc là ngày 31/12/2024."
                 ),
+                "keywords": [
+                    "luật bảo vệ môi trường 2020", "luật bvmt", "luật 72", "điều 75", "điều 75.1",
+                    "3 nhóm bắt buộc", "mấy nhóm", "phân loại tại nguồn", "tái chế", "thực phẩm", "rác khác", "31/12/2024"
+                ],
+            },
+            {
+                "section": "Điều 79 — Nguyên tắc chi trả giá dịch vụ thu gom",
                 "needs_verification": True,
-            }
+                "content": (
+                    "Cơ chế giá dịch vụ thu gom, vận chuyển và xử lý chất thải rắn sinh hoạt được tính dựa trên "
+                    "nguyên tắc Người gây ô nhiễm phải trả tiền, định lượng theo khối lượng hoặc thể tích chất thải. "
+                    "Hộ gia đình không phân loại sẽ phải trả mức phí cao hơn như đối với rác thải sinh hoạt khác."
+                ),
+                "keywords": [
+                    "điều 79", "chi phí thu gom", "người gây ô nhiễm phải trả tiền", "khối lượng", "thể tích", "giá dịch vụ"
+                ],
+            },
+            {
+                "section": "Điều 75 — Trách nhiệm Ban quản lý chung cư và Chủ đầu tư",
+                "needs_verification": True,
+                "content": (
+                    "Ban quản lý chung cư có trách nhiệm bố trí thiết bị chứa và điểm tập kết riêng biệt cho từng "
+                    "loại rác (tái chế, hữu cơ, rác khác, rác nguy hại, rác cồng kềnh). BQL có quyền từ chối tiếp nhận "
+                    "chất thải của cư dân nếu không phân loại đúng quy định."
+                ),
+                "keywords": [
+                    "điều 75", "ban quản lý chung cư", "trách nhiệm bql", "từ chối thu gom", "quyền từ chối",
+                    "có quyền từ chối không", "điểm tập kết", "chủ đầu tư"
+                ],
+            },
         ],
     },
     {
@@ -656,14 +698,172 @@ KNOWLEDGE_DOCS: list[dict[str, Any]] = [
         "effective_date": "2022-08-25",
         "chunks": [
             {
-                "section": "Diễn giải — chế tài với hành vi không phân loại",
+                "section": "Điều 26.1 — Mức phạt không phân loại rác tại nguồn",
+                "needs_verification": False,
                 "content": (
-                    "Nghị định 45/2022/NĐ-CP quy định chế tài xử phạt hành chính đối với hành vi không phân loại "
-                    "chất thải rắn sinh hoạt theo quy định. Mức phạt cụ thể và điều khoản áp dụng phải tra tại "
-                    "văn bản gốc trước khi trích dẫn ra ngoài."
+                    "Phạt tiền từ 500.000 đồng đến 1.000.000 đồng đối với hành vi hộ gia đình, cá nhân không "
+                    "phân loại chất thải rắn sinh hoạt theo quy định; không sử dụng bao bì chứa chất thải rắn sinh hoạt đúng quy chuẩn."
                 ),
+                "keywords": [
+                    "nghị định 45", "nd 45", "điều 26", "điều 26.1", "phạt tiền", "500.000 đồng", "1.000.000 đồng",
+                    "500k đến 1 triệu", "không phân loại rác", "mức phạt", "bị phạt bao nhiêu", "bao bì quy chuẩn"
+                ],
+            },
+            {
+                "section": "Điều 26.2 — Phạt vứt rác bừa bãi tại chung cư và nơi công cộng",
                 "needs_verification": True,
-            }
+                "content": (
+                    "Phạt tiền từ 500.000 đồng đến 1.000.000 đồng đối với hành vi vứt, thải, bỏ rác thải sinh hoạt, "
+                    "đổ nước thải không đúng nơi quy định tại khu chung cư, thương mại, dịch vụ hoặc nơi công cộng."
+                ),
+                "keywords": [
+                    "nghị định 45", "điều 26.2", "vứt rác bừa bãi", "hành lang chung cư", "nơi công cộng",
+                    "vứt rác chung cư", "khu thương mại", "phạt 500k", "phạt 1 triệu", "bị phạt bao nhiêu"
+                ],
+            },
+            {
+                "section": "Điều 29 — Phạt vi phạm về quản lý rác nguy hại sinh hoạt",
+                "needs_verification": True,
+                "content": (
+                    "Phạt tiền từ 1.000.000 đồng đến 2.000.000 đồng đối với hành vi không lưu giữ riêng chất thải nguy hại "
+                    "(pin, ắc quy, bóng đèn huỳnh quang, chai lọ hóa chất) mà để lẫn vào rác sinh hoạt thông thường. "
+                    "Phạt từ 5.000.000 đồng đến 10.000.000 đồng nếu xả hóa chất độc hại vào hệ thống thoát nước hoặc họng rác chung cư."
+                ),
+                "keywords": [
+                    "nghị định 45", "điều 29", "rác nguy hại", "pin cũ", "ắc quy", "bóng đèn huỳnh quang",
+                    "hóa chất", "phạt 1.000.000 đến 2.000.000", "phạt 1 triệu đến 2 triệu", "vứt chung rác sinh hoạt", "mức nào"
+                ],
+            },
+        ],
+    },
+    {
+        "title": "Hướng dẫn Kỹ thuật 9368/BTNMT-KSONMT — Phân loại chi tiết từng loại rác",
+        "building_code": "",
+        "doc_type": "guideline",
+        "source": "Công văn số 9368/BTNMT-KSONMT ngày 02/11/2023 của Bộ TN&MT",
+        "effective_date": "2023-11-02",
+        "chunks": [
+            {
+                "section": "Nhóm Tái chế — Giấy, Hộp sữa và Bìa Carton",
+                "content": (
+                    "Giấy báo, sách vở, bìa carton và vỏ hộp sữa giấy (Tetra Pak) thuộc nhóm rác tái chế. "
+                    "Vỏ hộp sữa chỉ cần trút hết sữa, bóp dẹp phẳng, KHÔNG cần bóc tách lớp nhôm bên trong. "
+                    "Giấy dính dầu mỡ hoặc khăn giấy ướt đã dùng phải chuyển sang thùng rác khác."
+                ),
+                "keywords": [
+                    "hướng dẫn 9368", "cv 9368", "vỏ hộp sữa giấy", "tráng nhôm", "tetra pak", "bóc tách",
+                    "lớp nhôm", "giấy báo", "bìa carton", "rác tái chế", "thùng tái chế"
+                ],
+            },
+            {
+                "section": "Nhóm Tái chế — Chai Nhựa, Ly Nhựa và Kim Loại",
+                "content": (
+                    "Chai nhựa PET, ly nhựa trà sữa, can nhựa HDPE, lon bia lon nước ngọt nhôm thuộc nhóm rác tái chế. "
+                    "Yêu cầu: Đổ sạch nước/trân châu thừa, tráng sơ bằng nước sạch và bóp dẹp để tiết kiệm thể tích."
+                ),
+                "keywords": [
+                    "hướng dẫn 9368", "chai nhựa pet", "ly trà sữa", "ly nhựa", "can hdpe", "lon bia", "lon nhôm", "tái chế nhựa"
+                ],
+            },
+            {
+                "section": "Nhóm Rác Nguy hại — Chai Lọ Hóa Chất, Pin và Đèn Thủy Ngân",
+                "content": (
+                    "Chai nước tẩy bồn cầu, nước xịt muỗi, bình sơn, pin, bóng đèn huỳnh quang, thuốc hết hạn thuộc RÁC NGUY HẠI. "
+                    "Tuyệt đối KHÔNG vứt vào thùng nhựa tái chế dù vỏ là nhựa. Cần đậy chặt nắp và đem xuống điểm thu gom riêng ở hầm B1."
+                ),
+                "keywords": [
+                    "hướng dẫn 9368", "nước tẩy bồn cầu", "bình xịt muỗi", "chai nước tẩy", "rác nguy hại",
+                    "thùng nhựa tái chế", "có được vứt không", "hầm b1", "thuốc hết hạn"
+                ],
+            },
+            {
+                "section": "Nhóm Rác Cồng Kềnh — Đồ Quá Khổ và Nội Thất Cũ",
+                "content": (
+                    "Đồ cồng kềnh (sofa, nệm, giường, tủ, máy giặt, tivi) là vật phẩm có kích thước vượt 0.5m x 0.5m x 0.5m "
+                    "hoặc nặng trên 10kg. Bắt buộc đăng ký trước với BQL ít nhất 24 giờ, sử dụng thang máy chở hàng và trả phí dịch vụ bốc dỡ."
+                ),
+                "keywords": [
+                    "hướng dẫn 9368", "rác cồng kềnh", "kích thước như thế nào", "vượt quá 0.5m", "0.5m x 0.5m x 0.5m",
+                    "nặng trên 10kg", "10kg", "sofa", "nệm", "giường tủ", "bắt buộc đăng ký trước", "ban quản lý"
+                ],
+            },
+        ],
+    },
+    {
+        "title": "Hướng dẫn sử dụng App GreenBin AI — Cẩm nang Cư dân",
+        "building_code": "",
+        "doc_type": "app_guide",
+        "source": "Sổ tay người dùng GreenBin AI v1.0",
+        "effective_date": "2026-01-01",
+        "chunks": [
+            {
+                "section": "Tổng quan 5 Tab chức năng của App",
+                "content": (
+                    "Ứng dụng GreenBin AI gồm 5 tab chức năng chính: "
+                    "(1) Phân loại: Chụp ảnh hoặc gõ chữ để AI nhận diện nhóm rác và hướng dẫn màu thùng; "
+                    "(2) Yêu cầu: Đặt lịch thu gom đồ cồng kềnh (sofa, nệm, tủ) và theo dõi tiến độ; "
+                    "(3) Lịch: Xem lịch thu gom rác toà nhà (hoạt động được cả khi mất mạng); "
+                    "(4) Điểm gửi: Bản đồ thùng rác thông minh gần nhất với mức đầy thời gian thực; "
+                    "(5) Tôi: Quản lý điểm thưởng xanh Green Points, đổi căn hộ và lịch sử phân loại."
+                ),
+                "keywords": [
+                    "app greenbin", "5 tab", "tab chức năng chính", "tổng quan app", "phân loại", "yêu cầu", "lịch", "điểm gửi", "tôi"
+                ],
+            },
+            {
+                "section": "Cách Phân loại Rác bằng Ảnh và Chữ",
+                "content": (
+                    "Để phân loại rác: Vào tab 'Phân loại'. Bạn có thể chụp ảnh hoặc gõ mô tả chữ. "
+                    "Khi chụp ảnh, giữ thẳng camera, đủ sáng. AI sẽ trả về nhóm rác, màu thùng cần bỏ, "
+                    "hướng dẫn xử lý sơ bộ và trích dẫn quy định toà nhà. Nếu nhiều món rác trong ảnh, AI sẽ liệt kê từng món."
+                ),
+                "keywords": [
+                    "phân loại rác bằng hình ảnh", "chụp ảnh", "camera", "mô tả chữ", "tab phân loại", "hướng dẫn chụp ảnh"
+                ],
+            },
+            {
+                "section": "Cách Đặt lịch Thu gom Đồ Cồng Kềnh",
+                "content": (
+                    "Để đăng ký thu gom đồ cồng kềnh: Vào tab 'Yêu cầu' > Bấm 'Tạo yêu cầu mới' > Chọn loại đồ "
+                    "(nội thất, nệm, sofa), chụp ảnh và ước tính số lượng > Chọn ngày & khung giờ mong muốn > Gửi yêu cầu. "
+                    "Bạn có thể theo dõi 10 trạng thái từ 'Chờ duyệt', 'Đã xếp tuyến' cho tới 'Hoàn tất'."
+                ),
+                "keywords": [
+                    "đặt lịch thu gom đồ cồng kềnh", "cách đặt lịch", "sofa", "nệm cũ", "tab yêu cầu", "tạo yêu cầu mới"
+                ],
+            },
+            {
+                "section": "Xem Lịch Thu Gom Toà Nhà Ngoại Tuyến (Offline)",
+                "content": (
+                    "Mở tab 'Lịch' để xem lịch thu gom rác định kỳ của toà nhà (Rác tái chế, Rác thực phẩm, Rác nguy hại hầm B1). "
+                    "Tính năng xem lịch được lưu trữ offline trong bộ nhớ máy nên bạn vẫn xem được lịch bình thường khi mất kết nối mạng Internet."
+                ),
+                "keywords": [
+                    "mất kết nối mạng", "mất mạng", "offline", "xem lịch thu gom", "tab lịch", "không có internet"
+                ],
+            },
+            {
+                "section": "Tra cứu Thùng Rác Thông Minh và Điểm Gửi",
+                "content": (
+                    "Vào tab 'Điểm gửi' để xem bản đồ các thùng rác thông minh. Bạn có thể lọc theo loại rác tái chế "
+                    "(nhựa, giấy, kim loại), xem khoảng cách thực tế, và xem mức đầy theo màu "
+                    "(Xanh = Còn chỗ <70%, Vàng = Sắp đầy 70-90%, Đỏ = Đã đầy >90% hoặc Mất kết nối)."
+                ),
+                "keywords": [
+                    "thùng rác trên bản đồ", "mức đầy", "còn chỗ hay đã đầy", "màu xanh", "màu vàng", "màu đỏ", "tab điểm gửi"
+                ],
+            },
+            {
+                "section": "Điểm Xanh Green Points và Quyền Riêng Tư",
+                "content": (
+                    "Mỗi lần phân loại đúng và gửi rác tái chế, bạn được cộng Điểm Xanh (Green Points) hiển thị ở tab 'Tôi'. "
+                    "Tại tab này bạn cũng có thể xem lịch sử phân loại, đổi thông tin căn hộ, và kiểm tra chính sách bảo mật "
+                    "(ảnh chụp được tự động che mặt và xoá tạm thời sau khi xử lý, không bị lộ thông tin cá nhân hay khuôn mặt người)."
+                ),
+                "keywords": [
+                    "ảnh rác tôi chụp", "lộ thông tin cá nhân", "mặt người", "bảo mật", "quyền riêng tư", "che mặt", "tab tôi", "green points"
+                ],
+            },
         ],
     },
 ]
@@ -679,9 +879,9 @@ KNOWN_LIMITATIONS: list[str] = [
     "Không phân biệt được nhựa PET và nhựa HDPE khi nhãn bị mờ hoặc mất.",
     "Không xác định được rác y tế lây nhiễm — luôn chuyển người, không tự trả lời.",
     "Quy định phân loại khác nhau giữa các toà; hướng dẫn chỉ đúng với toà đang chọn.",
-    "Khối lượng do AI ước lượng có sai số lớn (±40%) — chỉ dùng để gợi ý, đội vệ sinh cân lại tại chỗ.",
+    "Khối lượng do cư dân tự nhập ước tính, hệ thống để dung sai ±40% — chỉ dùng để gợi ý, đội vệ sinh cân lại tại chỗ.",
     "Dữ liệu demo là dữ liệu mô phỏng và ảnh tự chụp, không phải dữ liệu cư dân thật.",
-    "Bản demo trên hạ tầng miễn phí lưu ảnh trên đĩa tạm — ảnh đã tải lên sẽ mất khi máy chủ khởi động lại.",
+    "Ảnh tải lên từ 16/08/2026 được lưu trên Supabase Storage nên bền vững; ảnh tải lên trước thời điểm đó vẫn nằm ở đĩa tạm và sẽ mất khi máy chủ khởi động lại.",
     "Tầng T0.5 trên bản deploy chạy bản CLIP đã nén (int8) để vừa bộ nhớ máy chủ miễn phí. "
     "Bản nén cho điểm số lệch so với bản đầy đủ, và ngưỡng chấp nhận CHƯA được chuẩn lại "
     "trên bộ ảnh thật — bảng Cấu hình model bên dưới cho biết đang chạy bản nào.",

@@ -5,6 +5,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
+from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.api.errors import ApiError, api_error_handler, http_error_handler, unhandled_error_handler
@@ -147,16 +149,58 @@ app.include_router(iot_router, prefix="/api/v1", tags=["iot"])
 
 @app.get("/", include_in_schema=False)
 def root() -> dict:
+    # Cố tình KHÔNG trả khoá `frontend`: địa chỉ web phụ thuộc hạ tầng deploy
+    # (Vercel/Railway đổi domain), viết cứng "localhost:3000" là trỏ tới đường
+    # chết với người mở API trên production. Người dùng tự điều hướng từ docs.
     return {
         "service": "GreenBin AI API",
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/health",
-        "frontend": "http://localhost:3000",
     }
 
 
+_ENGINE = None
+
+
+def _lay_engine():
+    """Trả engine dùng chung (tạo một lần) từ ``database_url`` trong cấu hình.
+
+    Đặt thời hạn chờ ngắn: CSDL treo mà không có timeout thì ``/health`` cũng
+    treo, Railway đọc là hết giờ chứ không phải hỏng → restartPolicy không kích
+    hoạt. Không kiểm Storage hay model — endpoint này bị gọi liên tục.
+    """
+    global _ENGINE
+    if _ENGINE is None:
+        url = settings.database_url
+        # postgres (psycopg2) dùng connect_timeout; sqlite dùng timeout.
+        connect_args = {"connect_timeout": 2} if url.startswith("postgresql") else {"timeout": 2}
+        _ENGINE = create_engine(url, connect_args=connect_args, pool_pre_ping=True)
+    return _ENGINE
+
+
+def _csdl_song() -> bool:
+    """``SELECT 1`` thành công thì CSDL còn sống."""
+    try:
+        with _lay_engine().connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except (SQLAlchemyError, OSError):
+        # Không rò chuỗi kết nối / tên máy chủ / nội dung lỗi gốc ra ngoài.
+        return False
+
+
 @app.get("/health", tags=["ops"])
-def health() -> dict:
-    return {"status": "ok", "env": settings.app_env}
+def health() -> Response:
+    """Kiểm sức khoẻ thật: chạm nhẹ CSDL bằng ``SELECT 1``.
+
+    Còn sống → 200 ``{"status": "ok", "env": ..., "db": "ok"}``.
+    Chết     → 503 ``{"status": "error", "env": ..., "db": "down"}``.
+    """
+    if _csdl_song():
+        return JSONResponse({"status": "ok", "env": settings.app_env, "db": "ok"})
+    return JSONResponse(
+        status_code=503,
+        content={"status": "error", "env": settings.app_env, "db": "down"},
+    )
 

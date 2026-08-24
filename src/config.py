@@ -18,7 +18,18 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-VisionProvider = str
+# Mọi tên mà hệ thống thực sự dùng được, lấy từ `build_client_for` trong
+# `src/services/vision/__init__.py` (gemini, openai, openrouter, nvidia, deepseek,
+# groq, mistral, local_only) cộng `stub` — tên của đường `get_vision_model` (IoT).
+# `local_only` dựng được qua nhánh riêng (ném `VisionUnavailableError` mã
+# VISION-LOCAL); `stub` không nằm trong `build_client_for` — nó do `get_vision_model`
+# phục vụ (bẫy đã báo trong báo cáo gói P55).
+#
+# Đừng hạ xuống `str`: gõ sai tên provider sẽ không ai phát hiện cho tới lúc gọi
+# model và nhận VISION-400 — lỗi đã tốn hai ngày tuần trước.
+VisionProvider = Literal[
+    "gemini", "groq", "openai", "openrouter", "nvidia", "deepseek", "mistral", "local_only", "stub"
+]
 
 # Ba tầng có gọi model đám mây. T0 (cache pHash) và T0.5 (CLIP local) không gọi
 # nên không nằm ở đây.
@@ -170,7 +181,17 @@ class Settings(BaseSettings):
     # ``https://localhost`` và ``capacitor://localhost`` là origin mà app Android
     # đóng gói bằng Capacitor tự dùng khi phục vụ giao diện từ trong máy. Thiếu
     # hai dòng này thì app cài về gọi API bị CORS chặn.
-    cors_origins: str = "http://localhost:3000,http://localhost:3001,https://localhost,capacitor://localhost"
+    cors_origins: str = (
+        "https://gbai-v1.vercel.app,http://localhost:3000,http://localhost:3001,http://localhost:5173,"
+        "http://127.0.0.1:3000,http://127.0.0.1:5173,https://localhost,capacitor://localhost"
+    )
+
+    # Địa chỉ gốc của ứng dụng WEB (bản xuất tĩnh) — nơi mã QR trỏ tới. KHÁC
+    # ``cors_origins`` (danh sách origin được phép gọi API): hai thứ tình cờ hay
+    # trùng nhau chứ không phải một. Mặc định để giá trị thật — biến rỗng là hỏng
+    # câm (mã QR sinh ra sẽ trỏ về chính thiết bị quét), y như bài học
+    # ``IOT_DEVICE_KEYS``.
+    web_app_base_url: str = "https://gbai-v1.vercel.app"
 
     # Máy chủ tự nạp dữ liệu nền khi khởi động. Bật trên Render vì ở đó không có
     # chỗ chạy tay ``scripts/seed.py``; để tắt khi dev cho khỏi bất ngờ.
@@ -318,6 +339,15 @@ class Settings(BaseSettings):
     # bỏ sót — 0,35 là mức khởi điểm, CHƯA chuẩn lại trên ảnh rác thật.
     yolo_confidence: float = Field(default=0.35, ge=0.0, le=1.0)
 
+    # --- Tầng T0.5d: cắt từng vật rồi CLIP chấm từng crop (hướng A) ----------
+    # MẶC ĐỊNH TẮT — chưa đo xong trên ảnh rác thật. Bật lên thì ảnh nhiều vật
+    # được cắt riêng từng crop, mỗi crop chỉ có một vật nên CLIP chấm cao hơn
+    # hẳn → chốt được tại chỗ, $0, không leo cloud (Groq free tier chỉ
+    # 8.000 token/phút — gọi cloud cho từng vật là bất khả thi).
+    phan_loai_tung_vat: bool = False
+    # Tối đa số vật cắt và chấm trong một ảnh; điểm cao được ưu tiên trước.
+    so_vat_toi_da: int = 4
+
     # --- Tầng T0: cache pHash --------------------------------------------
     # Khoảng cách Hamming tối đa giữa 2 pHash để coi là cùng một món rác.
     phash_max_distance: int = Field(default=6, ge=0, le=64)
@@ -372,6 +402,7 @@ class Settings(BaseSettings):
     # Khoá BÍ MẬT (service role). Bỏ qua Row Level Security nên CHỈ dùng ở máy
     # chủ; không bao giờ gửi xuống trình duyệt, không bao giờ ghi vào log.
     supabase_secret_key: str = ""
+    supabase_publishable_key: str = ""
     supabase_bucket: str = "greenbin"
 
     # --- Kiểm soát chi phí ------------------------------------------------
@@ -382,6 +413,7 @@ class Settings(BaseSettings):
     # --- Database ---------------------------------------------------------
     database_url: str = "sqlite:///./data/app.db"
     chroma_persist_dir: str = "./data/chroma"
+    cho_phep_ghi_db_xa: bool = False
 
     # Vision / classification (IoT compatibility)
     vision_model_name: str = "gpt-4o-mini"
@@ -393,6 +425,16 @@ class Settings(BaseSettings):
 
     # IoT devices — "device_id:key" pairs, comma separated. Never commit real keys.
     iot_device_keys: str = ""
+
+    # --- Langfuse: theo dõi hệ AI (P87, bước 1: chatbot + advise) ----------
+    # MẶC ĐỊNH TẮT. Bật qua ``LANGFUSE_ENABLED=true`` trong ``.env``. Thiếu
+    # khoá cũng coi như tắt — tuyệt đối không làm hỏng câu trả lời người dùng
+    # chỉ vì Langfuse chết / hết ngạch / đứt mạng.
+    langfuse_enabled: bool = False
+    langfuse_public_key: str = ""
+    langfuse_secret_key: str = ""
+    # Host Langfuse. Mặc định cloud; để trống cũng lấy cloud.langfuse.com.
+    langfuse_base_url: str = "https://cloud.langfuse.com"
 
     # --- Tiện ích ---------------------------------------------------------
 

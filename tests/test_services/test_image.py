@@ -140,6 +140,7 @@ def test_phash_distance_tra_ve_int_va_json_serializable() -> None:
     """Đảm bảo phash_distance trả về kiểu int chuẩn của Python (không phải numpy.int64),
     có thể serialize trực tiếp sang JSON mà không văng lỗi."""
     import json
+
     import numpy as np
 
     h1 = "ffffffffffffffff"
@@ -158,6 +159,7 @@ def test_phash_distance_tra_ve_int_va_json_serializable() -> None:
 def test_runs_record_nodes_with_numpy_meta(db_session: Session) -> None:
     """Đảm bảo record_nodes tự động sanitize các kiểu numpy scalar trong meta khi ghi vào CSDL."""
     import numpy as np
+
     from src.services.classifier import NodeMetric
     from src.services.runs import finish_run, start_run
 

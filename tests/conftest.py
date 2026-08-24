@@ -6,6 +6,46 @@ Nguyên tắc: **test không bao giờ gọi API thật.** Mọi lệnh gọi mo
 
 from __future__ import annotations
 
+import logging
+import os
+from pathlib import Path
+
+# ⛔ Bộ test KHÔNG BAO GIỜ được chạm CSDL thật.
+#
+# `.env` trên máy phát triển trỏ thẳng vào Supabase production. Hai file test
+# khởi động ứng dụng thật bằng `with TestClient(app)` nên `lifespan` chạy và gọi
+# `init_db()` → `create_all()`. Trước khi có khối này, MỖI LẦN chạy `pytest` đều
+# tạo bảng trên CSDL thật — đó chính là nguồn gốc của mấy bảng tự mọc trên
+# production.
+#
+# Đặt biến môi trường (chứ không sửa `.env`) vì biến môi trường thắng `.env`
+# trong cấu hình. Cửa thoát `CHO_PHEP_TEST_DB_XA=1` chỉ dành cho người biết rõ
+# mình đang làm gì.
+if os.environ.get("CHO_PHEP_TEST_DB_XA") != "1":
+    _CSDL_TEST = Path(__file__).resolve().parent / "_csdl_test.db"
+    os.environ["DATABASE_URL"] = f"sqlite:///{_CSDL_TEST.as_posix()}"
+    os.environ["APP_ENV"] = "test"
+    # Tắt hai tác dụng phụ lúc khởi động: không seed demo, không nhúng kho quy
+    # định — để lifespan chạy nhanh và không đụng mạng.
+    #
+    # ⚠️ KHÔNG ép LOCAL_MODEL_ENABLED=false: mặc định là True (`src/config.py`)
+    # và 5 test tầng CLIP cần TỰ điều khiển thiết lập này (test_clip_remote 2 ·
+    # test_local_clip 2 · test_route_dien_tu_t2 1). Ép false toàn cục làm đỏ cả
+    # năm test đó. Mục tiêu an toàn của gói chỉ cần DATABASE_URL + APP_ENV.
+    os.environ["SEED_ON_START"] = "false"
+    os.environ["EMBED_KB_ON_START"] = "false"
+
+    # Xoá CSDL của phiên trước. Test có ghi dữ liệu (tài khoản, chuyến…), để lại
+    # là lần chạy sau đụng ràng buộc duy nhất. Đã cắn thật: chạy `pytest` lần hai
+    # ra 7 lỗi `UNIQUE constraint failed: users.email`.
+    try:
+        if _CSDL_TEST.exists():
+            _CSDL_TEST.unlink()
+    except OSError as exc:
+        logging.getLogger(__name__).warning(
+            "Không xoá được CSDL test cũ (%s): %s", _CSDL_TEST, exc
+        )
+
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 
@@ -14,6 +54,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from src.db.models import Base, WasteCategory
 from src.db.seed_data import WASTE_CATEGORIES
@@ -33,7 +74,7 @@ async def client():
 @pytest.fixture
 def db_session() -> Iterator[Session]:
     """CSDL SQLite trong bộ nhớ, đã seed sẵn danh mục rác."""
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False})
+    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     session = factory()

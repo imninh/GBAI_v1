@@ -13,6 +13,7 @@ import { Button, Card, Chip, EmptyState, ErrorState, Skeleton } from "@/componen
 import { AnhCoToken } from "@/lib/anh-co-token";
 import { api } from "@/lib/api";
 import { doTinCay, kg, ngayGioVn, ngayVn, phanTram, soVn } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import {
   IconAi,
   IconCaKho,
@@ -91,16 +92,20 @@ export function PickupQueue() {
               <button
                 key={yc.id}
                 onClick={() => api.pickup(yc.id).then(setDangChon)}
-                className="mb-2.5 w-full cursor-pointer rounded-2xl bg-white p-3.5 text-left"
-                style={{ border: dangChon?.id === yc.id ? "2px solid #2fae66" : "1px solid #eceae3" }}
+                className={cn(
+                  "mb-2.5 w-full cursor-pointer rounded-2xl bg-white p-3.5 text-left transition-all duration-200 ease-[var(--ease-spring)] active:scale-[0.98]",
+                  dangChon?.id === yc.id
+                    ? "border-2 border-leaf shadow-[var(--shadow-sm)]"
+                    : "border border-line-3 shadow-[var(--shadow-xs)] hover:border-line-2 hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5"
+                )}
               >
                 <div className="mb-1 flex justify-between">
-                  <span className="text-[13px] font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
-                  <span className="rounded-md bg-amber-soft px-2 py-0.5 text-[11px] font-extrabold text-amber">
-                    {kg(yc.weight_max_kg)}
+                  <span className="text-xs font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
+                  <span className="rounded-md bg-amber-soft border border-amber-line/60 px-2 py-0.5 text-[11px] font-extrabold text-amber">
+                    {kg(yc.est_weight_kg)}
                   </span>
                 </div>
-                <div className="text-[13px] font-bold">
+                <div className="text-xs font-bold text-ink">
                   {yc.unit} · {yc.resident?.full_name}
                 </div>
                 <div className="mt-1 text-[11px] font-semibold text-muted">mong muốn {ngayVn(yc.preferred_date)}</div>
@@ -139,9 +144,12 @@ export function PickupQueue() {
                     </div>
                   ))}
                   <div className="flex justify-between py-1 text-[13px] font-bold">
-                    <span className="text-muted-2">Khoảng khối lượng ước tính</span>
+                    <span className="text-muted-2">Cư dân tự ước tính</span>
                     <span>
-                      {dangChon.weight_min_kg}–{dangChon.weight_max_kg} kg
+                      {kg(dangChon.est_weight_kg)}{" "}
+                      <span className="font-semibold text-muted">
+                        (dung sai {dangChon.weight_min_kg}–{dangChon.weight_max_kg} kg)
+                      </span>
                     </span>
                   </div>
                 </div>
@@ -488,7 +496,7 @@ export function WeightConfirmQueue() {
       </div>
 
       <div className="mb-4 rounded-2xl border border-leaf-line bg-leaf-soft px-4 py-3 text-[13px] font-bold leading-relaxed text-leaf-dark">
-        Điểm thưởng chỉ tính trên khối lượng do người xác nhận, không tính trên con số AI ước lượng.
+        Điểm thưởng chỉ tính trên khối lượng do người xác nhận, không tính trên con số cư dân tự khai.
         <br />
         Con số dưới đây phải là số đội thu gom đã cân tại chỗ. Chưa có số cân thì để trống —
         đừng ước lượng thay họ, vì chính con số này chốt trạng thái và điểm thưởng.
@@ -520,7 +528,7 @@ export function WeightConfirmQueue() {
 
                 <div className="mb-3 rounded-xl bg-console-bg px-3.5 py-3">
                   <div className="flex justify-between text-[13px] font-bold">
-                    <span className="text-muted-2">AI ước lượng</span>
+                    <span className="text-muted-2">Cư dân tự khai</span>
                     <span className="text-ink-soft">
                       {yc.weight_min_kg}–{yc.weight_max_kg} kg
                     </span>
@@ -541,7 +549,7 @@ export function WeightConfirmQueue() {
                       </div>
                     )}
                     <div className="mt-2 text-[11px] font-semibold text-muted">
-                      Đã chốt {soKg[yc.id]} kg · AI ước lượng {yc.weight_min_kg}–{yc.weight_max_kg} kg
+                      Đã chốt {soKg[yc.id]} kg · Cư dân tự khai {yc.weight_min_kg}–{yc.weight_max_kg} kg
                     </div>
                   </>
                 ) : (
@@ -595,6 +603,8 @@ export function RouteApproval() {
   // đổi nhãn nút thành "Đang duyệt…" — người dùng phải thấy máy đang làm gì.
   const [dangGui, setDangGui] = React.useState("");
   const [xacNhanHuy, setXacNhanHuy] = React.useState(false);
+  // Danh sách "không gộp vào chuyến này" — mặc định đóng, bấm vào mới mở.
+  const [moKhongGop, setMoKhongGop] = React.useState(false);
 
   const tai = React.useCallback(async () => {
     try {
@@ -644,17 +654,38 @@ export function RouteApproval() {
   const doiThuTu = conLai.length > 0 && JSON.stringify(conLai) !== JSON.stringify(diff?.final ?? []);
   const coChinhSua = diff ? Boolean(diff.changed) : false;
 
+  // Câu "Cùng cụm toà S1, S2 (bán kính 0,7 km)" rút gọn thành chip "cùng cụm
+  // S1 · S2". Bỏ phần bán kính vì câu tiếng Việt đã tự nói điều đó; chip phải
+  // đọc được trong một hơi.
+  const cauCum = tuyen?.reasoning?.criteria.find((c) => c.startsWith("Cùng cụm"));
+  const cumNgan = cauCum
+    ? `cùng cụm ${cauCum.split("toà ")[1]?.split(" (bán kính")[0]?.replace(/, /g, " · ") ?? cauCum}`
+    : null;
+
   if (loi) return <ErrorState message={loi} onRetry={tai} />;
   if (ds === null) return <Skeleton className="h-96 w-full" />;
 
   return (
     <>
-      <div className="mb-3.5 font-[family-name:var(--font-display)] text-[22px] font-bold">Duyệt tuyến gộp</div>
-      {thongBao && <div className="mb-3 rounded-xl bg-leaf-soft px-4 py-3 text-sm font-bold text-leaf-dark">{thongBao}</div>}
-      {/* Lỗi khi DUYỆT không được phép thay thế cả màn hình như `loi` ở trên:
-          tuyến vẫn đang hiện, người duyệt cần đọc lỗi mà không mất ngữ cảnh. */}
+      {/* Header gọn: tên ca + ngày + khung giờ một dòng; chip HITL bên phải. */}
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <div className="font-[family-name:var(--font-display)] text-[22px] font-bold">Duyệt tuyến gộp</div>
+          {tuyen && (
+            <div className="text-[13px] font-semibold text-muted">
+              Chuyến {tuyen.window} · {ngayVn(tuyen.service_date)}
+              {tuyen.team ? ` · ${tuyen.team.full_name}` : ""}
+            </div>
+          )}
+        </div>
+        <span className="flex-none rounded-lg border border-line-3 bg-console-bg px-2.5 py-1 text-xs font-bold text-muted">
+          HITL #3 · agent gộp, người chốt
+        </span>
+      </div>
+
+      {thongBao && <div className="mb-3 rounded-2xl bg-leaf-soft px-4 py-3 text-sm font-bold text-leaf-dark">{thongBao}</div>}
       {loiDuyet && (
-        <div className="mb-3 rounded-xl border border-[#f6cdb8] bg-hazard-soft px-4 py-3 text-sm font-bold text-hazard-dark">
+        <div className="mb-3 rounded-2xl border border-[#f6cdb8] bg-hazard-soft px-4 py-3 text-sm font-bold text-hazard-dark">
           {loiDuyet}
         </div>
       )}
@@ -667,187 +698,177 @@ export function RouteApproval() {
         />
       ) : (
         <>
-          <div className="mb-4 flex items-center gap-4 rounded-2xl bg-[linear-gradient(150deg,#16211a,#1c3326)] px-5 py-4 text-white">
-            <span className="rounded-lg bg-amber-line px-2.5 py-1 text-[11px] font-extrabold text-[#5a4410]">
-              AI ĐỀ XUẤT — CHỜ DUYỆT
+          {/* Bản đồ là nhân vật chính — trọn chiều ngang, ngay dưới header. */}
+          <div className="mb-4 h-[280px] overflow-hidden rounded-[24px] border border-line">
+            <RouteMap stops={tuyen.stops ?? []} duong_di={tuyen.duong_di} lo_trinh_meta={tuyen.lo_trinh_meta} route_id={tuyen.id} />
+          </div>
+
+          {/* Lý do gộp — hàng chip, không phải đoạn văn bullet. */}
+          <div className="mb-1.5 flex flex-wrap gap-2">
+            <span className="rounded-full bg-[#f2ede2] px-3.5 py-1.5 text-[13px] font-bold text-[#8a7a5a]">
+              {tuyen.stop_count} chuyến → 1
             </span>
-            <div className="flex-1">
-              <div className="font-[family-name:var(--font-display)] text-[17px] font-bold">
-                Chuyến {tuyen.window} · {ngayVn(tuyen.service_date)}
-              </div>
-              <div className="text-xs font-semibold text-[#9fb3a6]">
-                {tuyen.stop_count} điểm dừng · {kg(tuyen.total_weight_kg)} · ~{soVn(tuyen.est_distance_km, 1)} km
-                {tuyen.team ? ` · ${tuyen.team.full_name}` : ""}
-              </div>
-            </div>
+            {tuyen.reasoning?.capacity_kg ? (
+              <span className="rounded-full bg-[#f2ede2] px-3.5 py-1.5 text-[13px] font-bold text-[#8a7a5a]">
+                {Math.round(tuyen.total_weight_kg)}/{Math.round(tuyen.reasoning.capacity_kg)} kg
+              </span>
+            ) : (
+              <span className="rounded-full bg-[#f2ede2] px-3.5 py-1.5 text-[13px] font-bold text-[#8a7a5a]">
+                {kg(tuyen.total_weight_kg)}
+              </span>
+            )}
+            {cumNgan && (
+              <span className="rounded-full bg-[#ede8fb] px-3.5 py-1.5 text-[13px] font-bold text-[#5b3fbf]">
+                {cumNgan}
+              </span>
+            )}
+            <span className="rounded-full bg-leaf-soft px-3.5 py-1.5 text-[13px] font-bold text-leaf-dark">
+              ~{soVn(tuyen.reasoning?.baseline_km ?? 0, 1)} → ~{soVn(tuyen.est_distance_km, 1)} km
+            </span>
           </div>
+          {!tuyen.duong_di && (
+            <p className="mb-4 text-[11px] font-semibold text-muted">
+              Quãng đường ước tính theo đường chim bay — tuyến này chưa có đường đi thật.
+            </p>
+          )}
 
-          {/* Dưới xl thì bản đồ và danh sách điểm dừng xếp dọc. Ép hai cột trên
-              màn 768px cho ra hai cột ~390px — đo thật thì cột phải chỉ còn
-              158px, không đọc được. */}
-          <div className="grid items-start gap-4 grid-cols-1 xl:grid-cols-2">
-            <Card className="p-4">
-              <div className="mb-2.5 text-[13px] font-bold text-muted">Điểm dừng</div>
-              {(tuyen.stops ?? []).map((s) => {
-                // Bỏ điểm khỏi tuyến khớp theo `stop_id` — khoá chính của điểm
-                // dừng, có ở CẢ HAI loại. Trước đây khớp theo `request_id` nên
-                // điểm dừng loại thùng không bao giờ bỏ được (gói C0b đã sửa).
-                const laThung = s.stop_kind === "thung";
-                const daBo = boBot.includes(s.stop_id);
-                const ten = s.diem_dung_vi || s.unit || `Điểm ${s.seq}`;
-                const mota = laThung
-                  ? `Thùng đầy ${Math.round(s.fill_percent ?? 0)}%${s.dia_chi ? ` · ${s.dia_chi}` : ""}`
-                  : (s.items ?? []).map((i) => i.name).join(", ");
-                return (
-                  <div
-                    key={s.stop_id}
-                    className="mb-2 flex items-center gap-3 rounded-xl border border-line bg-cream-soft px-3 py-2.5"
-                    style={{ opacity: daBo ? 0.4 : 1 }}
+          {/* Những yêu cầu KHÔNG gộp vào chuyến này (lệch ngày / lệch khung giờ)
+              — người duyệt cần biết thông tin này để hiểu vì sao chuyến chỉ có
+              bấy nhiêu điểm. Không có dữ liệu thì không dựng khối rỗng. */}
+          {tuyen.reasoning?.excluded?.length ? (
+            <div className="mb-4 rounded-[16px] border border-[#f2d9c2] bg-[#fdf3ea]">
+              <button
+                type="button"
+                onClick={() => setMoKhongGop((v) => !v)}
+                aria-expanded={moKhongGop}
+                className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-left"
+              >
+                <IconTuChoi className="h-4 w-4 flex-none text-[#a8791a]" />
+                <span className="flex-1 text-[13px] font-bold text-[#8a5a1a]">
+                  {tuyen.reasoning.excluded.length} yêu cầu không gộp vào chuyến này
+                </span>
+                <span className="text-[13px] font-bold text-[#a8791a]">{moKhongGop ? "Thu gọn" : "Xem lý do"}</span>
+              </button>
+              {moKhongGop && (
+                <ul className="gb-hscroll px-4 pb-3">
+                  {tuyen.reasoning.excluded.map((e, i) => (
+                    <li key={`${e.request_id}-${i}`} className="flex items-start gap-2 border-t border-[#f2d9c2] py-1.5 text-[12px] font-semibold leading-snug">
+                      <span className="flex-none font-extrabold text-[#a8791a]">{e.request_id}</span>
+                      {e.unit && <span className="flex-none text-muted">{e.unit}</span>}
+                      <span className="min-w-0 flex-1 text-[#5a4a38]">{e.ly_do}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : null}
+
+          {/* Danh sách điểm dừng — mỗi điểm MỘT dòng. */}
+          <div className="mb-4 rounded-[20px] bg-white px-4 py-2">
+            {(tuyen.stops ?? []).map((s) => {
+              const laThung = s.stop_kind === "thung";
+              const daBo = boBot.includes(s.stop_id);
+              const ten = laThung
+                ? s.diem_dung_vi || `Thùng ${s.seq}`
+                : (s.items ?? []).map((i) => i.name).join(", ") || s.diem_dung_vi || `Điểm ${s.seq}`;
+              const phu = laThung
+                ? `Đầy ${Math.round(s.fill_percent ?? 0)}%${s.dia_chi ? ` · ${s.dia_chi}` : ""}`
+                : `${s.dia_chi || s.unit}${s.resident_name ? ` · ${s.resident_name}` : ""}`;
+              return (
+                <div
+                  key={s.stop_id}
+                  className="flex items-center gap-3 border-b border-line py-2.5 last:border-0"
+                  style={{ opacity: daBo ? 0.4 : 1 }}
+                >
+                  <span
+                    className={`flex h-7 w-7 flex-none items-center justify-center rounded-full text-[12px] font-extrabold ${
+                      daBo ? "bg-[#efede6] text-muted" : "bg-leaf text-white"
+                    }`}
                   >
-                    <span className="flex h-[26px] w-[26px] items-center justify-center rounded-lg bg-ink text-xs font-extrabold text-white">
-                      {s.seq}
-                    </span>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[13px] font-extrabold">{ten}</span>
-                        {laThung && (
-                          <span className="rounded-md bg-amber-line px-1.5 py-0.5 text-[10px] font-extrabold text-[#5a4410]">
-                            THÙNG
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-[11px] font-semibold text-muted">{mota}</div>
+                    {s.seq}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate text-[14px] font-bold">{ten}</span>
+                      {laThung && (
+                        <span className="flex-none rounded-md bg-amber-line px-1.5 py-0.5 text-[10px] font-extrabold text-[#5a4410]">
+                          THÙNG
+                        </span>
+                      )}
                     </div>
-                    <span className="text-[13px] font-extrabold text-recycle">
-                      {laThung ? "—" : kg(s.weight_max_kg)}
-                    </span>
-                    <button
-                      onClick={() =>
-                        setBoBot((cu) =>
-                          daBo ? cu.filter((x) => x !== s.stop_id) : [...cu, s.stop_id],
-                        )
-                      }
-                      className="cursor-pointer text-muted"
-                      title={daBo ? "Giữ lại điểm này" : "Bỏ khỏi tuyến"}
-                      aria-label={daBo ? `Giữ lại điểm ${ten}` : `Bỏ điểm ${ten} khỏi tuyến`}
-                    >
-                      {daBo ? <IconHoanTac className="h-4 w-4" /> : <IconTuChoi className="h-4 w-4" />}
-                    </button>
+                    {phu && <div className="truncate text-[11px] font-semibold text-muted">{phu}</div>}
                   </div>
-                );
-              })}
+                  <span className="flex-none text-[14px] font-extrabold text-recycle">
+                    {laThung ? "—" : kg(s.weight_max_kg)}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setBoBot((cu) => (daBo ? cu.filter((x) => x !== s.stop_id) : [...cu, s.stop_id]))
+                    }
+                    className="flex-none cursor-pointer text-muted"
+                    title={daBo ? "Giữ lại điểm này" : "Bỏ khỏi tuyến"}
+                    aria-label={daBo ? `Giữ lại điểm ${ten}` : `Bỏ điểm ${ten} khỏi tuyến`}
+                  >
+                    {daBo ? <IconHoanTac className="h-4 w-4" /> : <IconTuChoi className="h-4 w-4" />}
+                  </button>
+                </div>
+              );
+            })}
 
-              {/* So với bản agent đề xuất — chỉ hiện trên màn duyệt tuyến. Phần
-                  diff này do backend tính sẵn (`route_diff`); frontend chỉ kể lại
-                  và luôn kèm chú giải về phạm vi phép so để không bị hiểu nhầm
-                  là "bỏ thùng khỏi tuyến không được ghi nhận". */}
-              <div className="mt-3 rounded-xl border border-line bg-cream-soft px-3.5 py-3">
-                <div className="mb-1.5 text-[12px] font-extrabold">So với bản agent đề xuất</div>
-                {!coChinhSua ? (
-                  <div className="flex items-center gap-1.5 text-[13px] font-bold text-leaf-dark">
-                    <IconChucMung className="h-4 w-4 flex-none" />
-                    Giữ nguyên bản agent đề xuất.
-                  </div>
-                ) : (
-                  <div className="text-[13px] font-bold leading-loose">
-                    {soBo > 0 && <div>Đã bỏ {soBo} điểm dừng khỏi tuyến</div>}
-                    {doiThuTu && <div>Đã đổi thứ tự ghé</div>}
-                    {soBo === 0 && !doiThuTu && <div>Đã chỉnh sửa so với bản agent đề xuất</div>}
-                  </div>
-                )}
-                <div className="mt-1.5 text-[11px] font-semibold leading-relaxed text-muted">
-                  Phần so sánh này chỉ tính điểm dừng là yêu cầu của cư dân; điểm dừng loại thùng chưa
-                  nằm trong bản agent đề xuất.
+            {/* So với bản agent đề xuất — gọn thành một dòng. Chỉ tính điểm dừng
+                là yêu cầu của cư dân (bản agent là danh sách `request_id`), nói
+                rõ để không bị hiểu nhầm "bỏ thùng khỏi tuyến không được ghi nhận". */}
+            <div className="border-t border-line py-2.5">
+              {!coChinhSua ? (
+                <div className="flex items-center gap-1.5 text-[12px] font-bold text-leaf-dark">
+                  <IconChucMung className="h-4 w-4 flex-none" />
+                  Giữ nguyên bản agent đề xuất.
                 </div>
-              </div>
-            </Card>
-
-            <div>
-              <div className="mb-3.5 rounded-2xl border-[1.5px] border-dashed border-[#cbb8ee] bg-[#faf8fe] p-4">
-                <div className="mb-2.5 flex items-center gap-1.5 text-[11px] font-extrabold text-bulky">
-                  <IconAi className="h-3.5 w-3.5" />
-                  AI GIẢI THÍCH — VÌ SAO GỘP THẾ NÀY
+              ) : (
+                <div className="text-[12px] font-bold leading-loose text-ink-soft">
+                  {soBo > 0 && <span>Đã bỏ {soBo} điểm · </span>}
+                  {doiThuTu && <span>Đã đổi thứ tự ghé · </span>}
+                  {soBo === 0 && !doiThuTu && <span>Đã chỉnh sửa so với bản agent đề xuất · </span>}
+                  <span className="font-semibold text-muted">chỉ tính điểm dừng là yêu cầu của cư dân</span>
                 </div>
-                <div className="text-xs font-semibold leading-loose text-ink-soft">
-                  Tiêu chí gộp:
-                  <br />
-                  {tuyen.reasoning?.criteria.map((c) => (
-                    <React.Fragment key={c}>
-                      • {c}
-                      <br />
-                    </React.Fragment>
-                  ))}
-                  {tuyen.reasoning?.excluded.slice(0, 3).map((e) => (
-                    <React.Fragment key={e.request_id}>
-                      • KHÔNG gộp #{e.request_id} ({e.unit}) vì {e.ly_do}
-                      <br />
-                    </React.Fragment>
-                  ))}
-                </div>
-                <div className="mt-3 rounded-xl bg-leaf-soft px-3 py-2.5 text-[13px] font-bold text-leaf-dark">
-                  So với đi lẻ: {tuyen.stop_count} chuyến → 1 chuyến · ~{soVn(tuyen.reasoning?.baseline_km ?? 0, 1)} km
-                  → ~{soVn(tuyen.est_distance_km, 1)} km{" "}
-                  <b>
-                    (giảm{" "}
-                    {tuyen.reasoning?.baseline_km
-                      ? Math.round((tuyen.reasoning.saved_km / tuyen.reasoning.baseline_km) * 100)
-                      : 0}
-                    %)
-                  </b>
-                </div>
-                {tuyen.reasoning?.note && (
-                  <div className="mt-2 text-[11px] font-semibold text-muted">{tuyen.reasoning.note}</div>
-                )}
-              </div>
-
-              <Card className="p-4">
-                <div className="mb-2.5 text-xs font-bold text-muted">Bản đồ tuyến</div>
-                {/* Bản cũ ở đây là một SVG vẽ tay, chia đều điểm dừng trái sang
-                    phải — trông như bản đồ nhưng KHÔNG mang thông tin địa lý
-                    nào. Trên màn duyệt một chuyến xe thật, thứ đó tệ hơn là
-                    không có gì. Toạ độ thật đã có từ gói C2a. */}
-                <div className="h-[340px] overflow-hidden rounded-xl border border-line">
-                  <RouteMap stops={tuyen.stops ?? []} duong_di={tuyen.duong_di} lo_trinh_meta={tuyen.lo_trinh_meta} route_id={tuyen.id} />
-                </div>
-              </Card>
+              )}
             </div>
           </div>
 
-          {/* Hai quyết định người duyệt thật sự dùng hằng ngày để to và nằm
-              trên; hai việc hiếm đẩy xuống hàng dưới, cỡ nhỏ. Huỷ tuyến không
-              lùi lại được nên phải hỏi lại một nhịp. */}
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+          {/* Hai quyết định chính: duyệt xanh đậm chiếm trọn chiều ngang còn lại
+              + nút phụ viền mỏng bên cạnh. Huỷ tuyến hiếm dùng nên để nhỏ dưới
+              cùng; không lùi lại được nên vẫn phải hỏi lại một nhịp. */}
+          <div className="flex gap-2.5">
             {boBot.length === 0 ? (
-              <Button size="lg" variant="leaf" disabled={dangGui !== ""} onClick={() => duyet("approve")}>
+              <Button size="lg" variant="leaf" className="flex-1" disabled={dangGui !== ""} onClick={() => duyet("approve")}>
                 <IconDuyet className="h-5 w-5" />
                 {dangGui === "approve" ? "Đang duyệt…" : "Duyệt tuyến này"}
               </Button>
             ) : (
-              <Button size="lg" variant="leaf" disabled={dangGui !== ""} onClick={() => duyet("approve_with_changes")}>
+              <Button size="lg" variant="leaf" className="flex-1" disabled={dangGui !== ""} onClick={() => duyet("approve_with_changes")}>
                 <IconSua className="h-5 w-5" />
-                {dangGui === "approve_with_changes"
-                  ? "Đang duyệt…"
-                  : `Duyệt, bỏ ${boBot.length} điểm`}
+                {dangGui === "approve_with_changes" ? "Đang duyệt…" : `Duyệt, bỏ ${boBot.length} điểm`}
               </Button>
             )}
-            <span className="text-[13px] font-semibold text-muted">
-              {boBot.length === 0
-                ? "Duyệt xong tuyến mới có hiệu lực và báo cho đội xe."
-                : `Đang bỏ ${boBot.length} điểm — các điểm đó quay về nhóm chờ xếp chuyến khác.`}
-            </span>
+            <Button size="lg" variant="outline" disabled={dangGui !== ""} onClick={() => duyet("regenerate")}>
+              <IconLamLai className="h-4 w-4" />
+              {dangGui === "regenerate" ? "Đang xếp lại…" : "Sửa rồi đề xuất lại"}
+            </Button>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2.5">
-            <Button size="sm" variant="outline" disabled={dangGui !== ""} onClick={() => duyet("regenerate")}>
-              <IconLamLai className="h-4 w-4" />
-              {dangGui === "regenerate" ? "Đang xếp lại…" : "Đề xuất lại"}
-            </Button>
-            <span className="flex-1" />
+          {boBot.length > 0 && (
+            <p className="mt-2 text-[12px] font-semibold text-muted">
+              Đang bỏ {boBot.length} điểm — các điểm đó quay về nhóm chờ xếp chuyến khác.
+            </p>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-2.5">
             {xacNhanHuy ? (
               <>
                 <span className="text-[13px] font-bold text-hazard-dark">
                   Huỷ tuyến thì không lấy lại được. Chắc chưa?
                 </span>
+                <span className="flex-1" />
                 <Button size="sm" variant="outline" onClick={() => setXacNhanHuy(false)}>
                   Không, giữ lại
                 </Button>

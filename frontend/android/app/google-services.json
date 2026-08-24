@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "764850497783",
+    "project_id": "greenbin-ai-dc6bc",
+    "storage_bucket": "greenbin-ai-dc6bc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:764850497783:android:bc19e6ee783571d6b78bf2",
+        "android_client_info": {
+          "package_name": "vn.greenbin.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCcHs2sJkWTCVuNuK6F5NfmBav739uQv4k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

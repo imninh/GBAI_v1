@@ -209,6 +209,8 @@ def chay_t1_t2(
     # đường độc lập, vẫn đáng gọi.
     t2_khac_t1 = (provider_t2, model_t2) != (provider_first, model_first)
     t2_da_dung_de_cuu = False
+    cuu_khi_t2_hong = False
+    provider_cuu_t1 = ""
     tier_ket_qua = TIER_T2 if di_thang_t2 else TIER_T1
     if di_thang_t2:
         outcome.escalation_reason = "T0.5 nghi đồ điện tử — đi thẳng T2, bỏ T1 (mù đồ điện tử)"
@@ -227,44 +229,102 @@ def chay_t1_t2(
                 duration_ms=int((time.perf_counter() - step) * 1000),
                 llm_calls=1,
                 error_type=code,
-                meta={"tier": TIER_T1, "provider": provider_first, "model": model_first},
+                meta={
+                    "tier": TIER_T2 if di_thang_t2 else TIER_T1,
+                    "provider": provider_first,
+                    "model": model_first,
+                },
             )
         )
         message = getattr(exc, "message_vi", "Hệ thống nhận diện đang gặp sự cố.")
 
-        # T1 chết KHÔNG được kéo cả lần phân loại chết theo — lời hứa của ADR-0006
-        # "mất một nguồn chỉ mất một tầng". Đo trên bản deploy: llama-3.2-11b ở T1
-        # trả JSON hỏng (VISION-500) mọi lần chụp, trong khi Gemini ở T2 vẫn chạy.
         result = None
-        if model_t2 and t2_khac_t1:
-            step = time.perf_counter()
-            try:
-                result = _goi_model(
-                    get_vision_client("t2"),
-                    image_bytes=image_bytes,
-                    text_query=text_query,
-                    categories=categories,
-                    model=model_t2,
-                )
-            except (VisionUnavailableError, ValueError) as exc_t2:
-                outcome.nodes.append(
-                    NodeMetric(
-                        node="classify_waste_t2",
-                        status="error",
-                        duration_ms=int((time.perf_counter() - step) * 1000),
-                        llm_calls=1,
-                        error_type=getattr(exc_t2, "code", "VISION-500"),
-                        meta={"provider": provider_t2, "model": model_t2, "ly_do": "cuu_khi_t1_hong"},
+        if di_thang_t2:
+            # Đi thẳng T2 mà T2 chết: lui về T1 trước khi từ chối. T1 mù đồ điện
+            # tử nhưng vẫn ra nhãn để người duyệt xử — còn hơn bỏ trống cả lần.
+            model_t1 = get_tier_model("t1")
+            if model_t1:
+                step = time.perf_counter()
+                provider_t1 = get_tier_provider("t1")
+                try:
+                    result = _goi_model(
+                        get_vision_client("t1"),
+                        image_bytes=image_bytes,
+                        text_query=text_query,
+                        categories=categories,
+                        model=model_t1,
                     )
+                except (VisionUnavailableError, ValueError) as exc_t1:
+                    outcome.nodes.append(
+                        NodeMetric(
+                            node="classify_waste_t1",
+                            status="error",
+                            duration_ms=int((time.perf_counter() - step) * 1000),
+                            llm_calls=1,
+                            error_type=getattr(exc_t1, "code", "VISION-500"),
+                            meta={"provider": provider_t1, "model": model_t1, "ly_do": "cuu_khi_t2_hong"},
+                        )
+                    )
+                else:
+                    cuu_khi_t2_hong = True
+                    provider_cuu_t1 = provider_t1
+                    outcome.nodes.append(
+                        NodeMetric(
+                            node="classify_waste_t1",
+                            duration_ms=int((time.perf_counter() - step) * 1000),
+                            tokens_in=result.usage.tokens_in,
+                            tokens_out=result.usage.tokens_out,
+                            image_tokens=result.usage.image_tokens,
+                            cost_usd=result.usage.cost_usd,
+                            llm_calls=1,
+                            meta={
+                                "provider": result.provider or provider_t1,
+                                "model": result.model,
+                                "ly_do": "cuu_khi_t2_hong",
+                                "confidence": round(result.confidence, 4),
+                            },
+                        )
+                    )
+            if result is not None:
+                tier_ket_qua = TIER_T1
+                outcome.escalation_reason = (
+                    f"T2 lỗi ({code}) — lui về T1 để cứu (vẫn kèm nghi ngờ đồ điện tử)"
                 )
+        else:
+            # T1 chết KHÔNG được kéo cả lần phân loại chết theo — lời hứa của
+            # ADR-0006 "mất một nguồn chỉ mất một tầng". Đo trên bản deploy:
+            # llama-3.2-11b ở T1 trả JSON hỏng (VISION-500) mọi lần chụp, trong
+            # khi Gemini ở T2 vẫn chạy.
+            if model_t2 and t2_khac_t1:
+                step = time.perf_counter()
+                try:
+                    result = _goi_model(
+                        get_vision_client("t2"),
+                        image_bytes=image_bytes,
+                        text_query=text_query,
+                        categories=categories,
+                        model=model_t2,
+                    )
+                except (VisionUnavailableError, ValueError) as exc_t2:
+                    outcome.nodes.append(
+                        NodeMetric(
+                            node="classify_waste_t2",
+                            status="error",
+                            duration_ms=int((time.perf_counter() - step) * 1000),
+                            llm_calls=1,
+                            error_type=getattr(exc_t2, "code", "VISION-500"),
+                            meta={"provider": provider_t2, "model": model_t2, "ly_do": "cuu_khi_t1_hong"},
+                        )
+                    )
+
+            if result is not None:
+                t2_da_dung_de_cuu = True
+                tier_ket_qua = TIER_T2
+                outcome.escalation_reason = f"T1 lỗi ({code}) — chuyển sang nhà cung cấp của T2"
 
         if result is None:
             outcome.latency_ms = int((time.perf_counter() - started) * 1000)
             return _refuse(outcome, RefusalReason.MODEL_LOI, headline=message)
-
-        t2_da_dung_de_cuu = True
-        tier_ket_qua = TIER_T2
-        outcome.escalation_reason = f"T1 lỗi ({code}) — chuyển sang nhà cung cấp của T2"
 
     _apply_vision_result(session, outcome, result, tier_ket_qua)
     outcome.cost_usd += result.usage.cost_usd
@@ -280,11 +340,17 @@ def chay_t1_t2(
             llm_calls=1,
             meta={
                 "tier": tier_ket_qua,
-                "provider": result.provider or (provider_t2 if t2_da_dung_de_cuu else provider_first),
+                "provider": result.provider
+                or (
+                    provider_cuu_t1
+                    if cuu_khi_t2_hong
+                    else (provider_t2 if t2_da_dung_de_cuu else provider_first)
+                ),
                 "model": result.model,
                 "confidence": round(result.confidence, 4),
                 "nguong_nhom": round(outcome.min_confidence, 4),
                 **({"cuu_khi_t1_hong": True} if t2_da_dung_de_cuu else {}),
+                **({"cuu_khi_t2_hong": True} if cuu_khi_t2_hong else {}),
             },
         )
     )

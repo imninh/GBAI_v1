@@ -13,26 +13,26 @@ import { IconCanhBao, IconGapLoi, IconMamXanh } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
+  "inline-flex items-center justify-center gap-2 rounded-2xl font-bold tracking-tight select-none cursor-pointer transition-all duration-200 ease-[var(--ease-spring)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
   {
     variants: {
       variant: {
-        primary: "bg-ink text-white font-[family-name:var(--font-display)] shadow-[0_10px_24px_-10px_rgba(15,30,18,.5)] hover:bg-[#0d1611]",
-        leaf: "bg-leaf text-white hover:bg-leaf-dark",
-        outline: "bg-white border-[1.5px] border-line-2 text-ink-soft hover:border-muted",
-        soft: "bg-leaf-soft border-[1.5px] border-leaf-soft text-leaf-dark hover:bg-[#dcefe3]",
-        bulky: "bg-bulky-soft border-[1.5px] border-[#d9cef0] text-bulky-dark",
-        danger: "bg-white border-[1.5px] border-[#f6cdb8] text-hazard-dark hover:bg-hazard-soft",
-        ghost: "bg-transparent text-ink-soft hover:bg-black/5",
+        primary: "bg-ink text-white font-[family-name:var(--font-display)] shadow-[var(--shadow-md)] hover:bg-[#0d1611] hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5",
+        leaf: "bg-leaf text-white shadow-[var(--shadow-sm)] hover:bg-leaf-dark hover:shadow-[var(--shadow-leaf-glow)] hover:-translate-y-0.5",
+        outline: "bg-white border-[1.5px] border-line-2 text-ink-soft shadow-[var(--shadow-xs)] hover:border-leaf hover:bg-leaf-soft/30 hover:text-leaf-dark",
+        soft: "bg-leaf-soft border-[1.5px] border-leaf-mint/40 text-leaf-dark hover:bg-leaf-soft/80 hover:border-leaf",
+        bulky: "bg-bulky-soft border-[1.5px] border-[#d9cef0] text-bulky-dark hover:shadow-[var(--shadow-bulky-glow)] hover:-translate-y-0.5",
+        danger: "bg-white border-[1.5px] border-hazard/30 text-hazard-dark hover:bg-hazard-soft hover:border-hazard",
+        ghost: "bg-transparent text-ink-soft hover:bg-black/5 active:bg-black/10",
       },
       size: {
         // Đội vệ sinh dùng ngoài nắng, đeo găng: nút tối thiểu 48px, chữ ≥16px.
-        lg: "px-5 py-4 text-base min-h-12",
-        md: "px-4 py-3 text-sm",
-        sm: "px-3 py-2 text-[13px]",
+        lg: "px-6 py-4 text-base min-h-[52px]",
+        md: "px-4.5 py-3 text-sm min-h-[44px]",
+        sm: "px-3.5 py-2 text-xs min-h-[36px]",
         // Nút vuông chỉ chứa icon (nút đóng panel, nút thu gọn…). Vẫn giữ 36px
         // để ngón tay đeo găng bấm được.
-        icon: "size-9 p-0",
+        icon: "size-10 p-0 rounded-full",
       },
       block: { true: "w-full", false: "" },
     },
@@ -55,7 +55,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("rounded-[20px] bg-white border border-line", className)} {...props} />;
+  return (
+    <div
+      className={cn(
+        "rounded-[20px] bg-white border border-line-3 shadow-[var(--shadow-xs)] transition-all duration-300 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-md)] hover:border-line-2",
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
 export function Chip({
@@ -64,27 +72,31 @@ export function Chip({
   ...props
 }: React.HTMLAttributes<HTMLSpanElement> & { tone?: "neutral" | "leaf" | "amber" | "hazard" | "recycle" | "bulky" }) {
   const tones = {
-    neutral: "bg-[#eef1ec] text-muted-2",
-    leaf: "bg-leaf-soft text-leaf-dark",
-    amber: "bg-amber-soft text-amber",
-    hazard: "bg-hazard-soft text-hazard-dark",
-    recycle: "bg-recycle-soft text-recycle",
-    bulky: "bg-bulky-soft text-bulky-dark",
+    neutral: "bg-[#eef1ec] text-muted-2 border-line-3",
+    leaf: "bg-leaf-soft text-leaf-dark border-leaf-mint/40",
+    amber: "bg-amber-soft text-amber border-amber-line/60",
+    hazard: "bg-hazard-soft text-hazard-dark border-hazard/30",
+    recycle: "bg-recycle-soft text-recycle border-recycle/30",
+    bulky: "bg-bulky-soft text-bulky-dark border-[#d9cef0]",
   } as const;
   return (
     <span
-      className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-extrabold", tones[tone], className)}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold tracking-wide border shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors duration-200",
+        tones[tone],
+        className
+      )}
       {...props}
     />
   );
 }
 
 export function SectionLabel({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("text-[13px] font-bold text-muted mb-2", className)} {...props} />;
+  return <div className={cn("text-xs font-extrabold uppercase tracking-wider text-muted mb-2", className)} {...props} />;
 }
 
-export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-xl bg-black/[0.06]", className)} suppressHydrationWarning />;
+export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+  return <div className={cn("skeleton-shimmer rounded-xl", className)} suppressHydrationWarning {...props} />;
 }
 
 /** Trạng thái rỗng — phân biệt "chưa có gì bao giờ" với "không có kết quả sau lọc". */
@@ -100,11 +112,13 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 px-6 py-12 text-center">
-      <Icon className="h-8 w-8 text-muted" strokeWidth={1.8} />
-      <div className="font-[family-name:var(--font-display)] text-lg font-bold">{title}</div>
-      {hint && <p className="max-w-xs text-[13px] font-semibold text-muted">{hint}</p>}
-      {action}
+    <div className="flex flex-col items-center justify-center gap-2.5 px-6 py-12 text-center animate-gbfade">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cream shadow-[var(--shadow-xs)]">
+        <Icon className="h-8 w-8 text-muted" strokeWidth={1.8} />
+      </div>
+      <div className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight">{title}</div>
+      {hint && <p className="max-w-xs text-xs font-semibold leading-relaxed text-muted">{hint}</p>}
+      {action && <div className="mt-2">{action}</div>}
     </div>
   );
 }
@@ -112,15 +126,17 @@ export function EmptyState({
 /** Trạng thái lỗi — câu tiếng Việt dễ hiểu, nút thử lại, mã lỗi ngắn để tra log. */
 export function ErrorState({ message, code, onRetry }: { message: string; code?: string; onRetry?: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-[#f6cdb8] bg-hazard-soft px-6 py-8 text-center">
-      <IconGapLoi className="h-7 w-7 text-hazard-dark" strokeWidth={1.8} />
+    <div className="flex flex-col items-center gap-3 rounded-2xl border border-hazard/30 bg-hazard-soft px-6 py-8 text-center shadow-[var(--shadow-xs)] animate-gbfade">
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-[var(--shadow-xs)]">
+        <IconGapLoi className="h-6 w-6 text-hazard-dark" strokeWidth={1.8} />
+      </div>
       <div className="text-sm font-bold text-hazard-dark">{message}</div>
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry}>
           Thử lại
         </Button>
       )}
-      {code && <div className="text-[11px] font-bold text-muted">mã lỗi: {code}</div>}
+      {code && <div className="text-[11px] font-bold tracking-wider text-muted">mã lỗi: {code}</div>}
     </div>
   );
 }
@@ -128,7 +144,7 @@ export function ErrorState({ message, code, onRetry }: { message: string; code?:
 /** Băng cảnh báo suy giảm một phần — pipeline chạy xong nhưng một node lỗi. */
 export function DegradedBanner({ note }: { note: string }) {
   return (
-    <div className="flex gap-2 rounded-2xl border border-amber-line bg-amber-soft px-4 py-3 text-[13px] font-bold leading-relaxed text-amber">
+    <div className="flex gap-2.5 rounded-2xl border border-amber-line bg-amber-soft px-4 py-3 text-xs font-bold leading-relaxed text-amber shadow-[var(--shadow-xs)]">
       <IconCanhBao className="mt-0.5 h-4 w-4 flex-none" />
       <span>{note}</span>
     </div>
@@ -139,7 +155,7 @@ export function DegradedBanner({ note }: { note: string }) {
  *  vào nhau mà không nói gì. */
 export function SeedBadge({ className }: { className?: string }) {
   return (
-    <span className={cn("rounded-md bg-[#eef1ec] px-2 py-0.5 text-[10px] font-extrabold text-muted", className)}>
+    <span className={cn("rounded-md bg-[#eef1ec] border border-line-3 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-muted", className)}>
       dữ liệu demo mô phỏng
     </span>
   );

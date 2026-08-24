@@ -12,6 +12,7 @@ vào nhau mà không nói gì — đó là ranh giới không được vượt.
 from __future__ import annotations
 
 import argparse
+import os
 import random
 import sys
 from datetime import date, datetime, timedelta
@@ -168,16 +169,47 @@ def seed_knowledge(session: Session, buildings: dict[str, Building]) -> None:
             )
             session.add(doc)
             session.flush()
-            for chunk in row["chunks"]:
+        elif doc.source != row["source"]:
+            doc.source = row["source"]
+
+        expected_sections = {chunk["section"] for chunk in row["chunks"]}
+
+        for chunk in row["chunks"]:
+            existing_chunk = session.scalar(
+                select(KnowledgeChunk).where(
+                    KnowledgeChunk.doc_id == doc.id,
+                    KnowledgeChunk.section == chunk["section"],
+                )
+            )
+            # keywords từ nhánh deploy (P75): từ khoá tìm kiếm cho chunk.
+            chunk_meta = {
+                "needs_verification": bool(chunk.get("needs_verification")),
+                "keywords": chunk.get("keywords", []),
+            }
+            if existing_chunk is None:
                 session.add(
                     KnowledgeChunk(
                         doc_id=doc.id,
                         content=chunk["content"],
                         section=chunk["section"],
-                        meta={"needs_verification": bool(chunk.get("needs_verification"))},
+                        meta=chunk_meta,
                     )
                 )
-    session.flush()
+            else:
+                existing_chunk.content = chunk["content"]
+                existing_chunk.meta = chunk_meta
+        session.flush()
+
+        stale = session.scalars(
+            select(KnowledgeChunk).where(
+                KnowledgeChunk.doc_id == doc.id,
+                KnowledgeChunk.section.notin_(expected_sections),
+            )
+        ).all()
+        for chunk in stale:
+            print(f"  Xoá chunk cũ: doc={row['title']!r}, section={chunk.section!r}")
+            session.delete(chunk)
+        session.flush()
 
 
 # --- Dữ liệu demo mô phỏng ----------------------------------------------
@@ -553,14 +585,24 @@ def reset_database() -> None:
 
 
 def _cho_phep_reset(url: str, toi_chac_chan: bool) -> bool:
-    """Guard cho ``--reset``: sqlite luôn cho phép; non-sqlite cần xác nhận.
+    """Guard cho ``--reset``: sqlite luôn cho phép; non-sqlite cần HAI lớp.
 
-    Trả về ``True`` nếu được phép reset, ``False`` nếu bị từ chối. Tách riêng
-    để test được mà không cần chạy cả ``main`` — và không cần database thật.
+    ``reset_database`` xoá sạch mọi bảng — đây là đường DUY NHẤT trong repo làm
+    mất dữ liệu thật, và ngày 16/08/2026 CSDL đang chạy đã mất 600 tài khoản cư
+    dân cùng toàn bộ bảng ``media``. Vì vậy một cờ dòng lệnh là chưa đủ:
+
+    * lớp 1 — cờ ``--toi-chac-chan``;
+    * lớp 2 — biến môi trường ``CHO_PHEP_XOA_DB=1``.
+
+    Phải cố ý ở hai chỗ khác nhau thì lệnh xoá mới chạy. Trả về ``True`` nếu
+    được phép, ``False`` nếu bị từ chối. Tách riêng để test được mà không cần
+    ``main`` và không cần database thật.
     """
     if url.startswith("sqlite"):
         return True
-    return toi_chac_chan
+    if not toi_chac_chan:
+        return False
+    return os.getenv("CHO_PHEP_XOA_DB", "") == "1"
 
 
 def bootstrap(session: Session, *, demo: bool = False, count: int = 140) -> dict[str, int | bool]:

@@ -20,7 +20,12 @@ class Media(Base):
     __tablename__ = "media"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    uploader_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    # NULL = ảnh do THIẾT BỊ gửi lên, không phải người dùng — thùng ESP32 không
+    # có tài khoản nên không có ai để trỏ tới. Cột này đã được nới trên CSDL
+    # production ngày 17/08/2026 (`ALTER TABLE media ALTER COLUMN uploader_id
+    # DROP NOT NULL`); dòng này chỉ để model khớp với CSDL thật — thiếu nó thì
+    # test dựng SQLite từ model vẫn ra NOT NULL và đường ảnh thiết bị không chạy.
+    uploader_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), index=True, nullable=True)
     # Đường dẫn TUYỆT ĐỐI tới file trên đĩa. Trần 400 là quá nhỏ: PostgreSQL ép
     # độ dài VARCHAR còn SQLite bỏ qua, nên đường ảnh "chạy tốt ở dev, chết ở
     # deploy" — SRV-500/StatementError trên `INSERT INTO media`. Đường dẫn đĩa
@@ -51,6 +56,11 @@ class Media(Base):
     # Hạn lưu trữ. Job dọn dẹp xoá ảnh quá hạn; ảnh dùng cho eval tách riêng.
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     kept_for_eval: Mapped[bool] = mapped_column(default=False)
+    # Gói P74 — ảnh thuộc lô gán nhãn nào (batch_gan_nhan.id). NULL = chưa thuộc
+    # lô nào. Không khoá ngoại ở mệnh đề ALTER (SQLite không thêm được FK).
+    batch_id: Mapped[int | None] = mapped_column(ForeignKey("batch_gan_nhan.id"), nullable=True, index=True)
+    # Gói P74 — ảnh cần đưa vào lô huấn luyện lại. FALSE = bình thường.
+    can_gan_nhan: Mapped[bool] = mapped_column(default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
 
@@ -62,6 +72,11 @@ class Classification(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     media_id: Mapped[int | None] = mapped_column(ForeignKey("media.id"), nullable=True, index=True)
     text_query: Mapped[str] = mapped_column(Text, default="")
+    # Khoá do THIẾT BỊ sinh (CP2) — dùng để gửi lại cùng ảnh không tạo bản ghi
+    # thứ hai. Cất ở cột riêng thay vì nhét vào `text_query`: `text_query` là câu
+    # hỏi bằng chữ của cư dân, đi thẳng ra frontend; chuỗi `item_id:` lọt vào đó
+    # là rò dữ liệu nội bộ ra màn duyệt.
+    item_id: Mapped[str] = mapped_column(String(64), default="", index=True)
     input_type: Mapped[str] = mapped_column(String(10), default="image")  # image | text
     asker_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
     building_id: Mapped[int | None] = mapped_column(ForeignKey("buildings.id"), nullable=True)

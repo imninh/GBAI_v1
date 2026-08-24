@@ -99,7 +99,7 @@ export default function RouteMapBase({
   children,
   showLegend = true,
   className = "h-full w-full",
-  tileUrl = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  tileUrl = "https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi&gl=VN",
   disableFitBounds = false,
 }: {
   stops: RouteStop[];
@@ -138,15 +138,15 @@ export default function RouteMapBase({
   const cacNhom = Object.values(nhom);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className} z-0 isolate`}>
       <MapContainer
         center={[cacDiem[0].lat, cacDiem[0].lng]}
         zoom={14}
         scrollWheelZoom
-        className="h-full w-full"
+        className="h-full w-full relative z-0 isolate"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/">CARTO</a>'
+          attribution='&copy; Google Maps'
           url={tileUrl}
         />
         <VuaKhung cacDiem={cacDiem} disabled={disableFitBounds} />

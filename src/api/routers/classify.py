@@ -7,6 +7,7 @@ qua bước đó.
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
@@ -27,13 +28,16 @@ from src.db.models import (
     WasteCategory,
 )
 from src.models.schemas import ClassifyTextRequest, FeedbackRequest, VerifyRequest
-from src.services import runs
+from src.services import diem_nhan_thuc, runs
 from src.services.auth import write_audit
 from src.services.image import preprocess_image
+from src.services.kieu_json import lam_sach_gia_tri
 from src.services.luu_tru import tai_len
 from src.services.safety import HARD_BLOCK_RULES
 
 router = APIRouter(tags=["classify"])
+
+logger = logging.getLogger(__name__)
 
 MAX_IMAGE_BYTES = 12 * 1024 * 1024
 
@@ -73,7 +77,7 @@ def _run_pipeline(
         asker_id=user.id,
         building_id=building_id,
         item_name=outcome.item_name or outcome.guess_item_name,
-        items=outcome.items,
+        items=lam_sach_gia_tri(outcome.items or [], "classifications.items"),
         predicted_category_id=category.id if category else None,
         confidence=outcome.confidence,
         tier=outcome.tier,
@@ -97,6 +101,31 @@ def _run_pipeline(
     runs.finish_run(session, run, nodes=nodes)
 
     data = classification_dict(session, classification, full=True)
+    # Gói P79 — điểm nhận thức cho ảnh phân loại thành công. Bọc rộng bằng
+    # try/except đúng khuôn phiên bỏ rác: điểm hỏng KHÔNG được làm hỏng phản hồi
+    # phân loại; lỗi chỉ ghi log warning. Điểm nhận thức tách bạch, không chạm
+    # `users.green_points` / `diem_thuong_log`.
+    data["diem_nhan_thuc"] = {"diem_vua_duoc": 0, "nhiem_vu_vua_xong": []}
+    if not outcome.refused:
+        try:
+            # Chỉ ảnh của NGƯỜI DÙNG đã đăng nhập mới được tính; ảnh từ thiết bị
+            # (`uploader_id = NULL`) không cộng cho ai.
+            if media is not None and media.uploader_id is not None:
+                ket_qua = diem_nhan_thuc.ghi_diem_chup_anh(
+                    session,
+                    user=user,
+                    classification_id=classification.id,
+                    ngay=datetime.now(UTC).date(),
+                )
+                data["diem_nhan_thuc"]["diem_vua_duoc"] = ket_qua["diem_da_ghi"]
+            data["diem_nhan_thuc"]["nhiem_vu_vua_xong"] = diem_nhan_thuc.kiem_va_trao_nhiem_vu(
+                session, user=user, ngay=datetime.now(UTC).date()
+            )
+        except Exception:
+            logger.warning(
+                "Cộng điểm nhận thức sau phân loại thất bại — không làm hỏng phản hồi phân loại",
+                exc_info=True,
+            )
     # Phần chỉ có ở lần trả về ngay sau khi phân loại, không lưu vào bảng.
     data["refusal_headline_vi"] = outcome.refusal_headline_vi
     data["guess"] = (
