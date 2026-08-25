@@ -4,184 +4,156 @@
    Màu nhóm rác ở đây chỉ là giá trị dự phòng — giá trị thật đọc từ API
    (`bin_color` của từng nhóm), vì mỗi toà có thể quy định khác nhau. */
 @theme {
-  --font-display: var(--font-baloo), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
-  /* Nền và mực */
-  --color-cream: #f4f1ea;
-  --color-cream-soft: #fbfbf9;
-  --color-ink: #16211a;
-  --color-ink-soft: #3a453d;
-  --color-muted: #8a938a;
-  --color-muted-2: #6b756c;
-  --color-line: #eee7db;
-  --color-line-2: #e0ded4;
-  --color-line-3: #eceae3;
+  /* ===== NHAN_DIEN §2 — Hệ màu GreenBin AI (xanh rêu ấm, kem ấm, navy) ===== */
+  /* 8 neo cố định (§2.4) */
+  --color-cream: #F6F2DD;
+  --color-cream-soft: #F2EFDC;
+  --color-ink: #1C2C46;
+  --color-ink-soft: #65676D;
+  --color-muted: #888B8C;
+  --color-leaf: #548045;
+  --color-leaf-dark: #1C4229;
+  --color-leaf-mint: #A3CC57;
 
-  /* Xanh lá — màu thương hiệu */
-  --color-leaf: #2fae66;
-  --color-leaf-dark: #1f8a4f;
-  --color-leaf-soft: #e6f4ea;
-  --color-leaf-mint: #7fd7a4;
+  /* Nền và mực — dẫn xuất từ 8 neo */
+  --color-muted-2: #6D6F71;
+  --color-line: #E8E4D9;
+  --color-line-2: #D8D4C9;
+  --color-line-3: #E4E0D6;
 
-  /* Xanh dương — nhóm tái chế */
-  --color-recycle: #2f7fe0;
-  --color-recycle-light: #3a8fea;
-  --color-recycle-soft: #e2eefb;
+  /* Xanh lá — thương hiệu (forest/leaf/accent) */
+  --color-leaf: #548045;
+  --color-leaf-dark: #1C4229;
+  --color-leaf-soft: #E8F2E3;
+  --color-leaf-mint: #A3CC57;
 
-  /* Đỏ cam — nhóm nguy hại. Phải nhìn khác hẳn về mặt thị giác. */
-  --color-hazard: #e05a2b;
-  --color-hazard-dark: #c1471c;
-  --color-hazard-soft: #fdeee6;
-  --color-hazard-bg: #fbeadf;
+  /* Xanh dương — nhóm tái chế (recycle blue) */
+  --color-recycle: #2F7FE0;
+  --color-recycle-light: #3A8FEA;
+  --color-recycle-soft: #E2EEFB;
 
-  /* Tím — đồ cồng kềnh */
-  --color-bulky: #7c5cdf;
-  --color-bulky-dark: #6a4dc4;
-  --color-bulky-soft: #ece7f6;
+  /* Đỏ cam — nhóm nguy hại (danger) */
+  --color-hazard: #B3452B;
+  --color-hazard-dark: #7A2E1C;
+  --color-hazard-soft: #F7E3DC;
+  --color-hazard-bg: #FBEADF;
 
-  /* Hổ phách — trạng thái chờ duyệt */
-  --color-amber: #a8791a;
-  --color-amber-line: #f2d999;
-  --color-amber-soft: #fff7e6;
+  /* Tím — đồ cồng kềnh (bulky purple) */
+  --color-bulky: #7C5CDF;
+  --color-bulky-dark: #6A4DC4;
+  --color-bulky-soft: #ECE7F6;
 
-  /* Nền riêng của app đội vệ sinh và console ban quản lý */
-  --color-crew-bg: #eef2f6;
-  --color-console-bg: #f5f5f2;
+  /* Hổ phách — trạng thái chờ duyệt (amber/warning) */
+  --color-amber: #A8791A;
+  --color-amber-line: #F2D999;
+  --color-amber-soft: #FFF7E6;
 
-  /* Additional line colors */
-  --color-line-4: #f2ede2;
-  --color-line-5: #f7f4ec;
+  /* Nền app đội vệ sinh / console BQL */
+  --color-crew-bg: #EEF2F6;
+  --color-console-bg: #F5F5F2;
 
-  /* Additional amber variants */
-  --color-amber-muted: #8a7a5a;
-  --color-amber-dark: #7a5c14;
-  --color-amber-darker: #5a4410;
+  /* Đường kẻ bổ sung */
+  --color-line-4: #EDE9DF;
+  --color-line-5: #F3F1EB;
 
-  /* Additional muted variants */
-  --color-muted-green: #8a9a92;
-  --color-muted-slate: #9aa39a;
-  --color-muted-blue: #e6edf5;
+  /* Biến thể amber */
+  --color-amber-muted: #888B8C;
+  --color-amber-dark: #7A5C14;
+  --color-amber-darker: #5A4410;
 
-  /* Additional hazard variants */
-  --color-hazard-light: #f6cdb8;
+  /* Biến thể muted */
+  --color-muted-green: #888B8C;
+  --color-muted-slate: #9AA39A;
+  --color-muted-blue: #E6EDF5;
 
-  /* Additional bulky variant */
-  --color-bulky-muted: #9fb3a6;
+  /* Biến thể hazard */
+  --color-hazard-light: #F6CDB8;
 
-  /* Additional recycle variant */
-  --color-recycle-muted: #e6edf5;
+  /* Biến thể bulky */
+  --color-bulky-muted: #9FB3A6;
 
-  /* Additional ink variants */
-  --color-ink-dark: #0c0f0c;
-  --color-ink-muted: #4a5568;
+  /* Biến thể recycle */
+  --color-recycle-muted: #E6EDF5;
 
-  /* Additional purple */
-  --color-purple: #5b3fbf;
-
-  /* Additional amber variants */
-  --color-amber-base: #a8791a;
-  --color-amber-green: #3a7a52;
-  --color-amber-brown: #a04b26;
-
-  /* Additional neutral */
-  --color-neutral: #8b8f8a;
-  --color-line-light: #f0eee7;
-
-  /* Additional ink variants */
-  --color-ink-dark: #0c0f0c;
-  --color-ink-muted: #4a5568;
+  /* Biến thể ink */
+  --color-ink-dark: #0C0F0C;
+  --color-ink-muted: #4A5568;
 
   /* Additional purple */
-  --color-purple: #5b3fbf;
+  --color-purple: #5B3FBF;
 
   /* Additional amber variants */
-  --color-amber-base: #a8791a;
-  --color-amber-green: #3a7a52;
-  --color-amber-brown: #a04b26;
+  --color-amber-base: #A8791A;
+  --color-amber-green: #3A7A52;
+  --color-amber-brown: #A04B26;
 
   /* Additional neutral */
-  --color-neutral: #8b8f8a;
-  --color-line-light: #f0eee7;
+  --color-neutral: #8B8F8A;
+  --color-line-light: #F0EEE7.
 
-/* ---- Token bổ sung F2-B: đặt theo VAI TRÒ, không theo mã màu -----------
-     Mỗi token ở dưới thay cho một mã hex đang gõ cứng trong .tsx. Khi đợt nhận
-     diện đổi hệ màu, sửa tại đây là toàn app đổi theo — miễn là tên nói đúng
-     vai trò của nó. */
-  --color-surface: #ffffff;            /* bề mặt trắng (thay bg-white) */
-  --color-ink-dim: #4a564d;            /* chữ thân phụ, đậm hơn ink-faint */
-  --color-ink-faint: #5a6b5f;          /* chữ giải thích phụ */
-  --color-ink-disabled: #b0b8ae;       /* chữ mục không có quyền */
-  --color-ink-hover: #0d1611;          /* nền nút primary khi hover */
-  --color-ink-forest: #1c3326;         /* đáy gradient header tối */
-  --color-on-dark-faint: #9fb3a6;      /* chữ phụ trên nền tối (màn camera) */
-  --color-nen-camera: #12211a;         /* đáy gradient màn camera */
-  --color-nen-trang-chu: #e7f5ec;      /* đỉnh gradient trang chủ */
-  --color-nen-ho-so: #e9f7ef;          /* đỉnh gradient màn hồ sơ */
-  --color-hero-blob: #e9faf0;          /* bong bóng trang trí trang chủ */
-  --color-line-faint: #c3cbc2;         /* viền/icon mờ nhất (chưa triển khai) */
-  --color-chip-off: #efede6;           /* nền chip đã bỏ / huỷ */
-  --color-chip-bg: #eef1f6;            /* nền chip gợi ý */
-  --color-skeleton: #dfeadf;           /* sọc giữ chỗ ảnh (nhạt) */
-  --color-skeleton-deep: #d5e2d5;      /* sọc giữ chỗ ảnh (đậm) */
-  --color-skeleton-warm: #d8ded2;      /* sọc giữ chỗ ảnh biến thể ấm (nhạt) */
-  --color-skeleton-warm-deep: #cfd6c8; /* sọc giữ chỗ ảnh biến thể ấm (đậm) */
-  --color-skeleton-blue: #dce5ef;      /* sọc giữ chỗ ảnh AI */
-  --color-blob-leaf: #d6efe0;          /* bong bóng nền mục xanh */
-  --color-tint-lavender: #efe9f9;       /* nền khối tím nhạt (onboarding bước 3) */
-  --color-blob-recycle: #cfe0f7;       /* bong bóng nền mục tái chế */
-  --color-blob-bulky: #e0d6f4;         /* bong bóng nền mục cồng kềnh */
-  --color-leaf-line: #bfe6cc;          /* viền khối trạng thái xanh */
-  --color-leaf-ink: #2a5a3a;           /* chữ khối trạng thái xanh đậm */
-  --color-hazard-ink: #7a3418;         /* chữ khối cảnh báo đậm */
-  --color-tip-bg: #f7f2ea;             /* nền khối mẹo */
-  --color-line-green: #e6ece6;         /* viền khối bối cảnh xanh nhạt */
-  --color-tint-green: #f7f9f7;         /* nền khối bối cảnh xanh nhạt */
-  --color-bulky-line: #d9cef0;         /* viền nhóm cồng kềnh */
-  --color-bulky-line-faint: #cbb8ee;   /* viền khối gợi ý AI */
-  --color-bulky-tint: #faf8fe;         /* nền khối gợi ý AI */
-  --color-bulky-chip: #ede8fb;         /* nền chip nhóm cồng kềnh */
-  --color-bulky-stripe: #e3daf3;       /* sọc giữ chỗ ảnh cồng kềnh */
-  --color-amber-deep: #8a6414;         /* chữ cảnh báo khối lượng đậm */
-  --color-warn-line: #f2d9c2;          /* viền khối loại trừ */
-  --color-warn-tint: #fdf3ea;          /* nền khối loại trừ */
-  --color-warn-ink: #8a5a1a;           /* chữ khối loại trừ */
-  --color-warn-text: #5a4a38;          /* chữ phụ khối loại trừ */
-  --color-schedule-off: #f1efe8;       /* ô lịch không có chuyến */
-  --color-category-selected: #5b3fbf;  /* nhóm rác được chọn trong pickup-wizard */
-  --color-category-unselected: #8a7a5a; /* nhóm rác chưa chọn */
-  --color-wizard-unsel-bg: #e0ded4;    /* nền bước/chọn chưa active */
-  --color-unsure-ink: #243244;         /* màn chưa chắc chắn — chữ chính */
-  --color-unsure-muted: #64748b;       /* màn chưa chắc chắn — chữ phụ */
-  --color-unsure-faint: #7a8798;       /* màn chưa chắc chắn — chữ mờ */
-  --color-unsure-line: #cbd5e1;        /* màn chưa chắc chắn — viền */
-  --color-unsure-soft: #dbe6f2;        /* màn chưa chắc chắn — nền icon */
-  --color-unsure-bg: #eef1f5;          /* màn chưa chắc chắn — nền gradient đáy */
-  --color-label-faint: #a0a89f;        /* nhãn phụ mờ (tài khoản demo) */
-  --color-marker-do: #dc2626;          /* marker điểm dừng thường — đỏ */
-  --color-marker-ho: #d97706;          /* marker điểm dừng thùng — hổ phách */
-  --color-marker-xanh: #15803d;        /* marker đã thu — xanh đậm */
-  --color-marker-loi: #ef4444;         /* marker đang active — đỏ tươi */
-  --color-marker-thung: #f0b429;       /* marker thùng trên tuyến */
-  --color-marker-bulky: #7b5cd6;       /* marker điểm cồng kềnh */
-  --color-noi-thung: #1f6feb;          /* đường nối thùng đang chọn */
+  /* ---- Token theo VAI TRÒ (F2-B) — dẫn xuất từ hệ màu mới ---- */
+  --color-surface: #ffffff;
+  --color-ink-dim: #4A5568;
+  --color-ink-faint: #5A6B5F;
+  --color-ink-disabled: #B0B8AE;
+  --color-ink-hover: #0D1611;
+  --color-ink-forest: #1C3326;
+  --color-on-dark-faint: #9FB3A6;
+  --color-nen-camera: #12211A;
+  --color-nen-trang-chu: #E7F5EC;
+  --color-nen-ho-so: #E9F7EF;
+  --color-hero-blob: #E9FAF0.
+  --color-line-faint: #C3CBC2.
+  --color-chip-off: #EFEDE6.
+  --color-chip-bg: #EEF1F6.
+  --color-skeleton: #DFEADF.
+  --color-skeleton-deep: #D5E2D5.
+  --color-skeleton-warm: #D8DED2.
+  --color-skeleton-warm-deep: #CFD6C8.
+  --color-skeleton-blue: #DCE5EF.
+  --color-blob-leaf: #D6EFE0.
+  --color-tint-lavender: #EFE9F9.
+  --color-blob-recycle: #CFE0F7.
+  --color-blob-bulky: #E0D6F4.
+  --color-leaf-line: #BFE6CC.
+  --color-leaf-ink: #2A5A3A.
+  --color-hazard-ink: #7A3418.
+  --color-tip-bg: #F7F2EA.
+  --color-line-green: #E6ECE6.
+  --color-tint-green: #F7F9F7.
+  --color-bulky-line: #D9CEF0.
+  --color-bulky-line-faint: #CBB8EE.
+  --color-bulky-tint: #FAF8FE.
+  --color-bulky-chip: #EDE8FB.
+  --color-bulky-stripe: #E3DAF3.
+  --color-amber-deep: #8A6414.
+  --color-warn-line: #F2D9C2.
+  --color-warn-tint: #FDF3EA.
+  --color-warn-ink: #8A5A1A.
+  --color-warn-text: #5A4A38.
+  --color-schedule-off: #F1EFE8.
+  --color-category-selected: #5B3FBF.
+  --color-category-unselected: #8A7A5A.
+  --color-wizard-unsel-bg: #E0DED4.
+  --color-unsure-ink: #243244.
+  --color-unsure-muted: #64748B.
+  --color-unsure-faint: #7A8798.
+  --color-unsure-line: #CBD5E1.
+  --color-unsure-soft: #DBE6F2.
+  --color-unsure-bg: #EEF1F5.
+  --color-label-faint: #A0A89F.
+  --color-marker-do: #DC2626.
+  --color-marker-ho: #D97706.
+  --color-marker-xanh: #15803D.
+  --color-marker-loi: #EF4444.
+  --color-marker-thung: #F0B429.
+  --color-marker-bulky: #7B5CD6.
+  --color-noi-thung: #1F6FEB.
 
-  /* ---- Token khôi phục 4 biến CSS chết (xóa từ @theme trước đây) -----------
-     Các biến này từng có sẵn trong @theme nhưng bị xóa/hilang; việc hiện tại
-     đưa chúng lại đảm bảo var(--color-*) referencia hoạt động trên toàn app,
-     bao gồm VAI_TRO border references. */
-
-  /* ---- Lớp ánh xạ cho màn Điều phối thùng ----------------------------------
-     Màn này thiết kế bằng Lovable nên viết theo bộ tên của shadcn/ui
-     (`bg-card`, `text-muted-foreground`, `bg-warn`…), khác bộ tên thương hiệu
-     ở trên (`cream`, `ink`, `leaf`…).
-
-     Cách xử lý: KHÔNG sửa className trong 6 component đã thiết kế — dễ gõ sai
-     và mất luôn bản gốc để đối chiếu. Thay vào đó ánh xạ tên shadcn sang đúng
-     màu GreenBin ngay tại đây. Kết quả: một hệ màu duy nhất, hai lớp tên gọi,
-     và muốn chỉnh tông thì sửa đúng một chỗ này.
-
-     Đổi màu ở đây là đổi cả màn Điều phối — đừng sửa lẻ trong component. */
+  /* ---- Lớp ánh xạ shadcn/ui cho màn Điều phối (không sửa component) ---- */
   --color-background: var(--color-cream);
   --color-foreground: var(--color-ink);
   --color-card: #ffffff;
@@ -189,37 +161,51 @@
   --color-popover: #ffffff;
   --color-popover-foreground: var(--color-ink);
   --color-primary: var(--color-leaf);
-  --color-primary-foreground: #ffffff;
-  --color-secondary: var(--color-leaf-soft);
-  --color-secondary-foreground: var(--color-leaf-dark);
-  /* ⚠️ KHÔNG định nghĩa lại `--color-muted`: nó đã là màu CHỮ phụ (#8a938a) và
-     đang được 102 chỗ trong app dùng qua `text-muted`. Đè lên bằng một màu nền
-     nhạt sẽ làm toàn bộ chữ phụ biến mất trên nền sáng. shadcn dùng `muted` làm
-     màu NỀN, nên nó phải mang một tên khác. */
-  --color-muted-bg: #eef1ec;
-  --color-crew-bg: #eef2f6;             /* nền màn điều phối đội vệ sinh */
-  --color-muted-foreground: var(--color-muted-2);
-  --color-accent: var(--color-leaf-soft);
-  --color-accent-foreground: var(--color-leaf-dark);
-  --color-destructive: var(--color-hazard);
-  --color-destructive-foreground: #ffffff;
-  --color-border: var(--color-line);
-  --color-input: var(--color-line-2);
-  --color-ring: var(--color-leaf);
-  --color-sidebar: var(--color-cream-soft);
+  --color-primary-foreground: #ffffff.
+  --color-secondary: var(--color-leaf-soft).
+  --color-secondary-foreground: var(--color-leaf-dark).
+  /* ⚠️ KHÔNG định nghĩa lại `--color-muted`: nó là màu CHỮ phụ (#888B8C). */
+  --color-muted-bg: #EEF1EC.
+  --color-crew-bg: #EEF2F6.
+  --color-muted-foreground: var(--color-muted-2).
+  --color-accent: var(--color-leaf-soft).
+  --color-accent-foreground: var(--color-leaf-dark).
+  --color-destructive: var(--color-hazard).
+  --color-destructive-foreground: #ffffff.
+  --color-border: var(--color-line).
+  --color-input: var(--color-line-2).
+  --color-ring: var(--color-leaf).
+  --color-sidebar: var(--color-cream-soft).
 
-  /* Bốn trạng thái thùng. Trên nền sáng, chỉ đổi màu là không đủ để phân biệt
-     — component còn phân biệt thêm bằng viền, nét đứt và icon. */
-  --color-warn: var(--color-hazard);          /* cần gom  — nặng nhất về thị giác */
-  --color-warn-foreground: #ffffff;
-  --color-warn-soft: var(--color-hazard-soft);
-  --color-power: var(--color-amber);          /* hết pin */
-  --color-power-foreground: #ffffff;
-  --color-power-soft: var(--color-amber-soft);
-  --color-stale: var(--color-muted);          /* mất kết nối — xám, nét đứt */
-  --color-stale-soft: #f1f2f0;
-  --color-ok: var(--color-leaf);              /* bình thường — nhạt nhất */
-  --color-ok-soft: var(--color-leaf-soft);
+  /* Bốn trạng thái thùng */
+  --color-warn: var(--color-hazard).
+  --color-warn-foreground: #ffffff.
+  --color-warn-soft: var(--color-hazard-soft).
+  --color-power: var(--color-amber).
+  --color-power-foreground: #ffffff.
+  --color-power-soft: var(--color-amber-soft).
+  --color-stale: var(--color-muted).
+  --color-stale-soft: #F1F2F0.
+  --color-ok: var(--color-leaf).
+  --color-ok-soft: var(--color-leaf-soft).
+
+  /* Bo góc 4 bậc (§4) */
+  --gb-r-sm: 8px;
+  --gb-r-md: 16px;
+  --gb-r-lg: 24px;
+  --gb-r-full: 999px;
+
+  /* Shadow token — thang 3 bậc ambient, nhuốm navy (§5) */
+  --shadow-xs: 0 1px 2px rgba(28, 44, 70, 0.04);
+  --shadow-sm: 0 2px 4px -1px rgba(28, 44, 70, 0.06), 0 1px 2px rgba(28, 44, 70, 0.04);
+  --shadow-md: 0 6px 12px -2px rgba(28, 44, 70, 0.08), 0 2px 6px -1px rgba(28, 44, 70, 0.04);
+  --shadow-lg: 0 14px 28px -4px rgba(28, 44, 70, 0.10), 0 6px 12px -2px rgba(28, 44, 70, 0.05);
+  --shadow-xl: 0 24px 48px -8px rgba(28, 44, 70, 0.14), 0 12px 20px -4px rgba(28, 44, 70, 0.06);
+
+  /* Easing hữu cơ (§5) */
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* `bin-map.tsx` dựng marker bằng chuỗi HTML nên nó đọc thẳng `var(--warn)`,
@@ -235,21 +221,21 @@
   --stale-soft: #f1f2f0;
   --ok: var(--color-leaf);
 
-  /* --- Hệ thống Easing cao cấp (Spring & Apple-like) --- */
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  /* --- Hệ thống Easing hữu cơ (§5) --- */
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* --- Hệ thống Elevation Shadows 5 cấp (Sắc nét, không bết dính) --- */
-  --shadow-xs: 0 1px 2px rgba(22, 33, 26, 0.04);
-  --shadow-sm: 0 2px 4px -1px rgba(22, 33, 26, 0.06), 0 1px 2px rgba(22, 33, 26, 0.04);
-  --shadow-md: 0 6px 12px -2px rgba(22, 33, 26, 0.08), 0 2px 6px -1px rgba(22, 33, 26, 0.04);
-  --shadow-lg: 0 14px 28px -4px rgba(22, 33, 26, 0.10), 0 6px 12px -2px rgba(22, 33, 26, 0.05);
-  --shadow-xl: 0 24px 48px -8px rgba(22, 33, 26, 0.14), 0 12px 20px -4px rgba(22, 33, 26, 0.06);
+  /* --- Hệ thống Elevation Shadows 3 bậc ambient, nhuốm navy (§5) --- */
+  --shadow-xs: 0 1px 2px rgba(28, 44, 70, 0.04);
+  --shadow-sm: 0 2px 4px -1px rgba(28, 44, 70, 0.06), 0 1px 2px rgba(28, 44, 70, 0.04);
+  --shadow-md: 0 6px 12px -2px rgba(28, 44, 70, 0.08), 0 2px 6px -1px rgba(28, 44, 70, 0.04);
+  --shadow-lg: 0 14px 28px -4px rgba(28, 44, 70, 0.10), 0 6px 12px -2px rgba(28, 44, 70, 0.05);
+  --shadow-xl: 0 24px 48px -8px rgba(28, 44, 70, 0.14), 0 12px 20px -4px rgba(28, 44, 70, 0.06);
 
-  /* Đổ bóng phát sáng thương hiệu (Glow) */
-  --shadow-leaf-glow: 0 8px 24px -4px rgba(47, 174, 102, 0.35);
-  --shadow-hazard-glow: 0 8px 24px -4px rgba(224, 90, 43, 0.35);
+  /* Glow tokens — dùng màu token (§5) */
+  --shadow-leaf-glow: 0 8px 24px -4px rgba(84, 128, 69, 0.35);
+  --shadow-hazard-glow: 0 8px 24px -4px rgba(179, 69, 43, 0.35);
   --shadow-bulky-glow: 0 8px 24px -4px rgba(124, 92, 223, 0.35);
 }
 
@@ -264,7 +250,7 @@ html {
 
 body {
   margin: 0;
-  background: radial-gradient(120% 90% at 50% 0%, #eef1ea 0%, #e2e5dd 60%, #daded4 100%);
+  background: radial-gradient(120% 90% at 50% 0%, #F6F2DD 0%, #EEF1EC 60%, #E4E0D6 100%);
   color: var(--color-ink);
   font-family: var(--font-sans);
   min-height: 100vh;
@@ -294,7 +280,7 @@ body {
 .skeleton-shimmer {
   position: relative;
   overflow: hidden;
-  background-color: rgba(22, 33, 26, 0.06);
+  background-color: rgba(28, 44, 70, 0.06);
 }
 .skeleton-shimmer::after {
   content: "";

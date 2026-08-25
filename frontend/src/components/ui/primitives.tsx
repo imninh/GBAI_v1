@@ -13,11 +13,11 @@ import { IconCanhBao, IconGapLoi, IconMamXanh } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-2xl font-bold tracking-tight select-none cursor-pointer transition-all duration-200 ease-[var(--ease-spring)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
+  "inline-flex items-center justify-center gap-2 rounded-[var(--gb-r-md)] font-bold tracking-tight select-none cursor-pointer transition-all duration-250 ease-[var(--ease-spring)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
   {
     variants: {
       variant: {
-        primary: "bg-ink text-white font-[family-name:var(--font-display)] shadow-[var(--shadow-md)] hover:bg-ink-hover hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5",
+        primary: "bg-leaf text-white font-[family-name:var(--font-display)] shadow-[var(--shadow-sm)] hover:bg-leaf-dark hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5",
         leaf: "bg-leaf text-white shadow-[var(--shadow-sm)] hover:bg-leaf-dark hover:shadow-[var(--shadow-leaf-glow)] hover:-translate-y-0.5",
         outline: "bg-surface border-[1.5px] border-line-2 text-ink-soft shadow-[var(--shadow-xs)] hover:border-leaf hover:bg-leaf-soft/30 hover:text-leaf-dark",
         soft: "bg-leaf-soft border-[1.5px] border-leaf-mint/40 text-leaf-dark hover:bg-leaf-soft/80 hover:border-leaf",
@@ -26,12 +26,9 @@ const buttonVariants = cva(
         ghost: "bg-transparent text-ink-soft hover:bg-black/5 active:bg-black/10",
       },
       size: {
-        // Đội vệ sinh dùng ngoài nắng, đeo găng: nút tối thiểu 48px, chữ ≥16px.
         lg: "px-6 py-4 text-base min-h-[52px]",
         md: "px-4.5 py-3 text-sm min-h-[44px]",
         sm: "px-3.5 py-2 text-xs min-h-[36px]",
-        // Nút vuông chỉ chứa icon (nút đóng panel, nút thu gọn…). Vẫn giữ 36px
-        // để ngón tay đeo găng bấm được.
         icon: "size-10 p-0 rounded-full",
       },
       block: { true: "w-full", false: "" },
@@ -58,7 +55,7 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return (
     <div
       className={cn(
-        "rounded-2xl bg-surface border border-line-3 shadow-[var(--shadow-xs)] transition-all duration-300 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-md)] hover:border-line-2",
+        "rounded-[var(--gb-r-lg)] bg-surface border border-line-3 shadow-[var(--shadow-xs)] transition-all duration-300 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-md)] hover:border-line-2",
         className
       )}
       {...props}
@@ -82,7 +79,7 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold tracking-wide border shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors duration-200",
+        "inline-flex items-center gap-1.5 rounded-[var(--gb-r-full)] px-3 py-1 text-xs font-extrabold tracking-wide border shadow-[0_1px_2px_rgba(28,44,70,0.02)] transition-colors duration-200",
         tones[tone],
         className
       )}
@@ -113,7 +110,7 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-2.5 px-6 py-12 text-center animate-gbfade">
-      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-cream shadow-[var(--shadow-xs)]">
+      <div className="flex h-16 w-16 items-center justify-center rounded-[var(--gb-r-lg)] bg-cream-soft shadow-[var(--shadow-xs)]">
         <Icon className="h-8 w-8 text-muted" strokeWidth={1.8} />
       </div>
       <div className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight">{title}</div>
@@ -126,8 +123,8 @@ export function EmptyState({
 /** Trạng thái lỗi — câu tiếng Việt dễ hiểu, nút thử lại, mã lỗi ngắn để tra log. */
 export function ErrorState({ message, code, onRetry }: { message: string; code?: string; onRetry?: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-hazard/30 bg-hazard-soft px-6 py-8 text-center shadow-[var(--shadow-xs)] animate-gbfade">
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface shadow-[var(--shadow-xs)]">
+    <div className="flex flex-col items-center gap-3 rounded-[var(--gb-r-lg)] border border-hazard/30 bg-hazard-soft px-6 py-8 text-center shadow-[var(--shadow-xs)] animate-gbfade">
+      <div className="flex h-12 w-12 items-center justify-center rounded-[var(--gb-r-md)] bg-surface shadow-[var(--shadow-xs)]">
         <IconGapLoi className="h-6 w-6 text-hazard-dark" strokeWidth={1.8} />
       </div>
       <div className="text-sm font-bold text-hazard-dark">{message}</div>

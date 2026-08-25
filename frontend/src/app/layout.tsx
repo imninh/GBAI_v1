@@ -1,22 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Baloo_2, Nunito } from "next/font/google";
+import { Manrope } from "next/font/google";
 import "./globals.css";
 
 import { RegisterSW } from "@/components/pwa/register-sw";
 
-// Baloo 2 có subset tiếng Việt đầy đủ trên Google Fonts — thay Fredoka (chỉ có
-// latin-ext nên một số tổ hợp dấu tiếng Việt hiển thị sai). Cùng tính cách
-// tròn trịa, vui vẻ, đúng thương hiệu. Chữ thân bài vẫn dùng Nunito.
-const baloo = Baloo_2({
+// Manrope — phông nhận diện GreenBin AI (NHAN_DIEN §3).
+// Weight 400/600/700, subset vietnamese, self-host qua next/font.
+const manrope = Manrope({
   subsets: ["latin", "vietnamese"],
-  weight: ["500", "600", "700", "800"],
-  variable: "--font-baloo",
-});
-
-const nunito = Nunito({
-  subsets: ["latin", "vietnamese"],
-  weight: ["400", "600", "700", "800"],
-  variable: "--font-nunito",
+  weight: ["400", "600", "700"],
+  variable: "--font-manrope",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -73,7 +67,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={`${baloo.variable} ${nunito.variable}`} suppressHydrationWarning>
+    <html lang="vi" className={`${manrope.variable}`} suppressHydrationWarning>
       <body suppressHydrationWarning>
         <RegisterSW />
         {children}
