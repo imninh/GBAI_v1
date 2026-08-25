@@ -88,9 +88,9 @@ export function Mascot({
   );
 }
 
-/** Bốn beat onboarding — kể chuyện, mỗi màn MỘT ý như prototype redesign.
- *  Mỗi beat: tint nền + blob khác nhau, Bini một tư thế, chữ khổng lồ, CTA duy nhất.
- *  Không phải form, không xin quyền — chỉ dẫn dắt người dùng tới màn đăng nhập.
+/** Màn chào MỘT slide — Bini hero + thương hiệu + 3 điểm value + CTA vào thẳng
+ *  đăng nhập. Animation stagger một lượt khi mở (transform/opacity, reduced-motion).
+ *  Không phải form, không xin quyền — chỉ dẫn người dùng tới màn đăng nhập.
  */
 export function OnboardingScreen({ onNext }: { onNext: () => void }) {
   // Ba điểm value gọn — trên CÙNG màn chào, không tách slide.
