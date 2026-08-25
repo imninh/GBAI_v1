@@ -8,12 +8,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import exists, or_, select
 
 from src.api.deps import CurrentUser, DbSession, require
 from src.api.errors import bad_request, not_found
 from src.api.serializers import route_dict
-from src.db.models import PickupRoute, RouteStop, User
+from src.db.models import PickupRoute, RouteStop, RouteThanhVien, User
 from src.models.schemas import CompleteStopRequest, ProposeRouteRequest, ReviewRouteRequest
 from src.services import duong_di_that, kip_thu_gom, lich_tu_dong, route_planner, runs
 from src.services.auth import write_audit
@@ -222,7 +222,19 @@ def list_routes(
     if status:
         statement = statement.where(PickupRoute.status == status)
     if user.role == "cleaner":
-        statement = statement.where(PickupRoute.team_id == user.id, PickupRoute.status != "proposed")
+        # Hai đường nhìn thấy chuyến: trưởng kíp qua ``team_id``, thành viên kíp
+        # qua ``RouteThanhVien``. Trước đây chỉ trưởng kíp nhìn thấy — một kíp ba
+        # người thì hai người kia không bao giờ thấy tuyến của mình (E2E §8).
+        trong_kip = exists(
+            select(RouteThanhVien.route_id).where(
+                RouteThanhVien.route_id == PickupRoute.id,
+                RouteThanhVien.user_id == user.id,
+            )
+        )
+        statement = statement.where(
+            or_(PickupRoute.team_id == user.id, trong_kip),
+            PickupRoute.status != "proposed",
+        )
 
     rows = session.scalars(statement.order_by(PickupRoute.service_date.desc())).all()
     return {"items": [route_dict(session, r) for r in rows]}
@@ -354,8 +366,20 @@ def get_route(route_id: int, session: DbSession, user: CurrentUser) -> dict:
     route = session.get(PickupRoute, route_id)
     if route is None:
         raise not_found("tuyến này")
-    if user.role == "cleaner" and route.team_id != user.id:
-        raise not_found("tuyến này")
+    if user.role == "cleaner":
+        la_truong_kip = route.team_id == user.id
+        trong_kip = (
+            session.scalar(
+                select(RouteThanhVien.id).where(
+                    RouteThanhVien.route_id == route.id,
+                    RouteThanhVien.user_id == user.id,
+                )
+            )
+            is not None
+        )
+        if not (la_truong_kip or trong_kip):
+            # 404 chứ không 403 — không lộ sự tồn tại của tuyến với kíp khác.
+            raise not_found("tuyến này")
 
     data = route_dict(session, route, full=True)
     data["diff"] = route_planner.route_diff(route)

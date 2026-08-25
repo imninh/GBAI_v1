@@ -189,7 +189,9 @@ def test_gop_cac_yeu_cau_cung_ngay_cung_khung_gio_cung_cum(db_session: Session, 
     _tao_yeu_cau(db_session, toa_nha, "S3-0710", weight=10, ngay=ngay, khung="14:00-16:00")
     db_session.commit()
 
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
 
     assert tuyen.status == "proposed", "Agent không được tự chốt lịch của người"
     assert len(tuyen.stops) == 3
@@ -239,7 +241,9 @@ def test_sua_roi_duyet_thi_hien_duoc_diff_so_voi_ban_ai_de_xuat(db_session: Sess
     b = _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay)
     c = _tao_yeu_cau(db_session, toa_nha, "S2-0501", weight=10, ngay=ngay)
     db_session.commit()
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
     ban_ai = list(tuyen.proposed_stop_order)
     # `stop_order` / `removed_stops` nay mang RouteStop.id (gói C0b) — map từng
     # yêu cầu qua id điểm dừng tương ứng trong tuyến.
@@ -267,7 +271,9 @@ def test_bo_diem_khoi_tuyen_thi_tinh_lai_quang_duong(db_session: Session, toa_nh
     a = _tao_yeu_cau(db_session, toa_nha, "S1-1203", weight=20, ngay=ngay)
     _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay)
     db_session.commit()
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
     khoi_luong_truoc = tuyen.total_weight_kg
     id_diem_theo_yeu_cau = {s.request_id: s.id for s in tuyen.stops}
 
@@ -288,7 +294,9 @@ def test_danh_dau_da_thu_va_bao_su_co(db_session: Session, toa_nha) -> None:
     _tao_yeu_cau(db_session, toa_nha, "S1-1203", weight=20, ngay=ngay)
     _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay)
     db_session.commit()
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
     route_planner.review_route(db_session, route=tuyen, actor=toa_nha["manager"], action="approve")
 
     diem_dau, diem_sau = sorted(tuyen.stops, key=lambda s: s.seq)
@@ -308,7 +316,9 @@ def test_ma_su_co_ngoai_danh_sach_thi_bao_loi(db_session: Session, toa_nha) -> N
     ngay = date(2026, 8, 6)
     _tao_yeu_cau(db_session, toa_nha, "S1-1203", weight=20, ngay=ngay)
     db_session.commit()
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
 
     with pytest.raises(ValueError, match="không nằm trong danh sách cố định"):
         route_planner.complete_stop(
@@ -323,7 +333,9 @@ def test_cung_toa_cung_khung_gio_thi_gop_mot_chuyen(db_session: Session, toa_nha
     _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay, duyet_luon=True)
     db_session.commit()
 
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
 
     assert tuyen.status == "proposed"
     assert len(tuyen.stops) == 2, "Hai yêu cầu cùng toà cùng khung giờ phải đi một chuyến"
@@ -337,7 +349,9 @@ def test_khung_gio_khac_nhau_thi_khong_gop(db_session: Session, toa_nha) -> None
     yeu_cau_chieu = _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay, khung="14:00-16:00")
     db_session.commit()
 
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
 
     assert len(tuyen.stops) == 1, "Chỉ yêu cầu cùng khung giờ được vào tuyến"
     assert tuyen.stops[0].request_id == yeu_cau_sang.id
@@ -353,7 +367,9 @@ def test_duyet_tuyen_thi_yeu_cau_chuyen_sang_da_nhan_va_ghi_su_kien(
     _tao_yeu_cau(db_session, toa_nha, "S1-1203", weight=20, ngay=ngay)
     _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay)
     db_session.commit()
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
 
     route_planner.review_route(db_session, route=tuyen, actor=toa_nha["manager"], action="approve")
     db_session.commit()
@@ -372,7 +388,9 @@ def test_huy_tuyen_thi_yeu_cau_quay_ve_cho_nhan(db_session: Session, toa_nha) ->
     _tao_yeu_cau(db_session, toa_nha, "S1-1203", weight=20, ngay=ngay)
     _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay)
     db_session.commit()
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
     route_planner.review_route(db_session, route=tuyen, actor=toa_nha["manager"], action="approve")
     db_session.commit()
 
@@ -391,7 +409,9 @@ def test_diff_so_voi_ban_ai_khi_sap_lai_thu_tu(db_session: Session, toa_nha) -> 
     _tao_yeu_cau(db_session, toa_nha, "S1-1203", weight=20, ngay=ngay)
     _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay)
     db_session.commit()
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
     ban_ai = list(tuyen.proposed_stop_order)
     id_diem_theo_yeu_cau = {s.request_id: s.id for s in tuyen.stops}
     # AI đề xuất theo thứ tự sắp theo mã toà/căn hộ (S1-0805 trước S1-1203) —
@@ -425,7 +445,9 @@ def test_hoan_tat_tat_ca_diem_thi_tuyen_done_va_yeu_cau_hoan_tat(
     _tao_yeu_cau(db_session, toa_nha, "S1-1203", weight=20, ngay=ngay)
     _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay)
     db_session.commit()
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
     route_planner.review_route(db_session, route=tuyen, actor=toa_nha["manager"], action="approve")
     db_session.commit()
 
@@ -498,7 +520,9 @@ def test_bo_duoc_diem_dung_loai_thung(db_session: Session, toa_nha) -> None:
     _tao_yeu_cau(db_session, toa_nha, "S1-1203", weight=20, ngay=ngay)
     _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay)
     db_session.commit()
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
 
     diem_thung = next(s for s in tuyen.stops if s.stop_kind == STOP_KIND_THUNG)
     assert len(tuyen.stops) == 3, "Fixture phải dựng tuyến trộn cả hai loại điểm dừng"
@@ -526,7 +550,9 @@ def test_bo_diem_thung_khong_dung_toi_yeu_cau_nao(db_session: Session, toa_nha) 
     yeu_cau_a = _tao_yeu_cau(db_session, toa_nha, "S1-1203", weight=20, ngay=ngay)
     yeu_cau_b = _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay)
     db_session.commit()
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
 
     id_yeu_cau_trong_tuyen = {s.request_id for s in tuyen.stops if s.request_id}
     assert id_yeu_cau_trong_tuyen == {yeu_cau_a.id, yeu_cau_b.id}
@@ -555,7 +581,9 @@ def test_sap_lai_thu_tu_dung_duoc_cho_ca_diem_dung_thung(db_session: Session, to
     _tao_yeu_cau(db_session, toa_nha, "S1-1203", weight=20, ngay=ngay)
     _tao_yeu_cau(db_session, toa_nha, "S1-0805", weight=15, ngay=ngay)
     db_session.commit()
-    tuyen = route_planner.propose_route(db_session, service_date=ngay, window="08:00-10:00")
+    tuyen = route_planner.propose_route(
+        db_session, service_date=ngay, window="08:00-10:00", team_id=toa_nha["cleaner"].id
+    )
 
     thu_tu_cu = [s.id for s in sorted(tuyen.stops, key=lambda s: s.seq)]
     dao_nguoc = list(reversed(thu_tu_cu))

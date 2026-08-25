@@ -145,6 +145,9 @@ def test_i7_reviewer_approves_with_changes(db_session, monkeypatch: pytest.Monke
 
     actor = db_session.query(User).filter_by(role="manager").first()
     route = route_planner.propose_route(db_session, service_date=date.today(), window="sang")
+    # Contract mới (E2E-03a): tuyến đã duyệt bắt buộc phải có kíp.
+    don_vi = db_session.query(User).filter_by(role="cleaner").first()
+    route.team_id = don_vi.id if don_vi else actor.id
 
     # Đảo ngược thứ tự điểm dừng
     stop_ids = [s.id for s in sorted(route.stops, key=lambda s: s.seq, reverse=True)]

@@ -407,6 +407,23 @@ async def test_duyet_tuyen_thi_bao_da_thong_bao_cho_cu_dan(api: AsyncClient) -> 
         )
     ).json()
 
+    # Gán kíp trước khi duyệt — tuyến đã duyệt bắt buộc phải có đội, kẻo
+    # cleaner không bao giờ nhìn thấy nó (E2E §8). Kíp phải đúng 2 người.
+    token_cleaner_1 = await _dang_nhap(api, "cleaner@demo.vn")
+    token_cleaner_2 = await _dang_nhap(api, "cleaner2@demo.vn")
+    uid_1 = (
+        await api.get("/api/v1/auth/me", headers=_auth(token_cleaner_1))
+    ).json()["user"]["id"]
+    uid_2 = (
+        await api.get("/api/v1/auth/me", headers=_auth(token_cleaner_2))
+    ).json()["user"]["id"]
+    response = await api.put(
+        f"/api/v1/routes/{tuyen['id']}/kip",
+        json={"user_ids": [uid_1, uid_2]},
+        headers=_auth(manager),
+    )
+    assert response.status_code == 200
+
     response = await api.post(
         f"/api/v1/routes/{tuyen['id']}/review", json={"action": "approve"}, headers=_auth(manager)
     )

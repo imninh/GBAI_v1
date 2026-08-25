@@ -194,6 +194,21 @@ async def test_di_tron_kich_ban_demo(
     assert len(tuyen["stops"]) >= 2, "Bước 5: tuyến phải gộp được cả hai yêu cầu"
     assert tuyen["reasoning"]["criteria"], "Bước 5: phải có lời giải thích vì sao gộp thế này"
 
+    # Bước 5.5 — Gán kíp TRƯỚC khi duyệt: tuyến đã duyệt mà không có đội thì
+    # cleaner không bao giờ thấy được (E2E §8) — API từ chối duyệt tuyến trống
+    # kíp. Kíp phải đúng SO_NGUOI_MOI_KIP = 2 người.
+    nhan_kip_1 = await _dang_nhap(api, "cleaner@demo.vn")
+    nhan_kip_2 = await _dang_nhap(api, "cleaner2@demo.vn")
+    response = await api.put(
+        f"/api/v1/routes/{tuyen['id']}/kip",
+        json={
+            "user_ids": [nhan_kip_1["user"]["id"], nhan_kip_2["user"]["id"]],
+            "truong_kip_id": nhan_kip_1["user"]["id"],
+        },
+        headers=_auth(token_manager),
+    )
+    assert response.status_code == 200, f"Bước 5.5: gán kíp thất bại — {response.text}"
+
     # Bước 6 — Duyệt tuyến kèm bỏ một điểm để diff khác bản AI
     diem_b = next(s for s in tuyen["stops"] if s["request_id"] == yeu_cau_b["id"])
     response = await api.post(

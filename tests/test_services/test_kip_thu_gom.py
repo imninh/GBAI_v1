@@ -460,3 +460,56 @@ def test_tao_lich_tuan_ngay_tuan_deu_truyen_vao(db_session, building, unit, clea
     ket = lich_tu_dong.tao_lich_tuan(db_session, actor=actor, tuan_bat_dau=tuan)
     assert ket["so_ngay_xet"] == 1  # Chỉ T2 có lịch
     assert ket["so_chuyen_tao"] >= 1
+
+
+# ---------------------------------------------------------------------------
+# E2E-03a — cleaner visibility: tuyến đã duyệt phải có kíp, và cả thành viên
+# kíp (RouteThanhVien) cũng phải thấy được chuyến của mình.
+# ---------------------------------------------------------------------------
+
+
+def test_duyet_tuyen_thieu_kip_bi_chan(db_session, route, manager):
+    """Tuyến chưa gán kíp thì KHÔNG được duyệt — approved mà team_id=None là
+    tuyến vô hình với mọi cleaner và không ai nhận thông báo (E2E §8)."""
+    from src.services import route_planner
+
+    assert route.team_id is None
+    with pytest.raises(ValueError, match="gán kíp"):
+        route_planner.review_route(
+            db_session, route=route, actor=manager, action="approve"
+        )
+    db_session.refresh(route)
+    assert route.status == "proposed", "Bị chặn thì trạng thái không được đổi"
+
+
+def test_kip_da_gan_thi_truong_va_thanh_vien_deu_thay_tuyen(db_session, route, manager, cleaners_3):
+    """Sau khi gán kíp + duyệt: trưởng kíp thấy qua team_id, thành viên thấy qua
+    RouteThanhVien, cleaner ngoài kíp thì không; get_route cũng phân biệt vậy."""
+    from src.api.errors import ApiError
+    from src.api.routers import routes as tuyen_router
+    from src.services import route_planner
+
+    truong, thanh_vien, ngoai_kip = cleaners_3
+    kip_thu_gom.gan_kip(
+        db_session,
+        actor=manager,
+        route_id=route.id,
+        user_ids=[truong.id, thanh_vien.id],
+        truong_kip_id=truong.id,
+    )
+    route_planner.review_route(db_session, route=route, actor=manager, action="approve")
+
+    def _ids(user):
+        ket = tuyen_router.list_routes(session=db_session, user=user)
+        return [r["id"] for r in ket["items"]]
+
+    assert route.id in _ids(truong), "Trưởng kíp phải thấy tuyến"
+    assert route.id in _ids(thanh_vien), "Thành viên kíp cũng phải thấy tuyến"
+    assert route.id not in _ids(ngoai_kip), "Cleaner ngoài kíp không được thấy"
+
+    assert tuyen_router.get_route(route.id, session=db_session, user=truong)["id"] == route.id
+    assert tuyen_router.get_route(route.id, session=db_session, user=thanh_vien)["id"] == route.id
+    with pytest.raises(ApiError) as loi:
+        tuyen_router.get_route(route.id, session=db_session, user=ngoai_kip)
+    # 404 chứ không 403 — che luôn sự tồn tại của tuyến với kíp khác.
+    assert loi.value.status_code == 404

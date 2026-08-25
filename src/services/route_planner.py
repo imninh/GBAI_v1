@@ -627,6 +627,19 @@ def review_route(
         session.flush()
         return route
 
+    # ⛔ Bất biến visibility (E2E §8 — cleaner không nhận được route đã duyệt):
+    # ``team_id`` nullable và propose cho phép bỏ trống ("mã đội tuỳ chọn"), nên
+    # tuyến từng có thể approved với ``team_id=None`` — khi đó nó VÔ HÌNH với mọi
+    # cleaner (list/get chỉ so team_id) và không ai nhận thông báo (nhánh
+    # ``if route.team_id:`` lặng lẽ bỏ qua). Huỷ tuyến chưa gán kíp vẫn cho phép,
+    # còn duyệt thì bắt buộc phải có đội trước.
+    if route.team_id is None:
+        raise ValueError(
+            "Tuyến chưa được gán kíp thu gom — hãy gán đội ở khối Kíp thu gom & "
+            "sự cố rồi duyệt lại. Tuyến đã duyệt mà không có đội thì cleaner "
+            "không bao giờ nhìn thấy."
+        )
+
     if action == "approve_with_changes":
         # Khớp theo KHOÁ CHÍNH của điểm dừng, không phải `request_id`: điểm dừng
         # loại `thung` có `request_id = NULL` nên khớp kiểu cũ thì không bao giờ
