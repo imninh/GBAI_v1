@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import logging
 import re
+from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -18,6 +19,7 @@ from src.services.classifier_types import ClassifyOutcome, NodeMetric
 from src.services.theo_doi import (
     TheoDoiAI,
     che_du_lieu,
+    ghi_trace_chatbot,
     ghi_trace_phan_loai,
 )
 
@@ -198,6 +200,10 @@ class _CapClient:
         self.init_kwargs = kw
         self.traces = []
         self.flushed = False
+        self.propagated = None
+
+    def propagate_attributes(self, **kw):
+        self.propagated = kw
 
     def start_observation(self, **kw):
         name = kw.pop("name", "trace")
@@ -326,3 +332,94 @@ def test_ket_qua_phan_loai_khong_doi_khi_trace_hong(monkeypatch):
     monkeypatch.setattr("src.services.theo_doi.ghi_trace_phan_loai", _raise)
     out_broken = classify_waste(sess, text_query="chai nhựa")
     assert out_off == out_broken
+
+
+# --- Mới thêm: verify propagate_attributes và flush cho chatbot ---
+
+def _bat_propagate(monkeypatch):
+    """Patch hàm module-level propagate_attributes, trả dict ghi lại kwargs."""
+    captured = {}
+
+    @contextmanager
+    def fake_pa(**kw):
+        captured.update(kw)
+        yield
+
+    monkeypatch.setattr("src.services.theo_doi.propagate_attributes", fake_pa)
+    return captured
+
+
+def test_phan_loai_propagate_attributes(monkeypatch):
+    """7. trace_phan_loai gọi propagate_attributes kèm user_id và 5 tag."""
+    client = _CapClient()
+    _enable_langfuse(monkeypatch, lambda **kw: client)
+    captured = _bat_propagate(monkeypatch)
+    out = ClassifyOutcome(
+        item_name="chai", confidence=0.9,
+        tier="t1_mini", provider="groq", refused=False, suspect_hazardous=False,
+    )
+    ghi_trace_phan_loai(outcome=out, bat_dau=0.0, text_query="chai nhựa")
+    assert captured.get("user_id") == "khach"
+    tags = captured.get("tags")
+    assert len(tags) == 5
+    assert tags[0] == "t1_mini"       # tier
+    assert tags[1] == "groq"          # provider
+    assert tags[2] == get_settings().app_env
+    assert tags[3] == "refused:False"
+    assert tags[4] == "suspect_hazardous:False"
+
+
+def test_phan_loai_user_id_propagate(monkeypatch):
+    """8. trace_phan_loai propagate_attributes nhận user_id đúng."""
+    client = _CapClient()
+    _enable_langfuse(monkeypatch, lambda **kw: client)
+    captured = _bat_propagate(monkeypatch)
+    out = ClassifyOutcome(item_name="chai", confidence=0.9)
+    ghi_trace_phan_loai(outcome=out, bat_dau=0.0, text_query="chai nhựa", user_id="12")
+    assert captured.get("user_id") == "12"
+
+
+def test_chatbot_khong_goi_flush(monkeypatch, caplog):
+    """9. trace_chatbot KHÔNG gọi client.flush trong đường phục vụ người dùng."""
+    client = _CapClient()
+    _enable_langfuse(monkeypatch, lambda **kw: client)
+    captured = _bat_propagate(monkeypatch)
+
+    # Giả lập resp có intent + sources để có span truy_hoi
+    mock_resp = MagicMock()
+    mock_resp.answer = "Cái này rác quá."
+    mock_resp.intent = "waste_general"
+    mock_resp.sources = []
+    mock_resp.generated_by = ""
+    mock_resp.usage = None
+
+    with caplog.at_level(logging.WARNING):
+        ghi_trace_chatbot(question="Rác gì đó?", resp=mock_resp, bat_dau=0.0)
+    # flush KHÔNG bao giờ được gọi
+    assert client.flushed is False
+    # thuộc tính cấp trace vẫn đi qua propagate_attributes
+    assert captured.get("user_id") == "khach"
+    assert captured.get("tags") == ["waste_general", get_settings().app_env]
+
+
+def test_chatbot_luot_luu_loi(monkeypatch, caplog):
+    """10. Langfuse SDK ném lỗi -> vẫn nuốt lỗi, chỉ ghi warning."""
+
+    class _Boom:
+        def __init__(self, **kw):
+            self.kw = kw
+
+        def start_observation(self, **kw):
+            raise RuntimeError("observation crash")
+
+        def flush(self):
+            pass
+
+    def _boom_pa(**kw):
+        raise RuntimeError("propagate crash")
+
+    _enable_langfuse(monkeypatch, _Boom)
+    monkeypatch.setattr("src.services.theo_doi.propagate_attributes", _boom_pa)
+    with caplog.at_level(logging.WARNING):
+        ghi_trace_chatbot(question="test", resp=MagicMock(), bat_dau=0.0)
+    assert any("ghi trace chatbot" in r.message.lower() for r in caplog.records)

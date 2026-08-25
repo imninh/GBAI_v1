@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import re
 import time
+from contextlib import nullcontext
 from typing import Any
 
 from src.config import get_settings
@@ -22,11 +23,12 @@ from src.config import get_settings
 logger = logging.getLogger(__name__)
 
 try:
-    from langfuse import Langfuse
+    from langfuse import Langfuse, propagate_attributes
 
     _CO_LANGFUSE = True
 except Exception:  # pragma: no cover - langfuse là tuỳ chọn, không bắt buộc chạy
     Langfuse = None
+    propagate_attributes = None
     _CO_LANGFUSE = False
 
 
@@ -133,50 +135,62 @@ class TheoDoiAI:
             q = che_du_lieu(question, ten_nguoi=ten_nguoi)
             a = che_du_lieu(resp.answer, ten_nguoi=ten_nguoi)
             tags = [str(getattr(resp, "intent", "unknown")), get_settings().app_env]
-            ctx = {"user_id": str(user_id), "tags": tags, "name": "chatbot"}
-            trace = self.client.start_observation(
-                name="chatbot",
-                as_type="chain",
-                input=q,
-                output=a,
-                trace_context=ctx,
+            # Thuộc tính cấp trace (user_id/tags) phải qua hàm module-level
+            # propagate_attributes của SDK 4.x — client KHÔNG có method này.
+            ctx = (
+                propagate_attributes(user_id=str(user_id), tags=tags)
+                if propagate_attributes is not None
+                else nullcontext()
             )
-            # Span truy hồi: chỉ số đoạn + điểm, KHÔNG gửi nguyên văn đoạn.
-            srcs = getattr(resp, "sources", None) or []
-            if srcs:
-                diem = max((s.score for s in srcs), default=0.0)
-                trace.start_observation(
-                    name="truy_hoi",
-                    as_type="retriever",
-                    input={"so_doan": len(srcs), "diem_truy_hoi": round(diem, 4)},
-                    output={"da_che": True},
-                ).end()
-            # Span gọi model: chỉ khi thực sự gọi model (không phải template/abstain).
-            gb = getattr(resp, "generated_by", "")
-            usage = getattr(resp, "usage", None)
-            if gb and gb not in ("template", "abstain") and usage is not None:
-                model = get_settings().resolve_model_for("text")
-                trace.start_observation(
-                    name="goi_model",
-                    as_type="generation",
-                    model=model,
-                    input={"provider": gb},
-                    output={"da_che": True},
-                    usage_details={"input": usage.tokens_in, "output": usage.tokens_out},
-                    metadata={"do_tre_ms": round((time.perf_counter() - bat_dau) * 1000, 1)},
-                ).end()
-            # Điểm needs_verification: câu độ tự tin thấp / rơi fallback cần người kiểm.
-            can = (
-                getattr(resp, "confidence_level", "") == "Low"
-                or getattr(resp, "fallback_level", 0) >= 2
-                or gb in ("template", "abstain")
-            )
-            try:
-                trace.score_trace(name="needs_verification", value=1.0 if can else 0.0)
-            except Exception:
-                logger.warning("Langfuse ghi score thất bại.", exc_info=True)
-            trace.end()
-            self.client.flush()
+            with ctx:
+                trace = self.client.start_observation(
+                    name="chatbot",
+                    as_type="chain",
+                    input=q,
+                    output=a,
+                )
+                # Span truy hồi: chỉ số đoạn + điểm, KHÔNG gửi nguyên văn đoạn.
+                srcs = getattr(resp, "sources", None) or []
+                if srcs:
+                    diem = max((s.score for s in srcs), default=0.0)
+                    trace.start_observation(
+                        name="truy_hoi",
+                        as_type="retriever",
+                        input={"so_doan": len(srcs), "diem_truy_hoi": round(diem, 4)},
+                        output={"da_che": True},
+                    ).end()
+                # Span gọi model: chỉ khi thực sự gọi model (không phải template/abstain).
+                gb = getattr(resp, "generated_by", "")
+                usage = getattr(resp, "usage", None)
+                if gb and gb not in ("template", "abstain") and usage is not None:
+                    model = get_settings().resolve_model_for("text")
+                    trace.start_observation(
+                        name="goi_model",
+                        as_type="generation",
+                        model=model,
+                        input={"provider": gb},
+                        output={"da_che": True},
+                        usage_details={
+                            "input": usage.tokens_in,
+                            "output": usage.tokens_out,
+                        },
+                        metadata={
+                            "do_tre_ms": round((time.perf_counter() - bat_dau) * 1000, 1)
+                        },
+                    ).end()
+                # Điểm needs_verification: câu độ tự tin thấp / rơi fallback cần người kiểm.
+                can = (
+                    getattr(resp, "confidence_level", "") == "Low"
+                    or getattr(resp, "fallback_level", 0) >= 2
+                    or gb in ("template", "abstain")
+                )
+                try:
+                    trace.score_trace(
+                        name="needs_verification", value=1.0 if can else 0.0
+                    )
+                except Exception:
+                    logger.warning("Langfuse ghi score thất bại.", exc_info=True)
+                trace.end()
         except Exception:
             logger.warning("Langfuse ghi trace chatbot thất bại.", exc_info=True)
 
@@ -219,38 +233,44 @@ class TheoDoiAI:
                 f"refused:{outcome.refused}",
                 f"suspect_hazardous:{outcome.suspect_hazardous}",
             ]
-            ctx = {"user_id": str(user_id), "tags": tags, "name": "phan_loai"}
+            # Thuộc tính cấp trace (user_id/tags) phải qua hàm module-level
+            # propagate_attributes của SDK 4.x — client KHÔNG có method này.
+            ctx = (
+                propagate_attributes(user_id=str(user_id), tags=tags)
+                if propagate_attributes is not None
+                else nullcontext()
+            )
             # Giá không biết thì đừng báo là 0đ — gửi None kèm cờ price_known.
             cost = round(outcome.cost_usd, 6) if outcome.price_known else None
-            trace = self.client.start_observation(
-                name="phan_loai",
-                as_type="chain",
-                input=inp,
-                output=out,
-                trace_context=ctx,
-                metadata={
-                    "latency_ms": outcome.latency_ms,
-                    "cost_usd": cost,
-                    "price_known": outcome.price_known,
-                },
-            )
-            # Mỗi tầng xử lý thành một span con — thấy món rác đi T0→T0.5→T1→T2 ra sao,
-            # tầng nào chốt, tầng nào tốn tiền.
-            for node in outcome.nodes:
-                trace.start_observation(
-                    name=node.node,
+            with ctx:
+                trace = self.client.start_observation(
+                    name="phan_loai",
                     as_type="chain",
-                    input={"status": node.status},
-                    output={
-                        "duration_ms": node.duration_ms,
-                        "tokens_in": node.tokens_in,
-                        "tokens_out": node.tokens_out,
-                        "cost_usd": round(node.cost_usd, 6),
-                        "cache_hits": node.cache_hits,
-                        "llm_calls": node.llm_calls,
+                    input=inp,
+                    output=out,
+                    metadata={
+                        "latency_ms": outcome.latency_ms,
+                        "cost_usd": cost,
+                        "price_known": outcome.price_known,
                     },
-                ).end()
-            trace.end()
+                )
+                # Mỗi tầng xử lý thành một span con — thấy món rác đi T0→T0.5→T1→T2 ra sao,
+                # tầng nào chốt, tầng nào tốn tiền.
+                for node in outcome.nodes:
+                    trace.start_observation(
+                        name=node.node,
+                        as_type="chain",
+                        input={"status": node.status},
+                        output={
+                            "duration_ms": node.duration_ms,
+                            "tokens_in": node.tokens_in,
+                            "tokens_out": node.tokens_out,
+                            "cost_usd": round(node.cost_usd, 6),
+                            "cache_hits": node.cache_hits,
+                            "llm_calls": node.llm_calls,
+                        },
+                    ).end()
+                trace.end()
         except Exception:
             logger.warning("Langfuse ghi trace phân loại thất bại.", exc_info=True)
 
