@@ -11,6 +11,7 @@
 import * as React from "react";
 
 import { Mascot } from "@/components/resident/onboarding";
+import { HoaTiet } from "@/components/ui/pattern";
 import { Button } from "@/components/ui/primitives";
 import { tinhCap, tinhStreak, homNay } from "@/lib/gamification";
 import { IconChonAnh, IconDuyet, IconMoTaChu, IconChuong, IconXeThuGom } from "@/lib/icons";
@@ -99,6 +100,9 @@ export function AskScreen({
 
   return (
     <div className="relative flex min-h-full flex-col overflow-hidden bg-[linear-gradient(180deg,var(--color-nen-trang-chu)_0%,var(--color-cream)_40%)] px-5 pb-[120px] pt-[54px] lg:mx-auto lg:max-w-[960px]">
+      {/* Hoạ tiết góc — mờ, ở rìa, dưới nội dung */}
+      <HoaTiet loai="blob" className="right-[-52px] top-16 h-44 w-44" />
+
       {/* ── header: lời chào + chuông ── */}
       <div className="flex items-center justify-between">
         <div className="min-w-0">

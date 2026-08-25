@@ -53,8 +53,17 @@ export function PhoneFrame({
               onChange={onChange}
               accent={accent}
               header={
-                <span className="font-[family-name:var(--font-display)] text-base font-bold tracking-tight">
-                  GreenBin<span className="text-leaf"> AI</span>
+                <span className="flex items-center gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/logo/chinh.svg"
+                    alt=""
+                    aria-hidden="true"
+                    className="h-7 w-7 object-contain"
+                  />
+                  <span className="font-[family-name:var(--font-display)] text-base font-bold tracking-tight">
+                    GreenBin<span className="text-leaf"> AI</span>
+                  </span>
                 </span>
               }
             />

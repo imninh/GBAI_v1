@@ -6,7 +6,6 @@ import * as React from "react";
 
 import { CaiAppCard } from "@/components/pwa/cai-app";
 import { DiemNhanThucScreen } from "@/components/resident/diem_nhan_thuc";
-import { Mascot } from "@/components/resident/onboarding";
 import { Button, Card, EmptyState, Skeleton } from "@/components/ui/primitives";
 import { ScreenHeader } from "@/components/ui/shell";
 import { api } from "@/lib/api";
@@ -239,7 +238,10 @@ export function RequestsScreen({ onOpen, onCreate }: { onOpen: (id: number) => v
           icon={IconMonDo}
           title="Chưa có yêu cầu nào"
           hint="Chụp món rác đầu tiên để bắt đầu nhé."
-          minhHoa={<Mascot size={64} tuThe="nup-la" />}
+          minhHoa={
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/illus/cay-chau.svg" alt="" aria-hidden="true" className="h-20 w-20 object-contain" />
+          }
         />
       ) : (
         items.map((yc) => {

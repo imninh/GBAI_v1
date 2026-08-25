@@ -12,6 +12,7 @@ import * as React from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/primitives";
+import { HoaTiet } from "@/components/ui/pattern";
 import { api } from "@/lib/api";
 import { IconChao, IconChupAnh, IconMamXanh, IconManHinhRong, IconTiepTuc, IconXeThuGom } from "@/lib/icons";
 import { useSession } from "@/lib/session";
@@ -109,6 +110,9 @@ export function OnboardingScreen({ onNext }: { onNext: () => void }) {
       {/* bong bóng nền */}
       <div className="absolute top-[12%] left-1/2 h-[300px] w-[300px] -translate-x-1/2 rounded-full"
         style={{ background: "var(--color-blob-leaf)", filter: "blur(2px)" }} />
+
+      {/* growth-rings phía sau Bini — rất nhạt, chỉ trang trí, không che chữ */}
+      <HoaTiet loai="rings" className="inset-0 h-full w-full" />
 
       {/* Bini hero — hiện lên có sức nặng rồi trôi nhẹ; vài chấm "tia loé" một nhịp */}
       <div className="animate-gbappear relative z-10" style={delay(0)}>

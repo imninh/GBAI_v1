@@ -10,6 +10,7 @@ import type { LucideIcon } from "lucide-react";
 import * as React from "react";
 
 import { IconCanhBao, IconGapLoi, IconMamXanh } from "@/lib/icons";
+import { HoaTiet } from "@/components/ui/pattern";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
@@ -112,17 +113,22 @@ export function EmptyState({
   minhHoa?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2.5 px-6 py-12 text-center animate-gbfade">
-      {minhHoa ? (
-        <div className="mb-1">{minhHoa}</div>
-      ) : (
-        <div className="flex h-16 w-16 items-center justify-center rounded-[var(--gb-r-lg)] bg-cream-soft shadow-[var(--shadow-xs)]">
-          <Icon className="h-8 w-8 text-muted" strokeWidth={1.8} />
-        </div>
-      )}
-      <div className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight">{title}</div>
-      {hint && <p className="max-w-xs text-xs font-semibold leading-relaxed text-muted">{hint}</p>}
-      {action && <div className="mt-2">{action}</div>}
+    <div className="relative flex flex-col items-center justify-center gap-2.5 overflow-hidden px-6 py-12 text-center animate-gbfade">
+      {/* Hoạ tiết nền — ở rìa, dưới nội dung, không nhận sự kiện chuột. */}
+      <HoaTiet loai="rings" className="inset-0 h-full w-full" />
+      <HoaTiet loai="dots" className="right-6 bottom-5 h-16 w-16" />
+      <div className="relative z-10 flex flex-col items-center gap-2.5">
+        {minhHoa ? (
+          <div className="mb-1">{minhHoa}</div>
+        ) : (
+          <div className="flex h-16 w-16 items-center justify-center rounded-[var(--gb-r-lg)] bg-cream-soft shadow-[var(--shadow-xs)]">
+            <Icon className="h-8 w-8 text-muted" strokeWidth={1.8} />
+          </div>
+        )}
+        <div className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight">{title}</div>
+        {hint && <p className="max-w-xs text-xs font-semibold leading-relaxed text-muted">{hint}</p>}
+        {action && <div className="mt-2">{action}</div>}
+      </div>
     </div>
   );
 }
