@@ -41,7 +41,7 @@ export default function DieuPhoiPage() {
 
   const [chiCanGom, setChiCanGom] = React.useState(false);
   const [maDangChon, setMaDangChon] = React.useState<string | null>(null);
-  const [theoDoi, setTheoDoi] = React.useState(false);
+  const [theoDoi, setTheoDoi] = React.useState(true);
   const [soLanLamMoi, setSoLanLamMoi] = React.useState(0);
 
   const [nhanVien, setNhanVien] = React.useState<NhanVien[] | null>(null);

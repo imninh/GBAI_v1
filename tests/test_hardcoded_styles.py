@@ -47,8 +47,19 @@ ALLOWED_HEX_COLORS: dict[str, str] = {
 }
 
 
+# Trang demo thiết bị 3D standalone (teammate) — màu khớp scene Three.js, không phải
+# UI app nên nằm ngoài kỷ luật token app. Loại khỏi phạm vi quét.
+EXCLUDE_DIRS = ("app/demo-thiet-bi",)
+
+
 def find_tsx_files() -> list[Path]:
-    return list(FRONTEND_SRC.rglob("*.tsx"))
+    out: list[Path] = []
+    for f in FRONTEND_SRC.rglob("*.tsx"):
+        rel = f.relative_to(FRONTEND_SRC).as_posix()
+        if any(rel == d or rel.startswith(d + "/") for d in EXCLUDE_DIRS):
+            continue
+        out.append(f)
+    return out
 
 
 def _vi_pham(content: str, pattern: re.Pattern[str], path: Path) -> list[tuple[int, str]]:

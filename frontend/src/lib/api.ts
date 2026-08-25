@@ -42,7 +42,12 @@ import type {
  * đường dẫn, không lo dấu thừa ở đầu. Chuẩn hoá ngay tại nguồn thì lần sau ai
  * dán kiểu gì cũng không hỏng.
  */
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
+export const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+    ? "http://localhost:8000"
+    : "https://greenbin-api-production-d08d.up.railway.app")
+).replace(/\/+$/, "");
 const TOKEN_KEY = "greenbin_token";
 
 export class ApiError extends Error {
@@ -411,4 +416,38 @@ export const api = {
     request<{ status: string; message: string }>("/chatbot/feedback", { method: "POST", body: JSON.stringify(payload) }),
   chatbotSuggestions: () =>
     request<{ suggestions: { category: string; label: string; question: string }[] }>("/chatbot/suggested-questions"),
+
+  // --- Phiên Bỏ Rác Tại Thùng (P63 / MUN QR Integration) ---
+  batDauPhien: (binCode: string) =>
+    request<{
+      ma_phien: string;
+      trang_thai: string;
+      so_vat: number;
+      diem_nhan_thuc: number;
+      bat_dau: string;
+      ket_thuc: string | null;
+    }>("/phien/bat-dau", {
+      method: "POST",
+      body: JSON.stringify({ bin_code: binCode }),
+    }),
+  xemPhien: (maPhien: string) =>
+    request<{
+      ma_phien: string;
+      trang_thai: string;
+      so_vat: number;
+      diem_nhan_thuc: number;
+      bat_dau: string;
+      ket_thuc: string | null;
+    }>(`/phien/${encodeURIComponent(maPhien)}`),
+  dongPhien: (maPhien: string) =>
+    request<{
+      ma_phien: string;
+      trang_thai: string;
+      so_vat: number;
+      diem_nhan_thuc: number;
+      bat_dau: string;
+      ket_thuc: string | null;
+    }>(`/phien/${encodeURIComponent(maPhien)}/dong`, {
+      method: "POST",
+    }),
 };

@@ -130,7 +130,7 @@ def chan_khong_ghi_csdl_xa() -> None:
         return
     if settings.app_env == "production":
         return
-    if os.environ.get("CHO_PHEP_GHI_DB_XA") == "1":
+    if os.environ.get("CHO_PHEP_GHI_DB_XA") == "1" or settings.cho_phep_ghi_db_xa:
         return
 
     host = urlparse(url).hostname or "?"

@@ -204,7 +204,14 @@ def get_logged_entry_ids(log_file: Path) -> set[str]:
 
 def iter_user_inputs(brain_dirs: list[Path], cutoff: datetime | None,
                      only_conv: str | None, repo_root_n: str):
-    """Yield user-input dicts from every matching conversation transcript."""
+    """Yield user-input and tool-call dicts from every matching transcript.
+
+    A transcript line has one of two shapes we care about: a USER_EXPLICIT/
+    USER_INPUT line (what the student typed) or a MODEL line carrying a
+    `tool_calls` list (which tool the AI actually invoked — list_dir,
+    run_command, write_file, ...). Both are needed for the ai-log: prompts
+    alone don't show that the agent *acted* on the repo, only that it talked.
+    """
     for brain in brain_dirs:
         for conv_dir in sorted(brain.iterdir()):
             if not conv_dir.is_dir():
@@ -231,9 +238,6 @@ def iter_user_inputs(brain_dirs: list[Path], cutoff: datetime | None,
                         entry = json.loads(line)
                     except json.JSONDecodeError:
                         continue
-                    if (entry.get("type") != "USER_INPUT"
-                            or entry.get("source") != "USER_EXPLICIT"):
-                        continue
 
                     ts = entry.get("created_at") or ""
                     if cutoff and ts:
@@ -246,16 +250,38 @@ def iter_user_inputs(brain_dirs: list[Path], cutoff: datetime | None,
                         except ValueError:
                             pass
 
-                    text = extract_user_prompt(entry.get("content", ""))
-                    if len(text) < 2:
+                    if (entry.get("type") == "USER_INPUT"
+                            and entry.get("source") == "USER_EXPLICIT"):
+                        text = extract_user_prompt(entry.get("content", ""))
+                        if len(text) < 2:
+                            continue
+                        yield {
+                            "kind": "prompt",
+                            "conv_id": conv_dir.name,
+                            "step_index": int(entry.get("step_index", 0)),
+                            "timestamp": ts,
+                            "text": text,
+                        }
                         continue
 
-                    yield {
-                        "conv_id": conv_dir.name,
-                        "step_index": int(entry.get("step_index", 0)),
-                        "timestamp": ts,
-                        "text": text,
-                    }
+                    if entry.get("source") == "MODEL":
+                        for tool_idx, tc in enumerate(entry.get("tool_calls") or []):
+                            name = tc.get("name", "")
+                            if not name:
+                                continue
+                            args = {
+                                k: _unquote_arg(v)
+                                for k, v in (tc.get("args") or {}).items()
+                            }
+                            yield {
+                                "kind": "tool_call",
+                                "conv_id": conv_dir.name,
+                                "step_index": int(entry.get("step_index", 0)),
+                                "tool_idx": tool_idx,
+                                "timestamp": ts,
+                                "tool_name": name,
+                                "tool_input": args,
+                            }
 
 
 # ---------------------------------------------------------------------------
@@ -274,21 +300,38 @@ def build_entry(msg: dict, repo: str, branch: str, commit: str,
             )
         except ValueError:
             pass
+    ts = ts or datetime.now(VN_TZ).isoformat()
 
-    return {
-        "ts": ts or datetime.now(VN_TZ).isoformat(),
+    base = {
+        "ts": ts,
         "tool": "antigravity",
-        "event": "UserPrompt",
-        "entry_id": f"antigravity-{msg['conv_id']}-{msg['step_index']:05d}",
         "session_id": msg["conv_id"],
         "model": "gemini",
         "repo": repo,
         "branch": branch,
         "commit": commit,
         "student": student,
+    }
+
+    if msg["kind"] == "tool_call":
+        base.update({
+            "event": "tool.execute.after",
+            "entry_id": (
+                f"antigravity-{msg['conv_id']}-{msg['step_index']:05d}"
+                f"-tool{msg['tool_idx']}"
+            ),
+            "tool_name": msg["tool_name"],
+            "tool_input": msg["tool_input"],
+        })
+        return base
+
+    base.update({
+        "event": "UserPrompt",
+        "entry_id": f"antigravity-{msg['conv_id']}-{msg['step_index']:05d}",
         "prompt": msg["text"],
         "response_summary": "",
-    }
+    })
+    return base
 
 
 def main() -> None:
@@ -362,7 +405,10 @@ def main() -> None:
         print(f"\n[antigravity-log] DRY RUN — would log "
               f"{len(new_entries)} entries:\n")
         for e in new_entries:
-            preview = e["prompt"].replace("\n", " ")[:120]
+            if e["event"] == "tool.execute.after":
+                preview = f"[tool: {e['tool_name']}] {json.dumps(e['tool_input'], ensure_ascii=False)}"[:120]
+            else:
+                preview = e["prompt"].replace("\n", " ")[:120]
             print(f"  [{e['ts'][:19]}] {preview}")
         sys.exit(0)
 
@@ -370,8 +416,10 @@ def main() -> None:
         for e in new_entries:
             f.write(json.dumps(e, ensure_ascii=False) + "\n")
 
-    print(f"[antigravity-log] Logged {len(new_entries)} prompt(s) from "
-          f"Antigravity IDE.", file=sys.stderr)
+    prompts = sum(1 for e in new_entries if e["event"] == "UserPrompt")
+    tool_calls = len(new_entries) - prompts
+    print(f"[antigravity-log] Logged {prompts} prompt(s) and {tool_calls} "
+          f"tool call(s) from Antigravity IDE.", file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
