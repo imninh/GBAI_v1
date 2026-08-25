@@ -263,6 +263,44 @@ def test_anh_trung_thi_tra_ve_tu_cache_khong_goi_model(
     assert fake.calls == [], "Trúng cache mà vẫn gọi model là mất ý nghĩa của tầng T0"
 
 
+def test_cache_khong_phat_lai_nhan_cua_mon_bi_chan_cung(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Cache T0 phát lại nhãn CŨ mà KHÔNG đi qua ``_finalize`` — cửa chặn cứng
+    trên tên món vì vậy phải chạy ngay trong tầng cache.
+
+    Ca hỏng thực tế: ảnh kim tiêm bị model dán nhầm thành "chai nhựa" với
+    confidence cao, người duyệt sửa lại thành nguy hại; ảnh tương tự sau đó
+    trúng pHash và được cache phát lại nhãn sai như chưa hề có hàng rào an toàn.
+    """
+    fake = _dung_model_gia(monkeypatch, make_result(confidence=0.91))
+    phash = "abcdabcdabcdabcd"
+
+    db_session.add(Media(uploader_id=1, stored_path="x.jpg", phash=phash))
+    db_session.flush()
+    media = db_session.query(Media).one()
+    category = classifier._category_by_code(db_session, "recyclable_paper")
+    db_session.add(
+        Classification(
+            media_id=media.id,
+            item_name="Ống tiêm nhựa đã dùng",
+            predicted_category_id=category.id,
+            confidence=0.91,
+            tier=TIER_T1,
+        )
+    )
+    db_session.commit()
+
+    outcome = classify_waste(db_session, image_bytes=b"anh", image_phash=phash)
+
+    assert outcome.refused is True
+    assert outcome.refusal_reason == "chan_cung"
+    assert outcome.hard_block is not None
+    assert outcome.hard_block.code == "vat_sac_nhon_y_te"
+    assert outcome.category_code == "", "Bị chặn cứng thì không được chốt nhãn nhóm thường"
+    assert fake.calls == [], "Bị chặn cứng thì không được gọi model nữa"
+
+
 def test_anh_khac_han_thi_khong_dinh_cache(db_session: Session, monkeypatch: pytest.MonkeyPatch) -> None:
     _dung_model_gia(monkeypatch, make_result(confidence=0.88))
 

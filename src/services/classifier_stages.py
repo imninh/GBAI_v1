@@ -56,6 +56,32 @@ def chay_t0_cache(
         outcome.nodes.append(NodeMetric(node="cache_lookup", duration_ms=duration, meta={"hit": False}))
         return False
     previous, distance = hit
+
+    # ⛔ Cửa an toàn của tầng T0: cache phát lại nhãn CŨ **mà không đi qua
+    # ``_finalize``**, nên cửa chặn cứng trên tên món vì vậy phải chạy ngay tại
+    # đây. Ca hỏng thực tế: ảnh vật bị chặn (vd kim tiêm) bị model dán nhầm
+    # thành món thường với confidence cao, người duyệt sửa lại thành nguy hại;
+    # ảnh tương tự sau đó trúng pHash và được cache phát lại NHÃN SAI như chưa
+    # hề có hàng rào an toàn nào. Kiểm tên món cached, bỏ qua confidence.
+    rule = safety.check_hard_block(previous.item_name or "")
+    if rule is not None:
+        outcome.nodes.append(
+            NodeMetric(
+                node="cache_lookup",
+                duration_ms=duration,
+                meta={
+                    "phash_distance": distance,
+                    "source_classification_id": previous.id,
+                    "chan_vi_chan_cung": rule.code,
+                },
+            )
+        )
+        outcome.hard_block = rule
+        outcome.guess_item_name = rule.label_vi
+        _refuse(outcome, RefusalReason.CHAN_CUNG, headline=safety.REFUSAL_HARD_BLOCK_VI)
+        outcome.latency_ms = int((time.perf_counter() - started) * 1000)
+        return True
+
     outcome.nodes.append(
         NodeMetric(
             node="cache_lookup",

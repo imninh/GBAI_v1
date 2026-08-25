@@ -450,7 +450,17 @@ export function QualityScreen() {
   if (loi) return <ErrorState message={loi} onRetry={tai} />;
   if (!du) return <Skeleton className="h-96 w-full" />;
 
-  const xanh = du.safety.hazard_missed_count === 0;
+  // Payload /eval/summary đến từ dữ liệu CSDL nên MỌI khối đều có thể thiếu hoặc
+  // mang null (bản deploy cũ chưa có `failures`, cột eval NULL khi chưa chạy…).
+  // Render phải sống sót qua mọi shape đó — hiện "chưa đủ dữ liệu", KHÔNG vỡ
+  // trang rồi để người đọc tưởng là lỗi kết nối (E2E rule: không che lỗi bằng
+  // frontend — ở đây không che số nào, chỉ xử lý "chưa có số").
+  const antoan =
+    du.safety ?? { hazard_missed_count: 0, hazard_total: 0, target: 0, label_vi: "Chỉ số an toàn" };
+  const boDuLieu = du.by_dataset ?? [];
+  const failureCases = du.failures ?? [];
+  const xanh = antoan.hazard_missed_count === 0;
+  const chuaCoCaNguyHai = du.hazard_recall === null || du.hazard_recall === undefined;
 
   return (
     <>
@@ -464,16 +474,16 @@ export function QualityScreen() {
         style={{ background: xanh ? "var(--color-leaf-soft)" : "var(--color-hazard-soft)", borderColor: xanh ? "var(--color-leaf-line)" : "var(--color-hazard)" }}
       >
         <div className="text-[13px] font-extrabold uppercase tracking-wide" style={{ color: xanh ? "var(--color-leaf-dark)" : "var(--color-hazard-dark)" }}>
-          {du.safety.label_vi}
+          {antoan.label_vi}
         </div>
         <div
           className="my-2 font-[family-name:var(--font-display)] text-5xl font-bold"
           style={{ color: xanh ? "var(--color-leaf-dark)" : "var(--color-hazard-dark)" }}
         >
-          {du.safety.hazard_missed_count} / {du.safety.hazard_total}
+          {antoan.hazard_missed_count} / {antoan.hazard_total}
         </div>
         <div className="text-[13px] font-bold" style={{ color: xanh ? "var(--color-amber-green)" : "var(--color-amber-brown)" }}>
-          mục tiêu: {du.safety.target}
+          mục tiêu: {antoan.target}
         </div>
       </div>
 
@@ -481,12 +491,19 @@ export function QualityScreen() {
         <div className="mb-3 text-sm font-bold">Chỉ số trên các ca đã có người xác nhận</div>
         <div className="flex flex-wrap gap-6 text-[13px] font-bold">
           <span>Accuracy: {phanTram(du.accuracy)}</span>
-          <span>Recall nhóm nguy hại: {phanTram(du.hazard_recall)}</span>
+          <span className="inline-flex items-center gap-1.5">
+            Recall nhóm nguy hại:{" "}
+            {chuaCoCaNguyHai ? (
+              <span className="font-semibold text-muted">chưa đủ dữ liệu — chưa có ca nguy hại nào được xác nhận</span>
+            ) : (
+              phanTram(du.hazard_recall)
+            )}
+          </span>
           <span>Cỡ mẫu: {du.verified_count} ca</span>
         </div>
       </Card>
 
-      {du.by_dataset.length > 0 && (
+      {boDuLieu.length > 0 && (
         <Card className="mb-4 p-4">
           <div className="mb-1 text-sm font-bold">Tách riêng hai bộ dữ liệu</div>
           <p className="mb-3 text-xs font-semibold text-muted">
@@ -506,7 +523,7 @@ export function QualityScreen() {
                 </tr>
               </thead>
               <tbody>
-                {du.by_dataset.map((d, i) => (
+                {boDuLieu.map((d, i) => (
                   <tr key={i} className="border-t border-line-5">
                     <td className="py-2">
                       {d.dataset === "public" ? "Dataset công khai" : d.dataset === "own" ? "Ảnh tự chụp tại VN" : d.dataset}
@@ -526,12 +543,12 @@ export function QualityScreen() {
       )}
 
       <Card className="p-4">
-        <div className="mb-3 text-sm font-bold">Thư viện ca nhận sai ({du.failures.length})</div>
-        {du.failures.length === 0 ? (
+        <div className="mb-3 text-sm font-bold">Thư viện ca nhận sai ({failureCases.length})</div>
+        {failureCases.length === 0 ? (
           <EmptyState icon={IconTim} title="Chưa có ca nhận sai nào được ghi nhận" />
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {du.failures.slice(0, 12).map((f) => (
+            {failureCases.slice(0, 12).map((f) => (
               <div key={f.id} className="rounded-xl border border-line p-3">
                 <div className="mb-2 aspect-square rounded-lg bg-[repeating-linear-gradient(135deg,var(--color-recycle-muted),var(--color-recycle-muted)_7px,var(--color-skeleton-blue)_7px,var(--color-skeleton-blue)_14px)]" />
                 <div className="text-xs font-extrabold">{f.item_name}</div>

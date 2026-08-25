@@ -334,14 +334,15 @@ export interface EvalSummary {
   by_dataset: {
     dataset: string;
     test_size: number;
-    accuracy: number;
-    macro_f1: number;
-    hazard_recall: number;
-    hazard_missed_count: number;
-    retrieval_precision_at_5: number;
+    /** Các cột eval trong CSDL đều có thể NULL (chưa chạy eval cho bộ đó). */
+    accuracy: number | null;
+    macro_f1: number | null;
+    hazard_recall: number | null;
+    hazard_missed_count: number | null;
+    retrieval_precision_at_5: number | null;
     prompt_version: string;
-    avg_cost_usd: number;
-    p95_latency_ms: number;
+    avg_cost_usd: number | null;
+    p95_latency_ms: number | null;
     is_seed: boolean;
   }[];
   failures: {
