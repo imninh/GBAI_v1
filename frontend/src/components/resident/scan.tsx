@@ -224,9 +224,9 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
         <button
           type="button"
           onClick={() => setTrangThai("quet")}
-          className="mb-3 flex w-full cursor-pointer items-center gap-4 rounded-[22px] border border-line bg-white p-4 text-left shadow-[0_2px_10px_rgba(20,40,25,.05)]"
+          className="mb-3 flex w-full cursor-pointer items-center gap-4 rounded-2xl border border-line bg-surface p-4 text-left shadow-[0_2px_10px_rgba(20,40,25,.05)]"
         >
-          <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-[16px] bg-bulky-soft text-bulky-dark">
+          <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-lg bg-bulky-soft text-bulky-dark">
             <IconQuet />
           </span>
           <span className="flex-1">
@@ -241,9 +241,9 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
         <button
           type="button"
           onClick={onChup}
-          className="mb-3 flex w-full cursor-pointer items-center gap-4 rounded-[22px] border border-line bg-white p-4 text-left shadow-[0_2px_10px_rgba(20,40,25,.05)]"
+          className="mb-3 flex w-full cursor-pointer items-center gap-4 rounded-2xl border border-line bg-surface p-4 text-left shadow-[0_2px_10px_rgba(20,40,25,.05)]"
         >
-          <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-[16px] bg-leaf-soft text-leaf-dark">
+          <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-lg bg-leaf-soft text-leaf-dark">
             <IconMayAnh />
           </span>
           <span className="flex-1">
@@ -274,7 +274,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
               setTrangThai("chon");
             }}
             aria-label="Đóng khung quét"
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white/15 text-white"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-surface/15 text-white"
           >
             <svg
               width="20"
@@ -303,7 +303,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
 
           {/* lớp phủ tối — khoét ô bo góc ở giữa bằng bóng đổ xa */}
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-1/2 top-[10%] h-[62%] w-[76%] max-w-[340px] -translate-x-1/2 rounded-[26px] shadow-[0_0_0_9999px_rgba(0,0,0,.62)]" />
+            <div className="absolute left-1/2 top-[10%] h-[62%] w-[76%] max-w-[340px] -translate-x-1/2 rounded-2xl shadow-[0_0_0_9999px_rgba(0,0,0,.62)]" />
           </div>
 
           {/* bốn dấu góc + vạch sáng chạy lên xuống (animate-gbscan có sẵn) */}
@@ -312,7 +312,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
             <span className="absolute right-0 top-0 h-9 w-9 rounded-tr-[22px] border-r-4 border-t-4 border-white" />
             <span className="absolute bottom-0 left-0 h-9 w-9 rounded-bl-[22px] border-b-4 border-l-4 border-white" />
             <span className="absolute bottom-0 right-0 h-9 w-9 rounded-br-[22px] border-b-4 border-r-4 border-white" />
-            <span className="animate-gbscan absolute left-[16px] right-[16px] h-[2.5px] rounded-full bg-gradient-to-r from-transparent via-[#7fd7a4] to-transparent shadow-[0_0_16px_3px_rgba(127,215,164,.75)]" />
+            <span className="animate-gbscan absolute left-[16px] right-[16px] h-[2.5px] rounded-full bg-gradient-to-r from-transparent via-leaf-mint to-transparent shadow-[0_0_16px_3px_rgba(127,215,164,.75)]" />
           </div>
 
           <p className="pointer-events-none absolute bottom-[16%] left-0 w-full px-8 text-center text-[15px] font-bold text-white">
@@ -327,7 +327,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
 
           {/* Camera hỏng hoặc bị từ chối quyền → nhập mã thùng bằng tay, đừng để kẹt */}
           {loiCamera && (
-            <div className="absolute inset-x-4 bottom-[2%] rounded-2xl bg-white p-4 shadow-[0_16px_40px_-16px_rgba(0,0,0,.5)]">
+            <div className="absolute inset-x-4 bottom-[2%] rounded-2xl bg-surface p-4 shadow-[0_16px_40px_-16px_rgba(0,0,0,.5)]">
               <p className="mb-2.5 text-[13px] font-bold text-hazard-dark">{loiCamera}</p>
               <div className="flex gap-2">
                 <input

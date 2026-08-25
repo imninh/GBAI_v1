@@ -117,7 +117,7 @@ export function ManagerConsole() {
 
   return (
     <BrowserFrame>
-      <div className="flex h-14 flex-none items-center gap-3.5 border-b border-line-3 bg-white px-5">
+      <div className="flex h-14 flex-none items-center gap-3.5 border-b border-line-3 bg-surface px-5">
         <span className="font-[family-name:var(--font-display)] text-base font-bold tracking-tight">
           GreenBin<span className="text-leaf"> AI</span>
         </span>

@@ -17,7 +17,7 @@ import { API_URL, ApiError, getToken } from "@/lib/api";
 
 // Nền giữ chỗ dùng lại đúng token sọc đang có ở màn "Ảnh của bạn được xử lý thế
 // nào" (personal.tsx) — không đặt màu mới.
-const NEN_SOC = "bg-[repeating-linear-gradient(135deg,#dfeadf,#dfeadf_8px,#d5e2d5_8px,#d5e2d5_16px)]";
+const NEN_SOC = "bg-[repeating-linear-gradient(135deg,var(--color-skeleton),var(--color-skeleton)_8px,var(--color-skeleton-deep)_8px,var(--color-skeleton-deep)_16px)]";
 const NOI_THAT = "flex h-full w-full items-center justify-center p-2 text-center text-[11px] font-semibold";
 
 function cauLoi(status: number): string {
@@ -79,10 +79,10 @@ export function AnhCoToken({
 
   if (mediaId == null) {
     // Không có id thì không có gì để tải — không gọi mạng một lần nào.
-    return <div className={`${NOI_THAT} bg-[#eef1ec] text-muted`}>Không có ảnh để xem</div>;
+    return <div className={`${NOI_THAT} bg-muted-bg text-muted`}>Không có ảnh để xem</div>;
   }
   if (loi) {
-    return <div className={`${NOI_THAT} ${NEN_SOC} text-[#5a6b5f]`}>{loi}</div>;
+    return <div className={`${NOI_THAT} ${NEN_SOC} text-ink-faint`}>{loi}</div>;
   }
   if (!nguon) {
     return <div className={`h-full w-full ${NEN_SOC}`} />;

@@ -142,14 +142,14 @@ export function TatCaYeuCau() {
               <button
                 onClick={() => setTrang((t) => Math.max(1, t - 1))}
                 disabled={trang <= 1}
-                className="cursor-pointer rounded-xl border border-line-2 bg-white px-3 py-1.5 text-[12px] font-bold text-ink-soft disabled:cursor-not-allowed disabled:opacity-40"
+                className="cursor-pointer rounded-xl border border-line-2 bg-surface px-3 py-1.5 text-[12px] font-bold text-ink-soft disabled:cursor-not-allowed disabled:opacity-40"
               >
                 ‹ Trước
               </button>
               <button
                 onClick={() => setTrang((t) => Math.min(tongTrang, t + 1))}
                 disabled={trang >= tongTrang}
-                className="cursor-pointer rounded-xl border border-line-2 bg-white px-3 py-1.5 text-[12px] font-bold text-ink-soft disabled:cursor-not-allowed disabled:opacity-40"
+                className="cursor-pointer rounded-xl border border-line-2 bg-surface px-3 py-1.5 text-[12px] font-bold text-ink-soft disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Sau ›
               </button>

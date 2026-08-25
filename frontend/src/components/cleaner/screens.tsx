@@ -155,7 +155,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                   type="button"
                   onClick={() => setCheDo("danh-sach")}
                   className={`flex-1 py-1.5 text-xs font-extrabold rounded-lg transition-all ${cheDo === "danh-sach"
-                    ? "bg-white text-slate-900 shadow-sm"
+                    ? "bg-surface text-slate-900 shadow-sm"
                     : "text-slate-600 hover:text-slate-900"
                     }`}
                 >
@@ -183,14 +183,14 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                 />
               ) : (
                 <>
-                  <div className="mb-4 rounded-[20px] bg-ink p-4 text-white">
+                  <div className="mb-4 rounded-2xl bg-ink p-4 text-white">
                     <div className="mb-0.5 font-[family-name:var(--font-display)] text-base font-bold">
                       Chuyến {tuyen.window} · {ngayVn(tuyen.service_date)}
                     </div>
-                    <div className="mb-3 text-[13px] font-semibold text-[#9fb3a6]">
+                    <div className="mb-3 text-[13px] font-semibold text-bulky-muted">
                       {stops.length} điểm · {kg(tuyen.total_weight_kg)} · ~{soVn(tuyen.est_distance_km, 1)} km
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-white/15">
+                    <div className="h-2 overflow-hidden rounded-full bg-surface/15">
                       <div className="h-full rounded-full bg-leaf" style={{ width: `${stops.length ? (daThu / stops.length) * 100 : 0}%` }} />
                     </div>
                     <div className="mt-2 text-xs font-extrabold text-leaf-mint">
@@ -224,7 +224,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                                   type="button"
                                   onClick={() => setLoaiSuCo(ls.code)}
                                   className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left text-[14px] font-bold transition-all ${
-                                    dangChon ? "border-leaf bg-leaf-soft" : "border-line bg-white hover:border-line-2"
+                                    dangChon ? "border-leaf bg-leaf-soft" : "border-line bg-surface hover:border-line-2"
                                   }`}
                                 >
                                   <span
@@ -247,7 +247,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                             value={moTaSuCo}
                             onChange={(e) => setMoTaSuCo(e.target.value)}
                             placeholder="vd: đường xuống hố, xe không qua được"
-                            className="h-12 w-full rounded-xl border border-line-2 bg-white px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                            className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                           />
                           <Button
                             variant="leaf"
@@ -274,7 +274,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                       <div className="mb-3 flex items-start gap-3">
                         <span
                           className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-xl text-[15px] font-extrabold"
-                          style={{ background: s.done_at ? "#e6f4ea" : "#16211a", color: s.done_at ? "#1f8a4f" : "#fff" }}
+                          style={{ background: s.done_at ? "var(--color-leaf-soft)" : "var(--color-ink)", color: s.done_at ? "var(--color-leaf-dark)" : "var(--color-surface)" }}
                         >
                           {s.seq}
                         </span>
@@ -452,19 +452,19 @@ function KienDangTheoSection() {
 export function CleanerMeScreen({ user, onLogout }: { user: User; onLogout: () => void }) {
   return (
     <div className="flex min-h-full flex-col items-center justify-center bg-crew-bg px-4 pb-[108px] pt-[52px] text-center">
-      <div className="mb-3.5 flex h-16 w-16 items-center justify-center rounded-[20px] bg-recycle-soft text-recycle">
+      <div className="mb-3.5 flex h-16 w-16 items-center justify-center rounded-2xl bg-recycle-soft text-recycle">
         <IconDoiVeSinh className="h-7 w-7" strokeWidth={1.8} />
       </div>
       <div className="mb-1.5 font-[family-name:var(--font-display)] text-[19px] font-bold">{user.full_name}</div>
       <div className="text-[13px] font-semibold text-muted">Tổ vệ sinh · Sunrise Residence</div>
-      <div className="mt-5 w-full rounded-2xl bg-white p-4 text-left text-[13px] font-semibold leading-relaxed text-[#5a6b5f]">
+      <div className="mt-5 w-full rounded-2xl bg-surface p-4 text-left text-[13px] font-semibold leading-relaxed text-ink-faint">
         <div className="mb-2 text-xs font-bold text-muted">QUYỀN CỦA ĐỘI VỆ SINH</div>
         <div className="flex flex-col gap-1">
           <span className="flex items-start gap-1.5">
             <IconDuyet className="mt-0.5 h-3.5 w-3.5 flex-none text-leaf" />
             Xem tuyến của mình · đánh dấu đã thu
           </span>
-          <span className="flex items-start gap-1.5 text-[#b0b8ae]">
+          <span className="flex items-start gap-1.5 text-ink-disabled">
             <IconTuChoi className="mt-0.5 h-3.5 w-3.5 flex-none" />
             Duyệt yêu cầu thu gom · duyệt tuyến gộp · trang vận hành
           </span>

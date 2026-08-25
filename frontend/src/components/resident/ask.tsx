@@ -98,7 +98,7 @@ export function AskScreen({
   }, []);
 
   return (
-    <div className="relative flex min-h-full flex-col overflow-hidden bg-[linear-gradient(180deg,#e7f5ec_0%,#f4f1ea_40%)] px-5 pb-[120px] pt-[54px]">
+    <div className="relative flex min-h-full flex-col overflow-hidden bg-[linear-gradient(180deg,var(--color-nen-trang-chu)_0%,var(--color-cream)_40%)] px-5 pb-[120px] pt-[54px]">
       {/* ── header: lời chào + chuông ── */}
       <div className="flex items-center justify-between">
         <div className="min-w-0">
@@ -108,13 +108,13 @@ export function AskScreen({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-full bg-white px-3 py-1.5 text-[13px] font-bold text-ink-soft shadow-[0_2px_8px_rgba(20,40,25,.06)]">
+          <span className="rounded-full bg-surface px-3 py-1.5 text-[13px] font-bold text-ink-soft shadow-[0_2px_8px_rgba(20,40,25,.06)]">
             {unit || "Chưa gắn căn hộ"}
           </span>
           <button
             type="button"
             aria-label="Thông báo"
-            className="relative flex h-11 w-11 items-center justify-center rounded-full border border-line bg-white shadow-[0_2px_8px_rgba(20,40,25,.06)]"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface shadow-[0_2px_8px_rgba(20,40,25,.06)]"
           >
             <IconChuong className="h-5 w-5" />
             <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-hazard ring-2 ring-white" />
@@ -123,7 +123,7 @@ export function AskScreen({
       </div>
 
       {/* ── Bini tràn viền phải — Bấm vào để mở Chatbot RAG ── */}
-      <div className="pointer-events-none absolute right-[-26px] top-[92px] z-0 h-[170px] w-[170px] rounded-full bg-[radial-gradient(circle_at_46%_40%,#e9faf0,rgba(233,250,240,0))]" />
+      <div className="pointer-events-none absolute right-[-26px] top-[92px] z-0 h-[170px] w-[170px] rounded-full bg-[radial-gradient(circle_at_46%_40%,var(--color-hero-blob),rgba(233,250,240,0))]" />
       <button
         type="button"
         onClick={() => openGreenBinChat()}
@@ -145,9 +145,9 @@ export function AskScreen({
           <br />
           vào thùng nào?
         </h1>
-        <Button block size="lg" className="rounded-[26px] p-0 py-6 text-left" onClick={() => void layAnh("camera")}>
+        <Button block size="lg" className="rounded-2xl p-0 py-6 text-left" onClick={() => void layAnh("camera")}>
           <span className="flex w-full items-center gap-4 px-6">
-            <span className="flex h-[54px] w-[54px] flex-none items-center justify-center rounded-[18px] bg-white/20">
+            <span className="flex h-[54px] w-[54px] flex-none items-center justify-center rounded-lg bg-surface/20">
               <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z" />
                 <circle cx="12" cy="13" r="3.5" />
@@ -160,11 +160,11 @@ export function AskScreen({
           </span>
         </Button>
         <div className="mt-3 flex gap-2.5">
-          <Button variant="outline" className="flex-1 rounded-2xl border-line bg-white" onClick={() => void layAnh("thu-vien")}>
+          <Button variant="outline" className="flex-1 rounded-2xl border-line bg-surface" onClick={() => void layAnh("thu-vien")}>
             <IconChonAnh className="h-4 w-4" />
             Chọn ảnh
           </Button>
-          <Button variant="outline" className="flex-1 rounded-2xl border-line bg-white" onClick={() => setDangGoMoTa((v) => !v)}>
+          <Button variant="outline" className="flex-1 rounded-2xl border-line bg-surface" onClick={() => setDangGoMoTa((v) => !v)}>
             <IconMoTaChu className="h-4 w-4" />
             Mô tả chữ
           </Button>
@@ -184,7 +184,7 @@ export function AskScreen({
             value={moTa}
             onChange={(e) => setMoTa(e.target.value)}
             placeholder="VD: hộp sữa giấy có lớp bạc bên trong"
-            className="flex-1 rounded-2xl border-[1.5px] border-line-2 bg-white px-4 py-3 text-sm font-semibold outline-none focus:border-leaf"
+            className="flex-1 rounded-2xl border-[1.5px] border-line-2 bg-surface px-4 py-3 text-sm font-semibold outline-none focus:border-leaf"
           />
           <Button type="submit" variant="leaf" disabled={!moTa.trim()} aria-label="Gửi câu hỏi phân loại">
             Hỏi
@@ -193,13 +193,13 @@ export function AskScreen({
       )}
 
       {loiAnh && (
-        <div className="relative z-10 mt-3 rounded-2xl border-[1.5px] border-[#f6cdb8] bg-hazard-soft px-4 py-3 text-[13px] font-bold text-hazard-dark">
+        <div className="relative z-10 mt-3 rounded-2xl border-[1.5px] border-hazard-light bg-hazard-soft px-4 py-3 text-[13px] font-bold text-hazard-dark">
           {loiAnh}
         </div>
       )}
 
       {/* ── thẻ tiến độ hôm nay (điểm + streak + cấp) ── */}
-      <div className="relative z-10 mt-5 rounded-[24px] border border-line bg-white p-4 shadow-[0_2px_10px_rgba(20,40,25,.05)]">
+      <div className="relative z-10 mt-5 rounded-2xl border border-line bg-surface p-4 shadow-[0_2px_10px_rgba(20,40,25,.05)]">
         <div className="mb-3 flex items-center justify-between">
           <span className="text-[15px] font-bold">Hôm nay của bạn</span>
           <span className="text-[13px] font-bold text-leaf-dark">Điểm xanh</span>
@@ -237,9 +237,9 @@ export function AskScreen({
       <button
         type="button"
         onClick={onXemLich}
-        className="relative z-10 mt-3.5 flex items-center gap-3 rounded-[20px] bg-recycle-soft border border-recycle/20 px-4 py-3.5 text-left shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer group"
+        className="relative z-10 mt-3.5 flex items-center gap-3 rounded-2xl bg-recycle-soft border border-recycle/20 px-4 py-3.5 text-left shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer group"
       >
-        <span className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] bg-white shadow-xs">
+        <span className="flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-surface shadow-xs">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2f7fe0" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="3" />
             <path d="M3 10h18M8 2v4M16 2v4" />
@@ -259,9 +259,9 @@ export function AskScreen({
         <button
           type="button"
           onClick={onDatLich}
-          className="relative z-10 mt-3.5 flex items-center gap-3 rounded-[20px] bg-bulky-soft border border-bulky/20 px-4 py-3.5 text-left shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer group"
+          className="relative z-10 mt-3.5 flex items-center gap-3 rounded-2xl bg-bulky-soft border border-bulky/20 px-4 py-3.5 text-left shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer group"
         >
-          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-[14px] bg-white shadow-xs">
+          <span className="flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-surface shadow-xs">
             <IconXeThuGom className="h-[22px] w-[22px] text-bulky-dark" />
           </span>
           <span className="flex-1">
@@ -287,8 +287,8 @@ export function AskScreen({
                 g.tone === "hazard"
                   ? "border border-hazard/30 bg-hazard-soft text-hazard-dark hover:border-hazard"
                   : g.tone === "unsure"
-                  ? "border border-line-2 bg-[#eef1f6] text-[#4a5568] hover:border-muted"
-                  : "border border-line-2 bg-white text-ink hover:border-leaf hover:bg-leaf-soft/40"
+                  ? "border border-line-2 bg-chip-bg text-ink-muted hover:border-muted"
+                  : "border border-line-2 bg-surface text-ink hover:border-leaf hover:bg-leaf-soft/40"
               )}
             >
               {g.label}
@@ -315,14 +315,14 @@ export function ProcessingScreen({
   onCancel: () => void;
 }) {
   return (
-    <div className="flex min-h-full flex-col bg-[linear-gradient(180deg,#0c0f0c,#12211a)] px-[26px] pb-8 pt-16 text-white">
+    <div className="flex min-h-full flex-col bg-[linear-gradient(180deg,var(--color-ink-dark),var(--color-nen-camera))] px-[26px] pb-8 pt-16 text-white">
       <div className="mb-2 text-[13px] font-bold uppercase tracking-wide text-leaf-mint">Đang xem giúp bạn…</div>
       <h1 className="m-0 mb-1.5 font-[family-name:var(--font-display)] text-[28px] font-bold leading-tight">
         Mình xử lý ảnh
         <br />
         ngay trên máy chủ trước
       </h1>
-      <p className="m-0 mb-6 text-[13px] font-semibold text-[#9fb3a6]">Quyền riêng tư được lo trước khi ảnh tới model.</p>
+      <p className="m-0 mb-6 text-[13px] font-semibold text-bulky-muted">Quyền riêng tư được lo trước khi ảnh tới model.</p>
 
       <div className="mb-6 flex h-[190px] items-center justify-center self-center bg-[radial-gradient(circle_at_50%_55%,rgba(127,215,164,.22)_0%,rgba(127,215,164,0)_68%)]">
         <Mascot size={175} tuThe="magnify" className="animate-gbfloat drop-shadow-[0_12px_18px_rgba(0,0,0,.35)]" />
@@ -345,7 +345,7 @@ export function ProcessingScreen({
                   <span className="h-5 w-5 rounded-full border-2 border-white/20" />
                 )}
               </span>
-              <span className="flex-1 text-[15px] font-bold" style={{ color: xong || dangChay ? "#fff" : "#9fb3a6" }}>
+              <span className="flex-1 text-[15px] font-bold" style={{ color: xong || dangChay ? "var(--color-surface)" : "var(--color-on-dark-faint)" }}>
                 {step.label}
               </span>
               {xong && <span className="text-xs font-semibold text-leaf-mint">{step.detail}</span>}
@@ -357,7 +357,7 @@ export function ProcessingScreen({
       <div className="flex-1" />
       <button
         onClick={onCancel}
-        className="w-full cursor-pointer rounded-full border border-white/20 bg-white/10 py-4 text-[15px] font-bold text-white"
+        className="w-full cursor-pointer rounded-full border border-white/20 bg-surface/10 py-4 text-[15px] font-bold text-white"
       >
         Huỷ
       </button>

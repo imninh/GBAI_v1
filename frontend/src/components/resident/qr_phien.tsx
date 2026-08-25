@@ -78,7 +78,7 @@ export function QrPhienScreen({ ma, onDong }: { ma: string; onDong: () => void }
 
   return (
     <div className="flex min-h-full w-full flex-col items-center justify-center px-6 pb-10 pt-14 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[20px] bg-leaf-soft text-leaf-dark">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-leaf-soft text-leaf-dark">
         <IconNhomRacMacDinh className="h-7 w-7" strokeWidth={1.8} />
       </div>
       <h1 className="mb-1.5 font-[family-name:var(--font-display)] text-[26px] font-bold leading-tight">
@@ -88,7 +88,7 @@ export function QrPhienScreen({ ma, onDong }: { ma: string; onDong: () => void }
         Phiên đang ghi nhận từng món bạn bỏ vào thùng.
       </p>
 
-      <div className="w-full max-w-xs rounded-[20px] border border-line-3 bg-white p-5 shadow-[var(--shadow-xs)]">
+      <div className="w-full max-w-xs rounded-2xl border border-line-3 bg-surface p-5 shadow-[var(--shadow-xs)]">
         <div className="text-[11px] font-extrabold uppercase tracking-wider text-muted">Mã phiên</div>
         <div className="mt-0.5 break-all font-mono text-[15px] font-bold">{phien.ma_phien}</div>
 

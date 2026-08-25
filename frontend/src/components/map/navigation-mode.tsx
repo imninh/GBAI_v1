@@ -97,7 +97,7 @@ function calculateRemainingInfo(
 }
 
 function destinationIcon(seq: number, isThung: boolean) {
-  const bg = isThung ? "#d97706" : "#dc2626";
+  const bg = isThung ? "var(--color-marker-ho)" : "var(--color-marker-do)";
   return L.divIcon({
     className: "navigation-dest-marker",
     iconSize: [40, 52],
@@ -109,13 +109,13 @@ function destinationIcon(seq: number, isThung: boolean) {
           height: 40px;
           border-radius: 999px;
           background: ${bg};
-          color: #ffffff;
+          color: var(--color-surface);
           font-weight: 800;
           font-size: 15px;
           display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 0 0 3px #ffffff, 0 4px 14px rgba(0,0,0,0.5);
+          box-shadow: 0 0 0 3px var(--color-surface), 0 4px 14px rgba(0,0,0,0.5);
           animation: pulse-ring 2s infinite;
         ">
           ${seq}
@@ -129,13 +129,13 @@ function destinationIcon(seq: number, isThung: boolean) {
           margin-top: -1px;
         "></div>
       </div>
-      <style>
-        @keyframes pulse-ring {
-          0% { box-shadow: 0 0 0 3px #ffffff, 0 0 0 0 rgba(220, 38, 38, 0.6); }
-          70% { box-shadow: 0 0 0 3px #ffffff, 0 0 0 10px rgba(220, 38, 38, 0); }
-          100% { box-shadow: 0 0 0 3px #ffffff, 0 0 0 0 rgba(220, 38, 38, 0); }
-        }
-      </style>
+<style>
+          @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 3px var(--color-surface), 0 0 0 0 rgba(220, 38, 38, 0.6); }
+            70% { box-shadow: 0 0 0 3px var(--color-surface), 0 0 0 10px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 3px var(--color-surface), 0 0 0 0 rgba(220, 38, 38, 0); }
+          }
+        </style>
     `,
   });
 }
@@ -444,7 +444,7 @@ export default function NavigationMode({
             <Polyline
               positions={polylineCoords}
               pathOptions={{
-                color: "#1a73e8",
+                color: '#1a73e8',
                 weight: 9,
                 opacity: 0.35,
               }}
@@ -452,7 +452,7 @@ export default function NavigationMode({
             <Polyline
               positions={polylineCoords}
               pathOptions={{
-                color: "#4285F4",
+                color: '#4285f4',
                 weight: 6,
                 opacity: 0.95,
                 lineCap: "round",
@@ -497,8 +497,8 @@ export default function NavigationMode({
             <span
               className="flex h-10 w-10 flex-none items-center justify-center rounded-xl text-base font-extrabold shadow-md"
               style={{
-                background: dest.stop_kind === "thung" ? "#d97706" : "#dc2626",
-                color: "#ffffff",
+                background: dest.stop_kind === "thung" ? "var(--color-marker-ho)" : "var(--color-marker-do)",
+                color: 'var(--color-surface)',
               }}
             >
               {dest.seq}

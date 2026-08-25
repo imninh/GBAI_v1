@@ -21,7 +21,7 @@ export function MarkdownContent({ content, className = "" }: MarkdownContentProp
           ol: ({ children }) => <ol className="my-1.5 list-decimal pl-4 space-y-0.5">{children}</ol>,
           li: ({ children }) => <li className="leading-relaxed">{children}</li>,
           code: ({ children }) => (
-            <code className="rounded bg-black/10 dark:bg-white/10 px-1 py-0.5 font-mono text-[12px]">
+            <code className="rounded bg-black/10 dark:bg-surface/10 px-1 py-0.5 font-mono text-[12px]">
               {children}
             </code>
           ),

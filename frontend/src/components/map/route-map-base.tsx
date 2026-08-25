@@ -28,21 +28,21 @@ export function markerIconNhom(
   const tatCaDaThu = nhom.every((s) => Boolean(s.done_at));
   const coActive = nhom.some((s) => s.stop_id === activeStopId);
 
-  let nen = laThung ? "#f0b429" : "#7b5cd6";
-  let mau = laThung ? "#5a4410" : "#ffffff";
-  let border = "#ffffff";
+  let nen = laThung ? "var(--color-marker-thung)" : "var(--color-marker-bulky)";
+  let mau = laThung ? "var(--color-marker-xanh)" : "var(--color-surface)";
+  let border = "var(--color-surface)";
   let shadow = "0 2px 6px rgba(0,0,0,.3)";
 
   if (tatCaDaThu) {
-    nen = "#1f8a4f";
-    mau = "#ffffff";
+    nen = "var(--color-marker-xanh)";
+    mau = "var(--color-surface)";
     if (coActive) {
-      border = "#15803d";
+      border = "var(--color-leaf-line)";
       shadow = "0 0 0 3px rgba(31, 138, 79, 0.3), 0 3px 8px rgba(0,0,0,.3)";
     }
   } else if (coActive) {
-    border = "#ef4444";
-    shadow = "0 0 0 4px rgba(239, 68, 68, 0.4), 0 3px 10px rgba(0,0,0,.4)";
+    border = "var(--color-leaf-ink)";
+    shadow = "0 0 0 4px rgba(42, 90, 58, 0.4), 0 3px 10px rgba(0,0,0,.4)";
   }
 
   const nhan = nhom.map((s) => s.seq).join(",");
@@ -153,11 +153,11 @@ export default function RouteMapBase({
 
         {/* Tuyến đường: vẽ đường thật OSRM nếu có, hoặc đường chim bay nét đứt */}
         {coDuongThat ? (
-          <Polyline positions={hinhDuongDi} pathOptions={{ color: "#1f8a4f", weight: 4, opacity: 0.9 }} />
+          <Polyline positions={hinhDuongDi} pathOptions={{ color: '#1f8a4f', weight: 4, opacity: 0.9 }} />
         ) : (
           <Polyline
             positions={cacDiem.map((s) => [s.lat, s.lng] as ToaDoDuongDi)}
-            pathOptions={{ color: "#1f8a4f", weight: 3, dashArray: "6 6", opacity: 0.7 }}
+            pathOptions={{ color: '#1f8a4f', weight: 3, dashArray: "6 6", opacity: 0.7 }}
           />
         )}
 
@@ -197,7 +197,7 @@ export default function RouteMapBase({
       </MapContainer>
 
       {showLegend && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000] rounded-t-lg bg-white/90 backdrop-blur px-2.5 py-1 text-center text-[11px] font-semibold text-muted shadow-sm">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000] rounded-t-lg bg-surface/90 backdrop-blur px-2.5 py-1 text-center text-[11px] font-semibold text-muted shadow-sm">
           {coDuongThat
             ? lo_trinh_meta
               ? `Đường đi thật OSRM · ${lo_trinh_meta.total_km} km · ~${lo_trinh_meta.total_minutes} phút`

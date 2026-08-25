@@ -19,7 +19,7 @@ const MARKER_STYLE: Record<Bin["status"], string> = {
   // Xám nhạt nét CHẤM — khác hẳn nét ĐỨT của "mất kết nối": chưa triển khai là
   // trạng thái bình thường, không báo động.
   chua_trien_khai:
-    "background:#eef1ec;color:#5a6b5f;border:1.5px dotted #c3cbc2;font-weight:400;opacity:.8",
+    "background:var(--color-muted-bg);color:var(--color-ink-faint);border:1.5px dotted var(--color-line-faint);font-weight:400;opacity:.8",
 };
 
 function icon(bin: Bin) {
@@ -59,7 +59,7 @@ const ICON_VI_TRI_TOI = L.divIcon({
   className: "bin-marker-icon",
   iconSize: [20, 20],
   iconAnchor: [10, 10],
-  html: `<div style="width:14px;height:14px;margin:3px;border-radius:999px;background:#1f6feb;border:3px solid oklch(1 0 0);box-shadow:0 0 0 4px oklch(0.55 0.2 255 / .35)"></div>`,
+  html: `<div style="width:14px;height:14px;margin:3px;border-radius:999px;background:var(--color-noi-thung);border:3px solid oklch(1 0 0);box-shadow:0 0 0 4px oklch(0.55 0.2 255 / .35)"></div>`,
 });
 
 /** Bắt cú chạm lên nền bản đồ. Chỉ được gắn khi cha truyền `onMapClick`, nên
@@ -123,7 +123,7 @@ export default function BinMap({
         <Marker position={[viTriNguoiDung.lat, viTriNguoiDung.lng]} icon={ICON_VI_TRI_TOI} />
       )}
       {duongDi && duongDi.length >= 2 ? (
-        <Polyline positions={duongDi} pathOptions={{ color: "#1f6feb", weight: 4, opacity: 0.85 }} />
+        <Polyline positions={duongDi} pathOptions={{ color: '#1f6feb', weight: 4, opacity: 0.85 }} />
       ) : (
         tuMoc &&
         selected &&
@@ -133,7 +133,7 @@ export default function BinMap({
               [tuMoc.lat, tuMoc.lng],
               [selected.lat, selected.lng],
             ]}
-            pathOptions={{ color: "#1f6feb", weight: 4, opacity: 0.7, dashArray: "1 8" }}
+            pathOptions={{ color: '#1f6feb', weight: 4, opacity: 0.7, dashArray: "1 8" }}
           />
         )
       )}

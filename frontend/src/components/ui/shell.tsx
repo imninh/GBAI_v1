@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 export function PhoneFrame({
   children,
-  bg = "#f4f1ea",
+  bg = "var(--color-cream)",
   statusDark = false,
   tabBar,
   items,
@@ -86,7 +86,7 @@ export function TabBar({
   items,
   active,
   onChange,
-  accent = "#2fae66",
+  accent = "var(--color-leaf)",
 }: {
   items: TabItem[];
   active: string;
@@ -94,7 +94,7 @@ export function TabBar({
   accent?: string;
 }) {
   return (
-    <div className="z-30 flex h-[86px] flex-none items-start border-t border-line/60 bg-white/90 px-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl shadow-[0_-4px_20px_rgba(22,33,26,0.03)]">
+    <div className="z-30 flex h-[86px] flex-none items-start border-t border-line/60 bg-surface/90 px-3 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl shadow-[0_-4px_20px_rgba(22,33,26,0.03)]">
       {items.map((item) => {
         const isActive = item.key === active;
         if (item.raised) {
@@ -121,7 +121,7 @@ export function TabBar({
             key={item.key}
             onClick={() => onChange(item.key)}
             className="relative flex flex-1 cursor-pointer flex-col items-center gap-1.5 pt-1.5 bg-transparent transition-all duration-200 ease-[var(--ease-spring)] active:scale-95"
-            style={{ color: isActive ? accent : "#8a938a" }}
+            style={{ color: isActive ? accent : "var(--color-muted)" }}
             aria-current={isActive ? "page" : undefined}
             aria-label={`Điều hướng ${item.label}`}
           >
@@ -160,7 +160,7 @@ export function SideNav({
   items,
   active,
   onChange,
-  accent = "#2fae66",
+  accent = "var(--color-leaf)",
   header,
 }: {
   items: TabItem[];
@@ -186,7 +186,7 @@ export function SideNav({
                 onClick={() => onChange(item.key)}
                 aria-label={item.label}
                 className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold transition-all duration-200 ease-[var(--ease-spring)] select-none cursor-pointer active:scale-[0.98] bg-transparent"
-                style={{ color: isActive ? accent : "#8a938a" }}
+                style={{ color: isActive ? accent : "var(--color-muted)" }}
                 aria-current={isActive ? "page" : undefined}
               >
                 <span
@@ -214,7 +214,7 @@ export function SideNav({
               key={item.key}
               onClick={() => onChange(item.key)}
               className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold transition-all duration-200 ease-[var(--ease-spring)] select-none cursor-pointer active:scale-[0.98] bg-transparent"
-              style={{ color: isActive ? accent : "#8a938a" }}
+              style={{ color: isActive ? accent : "var(--color-muted)" }}
               aria-current={isActive ? "page" : undefined}
               aria-label={`Điều hướng ${item.label}`}
             >
@@ -269,7 +269,7 @@ export function ScreenHeader({
         <button
           onClick={onBack}
           aria-label="Quay lại"
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-line-3 bg-white text-ink shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:scale-105 hover:shadow-[var(--shadow-sm)] active:scale-95"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-line-3 bg-surface text-ink shadow-[var(--shadow-xs)] transition-all duration-200 ease-[var(--ease-spring)] hover:scale-105 hover:shadow-[var(--shadow-sm)] active:scale-95"
         >
           <IconQuayLai className="h-5 w-5" />
         </button>

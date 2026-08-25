@@ -123,13 +123,13 @@ function ManagerTrenAppScreen() {
   return (
     <PhoneFrame>
       <div className="flex min-h-full flex-col items-center justify-center bg-cream px-7 pb-10 pt-14 text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[20px] bg-[#ece7f6] text-bulky-dark">
+        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-bulky-soft text-bulky-dark">
           <IconManHinhRong className="h-7 w-7" strokeWidth={1.8} />
         </div>
         <h1 className="mb-2.5 font-[family-name:var(--font-display)] text-[26px] font-bold leading-tight">
           Console đơn vị thu gom dùng trên máy tính
         </h1>
-        <p className="mb-1.5 text-[15px] font-semibold leading-snug text-[#5a6b5f]">
+        <p className="mb-1.5 text-[15px] font-semibold leading-snug text-ink-faint">
           Chào {user!.full_name}. Hàng đợi duyệt và trang vận hành có nhiều cột số liệu, xem trên màn
           hình rộng mới đủ chỗ.
         </p>
@@ -138,7 +138,7 @@ function ManagerTrenAppScreen() {
         </p>
 
         {linkWeb && (
-          <div className="mb-6 w-full break-all rounded-2xl border-[1.5px] border-line-2 bg-white px-4 py-3.5 font-mono text-[13px] font-semibold">
+          <div className="mb-6 w-full break-all rounded-2xl border-[1.5px] border-line-2 bg-surface px-4 py-3.5 font-mono text-[13px] font-semibold">
             {linkWeb}
           </div>
         )}
@@ -146,7 +146,7 @@ function ManagerTrenAppScreen() {
         <Button block variant="danger" onClick={dangXuat}>
           Đăng xuất
         </Button>
-        <p className="mt-4 text-[11px] font-semibold leading-relaxed text-[#9aa39a]">
+        <p className="mt-4 text-[11px] font-semibold leading-relaxed text-muted-slate">
           App trên điện thoại dành cho cư dân và đội vệ sinh.
         </p>
       </div>
@@ -294,12 +294,12 @@ function ResidentApp() {
   const hienTabBar = ["ask", "diem", "scan", "requests", "me"].includes(man);
   const nenMan =
     man === "processing"
-      ? "#0c0f0c"
+      ? "var(--color-ink-dark)"
       : man === "result" && ketQua?.refused
-        ? "#eef1f5"
+        ? "var(--color-unsure-bg)"
         : man === "result" && ketQua?.category?.is_hazardous
-          ? "#fbeadf"
-          : "#f4f1ea";
+          ? "var(--color-hazard-bg)"
+          : "var(--color-cream)";
 
   return (
     <>
@@ -315,7 +315,7 @@ function ResidentApp() {
           // AskScreen mở camera qua `lanChup` như trước.
           setMan(k as ManCuDan);
         }}
-        accent="#2fae66"
+        accent="var(--color-leaf)"
         tabBar={
           hienTabBar ? (
             <TabBar
@@ -463,7 +463,7 @@ function ResidentApp() {
         aria-modal="true"
         aria-label="Phân loại thành công"
       >
-        <div className="animate-gbpop relative w-full max-w-[300px] rounded-[30px] bg-white p-7 pb-6 text-center shadow-[0_30px_60px_-22px_rgba(0,0,0,.35)]">
+        <div className="animate-gbpop relative w-full max-w-[300px] rounded-2xl bg-surface p-7 pb-6 text-center shadow-[0_30px_60px_-22px_rgba(0,0,0,.35)]">
           <Mascot size={120} tuThe="hello" className="mx-auto -mt-16 mb-2 animate-gbwave" />
           <div className="font-[family-name:var(--font-display)] text-[26px] font-bold text-leaf-dark">Tuyệt vời!</div>
           <div className="mt-1.5 text-[14px] font-semibold text-ink-soft">Bạn vừa phân loại đúng một món rác</div>
@@ -491,12 +491,12 @@ function CleanerApp() {
 
   return (
     <PhoneFrame
-      bg="#eef2f6"
+      bg="var(--color-crew-bg)"
       items={tabs}
       active={man}
       onChange={setMan}
-      accent="#2f7fe0"
-      tabBar={<TabBar items={tabs} active={man} onChange={setMan} accent="#2f7fe0" />}
+      accent="var(--color-recycle)"
+      tabBar={<TabBar items={tabs} active={man} onChange={setMan} accent="var(--color-recycle)" />}
     >
       {man === "route" && <RouteTodayScreen onXemLichSu={() => setMan("history")} />}
       {man === "history" && <CleanerHistoryScreen />}

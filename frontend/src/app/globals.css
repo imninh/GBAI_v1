@@ -49,6 +49,128 @@
   --color-crew-bg: #eef2f6;
   --color-console-bg: #f5f5f2;
 
+  /* Additional line colors */
+  --color-line-4: #f2ede2;
+  --color-line-5: #f7f4ec;
+
+  /* Additional amber variants */
+  --color-amber-muted: #8a7a5a;
+  --color-amber-dark: #7a5c14;
+  --color-amber-darker: #5a4410;
+
+  /* Additional muted variants */
+  --color-muted-green: #8a9a92;
+  --color-muted-slate: #9aa39a;
+  --color-muted-blue: #e6edf5;
+
+  /* Additional hazard variants */
+  --color-hazard-light: #f6cdb8;
+
+  /* Additional bulky variant */
+  --color-bulky-muted: #9fb3a6;
+
+  /* Additional recycle variant */
+  --color-recycle-muted: #e6edf5;
+
+  /* Additional ink variants */
+  --color-ink-dark: #0c0f0c;
+  --color-ink-muted: #4a5568;
+
+  /* Additional purple */
+  --color-purple: #5b3fbf;
+
+  /* Additional amber variants */
+  --color-amber-base: #a8791a;
+  --color-amber-green: #3a7a52;
+  --color-amber-brown: #a04b26;
+
+  /* Additional neutral */
+  --color-neutral: #8b8f8a;
+  --color-line-light: #f0eee7;
+
+  /* Additional ink variants */
+  --color-ink-dark: #0c0f0c;
+  --color-ink-muted: #4a5568;
+
+  /* Additional purple */
+  --color-purple: #5b3fbf;
+
+  /* Additional amber variants */
+  --color-amber-base: #a8791a;
+  --color-amber-green: #3a7a52;
+  --color-amber-brown: #a04b26;
+
+  /* Additional neutral */
+  --color-neutral: #8b8f8a;
+  --color-line-light: #f0eee7;
+
+/* ---- Token bổ sung F2-B: đặt theo VAI TRÒ, không theo mã màu -----------
+     Mỗi token ở dưới thay cho một mã hex đang gõ cứng trong .tsx. Khi đợt nhận
+     diện đổi hệ màu, sửa tại đây là toàn app đổi theo — miễn là tên nói đúng
+     vai trò của nó. */
+  --color-surface: #ffffff;            /* bề mặt trắng (thay bg-white) */
+  --color-ink-dim: #4a564d;            /* chữ thân phụ, đậm hơn ink-faint */
+  --color-ink-faint: #5a6b5f;          /* chữ giải thích phụ */
+  --color-ink-disabled: #b0b8ae;       /* chữ mục không có quyền */
+  --color-ink-hover: #0d1611;          /* nền nút primary khi hover */
+  --color-ink-forest: #1c3326;         /* đáy gradient header tối */
+  --color-on-dark-faint: #9fb3a6;      /* chữ phụ trên nền tối (màn camera) */
+  --color-nen-camera: #12211a;         /* đáy gradient màn camera */
+  --color-nen-trang-chu: #e7f5ec;      /* đỉnh gradient trang chủ */
+  --color-nen-ho-so: #e9f7ef;          /* đỉnh gradient màn hồ sơ */
+  --color-hero-blob: #e9faf0;          /* bong bóng trang trí trang chủ */
+  --color-line-faint: #c3cbc2;         /* viền/icon mờ nhất (chưa triển khai) */
+  --color-chip-off: #efede6;           /* nền chip đã bỏ / huỷ */
+  --color-chip-bg: #eef1f6;            /* nền chip gợi ý */
+  --color-skeleton: #dfeadf;           /* sọc giữ chỗ ảnh (nhạt) */
+  --color-skeleton-deep: #d5e2d5;      /* sọc giữ chỗ ảnh (đậm) */
+  --color-skeleton-warm: #d8ded2;      /* sọc giữ chỗ ảnh biến thể ấm (nhạt) */
+  --color-skeleton-warm-deep: #cfd6c8; /* sọc giữ chỗ ảnh biến thể ấm (đậm) */
+  --color-skeleton-blue: #dce5ef;      /* sọc giữ chỗ ảnh AI */
+  --color-blob-leaf: #d6efe0;          /* bong bóng nền mục xanh */
+  --color-tint-lavender: #efe9f9;       /* nền khối tím nhạt (onboarding bước 3) */
+  --color-blob-recycle: #cfe0f7;       /* bong bóng nền mục tái chế */
+  --color-blob-bulky: #e0d6f4;         /* bong bóng nền mục cồng kềnh */
+  --color-leaf-line: #bfe6cc;          /* viền khối trạng thái xanh */
+  --color-leaf-ink: #2a5a3a;           /* chữ khối trạng thái xanh đậm */
+  --color-hazard-ink: #7a3418;         /* chữ khối cảnh báo đậm */
+  --color-tip-bg: #f7f2ea;             /* nền khối mẹo */
+  --color-line-green: #e6ece6;         /* viền khối bối cảnh xanh nhạt */
+  --color-tint-green: #f7f9f7;         /* nền khối bối cảnh xanh nhạt */
+  --color-bulky-line: #d9cef0;         /* viền nhóm cồng kềnh */
+  --color-bulky-line-faint: #cbb8ee;   /* viền khối gợi ý AI */
+  --color-bulky-tint: #faf8fe;         /* nền khối gợi ý AI */
+  --color-bulky-chip: #ede8fb;         /* nền chip nhóm cồng kềnh */
+  --color-bulky-stripe: #e3daf3;       /* sọc giữ chỗ ảnh cồng kềnh */
+  --color-amber-deep: #8a6414;         /* chữ cảnh báo khối lượng đậm */
+  --color-warn-line: #f2d9c2;          /* viền khối loại trừ */
+  --color-warn-tint: #fdf3ea;          /* nền khối loại trừ */
+  --color-warn-ink: #8a5a1a;           /* chữ khối loại trừ */
+  --color-warn-text: #5a4a38;          /* chữ phụ khối loại trừ */
+  --color-schedule-off: #f1efe8;       /* ô lịch không có chuyến */
+  --color-category-selected: #5b3fbf;  /* nhóm rác được chọn trong pickup-wizard */
+  --color-category-unselected: #8a7a5a; /* nhóm rác chưa chọn */
+  --color-wizard-unsel-bg: #e0ded4;    /* nền bước/chọn chưa active */
+  --color-unsure-ink: #243244;         /* màn chưa chắc chắn — chữ chính */
+  --color-unsure-muted: #64748b;       /* màn chưa chắc chắn — chữ phụ */
+  --color-unsure-faint: #7a8798;       /* màn chưa chắc chắn — chữ mờ */
+  --color-unsure-line: #cbd5e1;        /* màn chưa chắc chắn — viền */
+  --color-unsure-soft: #dbe6f2;        /* màn chưa chắc chắn — nền icon */
+  --color-unsure-bg: #eef1f5;          /* màn chưa chắc chắn — nền gradient đáy */
+  --color-label-faint: #a0a89f;        /* nhãn phụ mờ (tài khoản demo) */
+  --color-marker-do: #dc2626;          /* marker điểm dừng thường — đỏ */
+  --color-marker-ho: #d97706;          /* marker điểm dừng thùng — hổ phách */
+  --color-marker-xanh: #15803d;        /* marker đã thu — xanh đậm */
+  --color-marker-loi: #ef4444;         /* marker đang active — đỏ tươi */
+  --color-marker-thung: #f0b429;       /* marker thùng trên tuyến */
+  --color-marker-bulky: #7b5cd6;       /* marker điểm cồng kềnh */
+  --color-noi-thung: #1f6feb;          /* đường nối thùng đang chọn */
+
+  /* ---- Token khôi phục 4 biến CSS chết (xóa từ @theme trước đây) -----------
+     Các biến này từng có sẵn trong @theme nhưng bị xóa/hilang; việc hiện tại
+     đưa chúng lại đảm bảo var(--color-*) referencia hoạt động trên toàn app,
+     bao gồm VAI_TRO border references. */
+
   /* ---- Lớp ánh xạ cho màn Điều phối thùng ----------------------------------
      Màn này thiết kế bằng Lovable nên viết theo bộ tên của shadcn/ui
      (`bg-card`, `text-muted-foreground`, `bg-warn`…), khác bộ tên thương hiệu
@@ -75,6 +197,7 @@
      nhạt sẽ làm toàn bộ chữ phụ biến mất trên nền sáng. shadcn dùng `muted` làm
      màu NỀN, nên nó phải mang một tên khác. */
   --color-muted-bg: #eef1ec;
+  --color-crew-bg: #eef2f6;             /* nền màn điều phối đội vệ sinh */
   --color-muted-foreground: var(--color-muted-2);
   --color-accent: var(--color-leaf-soft);
   --color-accent-foreground: var(--color-leaf-dark);

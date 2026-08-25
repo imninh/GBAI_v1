@@ -37,8 +37,8 @@ const BinMap = dynamic(() => import("@/components/bins/bin-map"), {
 // "số cũ không được nói là còn chỗ" nằm ở backend, có test bao, không lặp ở đây.
 const MAU_TINH_TRANG: Record<TinhTrangDiemGui, string> = {
   con_cho: "bg-leaf-soft text-leaf-dark",
-  sap_day: "bg-amber-line text-[#5a4410]",
-  chua_ro: "bg-[#eef1ec] text-muted",
+  sap_day: "bg-amber-line text-amber-darker",
+  chua_ro: "bg-muted-bg text-muted",
 };
 
 const THU_TU_XEP: Record<TinhTrangDiemGui, number> = {
@@ -291,7 +291,7 @@ export function NearbyBinsScreen() {
 
   const chip = (ten: string, dang: boolean) =>
     `flex-none cursor-pointer rounded-full px-3.5 py-1.5 text-[13px] font-bold ${
-      dang ? "bg-ink text-white" : "border border-line-3 bg-white text-muted"
+      dang ? "bg-ink text-white" : "border border-line-3 bg-surface text-muted"
     }`;
 
   return (
@@ -335,7 +335,7 @@ export function NearbyBinsScreen() {
       {/* Bảng thêm mốc. Không có ô nhập địa chỉ bằng chữ và không gọi dịch vụ
           geocoding nào — toạ độ chỉ đến từ cú chạm lên bản đồ ngay bên dưới. */}
       {dangThem && (
-        <div className="mb-4 rounded-2xl border border-line bg-white p-4">
+        <div className="mb-4 rounded-2xl border border-line bg-surface p-4">
           <input
             value={tenMoi}
             onChange={(e) => setTenMoi(e.target.value)}
@@ -358,7 +358,7 @@ export function NearbyBinsScreen() {
             </button>
             <button
               onClick={dongThem}
-              className="flex-none rounded-xl border border-line-3 bg-white px-4 py-2 text-[14px] font-bold text-muted"
+              className="flex-none rounded-xl border border-line-3 bg-surface px-4 py-2 text-[14px] font-bold text-muted"
             >
               Huỷ
             </button>

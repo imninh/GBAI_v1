@@ -39,9 +39,9 @@ export function vehicleIcon(heading: number | null | undefined) {
           width: 36px;
           height: 36px;
           border-radius: 999px;
-          background: #15803d;
-          color: #ffffff;
-          box-shadow: 0 0 0 3px #ffffff, 0 3px 10px rgba(0,0,0,0.4);
+          background: var(--color-marker-xanh);
+          color: var(--color-surface);
+          box-shadow: 0 0 0 3px var(--color-surface), 0 3px 10px rgba(0,0,0,0.4);
           transform: rotate(${rotation}deg);
           transition: transform 0.4s ease;
         ">
@@ -189,7 +189,7 @@ export default function LiveVehicleMarker({
       <FollowVehicle pos={pos} follow={follow} />
       <Marker position={[displayLat, displayLng]} icon={vehicleIcon(pos.heading)} zIndexOffset={1000}>
         <Tooltip direction="top" offset={[0, -22]} permanent>
-          <span className="inline-flex items-center gap-1 rounded bg-white/95 px-1.5 py-0.5 text-[11px] font-extrabold text-emerald-800 shadow">
+          <span className="inline-flex items-center gap-1 rounded bg-surface/95 px-1.5 py-0.5 text-[11px] font-extrabold text-emerald-800 shadow">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
             Xe thu gom ({speedKmh} km/h)
           </span>

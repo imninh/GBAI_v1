@@ -21,7 +21,7 @@ const STATUS_CHIP: Record<BinStatus, string> = {
   binh_thuong: "bg-ok-soft text-ok border border-ok/20 font-normal",
   // Xám nhạt nét CHẤM — khác hẳn màu stale (nét ĐỨT) của "mất kết nối": chưa
   // triển khai là trạng thái bình thường, không báo động.
-  chua_trien_khai: "bg-[#eef1ec] text-muted border border-dotted border-[#c3cbc2] font-normal",
+  chua_trien_khai: "bg-muted-bg text-muted border border-dotted border-line-faint font-normal",
 };
 
 export function StatusBadge({
@@ -53,5 +53,5 @@ export const STATUS_BAR: Record<BinStatus, string> = {
   binh_thuong: "bg-ok",
   // Chấm xám nhạt — cụm "chưa triển khai" nhìn là tách ngay khỏi vài thùng
   // "mất kết nối" thật (màu stale nét đứt).
-  chua_trien_khai: "bg-[#c3cbc2]",
+  chua_trien_khai: "bg-line-faint",
 };

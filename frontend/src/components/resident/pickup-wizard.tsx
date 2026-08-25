@@ -181,14 +181,14 @@ export function PickupWizard({
       <div className="flex items-center gap-3 px-[18px] pb-3.5 pt-1.5">
         <button
           onClick={() => (buoc === 1 ? onBack() : setBuoc((b) => b - 1))}
-          className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-full bg-white shadow-[0_2px_8px_rgba(20,40,25,.08)]"
+          className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-full bg-surface shadow-[0_2px_8px_rgba(20,40,25,.08)]"
           aria-label="Quay lại bước trước"
         >
           <IconQuayLai className="h-5 w-5" />
         </button>
         <div className="flex flex-1 gap-1.5">
           {[1, 2, 3].map((b) => (
-            <span key={b} className="h-[5px] flex-1 rounded-full" style={{ background: buoc >= b ? "#7c5cdf" : "#e0ded4" }} />
+            <span key={b} className="h-[5px] flex-1 rounded-full" style={{ background: buoc >= b ? "var(--color-bulky-stripe)" : "var(--color-surface)" }} />
           ))}
         </div>
       </div>
@@ -207,7 +207,7 @@ export function PickupWizard({
                   {m.media_id ? (
                     <AnhCoToken mediaId={m.media_id} alt={m.name} className="h-full w-full object-cover" />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-[repeating-linear-gradient(135deg,#ece7f6,#ece7f6_7px,#e3daf3_7px,#e3daf3_14px)] text-[10px] font-bold text-bulky-dark">
+                    <div className="flex h-full w-full items-center justify-center bg-[repeating-linear-gradient(135deg,var(--color-bulky-soft),var(--color-bulky-soft)_7px,var(--color-bulky-stripe)_7px,var(--color-bulky-stripe)_14px)] text-[10px] font-bold text-bulky-dark">
                       {dangTaiAnh === i ? "Đang tải…" : "+ Ảnh"}
                     </div>
                   )}
@@ -243,9 +243,9 @@ export function PickupWizard({
                           aria-pressed={dangChon}
                           className="cursor-pointer rounded-lg px-2 py-0.5 text-[11px] font-extrabold transition-colors"
                           style={{
-                            background: dangChon ? "#ece7f6" : "#f2ede2",
-                            color: dangChon ? "#5b3fbf" : "#8a7a5a",
-                            border: dangChon ? "1.5px solid #7c5cdf" : "1.5px solid transparent",
+                            background: dangChon ? "var(--color-bulky-soft)" : "var(--color-line-4)",
+                            color: dangChon ? "var(--color-category-selected)" : "var(--color-category-unselected)",
+                            border: dangChon ? "1.5px solid var(--color-bulky-stripe)" : "1.5px solid transparent",
                           }}
                         >
                           {tenNhom(ma, danhMuc)}
@@ -264,11 +264,11 @@ export function PickupWizard({
                       onChange={(e) =>
                         setMon((cu) => cu.map((x, j) => (j === i ? { ...x, est_weight_kg: Number(e.target.value) } : x)))
                       }
-                      className="w-16 rounded-lg bg-[#f2ede2] px-2 py-0.5 text-[11px] font-bold text-[#8a7a5a] outline-none"
+                      className="w-16 rounded-lg bg-line-4 px-2 py-0.5 text-[11px] font-bold text-amber-muted outline-none"
                     />
-                    <span className="text-[11px] font-bold text-[#8a7a5a]">kg</span>
+                    <span className="text-[11px] font-bold text-amber-muted">kg</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#8a7a5a]">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-muted">
                     Khối lượng bạn tự nhập — sửa lại nếu chưa đúng
                   </div>
                 </div>
@@ -283,7 +283,7 @@ export function PickupWizard({
             ))}
             <button
               onClick={() => setMon((cu) => [...cu, { name: "", category_code: "bulky", qty: 1, est_weight_kg: 10, media_id: null }])}
-              className="w-full cursor-pointer rounded-2xl border-[1.5px] border-dashed border-[#cbb8ee] bg-white p-3.5 text-sm font-bold text-bulky-dark"
+              className="w-full cursor-pointer rounded-2xl border-[1.5px] border-dashed border-line-2 bg-surface p-3.5 text-sm font-bold text-bulky-dark"
             >
               + Thêm món
             </button>
@@ -314,7 +314,7 @@ export function PickupWizard({
                       key={k.key}
                       onClick={() => { setKhungGio(k.window); setNgay(k.ngay); setLaGioNgoaiLich(false); }}
                       className="mb-2.5 w-full cursor-pointer rounded-2xl p-4 text-left"
-                      style={{ background: dangChon ? "#e6f4ea" : "#fff", border: dangChon ? "2px solid #2fae66" : "1.5px solid #e0ded4" }}
+                      style={{ background: dangChon ? "var(--color-leaf-soft)" : "var(--color-surface)", border: dangChon ? "2px solid var(--color-leaf)" : "1.5px solid var(--color-line-2)" }}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-[15px] font-extrabold">{ngayVn(k.ngay)} · {k.window}</span>
@@ -337,7 +337,7 @@ export function PickupWizard({
             )}
 
             <div className="mb-2 mt-3 text-[13px] font-bold text-muted">Chọn giờ khác</div>
-            <div className="mb-2.5 rounded-2xl border-[1.5px] border-line-2 bg-white p-4">
+            <div className="mb-2.5 rounded-2xl border-[1.5px] border-line-2 bg-surface p-4">
               <input
                 type="date"
                 value={laGioNgoaiLich ? ngay : ""}
@@ -353,7 +353,7 @@ export function PickupWizard({
                       key={w}
                       onClick={() => { setKhungGio(w); setLaGioNgoaiLich(true); if (!ngay) { const d = new Date(); d.setDate(d.getDate() + 1); setNgay(d.toISOString().slice(0, 10)); } }}
                       className="cursor-pointer rounded-full px-3 py-1.5 text-[13px] font-bold"
-                      style={{ background: chon ? "#ede8fb" : "#f2ede2", color: chon ? "#5b3fbf" : "#8a7a5a", border: chon ? "1.5px solid #7c5cdf" : "1.5px solid transparent" }}
+                      style={{ background: chon ? "var(--color-bulky-chip)" : "var(--color-line-4)", color: chon ? "var(--color-category-selected)" : "var(--color-category-unselected)", border: chon ? "1.5px solid var(--color-bulky-stripe)" : "1.5px solid transparent" }}
                     >
                       {w}
                     </button>
@@ -362,7 +362,7 @@ export function PickupWizard({
               </div>
             </div>
             {laGioNgoaiLich && (
-              <div className="mb-2.5 rounded-2xl border-[1.5px] border-amber-line bg-amber-soft p-3.5 text-[13px] font-semibold leading-relaxed text-[#7a5c14]">
+              <div className="mb-2.5 rounded-2xl border-[1.5px] border-amber-line bg-amber-soft p-3.5 text-[13px] font-semibold leading-relaxed text-amber-dark">
                 Giờ này nằm ngoài lịch thu gom của toà — ban quản lý sẽ duyệt trước khi nhận yêu cầu.
               </div>
             )}
@@ -382,7 +382,7 @@ export function PickupWizard({
             <h1 className="m-0 mb-4 font-[family-name:var(--font-display)] text-[26px] font-bold">Xác nhận</h1>
 
             {coCanHo ? (
-              <div className="mb-2.5 rounded-2xl border-[1.5px] border-line-2 bg-white p-4">
+              <div className="mb-2.5 rounded-2xl border-[1.5px] border-line-2 bg-surface p-4">
                 <label htmlFor="dia-chi-lay-hang" className="mb-1 block text-[13px] font-bold text-muted">
                   Lấy hàng ở chỗ khác? nhập địa chỉ
                 </label>
@@ -392,14 +392,14 @@ export function PickupWizard({
                   value={diaChi}
                   onChange={(e) => setDiaChi(e.target.value)}
                   placeholder="VD: 25 Lý Thường Kiệt, Hoàn Kiếm"
-                  className="w-full rounded-xl border border-line-3 bg-white px-3 py-2 text-[14px] font-semibold outline-none focus:border-leaf"
+                  className="w-full rounded-xl border border-line-3 bg-surface px-3 py-2 text-[14px] font-semibold outline-none focus:border-leaf"
                 />
                 <div className="mt-1 text-[11px] font-semibold text-muted">
                   Để trống thì đội vệ sinh lấy tại nơi ở đã đăng ký.
                 </div>
               </div>
             ) : (
-              <div className="mb-2.5 rounded-2xl border-[1.5px] border-line-2 bg-white p-4">
+              <div className="mb-2.5 rounded-2xl border-[1.5px] border-line-2 bg-surface p-4">
                 <label htmlFor="dia-chi-lay-hang" className="mb-1 block text-[13px] font-bold text-ink-soft">
                   Địa chỉ lấy hàng <span className="text-hazard-dark">*</span>
                 </label>
@@ -409,7 +409,7 @@ export function PickupWizard({
                   value={diaChi}
                   onChange={(e) => setDiaChi(e.target.value)}
                   placeholder="Số nhà, tên phố, phường/xã, quận/huyện"
-                  className="w-full rounded-xl border border-line-3 bg-white px-3 py-2 text-[14px] font-semibold outline-none focus:border-leaf"
+                  className="w-full rounded-xl border border-line-3 bg-surface px-3 py-2 text-[14px] font-semibold outline-none focus:border-leaf"
                 />
                 <div className="mt-1 text-[11px] font-semibold text-muted">
                   Đội vệ sinh sẽ đến lấy tại địa chỉ này.
@@ -429,7 +429,7 @@ export function PickupWizard({
                   <IconChoDuyet className="mt-0.5 h-[18px] w-[18px] flex-none text-amber" />
                   <div>
                     <div className="mb-1 text-sm font-extrabold text-amber">Cần ban quản lý duyệt</div>
-                    <div className="text-[13px] font-semibold leading-relaxed text-[#7a5c14]">
+                    <div className="text-[13px] font-semibold leading-relaxed text-amber-dark">
                       Khối lượng ước tính <b>{kg(tongKg)}</b> (sai số ±40% nên cận trên tới{" "}
                       <b>{kg(Math.round(tongKg * 1.4))}</b>) vượt ngưỡng tự động <b>({NGUONG_KG_MAC_DINH} kg)</b>, nên
                       cần BQL duyệt trước khi lên lịch. Bạn sẽ nhận thông báo trong vòng 1 ngày làm việc.
@@ -439,8 +439,8 @@ export function PickupWizard({
               </div>
             )}
 
-            <label className="flex cursor-pointer items-start gap-2.5 rounded-2xl bg-white p-3.5 text-[13px] font-semibold leading-snug text-ink-soft">
-              <input type="checkbox" checked={daTick} onChange={(e) => setDaTick(e.target.checked)} className="mt-0.5 h-5 w-5 accent-[#2fae66]" />
+            <label className="flex cursor-pointer items-start gap-2.5 rounded-2xl bg-surface p-3.5 text-[13px] font-semibold leading-snug text-ink-soft">
+              <input type="checkbox" checked={daTick} onChange={(e) => setDaTick(e.target.checked)} className="mt-0.5 h-5 w-5 accent-leaf" />
               Tôi xác nhận các món trên không chứa rác nguy hại (pin, hoá chất, bóng đèn, thuốc).
             </label>
             {loi && <div className="mt-3 text-[13px] font-bold text-hazard-dark">{loi}</div>}

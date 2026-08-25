@@ -94,7 +94,7 @@ export function PickupQueue() {
                 key={yc.id}
                 onClick={() => api.pickup(yc.id).then(setDangChon)}
                 className={cn(
-                  "mb-2.5 w-full cursor-pointer rounded-2xl bg-white p-3.5 text-left transition-all duration-200 ease-[var(--ease-spring)] active:scale-[0.98]",
+                  "mb-2.5 w-full cursor-pointer rounded-2xl bg-surface p-3.5 text-left transition-all duration-200 ease-[var(--ease-spring)] active:scale-[0.98]",
                   dangChon?.id === yc.id
                     ? "border-2 border-leaf shadow-[var(--shadow-sm)]"
                     : "border border-line-3 shadow-[var(--shadow-xs)] hover:border-line-2 hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5"
@@ -116,7 +116,7 @@ export function PickupQueue() {
 
           {dangChon && (
             <Card className="overflow-hidden p-0">
-              <div className="border-b border-[#f2ede2] px-5 py-4">
+              <div className="border-b border-line-4 px-5 py-4">
                 <div className="mb-1 flex items-center gap-2.5">
                   <span className="rounded-md bg-amber-soft px-2.5 py-1 text-xs font-extrabold text-amber">CHỜ DUYỆT</span>
                   <span className="text-[15px] font-extrabold text-bulky">#PR-{String(dangChon.id).padStart(4, "0")}</span>
@@ -174,7 +174,7 @@ export function PickupQueue() {
                 </div>
 
                 {dangChon.resident_history && (
-                  <div className="mb-3.5 rounded-xl border border-[#e6ece6] bg-[#f7f9f7] px-3.5 py-3 text-xs font-semibold leading-loose text-ink-soft">
+                  <div className="mb-3.5 rounded-xl border border-[var(--color-line-green)] bg-[var(--color-tint-green)] px-3.5 py-3 text-xs font-semibold leading-loose text-ink-soft">
                     Cư dân này: {dangChon.resident_history.so_yeu_cau_truoc} yêu cầu trước,{" "}
                     {dangChon.resident_history.so_lan_hoan_thanh} lần hoàn thành, {dangChon.resident_history.so_lan_huy} lần huỷ
                     <br />
@@ -187,7 +187,7 @@ export function PickupQueue() {
                 )}
 
                 {dangChon.agent_suggestion && (
-                  <div className="rounded-xl border-[1.5px] border-dashed border-[#cbb8ee] bg-[#faf8fe] p-3.5">
+                  <div className="rounded-xl border-[1.5px] border-dashed border-[var(--color-bulky-line-faint)] bg-[var(--color-bulky-tint)] p-3.5">
                     <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-extrabold text-bulky">
                       <IconAi className="h-3.5 w-3.5" />
                       {dangChon.agent_suggestion.label_vi}
@@ -199,7 +199,7 @@ export function PickupQueue() {
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2.5 border-t border-[#f2ede2] bg-cream-soft px-5 py-3.5">
+              <div className="flex flex-wrap items-center gap-2.5 border-t border-line-4 bg-cream-soft px-5 py-3.5">
                 <Button variant="leaf" onClick={() => duyet("approve")}>
                   <IconDuyet className="h-4 w-4" />
                   Duyệt
@@ -212,7 +212,7 @@ export function PickupQueue() {
               </div>
 
               {moTuChoi && (
-                <div className="border-t border-[#f2ede2] px-5 py-3.5">
+                <div className="border-t border-line-4 px-5 py-3.5">
                   <div className="mb-2 text-[13px] font-bold">
                     Chọn lý do từ chối — bắt buộc chọn từ danh sách để dữ liệu chảy vào tập cải tiến
                   </div>
@@ -381,9 +381,9 @@ export function VerifyQueue() {
             <IconCaKho className="h-3.5 w-3.5" />
             CA KHÓ HAY BỊ NHẦM (từ eval)
           </div>
-          <div className="flex flex-wrap gap-2 text-xs font-bold text-[#7a5c14]">
+          <div className="flex flex-wrap gap-2 text-xs font-bold text-amber-dark">
             {du.hard_cases.map((c) => (
-              <span key={c.pair} className="rounded-lg bg-white px-2.5 py-1.5" title={c.note}>
+              <span key={c.pair} className="rounded-lg bg-surface px-2.5 py-1.5" title={c.note}>
                 {c.pair}
               </span>
             ))}
@@ -415,7 +415,7 @@ export function VerifyQueue() {
             ) : (
               <>
                 {loiDuyetNhanh && (
-                  <div className="mb-2 rounded-xl border border-[#f6cdb8] bg-hazard-soft px-3.5 py-2.5 text-[13px] font-bold text-hazard-dark">
+                  <div className="mb-2 rounded-xl border border-hazard-light bg-hazard-soft px-3.5 py-2.5 text-[13px] font-bold text-hazard-dark">
                     {loiDuyetNhanh}
                   </div>
                 )}
@@ -544,7 +544,7 @@ export function WeightConfirmQueue() {
                         Hoàn tất
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 rounded-xl border border-amber-line bg-amber-soft px-4 py-3 text-sm font-extrabold text-[#8a6414]">
+                      <div className="flex items-center gap-2 rounded-xl border border-amber-line bg-amber-soft px-4 py-3 text-sm font-extrabold text-[var(--color-amber-deep)]">
                         <IconCanhBao className="h-5 w-5 flex-none" />
                         Tranh chấp — khối lượng thật lệch xa khoảng ước lượng
                       </div>
@@ -568,7 +568,7 @@ export function WeightConfirmQueue() {
                         value={soKg[yc.id] ?? ""}
                         onChange={(e) => setSoKg((cu) => ({ ...cu, [yc.id]: e.target.value }))}
                         placeholder="vd: 18.5"
-                        className="h-12 w-full rounded-xl border border-line-2 bg-white px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                        className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                       />
                     </div>
                     <Button
@@ -686,7 +686,7 @@ export function RouteApproval() {
 
       {thongBao && <div className="mb-3 rounded-2xl bg-leaf-soft px-4 py-3 text-sm font-bold text-leaf-dark">{thongBao}</div>}
       {loiDuyet && (
-        <div className="mb-3 rounded-2xl border border-[#f6cdb8] bg-hazard-soft px-4 py-3 text-sm font-bold text-hazard-dark">
+        <div className="mb-3 rounded-2xl border border-hazard-light bg-hazard-soft px-4 py-3 text-sm font-bold text-hazard-dark">
           {loiDuyet}
         </div>
       )}
@@ -700,26 +700,26 @@ export function RouteApproval() {
       ) : (
         <>
           {/* Bản đồ là nhân vật chính — trọn chiều ngang, ngay dưới header. */}
-          <div className="mb-4 h-[280px] overflow-hidden rounded-[24px] border border-line">
+          <div className="mb-4 h-[280px] overflow-hidden rounded-2xl border border-line">
             <RouteMap stops={tuyen.stops ?? []} duong_di={tuyen.duong_di} lo_trinh_meta={tuyen.lo_trinh_meta} route_id={tuyen.id} />
           </div>
 
           {/* Lý do gộp — hàng chip, không phải đoạn văn bullet. */}
           <div className="mb-1.5 flex flex-wrap gap-2">
-            <span className="rounded-full bg-[#f2ede2] px-3.5 py-1.5 text-[13px] font-bold text-[#8a7a5a]">
+            <span className="rounded-full bg-line-4 px-3.5 py-1.5 text-[13px] font-bold text-amber-muted">
               {tuyen.stop_count} chuyến → 1
             </span>
             {tuyen.reasoning?.capacity_kg ? (
-              <span className="rounded-full bg-[#f2ede2] px-3.5 py-1.5 text-[13px] font-bold text-[#8a7a5a]">
+              <span className="rounded-full bg-line-4 px-3.5 py-1.5 text-[13px] font-bold text-amber-muted">
                 {Math.round(tuyen.total_weight_kg)}/{Math.round(tuyen.reasoning.capacity_kg)} kg
               </span>
             ) : (
-              <span className="rounded-full bg-[#f2ede2] px-3.5 py-1.5 text-[13px] font-bold text-[#8a7a5a]">
+              <span className="rounded-full bg-line-4 px-3.5 py-1.5 text-[13px] font-bold text-amber-muted">
                 {kg(tuyen.total_weight_kg)}
               </span>
             )}
             {cumNgan && (
-              <span className="rounded-full bg-[#ede8fb] px-3.5 py-1.5 text-[13px] font-bold text-[#5b3fbf]">
+              <span className="rounded-full bg-[var(--color-bulky-chip)] px-3.5 py-1.5 text-[13px] font-bold text-purple">
                 {cumNgan}
               </span>
             )}
@@ -737,26 +737,26 @@ export function RouteApproval() {
               — người duyệt cần biết thông tin này để hiểu vì sao chuyến chỉ có
               bấy nhiêu điểm. Không có dữ liệu thì không dựng khối rỗng. */}
           {tuyen.reasoning?.excluded?.length ? (
-            <div className="mb-4 rounded-[16px] border border-[#f2d9c2] bg-[#fdf3ea]">
+            <div className="mb-4 rounded-lg border border-[var(--color-warn-line)] bg-[var(--color-warn-tint)]">
               <button
                 type="button"
                 onClick={() => setMoKhongGop((v) => !v)}
                 aria-expanded={moKhongGop}
                 className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-left"
               >
-                <IconTuChoi className="h-4 w-4 flex-none text-[#a8791a]" />
-                <span className="flex-1 text-[13px] font-bold text-[#8a5a1a]">
+                <IconTuChoi className="h-4 w-4 flex-none text-amber" />
+                <span className="flex-1 text-[13px] font-bold text-[var(--color-warn-ink)]">
                   {tuyen.reasoning.excluded.length} yêu cầu không gộp vào chuyến này
                 </span>
-                <span className="text-[13px] font-bold text-[#a8791a]">{moKhongGop ? "Thu gọn" : "Xem lý do"}</span>
+                <span className="text-[13px] font-bold text-amber">{moKhongGop ? "Thu gọn" : "Xem lý do"}</span>
               </button>
               {moKhongGop && (
                 <ul className="gb-hscroll px-4 pb-3">
                   {tuyen.reasoning.excluded.map((e, i) => (
-                    <li key={`${e.request_id}-${i}`} className="flex items-start gap-2 border-t border-[#f2d9c2] py-1.5 text-[12px] font-semibold leading-snug">
-                      <span className="flex-none font-extrabold text-[#a8791a]">{e.request_id}</span>
+                    <li key={`${e.request_id}-${i}`} className="flex items-start gap-2 border-t border-[var(--color-warn-line)] py-1.5 text-[12px] font-semibold leading-snug">
+                      <span className="flex-none font-extrabold text-amber">{e.request_id}</span>
                       {e.unit && <span className="flex-none text-muted">{e.unit}</span>}
-                      <span className="min-w-0 flex-1 text-[#5a4a38]">{e.ly_do}</span>
+                      <span className="min-w-0 flex-1 text-[var(--color-warn-text)]">{e.ly_do}</span>
                     </li>
                   ))}
                 </ul>
@@ -765,7 +765,7 @@ export function RouteApproval() {
           ) : null}
 
           {/* Danh sách điểm dừng — mỗi điểm MỘT dòng. */}
-          <div className="mb-4 rounded-[20px] bg-white px-4 py-2">
+          <div className="mb-4 rounded-2xl bg-surface px-4 py-2">
             {(tuyen.stops ?? []).map((s) => {
               const laThung = s.stop_kind === "thung";
               const daBo = boBot.includes(s.stop_id);
@@ -783,7 +783,7 @@ export function RouteApproval() {
                 >
                   <span
                     className={`flex h-7 w-7 flex-none items-center justify-center rounded-full text-[12px] font-extrabold ${
-                      daBo ? "bg-[#efede6] text-muted" : "bg-leaf text-white"
+                      daBo ? "bg-[var(--color-chip-off)] text-muted" : "bg-leaf text-white"
                     }`}
                   >
                     {s.seq}
@@ -792,7 +792,7 @@ export function RouteApproval() {
                     <div className="flex items-center gap-1.5">
                       <span className="truncate text-[14px] font-bold">{ten}</span>
                       {laThung && (
-                        <span className="flex-none rounded-md bg-amber-line px-1.5 py-0.5 text-[10px] font-extrabold text-[#5a4410]">
+                        <span className="flex-none rounded-md bg-amber-line px-1.5 py-0.5 text-[10px] font-extrabold text-amber-darker">
                           THÙNG
                         </span>
                       )}

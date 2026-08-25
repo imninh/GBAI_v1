@@ -152,7 +152,7 @@ export function DiemNhanThucScreen({ onBack }: DiemNhanThucProps) {
           <div className="mt-3 space-y-2">
             <div className="text-xs font-bold text-muted">Gần đây</div>
             {tongQuan.gan_day.slice(0, 5).map((item, i) => (
-              <div key={i} className="flex items-center justify-between gap-2 rounded-xl border border-line-3 bg-white px-3 py-2 text-sm">
+              <div key={i} className="flex items-center justify-between gap-2 rounded-xl border border-line-3 bg-surface px-3 py-2 text-sm">
                 <span className="font-semibold text-ink-soft">{item.ghi_chu}</span>
                 <span className="flex-none font-extrabold text-leaf-dark">+{soVn(item.diem)}</span>
               </div>

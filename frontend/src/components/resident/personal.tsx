@@ -56,13 +56,13 @@ export function PrivacyScreen({ mediaId, onBack }: { mediaId: number; onBack: ()
             <div className="mb-4 flex gap-2.5">
               <div className="flex-1">
                 <div className="mb-1.5 text-[11px] font-bold text-muted">Ảnh gốc (chỉ ban quản lý mở được)</div>
-                <div className="flex aspect-[3/4] items-center justify-center rounded-2xl bg-[repeating-linear-gradient(135deg,#d8ded2,#d8ded2_8px,#cfd6c8_8px,#cfd6c8_16px)] font-mono text-[10px] font-semibold text-[#5a6b5f]">
+                <div className="flex aspect-[3/4] items-center justify-center rounded-2xl bg-[repeating-linear-gradient(135deg,var(--color-skeleton-warm),var(--color-skeleton-warm)_8px,var(--color-skeleton-warm-deep)_8px,var(--color-skeleton-warm-deep)_16px)] font-mono text-[10px] font-semibold text-ink-faint">
                   {bao.has_original ? "đã khoá" : "không lưu"}
                 </div>
               </div>
               <div className="flex-1">
                 <div className="mb-1.5 text-[11px] font-bold text-leaf">Đã gửi cho AI</div>
-                <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[repeating-linear-gradient(135deg,#dfeadf,#dfeadf_8px,#d5e2d5_8px,#d5e2d5_16px)]">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[repeating-linear-gradient(135deg,var(--color-skeleton),var(--color-skeleton)_8px,var(--color-skeleton-deep)_8px,var(--color-skeleton-deep)_16px)]">
                   {!daXoa && (
                     <AnhCoToken mediaId={bao.media_id} alt="Ảnh đã xử lý" className="h-full w-full object-cover" />
                   )}
@@ -77,7 +77,7 @@ export function PrivacyScreen({ mediaId, onBack }: { mediaId: number; onBack: ()
                 <span className="flex-1 text-right">Đã gửi đi</span>
               </div>
               {bao.removed_fields.map((truong) => (
-                <div key={truong.field} className="flex items-center border-b border-[#f2ede2] px-4 py-2.5 text-[13px] font-semibold">
+                <div key={truong.field} className="flex items-center border-b border-line-4 px-4 py-2.5 text-[13px] font-semibold">
                   <span className="flex-[1.4] text-ink-soft">{truong.label_vi}</span>
                   <span className="flex-1 truncate text-muted-2">{truong.value_before}</span>
                   <span className="flex flex-1 items-center justify-end gap-1.5 font-extrabold text-hazard-dark">
@@ -86,7 +86,7 @@ export function PrivacyScreen({ mediaId, onBack }: { mediaId: number; onBack: ()
                   </span>
                 </div>
               ))}
-              <div className="flex items-center border-b border-[#f2ede2] px-4 py-2.5 text-[13px] font-semibold">
+              <div className="flex items-center border-b border-line-4 px-4 py-2.5 text-[13px] font-semibold">
                 <span className="flex-[1.4] text-ink-soft">Khuôn mặt</span>
                 <span className="flex-1 text-muted-2">{bao.faces_blurred} khuôn mặt</span>
                 <span className="flex flex-1 items-center justify-end gap-1.5 font-extrabold text-leaf-dark">
@@ -158,7 +158,7 @@ export function ScheduleScreen({
         <button
           onClick={onBack}
           aria-label="Quay lại"
-          className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-full bg-white shadow-[0_2px_8px_rgba(20,40,25,.08)]"
+          className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-full bg-surface shadow-[0_2px_8px_rgba(20,40,25,.08)]"
         >
           <IconQuayLai className="h-5 w-5" />
         </button>
@@ -187,14 +187,14 @@ export function ScheduleScreen({
               {lich.items.map((row) => (
                 <React.Fragment key={row.category_code}>
                   <span className="flex items-center gap-1.5 whitespace-nowrap text-xs font-bold" style={{ color: row.bin_color }}>
-                    <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: row.bin_color }} />
+                    <span className="h-2.5 w-2.5 rounded-md" style={{ background: row.bin_color }} />
                     {row.category_name}
                   </span>
                   {[0, 1, 2, 3, 4, 5, 6].map((d) => (
                     <span
                       key={d}
                       className="h-[26px] rounded-md"
-                      style={{ background: row.weekdays.includes(d) ? row.bin_color : "#f1efe8" }}
+                      style={{ background: row.weekdays.includes(d) ? row.bin_color : "var(--color-schedule-off)" }}
                       title={row.weekdays.includes(d) ? `${row.window} · ${row.location}` : "không thu gom"}
                     />
                   ))}
@@ -206,7 +206,7 @@ export function ScheduleScreen({
           <div className="mx-0.5 mb-2 mt-4 text-[13px] font-bold text-muted">Điểm tập kết trong toà</div>
           <Card className="p-4">
             {lich.items.map((row) => (
-              <div key={row.category_code} className="flex justify-between border-b border-[#f2ede2] py-2 text-sm font-bold last:border-0">
+              <div key={row.category_code} className="flex justify-between border-b border-line-4 py-2 text-sm font-bold last:border-0">
                 <span>{row.location}</span>
                 <span className="font-semibold text-muted">
                   {row.category_name} · {row.window}
@@ -240,7 +240,7 @@ export function RequestsScreen({ onOpen, onCreate }: { onOpen: (id: number) => v
           const tt = TRANG_THAI_YEU_CAU[yc.status] ?? {
             label: yc.status,
             icon: IconChoDuyet,
-            className: "bg-[#eef1ec] text-muted",
+            className: "bg-muted-bg text-muted",
           };
           return (
             <Card key={yc.id} onClick={() => onOpen(yc.id)} className="mb-3 cursor-pointer overflow-hidden p-0">
@@ -304,8 +304,8 @@ function TrackYeuCau({ status }: { status: string }) {
                   xong
                     ? "bg-leaf text-white"
                     : dangChay
-                      ? "animate-gbpulse border-2 border-leaf bg-white text-leaf-dark"
-                      : "border-2 border-line-2 bg-white text-muted"
+                      ? "animate-gbpulse border-2 border-leaf bg-surface text-leaf-dark"
+                      : "border-2 border-line-2 bg-surface text-muted"
                 }`}
               >
                 {xong ? "✓" : i + 1}
@@ -356,7 +356,7 @@ export function RequestDetailScreen({ id, onBack }: { id: number; onBack: () => 
   const tt = TRANG_THAI_YEU_CAU[yc.status] ?? {
     label: yc.status,
     icon: IconChoDuyet,
-    className: "bg-[#eef1ec] text-muted",
+    className: "bg-muted-bg text-muted",
   };
 
   return (
@@ -404,7 +404,7 @@ export function RequestDetailScreen({ id, onBack }: { id: number; onBack: () => 
         )}
 
         {yc.reject_reason && (
-          <div className="mt-3 rounded-2xl border border-[#f6cdb8] bg-hazard-soft p-4 text-[13px] font-bold text-hazard-dark">
+          <div className="mt-3 rounded-2xl border border-hazard-light bg-hazard-soft p-4 text-[13px] font-bold text-hazard-dark">
             Bị từ chối: {yc.reject_reason}
             {yc.review_note ? ` — ${yc.review_note}` : ""}
           </div>
@@ -458,12 +458,12 @@ function LichSuVatLieu() {
       <div className="mb-3 text-sm font-extrabold">Lịch sử theo vật liệu</div>
 
       <div className="mb-3 flex gap-2">
-        <div className="flex-1 rounded-xl bg-[#eef1ec] p-3">
+        <div className="flex-1 rounded-xl bg-muted-bg p-3">
           <div className="text-[11px] font-bold text-muted">Yêu cầu đã gửi</div>
           <div className="text-lg font-extrabold">{ls.tong.so_yeu_cau}</div>
           <div className="text-[11px] font-semibold text-muted">đã thu {ls.tong.so_yeu_cau_da_thu}</div>
         </div>
-        <div className="flex-1 rounded-xl bg-[#eef1ec] p-3">
+        <div className="flex-1 rounded-xl bg-muted-bg p-3">
           <div className="text-[11px] font-bold text-muted">Khối lượng ước lượng</div>
           <div className="text-lg font-extrabold leading-tight">
             {so(ls.tong.khoi_luong_min_kg)} – {so(ls.tong.khoi_luong_max_kg)}
@@ -474,22 +474,22 @@ function LichSuVatLieu() {
       </div>
 
       {ls.theo_vat_lieu.length === 0 ? (
-        <div className="rounded-xl bg-[#eef1ec] p-3 text-[13px] font-semibold text-muted">
+        <div className="rounded-xl bg-muted-bg p-3 text-[13px] font-semibold text-muted">
           Chưa có gì để tổng hợp. Hỏi phân loại hoặc đăng ký thu gom là bắt đầu có lịch sử.
         </div>
       ) : (
         ls.theo_vat_lieu.map((d) => (
-          <div key={d.category_code} className="border-b border-[#f2ede2] py-2.5 last:border-0">
+          <div key={d.category_code} className="border-b border-line-4 py-2.5 last:border-0">
             <div className="mb-1.5 flex items-baseline justify-between gap-2">
               <span className="flex min-w-0 items-center gap-1.5 text-[13px] font-bold">
-                <span className="h-2.5 w-2.5 flex-none rounded-[3px]" style={{ background: d.bin_color }} />
+                <span className="h-2.5 w-2.5 flex-none rounded-md" style={{ background: d.bin_color }} />
                 <span className="truncate">{d.category_name}</span>
               </span>
               <span className="flex-none text-[12px] font-semibold text-muted">
                 <b className="text-ink">{d.so_mon}</b> món · <b className="text-ink">{d.so_lan_hoi}</b> lần hỏi
               </span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#eef1ec]">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted-bg">
               <div
                 className="h-full rounded-full"
                 style={{ width: `${Math.round((d.so_mon / soLon) * 100)}%`, background: d.bin_color }}
@@ -545,7 +545,7 @@ function SuaHoSo({ user, onXong, onHuy }: { user: User; onXong: () => void; onHu
     }
   }
 
-  const o = "w-full rounded-xl border border-line-3 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-ink";
+  const o = "w-full rounded-xl border border-line-3 bg-surface px-3 py-2 text-sm font-semibold outline-none focus:border-ink";
 
   return (
     <Card className="mb-5 p-4">
@@ -603,7 +603,7 @@ function SuaHoSo({ user, onXong, onHuy }: { user: User; onXong: () => void; onHu
         <button
           disabled={dangLuu}
           onClick={() => (chacBo ? gui({ xoa_can_ho: true }) : setChacBo(true))}
-          className="w-full cursor-pointer rounded-xl border border-line-3 bg-white px-3 py-2 text-[13px] font-bold text-hazard-dark"
+          className="w-full cursor-pointer rounded-xl border border-line-3 bg-surface px-3 py-2 text-[13px] font-bold text-hazard-dark"
         >
           {chacBo ? "Chắc chắn bỏ? Bấm lần nữa" : "Bỏ gắn căn hộ"}
         </button>
@@ -644,12 +644,12 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
   ];
 
   return (
-    <div className="min-h-full bg-[linear-gradient(180deg,#e9f7ef_0%,#f4f1ea_42%)] px-5 pb-[108px] pt-[54px]">
+    <div className="min-h-full bg-[linear-gradient(180deg,var(--color-nen-ho-so)_0%,var(--color-cream)_42%)] px-5 pb-[108px] pt-[54px]">
       <div className="mb-2 flex items-center gap-3">
         <button
           onClick={onBack}
           aria-label="Quay lại"
-          className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-full bg-white shadow-[0_2px_8px_rgba(20,40,25,.08)]"
+          className="flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-full bg-surface shadow-[0_2px_8px_rgba(20,40,25,.08)]"
         >
           <IconQuayLai className="h-5 w-5" />
         </button>
@@ -657,7 +657,7 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
       </div>
 
       {/* thẻ hero: cấp + điểm + thanh tiến độ */}
-      <div className="relative mt-3 overflow-hidden rounded-[28px] border border-line bg-white p-4 pb-5 text-center shadow-[0_2px_10px_rgba(20,40,25,.05)]">
+      <div className="relative mt-3 overflow-hidden rounded-2xl border border-line bg-surface p-4 pb-5 text-center shadow-[0_2px_10px_rgba(20,40,25,.05)]">
         <div className="absolute left-4 top-4 rounded-full bg-leaf-soft px-3 py-1.5 text-[11px] font-extrabold tracking-wide text-leaf-dark">
           CẤP · {cap.ten.toUpperCase()} {cap.icon}
         </div>
@@ -677,7 +677,7 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
       </div>
 
       {/* streak */}
-      <div className="mt-3.5 flex items-center gap-3.5 rounded-[22px] bg-amber-soft px-4 py-4">
+      <div className="mt-3.5 flex items-center gap-3.5 rounded-2xl bg-amber-soft px-4 py-4">
         <span className="text-[30px]">🔥</span>
         <div className="flex-1">
           <div className="font-[family-name:var(--font-display)] text-[19px] font-bold leading-tight text-amber">
@@ -695,8 +695,8 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
         {HUY_HIEU.map((h) => (
           <div
             key={h.ten}
-            className={`rounded-[18px] border p-3 text-center ${
-              h.daMo ? "border-line bg-white shadow-[0_2px_10px_rgba(20,40,25,.05)]" : "border-dashed border-line bg-cream opacity-60"
+            className={`rounded-lg border p-3 text-center ${
+              h.daMo ? "border-line bg-surface shadow-[0_2px_10px_rgba(20,40,25,.05)]" : "border-dashed border-line bg-cream opacity-60"
             }`}
           >
             <div className={`text-[26px] ${h.daMo ? "" : "grayscale"}`}>{h.icon}</div>
@@ -755,7 +755,7 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
   return (
     <div className="min-h-full bg-cream px-[18px] pb-[108px] pt-[54px]">
       <div className="mb-5 flex items-center gap-3.5">
-        <div className="flex h-[60px] w-[60px] items-center justify-center rounded-[20px] bg-leaf-soft text-leaf-dark">
+        <div className="flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-leaf-soft text-leaf-dark">
           <IconNguoiDung className="h-7 w-7" strokeWidth={1.8} />
         </div>
         <div className="min-w-0 flex-1">
@@ -768,7 +768,7 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
         {!dangSua && (
           <button
             onClick={() => setDangSua(true)}
-            className="flex-none cursor-pointer rounded-full border border-line-3 bg-white px-3.5 py-1.5 text-[13px] font-bold"
+            className="flex-none cursor-pointer rounded-full border border-line-3 bg-surface px-3.5 py-1.5 text-[13px] font-bold"
           >
             Sửa
           </button>
@@ -787,10 +787,10 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
       <LichSuVatLieu />
 
       <Card className="mb-3.5 overflow-hidden p-0">
-        <button onClick={onPrivacy} className="flex w-full cursor-pointer items-center gap-3 border-b border-[#f2ede2] px-4 py-4 text-left">
+        <button onClick={onPrivacy} className="flex w-full cursor-pointer items-center gap-3 border-b border-line-4 px-4 py-4 text-left">
           <IconKhoa className="h-[18px] w-[18px] text-muted" />
           <span className="flex-1 text-sm font-bold">Ảnh của tôi được xử lý thế nào</span>
-          <IconTiepTuc className="h-[18px] w-[18px] text-[#c3cbc2]" />
+          <IconTiepTuc className="h-[18px] w-[18px] text-line-faint" />
         </button>
         <button
           onClick={onDiemXanh}
@@ -799,7 +799,7 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
           <IconMamXanh className="h-[18px] w-[18px] text-leaf" />
           <span className="flex-1 text-sm font-bold">Điểm xanh</span>
           <span className="text-sm font-extrabold text-leaf-dark">{user.green_points}</span>
-          <IconTiepTuc className="h-[18px] w-[18px] text-[#c3cbc2]" />
+          <IconTiepTuc className="h-[18px] w-[18px] text-line-faint" />
         </button>
         <button
           onClick={() => setXemDiemNhanThuc(true)}
@@ -807,15 +807,15 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
         >
           <IconNguoiDung className="h-[18px] w-[18px] text-amber" />
           <span className="flex-1 text-sm font-bold">Điểm nhận thức</span>
-          <IconTiepTuc className="h-[18px] w-[18px] text-[#c3cbc2]" />
+          <IconTiepTuc className="h-[18px] w-[18px] text-line-faint" />
         </button>
       </Card>
 
       <CaiAppCard />
 
-      <div className="mb-3.5 rounded-2xl bg-[#eef1ec] p-4">
+      <div className="mb-3.5 rounded-2xl bg-muted-bg p-4">
         <div className="mb-2 text-xs font-bold text-muted">QUYỀN CỦA CƯ DÂN</div>
-        <div className="flex flex-col gap-1 text-[13px] font-semibold leading-relaxed text-[#5a6b5f]">
+        <div className="flex flex-col gap-1 text-[13px] font-semibold leading-relaxed text-ink-faint">
           <span className="flex items-start gap-1.5">
             <IconDuyet className="mt-0.5 h-3.5 w-3.5 flex-none text-leaf" />
             Hỏi phân loại · đăng ký thu gom
@@ -824,7 +824,7 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
             <IconDuyet className="mt-0.5 h-3.5 w-3.5 flex-none text-leaf" />
             Xem yêu cầu của chính mình
           </span>
-          <span className="flex items-start gap-1.5 text-[#b0b8ae]">
+          <span className="flex items-start gap-1.5 text-ink-disabled">
             <IconTuChoi className="mt-0.5 h-3.5 w-3.5 flex-none" />
             Duyệt yêu cầu · xem ảnh cư dân khác · trang vận hành
           </span>

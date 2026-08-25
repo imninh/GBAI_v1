@@ -188,7 +188,7 @@ function CrewManagement() {
             setChon([]);
             setTruongKip(null);
           }}
-          className="h-12 w-full rounded-xl border border-line-2 bg-white px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+          className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
         >
           {tuyen.map((r) => (
             <option key={r.id} value={r.id}>
@@ -216,7 +216,7 @@ function CrewManagement() {
               <div
                 key={tv.id}
                 className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 ${
-                  tv.vai_tro === "truong_kip" ? "border-leaf-line bg-leaf-soft" : "border-line bg-white"
+                  tv.vai_tro === "truong_kip" ? "border-leaf-line bg-leaf-soft" : "border-line bg-surface"
                 }`}
               >
                 <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-recycle-soft text-[12px] font-extrabold text-recycle">
@@ -253,7 +253,7 @@ function CrewManagement() {
                   key={nv.id}
                   onClick={() => toggleChon(nv.id)}
                   className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left transition-all ${
-                    dangChon ? "border-leaf bg-leaf-soft" : "border-line bg-white hover:border-line-2"
+                    dangChon ? "border-leaf bg-leaf-soft" : "border-line bg-surface hover:border-line-2"
                   }`}
                 >
                   <span
@@ -282,7 +282,7 @@ function CrewManagement() {
                     key={id}
                     onClick={() => setTruongKip(id)}
                     className={`rounded-lg px-2.5 py-1.5 text-[13px] font-bold ${
-                      truongKip === id ? "bg-leaf text-white" : "bg-white text-ink-soft"
+                      truongKip === id ? "bg-leaf text-white" : "bg-surface text-ink-soft"
                     }`}
                   >
                     {nv?.full_name ?? `#${id}`}
@@ -466,7 +466,7 @@ function IncidentBoard() {
                     value={ghiChu}
                     onChange={(e) => setGhiChu(e.target.value)}
                     placeholder="vd: đã điều xe thay thế"
-                    className="h-12 w-full rounded-xl border border-line-2 bg-white px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                    className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                   />
                 </div>
                 <div className="flex gap-2.5">

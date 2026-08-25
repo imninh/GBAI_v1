@@ -90,9 +90,9 @@ const ONBOARDING_BEATS = [
     body: "Chai dầu, hộp sữa, pin cũ… ai cũng từng phân vân bỏ vào đâu.",
     cta: "Tiếp tục",
     tuThe: "mascot" as const,
-    tint: "linear-gradient(180deg,#e6f4ea,#f4f1ea)",
-    blob: "#d6efe0",
-    kick: "#1f8a4f",
+    tint: "linear-gradient(180deg,var(--color-leaf-soft),var(--color-cream))",
+    blob: "var(--color-blob-leaf)",
+    kick: "var(--color-leaf-dark)",
   },
   {
     over: "Đơn giản thôi",
@@ -100,9 +100,9 @@ const ONBOARDING_BEATS = [
     body: "AI nhận ra món rác ngay, mách bạn bỏ thùng nào và để ở đâu.",
     cta: "Tiếp tục",
     tuThe: "magnify" as const,
-    tint: "linear-gradient(180deg,#e2eefb,#f4f1ea)",
-    blob: "#cfe0f7",
-    kick: "#2f7fe0",
+    tint: "linear-gradient(180deg,var(--color-recycle-soft),var(--color-cream))",
+    blob: "var(--color-blob-recycle)",
+    kick: "var(--color-recycle)",
   },
   {
     over: "Chào bạn nhé",
@@ -110,9 +110,9 @@ const ONBOARDING_BEATS = [
     body: "Hạt mầm đồng hành của bạn — mình sẽ khen khi bạn phân loại đúng.",
     cta: "Tiếp tục",
     tuThe: "hello" as const,
-    tint: "linear-gradient(180deg,#efe9f9,#f4f1ea)",
-    blob: "#e0d6f4",
-    kick: "#7c5cdf",
+    tint: "linear-gradient(180deg,var(--color-tint-lavender),var(--color-cream))",
+    blob: "var(--color-blob-bulky)",
+    kick: "var(--color-bulky)",
   },
   {
     over: "Sẵn sàng chưa?",
@@ -120,9 +120,9 @@ const ONBOARDING_BEATS = [
     body: "là một lần bạn cứu hành tinh — và cây xanh của bạn lớn thêm.",
     cta: "Bắt đầu",
     tuThe: "mascot" as const,
-    tint: "linear-gradient(180deg,#e6f4ea,#f4f1ea)",
-    blob: "#d6efe0",
-    kick: "#1f8a4f",
+    tint: "linear-gradient(180deg,var(--color-leaf-soft),var(--color-cream))",
+    blob: "var(--color-blob-leaf)",
+    kick: "var(--color-leaf-dark)",
   },
 ];
 
@@ -186,9 +186,9 @@ export function OnboardingScreen({ onNext }: { onNext: () => void }) {
 }
 
 const VAI_TRO = {
-  resident: { bg: "#e6f4ea", fg: "#2fae66", border: "#e6f4ea" },
-  cleaner: { bg: "#e2eefb", fg: "#2f7fe0", border: "#e2eefb" },
-  manager: { bg: "#ece7f6", fg: "#7c5cdf", border: "#ece7f6" },
+  resident: { bg: "var(--color-leaf-soft)", fg: "var(--color-leaf)", border: "var(--color-leaf-soft)" },
+  cleaner: { bg: "var(--color-recycle-soft)", fg: "var(--color-recycle)", border: "var(--color-recycle-soft)" },
+  manager: { bg: "var(--color-bulky-soft)", fg: "var(--color-bulky)", border: "var(--color-bulky-soft)" },
 } as const;
 
 /** Form đăng ký cư dân — G1d.
@@ -238,7 +238,7 @@ function FormDangKy() {
   }
 
   const o =
-    "w-full rounded-2xl border-[1.5px] border-line-2 bg-white px-4 py-4 text-[15px] font-semibold outline-none focus:border-leaf";
+    "w-full rounded-2xl border-[1.5px] border-line-2 bg-surface px-4 py-4 text-[15px] font-semibold outline-none focus:border-leaf";
   const chuaDu = !sdt.trim() || matKhau.length < 8 || ten.trim().length < 2;
 
   return (
@@ -347,14 +347,14 @@ export function LoginScreen() {
   }
 
   const oNhap =
-    "w-full rounded-2xl border-[1.5px] border-line-2 bg-white px-4 py-4 text-[15px] font-semibold outline-none focus:border-leaf";
+    "w-full rounded-2xl border-[1.5px] border-line-2 bg-surface px-4 py-4 text-[15px] font-semibold outline-none focus:border-leaf";
   const nutCach = (dang: boolean) =>
-    `flex-1 cursor-pointer rounded-xl py-2 text-[13px] font-bold ${dang ? "bg-white shadow-sm" : "text-muted"}`;
+    `flex-1 cursor-pointer rounded-xl py-2 text-[13px] font-bold ${dang ? "bg-surface shadow-sm" : "text-muted"}`;
   const dinhDanhTrong = cach === "sdt" ? !sdt.trim() : !email.trim();
 
   return (
     <div className="flex min-h-full flex-col bg-cream px-6 pb-8 pt-[70px]">
-      <div className="mb-[18px] flex h-[60px] w-[60px] items-center justify-center rounded-[20px] bg-leaf shadow-[0_10px_22px_-8px_rgba(47,174,102,.6)]">
+      <div className="mb-[18px] flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-leaf shadow-[0_10px_22px_-8px_rgba(47,174,102,.6)]">
         <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M7 19a2 2 0 0 1-2-2l-1-9h16l-1 9a2 2 0 0 1-2 2z" />
           <path d="M3 8h18" />
@@ -365,13 +365,13 @@ export function LoginScreen() {
         Chào bạn
         <IconChao className="h-7 w-7 text-leaf" />
       </h1>
-      <p className="mb-6 text-[15px] font-semibold leading-snug text-[#5a6b5f]">Chụp ảnh — biết ngay bỏ vào thùng nào.</p>
+      <p className="mb-6 text-[15px] font-semibold leading-snug text-ink-faint">Chụp ảnh — biết ngay bỏ vào thùng nào.</p>
 
       {cheDo === "dangky" ? (
         <FormDangKy />
       ) : (
         <>
-          <div className="mb-2.5 flex gap-1 rounded-2xl bg-[#eef1ec] p-1">
+          <div className="mb-2.5 flex gap-1 rounded-2xl bg-muted-bg p-1">
             <button onClick={() => setCach("sdt")} className={nutCach(cach === "sdt")}>
               Số điện thoại
             </button>
@@ -429,7 +429,7 @@ export function LoginScreen() {
 
       <div className="my-5 flex items-center gap-3">
         <span className="h-px flex-1 bg-line-2" />
-        <span className="text-xs font-bold text-[#a0a89f]">TÀI KHOẢN DEMO</span>
+        <span className="text-xs font-bold text-label-faint">TÀI KHOẢN DEMO</span>
         <span className="h-px flex-1 bg-line-2" />
       </div>
 
@@ -440,7 +440,7 @@ export function LoginScreen() {
             key={tk.email}
             onClick={() => vao(tk.email, demo.password)}
             disabled={dangGui}
-            className="mb-2.5 flex w-full cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] bg-white p-3.5 text-left"
+            className="mb-2.5 flex w-full cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] bg-surface p-3.5 text-left"
             style={{ borderColor: mau.border }}
           >
             <span className="flex h-[42px] w-[42px] flex-none items-center justify-center rounded-xl" style={{ background: mau.bg }}>
@@ -470,7 +470,7 @@ export function LoginScreen() {
           hai môi trường vênh nhau, và bản chạy thật mới là bản phải đúng. */}
       <a
         href="/demo-thiet-bi/"
-        className="mb-4 mt-1 flex w-full cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] border-dashed border-line-2 bg-white p-3.5 text-left no-underline"
+        className="mb-4 mt-1 flex w-full cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] border-dashed border-line-2 bg-surface p-3.5 text-left no-underline"
       >
         <span className="flex h-[42px] w-[42px] flex-none items-center justify-center rounded-xl bg-leaf-soft">
           <IconManHinhRong className="h-[22px] w-[22px] text-leaf-dark" />
@@ -484,7 +484,7 @@ export function LoginScreen() {
         <IconTiepTuc className="h-[18px] w-[18px] text-muted" />
       </a>
 
-      <p className="m-0 text-center text-[11px] font-semibold leading-relaxed text-[#9aa39a]">
+      <p className="m-0 text-center text-[11px] font-semibold leading-relaxed text-muted-slate">
         {demo?.notice ??
           "Hệ thống demo dùng dữ liệu mô phỏng và dữ liệu công khai. Ảnh tải lên được tự động xoá thông tin vị trí và làm mờ khuôn mặt trước khi xử lý."}
       </p>

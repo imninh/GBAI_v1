@@ -100,10 +100,10 @@ export default function CleanerNavigationMap({
             onClick={() => setFollowVehicle((prev) => !prev)}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold transition-colors ${followVehicle
                 ? "bg-emerald-600 text-white shadow-sm"
-                : "bg-white text-slate-700 border border-slate-200"
+                : "bg-surface text-slate-700 border border-slate-200"
               }`}
           >
-            <span className={`inline-block h-2 w-2 rounded-full ${followVehicle ? "bg-white animate-ping" : "bg-emerald-500"}`} />
+            <span className={`inline-block h-2 w-2 rounded-full ${followVehicle ? "bg-surface animate-ping" : "bg-emerald-500"}`} />
             {followVehicle ? "Đang theo xe" : "Bám theo xe"}
           </button>
           {onTroLaiDanhSach && (
@@ -155,13 +155,13 @@ export default function CleanerNavigationMap({
 
       {/* Thẻ điều hướng điểm dừng kế tiếp (Next-Stop HUD) */}
       {activeStop && (
-        <Card className="mt-2.5 p-3.5 bg-white shadow-md border border-slate-200">
+        <Card className="mt-2.5 p-3.5 bg-surface shadow-md border border-slate-200">
           <div className="flex items-start gap-2.5">
             <span
               className="flex h-9 w-9 flex-none items-center justify-center rounded-xl text-sm font-extrabold shadow-sm"
               style={{
-                background: activeStop.done_at ? "#e6f4ea" : "#16211a",
-                color: activeStop.done_at ? "#1f8a4f" : "#ffffff",
+                background: activeStop.done_at ? "var(--color-leaf-soft)" : "var(--color-ink)",
+                color: activeStop.done_at ? "var(--color-leaf-dark)" : "var(--color-surface)",
               }}
             >
               {activeStop.seq}

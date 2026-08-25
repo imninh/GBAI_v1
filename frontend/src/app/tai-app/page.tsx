@@ -24,7 +24,7 @@ function Buoc({ so, children }: { so: number; children: React.ReactNode }) {
       <span className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-leaf-soft text-xs font-bold text-leaf">
         {so}
       </span>
-      <span className="flex-1 pt-0.5 text-sm font-semibold leading-snug text-[#4a564d]">{children}</span>
+      <span className="flex-1 pt-0.5 text-sm font-semibold leading-snug text-ink-dim">{children}</span>
     </li>
   );
 }
@@ -43,7 +43,7 @@ export default function TaiAppPage() {
           <h1 className="font-[family-name:var(--font-display)] text-[30px] font-bold leading-none tracking-tight">
             Cài GreenBin AI
           </h1>
-          <p className="mt-1.5 text-sm font-semibold text-[#5a6b5f]">
+          <p className="mt-1.5 text-sm font-semibold text-ink-faint">
             Cư dân và đội vệ sinh dùng app trên điện thoại. Ban quản lý dùng web trên máy tính.
           </p>
         </div>
@@ -115,7 +115,7 @@ export default function TaiAppPage() {
       <Card className="p-5">
         <div className="mb-1 text-xs font-bold uppercase tracking-wide text-muted">Máy tính</div>
         <h2 className="mb-3 font-[family-name:var(--font-display)] text-xl font-bold">Dùng thẳng trên web</h2>
-        <p className="text-sm font-semibold leading-snug text-[#4a564d]">
+        <p className="text-sm font-semibold leading-snug text-ink-dim">
           Console ban quản lý được thiết kế cho màn hình rộng — mở web là dùng được, không cần cài gì.
         </p>
         <Link href="/" className="mt-3.5 block">
@@ -125,7 +125,7 @@ export default function TaiAppPage() {
         </Link>
       </Card>
 
-      <p className="text-center text-[11px] font-semibold leading-relaxed text-[#9aa39a]">
+      <p className="text-center text-[11px] font-semibold leading-relaxed text-muted-slate">
         Bản demo chạy trên hạ tầng miễn phí: máy chủ ngủ khi rảnh nên lần mở đầu tiên có thể chậm
         vài chục giây, và ảnh đã tải lên sẽ mất khi máy chủ khởi động lại.
       </p>

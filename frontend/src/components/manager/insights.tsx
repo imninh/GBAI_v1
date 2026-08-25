@@ -113,7 +113,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
             antoanXanh ? "bg-leaf-soft/60 border-leaf-mint/40" : "bg-hazard-soft/80 border-hazard/30"
           )}
         >
-          <div className="mb-1.5 text-xs font-bold" style={{ color: antoanXanh ? "#1f8a4f" : "#c1471c" }}>
+          <div className="mb-1.5 text-xs font-bold" style={{ color: antoanXanh ? "var(--color-leaf-dark)" : "var(--color-hazard-dark)" }}>
             <span className="inline-flex items-center gap-1.5">
               <IconCanhBao className="h-3.5 w-3.5" />
               Rác nguy hại bị bỏ sót
@@ -121,11 +121,11 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
           </div>
           <div
             className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums"
-            style={{ color: antoanXanh ? "#1f8a4f" : "#c1471c" }}
+            style={{ color: antoanXanh ? "var(--color-leaf-dark)" : "var(--color-hazard-dark)" }}
           >
             {antoan.hazard_missed_count}
           </div>
-          <div className="mt-1.5 text-[11px] font-semibold" style={{ color: antoanXanh ? "#3a7a52" : "#a04b26" }}>
+          <div className="mt-1.5 text-[11px] font-semibold" style={{ color: antoanXanh ? "var(--color-amber-green)" : "var(--color-amber-brown)" }}>
             mục tiêu 0 · trên {antoan.hazard_total} ca nguy hại
           </div>
         </Card>
@@ -136,26 +136,26 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
           <div className="mb-3.5 text-sm font-bold">Phân bố nhóm rác trong tuần</div>
           <div className="mb-3.5 flex h-[18px] overflow-hidden rounded-full">
             {du.category_distribution.map((c) => (
-              <span key={c.code} style={{ width: `${c.share * 100}%`, background: c.bin_color || "#8b8f8a" }} />
+              <span key={c.code} style={{ width: `${c.share * 100}%`, background: c.bin_color || "var(--color-neutral)" }} />
             ))}
           </div>
           <div className="flex flex-wrap gap-3 text-xs font-bold text-ink-soft">
             {du.category_distribution.map((c) => (
               <span key={c.code} className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: c.bin_color || "#8b8f8a" }} />
+                <span className="h-2.5 w-2.5 rounded-md" style={{ background: c.bin_color || "var(--color-neutral)" }} />
                 {c.name} {phanTram(c.share, 0)}
               </span>
             ))}
           </div>
         </Card>
 
-        <div className="rounded-2xl bg-[linear-gradient(150deg,#2fae66,#1f8a4f)] p-4 text-white">
+        <div className="rounded-2xl bg-[linear-gradient(150deg,var(--color-leaf),var(--color-leaf-dark))] p-4 text-white">
           <div className="mb-3 text-sm font-bold">Hiệu quả điều phối</div>
           <div className="font-[family-name:var(--font-display)] text-[30px] font-bold leading-tight">
             {du.routing_efficiency.so_yeu_cau} yêu cầu
             <br />→ {du.routing_efficiency.so_chuyen} chuyến
           </div>
-          <div className="mt-3.5 rounded-xl bg-white/20 px-3 py-2.5 text-[13px] font-bold">
+          <div className="mt-3.5 rounded-xl bg-surface/20 px-3 py-2.5 text-[13px] font-bold">
             Giảm {du.routing_efficiency.giam_so_chuyen} chuyến xe · tiết kiệm ~
             {soVn(du.routing_efficiency.tiet_kiem_km, 1)} km
           </div>
@@ -195,10 +195,10 @@ export function OpsScreen() {
           <div className="mt-1 text-xs font-semibold text-muted">
             {soVn(du.cost.count)} lượt · {tienUsd(du.cost.cost_per_1000)} / 1.000 lượt
           </div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#f0eee7]">
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-line-light">
             <div
               className="h-full rounded-full"
-              style={{ width: `${tiLeNganSach * 100}%`, background: tiLeNganSach > 0.8 ? "#e05a2b" : "#2fae66" }}
+              style={{ width: `${tiLeNganSach * 100}%`, background: tiLeNganSach > 0.8 ? "var(--color-hazard)" : "var(--color-leaf)" }}
             />
           </div>
           <div className="mt-1.5 text-[11px] font-bold text-muted">
@@ -207,7 +207,7 @@ export function OpsScreen() {
           </div>
         </Card>
 
-        <div className="rounded-2xl bg-[linear-gradient(150deg,#2fae66,#1f8a4f)] p-4 text-white">
+        <div className="rounded-2xl bg-[linear-gradient(150deg,var(--color-leaf),var(--color-leaf-dark))] p-4 text-white">
           <div className="mb-2 text-[13px] font-bold opacity-90">
             Định tuyến nhiều tầng vs dùng {du.cost.baseline_model} cho mọi ảnh
           </div>
@@ -217,7 +217,7 @@ export function OpsScreen() {
               {tienUsd(du.cost.baseline_full_model)}
             </span>
           </div>
-          <div className="mt-3 inline-block rounded-full bg-white/20 px-3.5 py-1.5 text-sm font-extrabold">
+          <div className="mt-3 inline-block rounded-full bg-surface/20 px-3.5 py-1.5 text-sm font-extrabold">
             Tiết kiệm {phanTram(du.cost.saved_ratio, 0)}
           </div>
           {!du.cost.baseline_price_known && (
@@ -232,7 +232,7 @@ export function OpsScreen() {
         <div className="mb-3 text-sm font-bold">So sánh các tầng model</div>
         <div className="gb-hscroll">
           <div
-            className="grid gap-2 border-b border-[#f2ede2] pb-2 text-[11px] font-extrabold text-muted"
+            className="grid gap-2 border-b border-line-4 pb-2 text-[11px] font-extrabold text-muted"
             style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", minWidth: 560 }}
           >
             <span>Tầng</span>
@@ -244,7 +244,7 @@ export function OpsScreen() {
           {du.cost.by_tier.map((t) => (
             <div
               key={t.tier}
-              className="grid gap-2 border-b border-[#f7f4ec] py-2.5 text-xs font-bold"
+              className="grid gap-2 border-b border-line-5 py-2.5 text-xs font-bold"
               style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", minWidth: 560 }}
             >
               <span>{t.label_vi}</span>
@@ -282,7 +282,7 @@ export function OpsScreen() {
             {soVn(du.latency.end_to_end.p95)} ms
           </div>
           {du.latency.by_node.map((n) => (
-            <div key={n.node} className="flex justify-between border-b border-[#f7f4ec] py-1.5 text-xs font-bold last:border-0">
+            <div key={n.node} className="flex justify-between border-b border-line-5 py-1.5 text-xs font-bold last:border-0">
               <span className="text-muted-2">{n.node}</span>
               <span>
                 p50 {soVn(n.p50)} · p95 {soVn(n.p95)} ms
@@ -301,7 +301,7 @@ export function OpsScreen() {
             <div className="text-xs font-semibold text-muted">Chưa ghi nhận lỗi nào gần đây.</div>
           ) : (
             du.errors.recent.map((e, i) => (
-              <div key={i} className="border-b border-[#f7f4ec] py-1.5 text-xs font-semibold last:border-0">
+              <div key={i} className="border-b border-line-5 py-1.5 text-xs font-semibold last:border-0">
                 <b>{e.node}</b> · {e.error_type} · run #{e.run_id}
               </div>
             ))
@@ -328,7 +328,7 @@ export function OpsScreen() {
             </thead>
             <tbody>
               {(du.provider.tiers ?? []).map((t) => (
-                <tr key={t.tier} className="border-t border-[#f7f4ec]">
+                <tr key={t.tier} className="border-t border-line-5">
                   <td className="py-1.5 pr-3">{t.label_vi}</td>
                   <td className="py-1.5 pr-3">
                     <b>{t.provider}</b>
@@ -429,7 +429,7 @@ export function OpsScreen() {
           <IconCanhBao className="h-3.5 w-3.5" />
           GIỚI HẠN ĐÃ BIẾT CỦA HỆ THỐNG
         </div>
-        <div className="text-[13px] font-semibold leading-loose text-[#7a5c14]">
+        <div className="text-[13px] font-semibold leading-loose text-amber-dark">
           {du.known_limitations.map((g) => (
             <div key={g}>• {g}</div>
           ))}
@@ -461,18 +461,18 @@ export function QualityScreen() {
 
       <div
         className="mb-4 rounded-2xl border-2 p-6 text-center"
-        style={{ background: xanh ? "#e6f4ea" : "#fdeee6", borderColor: xanh ? "#bfe6cc" : "#e05a2b" }}
+        style={{ background: xanh ? "var(--color-leaf-soft)" : "var(--color-hazard-soft)", borderColor: xanh ? "var(--color-leaf-line)" : "var(--color-hazard)" }}
       >
-        <div className="text-[13px] font-extrabold uppercase tracking-wide" style={{ color: xanh ? "#1f8a4f" : "#c1471c" }}>
+        <div className="text-[13px] font-extrabold uppercase tracking-wide" style={{ color: xanh ? "var(--color-leaf-dark)" : "var(--color-hazard-dark)" }}>
           {du.safety.label_vi}
         </div>
         <div
           className="my-2 font-[family-name:var(--font-display)] text-5xl font-bold"
-          style={{ color: xanh ? "#1f8a4f" : "#c1471c" }}
+          style={{ color: xanh ? "var(--color-leaf-dark)" : "var(--color-hazard-dark)" }}
         >
           {du.safety.hazard_missed_count} / {du.safety.hazard_total}
         </div>
-        <div className="text-[13px] font-bold" style={{ color: xanh ? "#3a7a52" : "#a04b26" }}>
+        <div className="text-[13px] font-bold" style={{ color: xanh ? "var(--color-amber-green)" : "var(--color-amber-brown)" }}>
           mục tiêu: {du.safety.target}
         </div>
       </div>
@@ -507,7 +507,7 @@ export function QualityScreen() {
               </thead>
               <tbody>
                 {du.by_dataset.map((d, i) => (
-                  <tr key={i} className="border-t border-[#f7f4ec]">
+                  <tr key={i} className="border-t border-line-5">
                     <td className="py-2">
                       {d.dataset === "public" ? "Dataset công khai" : d.dataset === "own" ? "Ảnh tự chụp tại VN" : d.dataset}
                       {d.is_seed && <SeedBadge className="ml-2" />}
@@ -533,7 +533,7 @@ export function QualityScreen() {
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {du.failures.slice(0, 12).map((f) => (
               <div key={f.id} className="rounded-xl border border-line p-3">
-                <div className="mb-2 aspect-square rounded-lg bg-[repeating-linear-gradient(135deg,#e6edf5,#e6edf5_7px,#dce5ef_7px,#dce5ef_14px)]" />
+                <div className="mb-2 aspect-square rounded-lg bg-[repeating-linear-gradient(135deg,var(--color-recycle-muted),var(--color-recycle-muted)_7px,var(--color-skeleton-blue)_7px,var(--color-skeleton-blue)_14px)]" />
                 <div className="text-xs font-extrabold">{f.item_name}</div>
                 <div className="text-[11px] font-semibold text-muted">
                   đúng: {f.true_category_code} · AI: {f.predicted_category_code}
@@ -575,8 +575,8 @@ export function AgentRunScreen() {
             <button
               key={r.id}
               onClick={() => api.run(r.id).then(setChiTiet)}
-              className="mb-2 w-full cursor-pointer rounded-xl bg-white p-3 text-left"
-              style={{ border: chiTiet?.id === r.id ? "2px solid #2fae66" : "1px solid #eceae3" }}
+              className="mb-2 w-full cursor-pointer rounded-xl bg-surface p-3 text-left"
+              style={{ border: chiTiet?.id === r.id ? "2px solid var(--color-leaf)" : "1px solid var(--color-line-3)" }}
             >
               <div className="flex justify-between text-[13px] font-extrabold">
                 <span>#{r.id}</span>
@@ -595,12 +595,12 @@ export function AgentRunScreen() {
               Run #{chiTiet.id} · {ngayGioVn(chiTiet.started_at)}
             </div>
             {chiTiet.nodes.map((n, i) => (
-              <div key={i} className="flex gap-3 border-b border-[#f7f4ec] py-2.5 last:border-0">
+              <div key={i} className="flex gap-3 border-b border-line-5 py-2.5 last:border-0">
                 <span
                   className="flex h-6 w-6 flex-none items-center justify-center rounded-full text-xs font-extrabold"
                   style={{
-                    background: n.status === "ok" ? "#e6f4ea" : n.status === "skipped" ? "#eef1ec" : "#fdeee6",
-                    color: n.status === "ok" ? "#1f8a4f" : n.status === "skipped" ? "#8a938a" : "#c1471c",
+                    background: n.status === "ok" ? "var(--color-leaf-soft)" : n.status === "skipped" ? "var(--color-muted-bg)" : "var(--color-hazard-soft)",
+                    color: n.status === "ok" ? "var(--color-leaf-dark)" : n.status === "skipped" ? "var(--color-muted)" : "var(--color-hazard-dark)",
                   }}
                 >
                   {n.status === "ok" ? (

@@ -138,7 +138,7 @@ export function XepTuyen() {
                   type="date"
                   value={ngay}
                   onChange={(e) => setNgay(e.target.value)}
-                  className="h-12 w-full rounded-xl border border-line-2 bg-white px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                  className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                 />
               </div>
               <div>
@@ -149,7 +149,7 @@ export function XepTuyen() {
                   id="xt-khung"
                   value={khung}
                   onChange={(e) => setKhung(e.target.value)}
-                  className="h-12 w-full rounded-xl border border-line-2 bg-white px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                  className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                 >
                   {KHUNG_GIO.map((k) => (
                     <option key={k.value} value={k.value}>
@@ -170,7 +170,7 @@ export function XepTuyen() {
                   value={maDoi}
                   onChange={(e) => setMaDoi(e.target.value)}
                   placeholder="để trống nếu chưa chốt đội"
-                  className="h-12 w-full rounded-xl border border-line-2 bg-white px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                  className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                 />
               </div>
               <div>
@@ -186,13 +186,13 @@ export function XepTuyen() {
                   value={taiTrong}
                   onChange={(e) => setTaiTrong(e.target.value)}
                   placeholder="mặc định theo cấu hình"
-                  className="h-12 w-full rounded-xl border border-line-2 bg-white px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                  className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                 />
               </div>
             </div>
 
             {loiXep && (
-              <div className="mb-3 mt-3 rounded-xl border border-[#f6cdb8] bg-hazard-soft px-3.5 py-2.5 text-[13px] font-bold text-hazard-dark">
+              <div className="mb-3 mt-3 rounded-xl border border-hazard-light bg-hazard-soft px-3.5 py-2.5 text-[13px] font-bold text-hazard-dark">
                 {loiXep}
               </div>
             )}
@@ -210,15 +210,15 @@ export function XepTuyen() {
 
           {ketQua && (
             <Card className="overflow-hidden p-0">
-              <div className="flex items-center gap-3 rounded-t-[20px] bg-[linear-gradient(150deg,#16211a,#1c3326)] px-5 py-4 text-white">
-                <span className="rounded-lg bg-amber-line px-2.5 py-1 text-[11px] font-extrabold text-[#5a4410]">
+              <div className="flex items-center gap-3 rounded-t-[20px] bg-[linear-gradient(150deg,var(--color-ink),var(--color-ink-forest))] px-5 py-4 text-white">
+                <span className="rounded-lg bg-amber-line px-2.5 py-1 text-[11px] font-extrabold text-amber-darker">
                   AI ĐỀ XUẤT — CHỜ DUYỆT
                 </span>
                 <div className="flex-1">
                   <div className="font-[family-name:var(--font-display)] text-[17px] font-bold">
                     Chuyến {ketQua.window} · {ngayVn(ketQua.service_date)}
                   </div>
-                  <div className="text-xs font-semibold text-[#9fb3a6]">
+                  <div className="text-xs font-semibold text-bulky-muted">
                     {ketQua.stop_count} điểm dừng · {kg(ketQua.total_weight_kg)} · ~{ketQua.est_distance_km} km
                     {ketQua.team ? ` · ${ketQua.team.full_name}` : ""}
                   </div>

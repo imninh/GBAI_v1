@@ -226,7 +226,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
   if (!user || sessionExpired) {
     return (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-        <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl dark:bg-zinc-900 dark:text-zinc-100">
+        <div className="w-full max-w-sm rounded-2xl bg-surface p-6 text-center shadow-2xl dark:bg-zinc-900 dark:text-zinc-100">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-700/90 text-white">
             <Mascot size={48} tuThe="hello" />
           </div>
@@ -272,7 +272,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
       {/* Cửa sổ Chat Modal */}
       {isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/40 backdrop-blur-xs p-0 sm:items-center sm:p-4">
-          <div className="flex h-[92vh] w-full max-w-lg flex-col rounded-t-2xl bg-white shadow-2xl sm:h-[650px] sm:rounded-2xl dark:bg-zinc-900 dark:text-zinc-100">
+          <div className="flex h-[92vh] w-full max-w-lg flex-col rounded-t-2xl bg-surface shadow-2xl sm:h-[650px] sm:rounded-2xl dark:bg-zinc-900 dark:text-zinc-100">
             {/* Header với Bini avatar */}
             <div className="flex items-center justify-between border-b border-emerald-900/40 px-4 py-3 bg-gradient-to-r from-emerald-800 to-emerald-900 text-white rounded-t-2xl">
               <div className="flex items-center gap-3">
@@ -351,7 +351,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                     <button
                       key={idx}
                       onClick={() => handleSend(s.question)}
-                      className="shrink-0 rounded-full border border-emerald-200 bg-white px-3 py-1 text-emerald-800 shadow-xs hover:bg-emerald-50 active:scale-95 dark:border-emerald-800 dark:bg-zinc-900 dark:text-emerald-300"
+                      className="shrink-0 rounded-full border border-emerald-200 bg-surface px-3 py-1 text-emerald-800 shadow-xs hover:bg-emerald-50 active:scale-95 dark:border-emerald-800 dark:bg-zinc-900 dark:text-emerald-300"
                     >
                       {s.label}
                     </button>
@@ -412,7 +412,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                           {m.responseMeta.viable_bins.map((bin) => (
                             <div
                               key={bin.id}
-                              className="rounded-lg border border-zinc-200 bg-white p-2.5 text-xs shadow-xs dark:border-zinc-700 dark:bg-zinc-900"
+                              className="rounded-lg border border-zinc-200 bg-surface p-2.5 text-xs shadow-xs dark:border-zinc-700 dark:bg-zinc-900"
                             >
                               <div className="flex justify-between font-medium">
                                 <span className="font-bold text-zinc-800 dark:text-zinc-200">{bin.name}</span>
@@ -467,7 +467,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                               {m.responseMeta.sources.map((s, idx) => (
                                 <div
                                   key={idx}
-                                  className="rounded bg-white/80 p-2 text-[11px] text-zinc-700 shadow-2xs dark:bg-zinc-900/90 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700/50"
+                                  className="rounded bg-surface/80 p-2 text-[11px] text-zinc-700 shadow-2xs dark:bg-zinc-900/90 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700/50"
                                 >
                                   <div className="font-semibold text-emerald-800 dark:text-emerald-300">
                                     📜 {s.doc_title} · {s.section}
@@ -526,7 +526,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
             </div>
 
             {/* Khung Nhập Liệu */}
-            <div className="border-t border-zinc-200 p-3 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-b-2xl">
+            <div className="border-t border-zinc-200 p-3 dark:border-zinc-800 bg-surface dark:bg-zinc-900 rounded-b-2xl">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();

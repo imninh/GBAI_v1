@@ -47,7 +47,7 @@ function NguonChips({ sources, onOpen }: { sources: AdviceSource[]; onOpen: (s: 
           <button
             key={s.chunk_id}
             onClick={() => onOpen(s)}
-            className="flex cursor-pointer items-center gap-1.5 rounded-xl border-[1.5px] border-line-2 bg-white px-3 py-2 text-xs font-bold text-ink-soft"
+            className="flex cursor-pointer items-center gap-1.5 rounded-xl border-[1.5px] border-line-2 bg-surface px-3 py-2 text-xs font-bold text-ink-soft"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2fae66" strokeWidth="2">
               <path d="M6 3h9l4 4v14H6z" />
@@ -65,7 +65,7 @@ export function SourceSheet({ source, onClose }: { source: AdviceSource | null; 
   if (!source) return null;
   return (
     <div className="absolute inset-0 z-50 flex items-end bg-black/40" onClick={onClose}>
-      <div className="max-h-[70%] w-full overflow-y-auto rounded-t-[28px] bg-white p-5" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[70%] w-full overflow-y-auto rounded-t-[28px] bg-surface p-5" onClick={(e) => e.stopPropagation()}>
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-line-2" />
         <div className="text-[11px] font-extrabold uppercase tracking-wide text-muted">{source.doc_type}</div>
         <div className="mt-1 font-[family-name:var(--font-display)] text-lg font-bold">{source.doc_title}</div>
@@ -119,11 +119,11 @@ export function ResultScreen({
         )}
 
         <div
-          className="animate-gbfade rounded-3xl p-5 text-white shadow-[0_16px_30px_-14px_rgba(47,127,224,.7)]"
+          className="animate-gbfade rounded-2xl p-5 text-white shadow-[0_16px_30px_-14px_rgba(47,127,224,.7)]"
           style={{ background: `linear-gradient(155deg, ${category.bin_color}, ${category.bin_color}dd)` }}
         >
           <div className="mb-4 flex items-center gap-2.5">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/20">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface/20">
               <IconNhomRac code={category.code} className="h-6 w-6" />
             </span>
             <div>
@@ -140,7 +140,7 @@ export function ResultScreen({
               {mucTinCay.label} · {doTinCay(ketQua.confidence)}
             </span>
             {ketQua.tier_label_vi && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/25 px-3 py-1.5 text-xs font-bold text-white">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-surface/25 px-3 py-1.5 text-xs font-bold text-white">
                 {ketQua.tier === "t2_full" ? <IconSoiKy className="h-3.5 w-3.5" /> : <IconNhanh className="h-3.5 w-3.5" />}
                 {ketQua.tier_label_vi}
               </span>
@@ -149,7 +149,7 @@ export function ResultScreen({
         </div>
 
         {/* Thanh độ tin cậy — người thường hiểu "độ chắc" mà không cần biết thang 0-1 */}
-        <div className="animate-gbfade mt-3.5 rounded-[20px] border border-line bg-white p-4 shadow-[0_2px_10px_rgba(20,40,25,.05)]">
+        <div className="animate-gbfade mt-3.5 rounded-2xl border border-line bg-surface p-4 shadow-[0_2px_10px_rgba(20,40,25,.05)]">
           <div className="mb-2.5 flex items-center justify-between">
             <span className="text-[14px] font-bold">{mucTinCay.label}</span>
             <span className="rounded-full bg-leaf-soft px-2.5 py-1 text-xs font-extrabold text-leaf-dark">
@@ -165,7 +165,7 @@ export function ResultScreen({
         </div>
 
         {/* Điểm xanh — con số THẬT từ tài khoản, không phải +20 bịa */}
-        <div className="animate-gbpop mt-3.5 flex items-center gap-3 rounded-[20px] bg-leaf-soft p-4 [animation-delay:.3s]">
+        <div className="animate-gbpop mt-3.5 flex items-center gap-3 rounded-2xl bg-leaf-soft p-4 [animation-delay:.3s]">
           <span className="text-[26px]">🌱</span>
           <div className="flex-1">
             <div className="font-[family-name:var(--font-display)] text-[19px] font-bold leading-tight text-leaf-dark tabular-nums">
@@ -260,7 +260,7 @@ export function ResultScreen({
           <IconTiepTuc className="h-4 w-4" />
         </Button>
         {ketQua.media_id && (
-          <button onClick={onPrivacy} className="mt-3 w-full cursor-pointer text-[13px] font-bold text-[#5a6b5f] underline">
+          <button onClick={onPrivacy} className="mt-3 w-full cursor-pointer text-[13px] font-bold text-ink-faint underline">
             Ảnh của bạn được xử lý thế nào?
           </button>
         )}
@@ -295,7 +295,7 @@ export function HazardResultScreen({
     <div className="min-h-full bg-hazard-bg pb-10 pt-11">
       <ScreenHeader title="Kết quả phân loại" onBack={onBack} tone="hazard" />
       <div className="px-4">
-        <div className="animate-gbfade rounded-[22px] border-[3px] border-hazard bg-white p-5 shadow-[0_0_0_5px_rgba(224,90,43,.12)]">
+        <div className="animate-gbfade rounded-2xl border-[3px] border-hazard bg-surface p-5 shadow-[0_0_0_5px_rgba(224,90,43,.12)]">
           <div className="mb-3.5 flex items-center gap-3">
             <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-2xl bg-hazard">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -315,7 +315,7 @@ export function HazardResultScreen({
                 <IconCam className="h-4 w-4" />
                 Tuyệt đối KHÔNG
               </div>
-              <div className="text-sm font-bold leading-relaxed text-[#7a3418]">
+              <div className="text-sm font-bold leading-relaxed text-hazard-ink">
                 {khong.map((c, i) => (
                   <div key={i}>• {c}</div>
                 ))}
@@ -329,16 +329,16 @@ export function HazardResultScreen({
                 <IconDuyet className="h-4 w-4" />
                 Nên làm
               </div>
-              <div className="text-sm font-bold leading-relaxed text-[#2a5a3a]">{nen}</div>
+              <div className="text-sm font-bold leading-relaxed text-leaf-ink">{nen}</div>
             </div>
           )}
 
-          <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#f7f2ea] px-2.5 py-2">
+          <div className="mt-3 flex items-center gap-2 rounded-xl bg-tip-bg px-2.5 py-2">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8a7a5a" strokeWidth="2">
               <circle cx="12" cy="12" r="9" />
               <path d="M12 8v5M12 16v.5" strokeLinecap="round" />
             </svg>
-            <span className="text-[11px] font-bold text-[#8a7a5a]">
+            <span className="text-[11px] font-bold text-amber-muted">
               {ketQua.safety_warning_note || "Cảnh báo an toàn theo danh mục chuẩn — không do AI tự viết."}
             </span>
           </div>
@@ -368,17 +368,17 @@ export function UnsureScreen({
   const chanCung = ketQua.hard_block;
 
   return (
-    <div className="min-h-full bg-[linear-gradient(180deg,#e6edf5,#eef1f5)] pb-10 pt-11">
+    <div className="min-h-full bg-[linear-gradient(180deg,var(--color-recycle-muted),var(--color-unsure-bg))] pb-10 pt-11">
       <ScreenHeader title="" onBack={onBack} />
       <div className="px-[22px]">
-        <div className="mb-4 flex h-[66px] w-[66px] items-center justify-center rounded-[22px] bg-[#dbe6f2] text-[#4a5568]">
+        <div className="mb-4 flex h-[66px] w-[66px] items-center justify-center rounded-2xl bg-unsure-soft text-ink-muted">
           <IconChuaChac className="h-8 w-8" strokeWidth={1.8} />
         </div>
-        <h1 className="m-0 mb-3 font-[family-name:var(--font-display)] text-[27px] font-bold leading-tight text-[#243244]">
+        <h1 className="m-0 mb-3 font-[family-name:var(--font-display)] text-[27px] font-bold leading-tight text-unsure-ink">
           {ketQua.refusal_headline_vi || "Mình chưa đủ chắc để hướng dẫn món này"}
         </h1>
 
-        <p className="m-0 mb-4 text-[15px] font-semibold leading-relaxed text-[#4a5568]">
+        <p className="m-0 mb-4 text-[15px] font-semibold leading-relaxed text-ink-muted">
           {chanCung ? (
             <>
               Món này thuộc nhóm <b>{chanCung.label_vi}</b>. {chanCung.instruction_vi}
@@ -394,7 +394,7 @@ export function UnsureScreen({
         </p>
 
         <Card className="mb-5 p-4">
-          <div className="mb-2 text-[13px] font-bold text-[#64748b]">Vì sao chưa chắc</div>
+          <div className="mb-2 text-[13px] font-bold text-unsure-muted">Vì sao chưa chắc</div>
           <div className="flex flex-wrap gap-1.5">
             <Chip tone={ketQua.refusal_reason.includes("nguy_hai") || chanCung ? "hazard" : "neutral"} className="text-xs">
               {ketQua.refusal_label_vi}
@@ -407,7 +407,7 @@ export function UnsureScreen({
           </div>
         </Card>
 
-        <Button block size="lg" className="mb-2.5 bg-[#243244]" onClick={onRetake}>
+        <Button block size="lg" className="mb-2.5 bg-unsure-ink" onClick={onRetake}>
           <IconChupAnh className="h-4 w-4" />
           Chụp lại rõ hơn
         </Button>
@@ -415,7 +415,7 @@ export function UnsureScreen({
           block
           size="lg"
           variant="outline"
-          className="mb-2.5 border-[#cbd5e1]"
+          className="mb-2.5 border-unsure-line"
           disabled={daHoi}
           onClick={() => {
             setDaHoi(true);
@@ -425,7 +425,7 @@ export function UnsureScreen({
           <IconHoiBanQuanLy className="h-4 w-4" />
           {daHoi ? "Đã gửi cho ban quản lý" : "Hỏi ban quản lý"}
         </Button>
-        <p className="m-0 mt-2 text-center text-xs font-semibold text-[#7a8798]">
+        <p className="m-0 mt-2 text-center text-xs font-semibold text-unsure-faint">
           Thường được trả lời trong vòng 2 giờ làm việc.
         </p>
       </div>

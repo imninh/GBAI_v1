@@ -17,12 +17,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-ink text-white font-[family-name:var(--font-display)] shadow-[var(--shadow-md)] hover:bg-[#0d1611] hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5",
+        primary: "bg-ink text-white font-[family-name:var(--font-display)] shadow-[var(--shadow-md)] hover:bg-ink-hover hover:shadow-[var(--shadow-lg)] hover:-translate-y-0.5",
         leaf: "bg-leaf text-white shadow-[var(--shadow-sm)] hover:bg-leaf-dark hover:shadow-[var(--shadow-leaf-glow)] hover:-translate-y-0.5",
-        outline: "bg-white border-[1.5px] border-line-2 text-ink-soft shadow-[var(--shadow-xs)] hover:border-leaf hover:bg-leaf-soft/30 hover:text-leaf-dark",
+        outline: "bg-surface border-[1.5px] border-line-2 text-ink-soft shadow-[var(--shadow-xs)] hover:border-leaf hover:bg-leaf-soft/30 hover:text-leaf-dark",
         soft: "bg-leaf-soft border-[1.5px] border-leaf-mint/40 text-leaf-dark hover:bg-leaf-soft/80 hover:border-leaf",
-        bulky: "bg-bulky-soft border-[1.5px] border-[#d9cef0] text-bulky-dark hover:shadow-[var(--shadow-bulky-glow)] hover:-translate-y-0.5",
-        danger: "bg-white border-[1.5px] border-hazard/30 text-hazard-dark hover:bg-hazard-soft hover:border-hazard",
+        bulky: "bg-bulky-soft border-[1.5px] border-bulky-line text-bulky-dark hover:shadow-[var(--shadow-bulky-glow)] hover:-translate-y-0.5",
+        danger: "bg-surface border-[1.5px] border-hazard/30 text-hazard-dark hover:bg-hazard-soft hover:border-hazard",
         ghost: "bg-transparent text-ink-soft hover:bg-black/5 active:bg-black/10",
       },
       size: {
@@ -58,7 +58,7 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return (
     <div
       className={cn(
-        "rounded-[20px] bg-white border border-line-3 shadow-[var(--shadow-xs)] transition-all duration-300 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-md)] hover:border-line-2",
+        "rounded-2xl bg-surface border border-line-3 shadow-[var(--shadow-xs)] transition-all duration-300 ease-[var(--ease-spring)] hover:shadow-[var(--shadow-md)] hover:border-line-2",
         className
       )}
       {...props}
@@ -72,12 +72,12 @@ export function Chip({
   ...props
 }: React.HTMLAttributes<HTMLSpanElement> & { tone?: "neutral" | "leaf" | "amber" | "hazard" | "recycle" | "bulky" }) {
   const tones = {
-    neutral: "bg-[#eef1ec] text-muted-2 border-line-3",
+    neutral: "bg-muted-bg text-muted-2 border-line-3",
     leaf: "bg-leaf-soft text-leaf-dark border-leaf-mint/40",
     amber: "bg-amber-soft text-amber border-amber-line/60",
     hazard: "bg-hazard-soft text-hazard-dark border-hazard/30",
     recycle: "bg-recycle-soft text-recycle border-recycle/30",
-    bulky: "bg-bulky-soft text-bulky-dark border-[#d9cef0]",
+    bulky: "bg-bulky-soft text-bulky-dark border-bulky-line",
   } as const;
   return (
     <span
@@ -127,7 +127,7 @@ export function EmptyState({
 export function ErrorState({ message, code, onRetry }: { message: string; code?: string; onRetry?: () => void }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl border border-hazard/30 bg-hazard-soft px-6 py-8 text-center shadow-[var(--shadow-xs)] animate-gbfade">
-      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-[var(--shadow-xs)]">
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface shadow-[var(--shadow-xs)]">
         <IconGapLoi className="h-6 w-6 text-hazard-dark" strokeWidth={1.8} />
       </div>
       <div className="text-sm font-bold text-hazard-dark">{message}</div>
@@ -155,7 +155,7 @@ export function DegradedBanner({ note }: { note: string }) {
  *  vào nhau mà không nói gì. */
 export function SeedBadge({ className }: { className?: string }) {
   return (
-    <span className={cn("rounded-md bg-[#eef1ec] border border-line-3 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-muted", className)}>
+    <span className={cn("rounded-md bg-muted-bg border border-line-3 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-muted", className)}>
       dữ liệu demo mô phỏng
     </span>
   );
