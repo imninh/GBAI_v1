@@ -269,8 +269,9 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                     </div>
                   )}
 
+                  <div className="lg:grid lg:grid-cols-2 lg:gap-3">
                   {stops.map((s) => (
-                    <Card key={s.stop_id} className="mb-3 p-4" style={{ opacity: s.done_at ? 0.7 : 1 }}>
+                    <Card key={s.stop_id} className="mb-3 p-4 lg:mb-0" style={{ opacity: s.done_at ? 0.7 : 1 }}>
                       <div className="mb-3 flex items-start gap-3">
                         <span
                           className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-xl text-[15px] font-extrabold"
@@ -332,6 +333,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                       )}
                     </Card>
                   ))}
+                  </div>
                 </>
               )}
             </>

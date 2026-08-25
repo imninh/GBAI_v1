@@ -103,10 +103,10 @@ export function TatCaYeuCau() {
           hint={loc ? "Chưa có yêu cầu nào ở trạng thái này." : "Chưa có yêu cầu thu gom nào."}
         />
       ) : (
-        <Card className="overflow-hidden p-0">
-          <table className="w-full text-left text-[13px]">
-            <thead>
-              <tr className="border-b border-line bg-cream-soft text-[11px] font-extrabold uppercase tracking-wide text-muted">
+          <Card className="overflow-hidden p-0 lg:max-h-[calc(100vh-16rem)] lg:overflow-y-auto">
+            <table className="w-full text-left text-[13px]">
+              <thead>
+                <tr className="border-b border-line bg-cream-soft text-[11px] font-extrabold uppercase tracking-wide text-muted lg:sticky lg:top-0 lg:z-10">
                 <th className="px-4 py-2.5">Mã</th>
                 <th className="px-4 py-2.5">Cư dân</th>
                 <th className="px-4 py-2.5">Căn / địa chỉ</th>
@@ -117,18 +117,18 @@ export function TatCaYeuCau() {
             </thead>
             <tbody>
               {du.items.map((yc) => (
-                <tr key={yc.id} className="border-b border-line last:border-b-0">
-                  <td className="px-4 py-3 font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</td>
+                <tr key={yc.id} className="border-b border-line last:border-b-0 hover:bg-cream-soft">
+                  <td className="px-4 py-3 font-extrabold text-bulky tabular-nums">#PR-{String(yc.id).padStart(4, "0")}</td>
                   <td className="px-4 py-3 font-bold">{yc.resident?.full_name ?? "—"}</td>
                   <td className="px-4 py-3 font-semibold text-muted">
                     {yc.unit ? `Căn ${yc.unit} · ` : ""}
                     {yc.building || "—"}
                   </td>
-                  <td className="px-4 py-3 font-extrabold">{kg(yc.est_weight_kg)}</td>
+                  <td className="px-4 py-3 font-extrabold tabular-nums">{kg(yc.est_weight_kg)}</td>
                   <td className="px-4 py-3">
                     <BadgeTrangThai status={yc.status} />
                   </td>
-                  <td className="px-4 py-3 text-[12px] font-semibold text-muted">{ngayGioVn(yc.created_at)}</td>
+                  <td className="px-4 py-3 text-[12px] font-semibold text-muted tabular-nums">{ngayGioVn(yc.created_at)}</td>
                 </tr>
               ))}
             </tbody>
