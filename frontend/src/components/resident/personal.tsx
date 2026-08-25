@@ -644,7 +644,7 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
   ];
 
   return (
-    <div className="min-h-full bg-[linear-gradient(180deg,var(--color-nen-ho-so)_0%,var(--color-cream)_42%)] px-5 pb-[108px] pt-[54px]">
+    <div className="min-h-full bg-[linear-gradient(180deg,var(--color-nen-ho-so)_0%,var(--color-cream)_42%)] px-5 pb-[108px] pt-[54px] lg:mx-auto lg:max-w-[1080px] lg:px-8">
       <div className="mb-2 flex items-center gap-3">
         <button
           onClick={onBack}
@@ -691,7 +691,7 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
 
       {/* huy hiệu */}
       <div className="mt-5 text-[15px] font-bold">Huy hiệu</div>
-      <div className="mt-3 grid grid-cols-2 gap-2.5">
+      <div className="mt-3 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
         {HUY_HIEU.map((h) => (
           <div
             key={h.ten}
@@ -753,7 +753,7 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
   }
 
   return (
-    <div className="min-h-full bg-cream px-[18px] pb-[108px] pt-[54px]">
+    <div className="min-h-full bg-cream px-[18px] pb-[108px] pt-[54px] lg:mx-auto lg:max-w-[1080px] lg:px-8">
       <div className="mb-5 flex items-center gap-3.5">
         <div className="flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-leaf-soft text-leaf-dark">
           <IconNguoiDung className="h-7 w-7" strokeWidth={1.8} />
@@ -784,7 +784,8 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
         />
       )}
 
-      <LichSuVatLieu />
+      <div className="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
+        <div className="lg:col-span-2"><LichSuVatLieu /></div>
 
       <Card className="mb-3.5 overflow-hidden p-0">
         <button onClick={onPrivacy} className="flex w-full cursor-pointer items-center gap-3 border-b border-line-4 px-4 py-4 text-left">
@@ -811,6 +812,7 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
         </button>
       </Card>
 
+      <div className="lg:space-y-3.5">
       <CaiAppCard />
 
       <div className="mb-3.5 rounded-2xl bg-muted-bg p-4">
@@ -829,6 +831,8 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
             Duyệt yêu cầu · xem ảnh cư dân khác · trang vận hành
           </span>
         </div>
+      </div>
+      </div>
       </div>
 
       <Button block variant="danger" onClick={onLogout}>

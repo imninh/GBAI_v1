@@ -296,7 +296,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
   // 1. Màn hình chọn lối vào
   if (trangThai === "chon") {
     return (
-      <div className="min-h-full bg-cream px-[18px] pb-10 pt-11">
+      <div className="min-h-full bg-cream px-[18px] pb-10 pt-11 lg:mx-auto lg:max-w-[820px] lg:px-8">
         <div className="mb-1 text-[13px] font-bold text-bulky">Chụp & quét</div>
         <h1 className="m-0 mb-1 font-[family-name:var(--font-display)] text-[26px] font-bold">
           Bạn cần làm gì?
@@ -305,10 +305,11 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           Quét mã thùng để mở phiên bỏ rác, hoặc chụp món rác để biết bỏ vào đâu.
         </p>
 
+        <div className="lg:grid lg:grid-cols-2 lg:gap-3">
         <button
           type="button"
           onClick={() => setTrangThai("quet")}
-          className="mb-3 flex w-full cursor-pointer items-center gap-4 rounded-2xl border border-line bg-surface p-4 text-left shadow-[0_2px_10px_rgba(20,40,25,.05)] transition-all hover:border-leaf"
+          className="mb-3 flex w-full cursor-pointer items-center gap-4 rounded-2xl border border-line bg-surface p-4 text-left shadow-[0_2px_10px_rgba(20,40,25,.05)] transition-all hover:border-leaf lg:mb-0"
         >
           <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-lg bg-bulky-soft text-bulky-dark">
             <IconQuet />
@@ -325,7 +326,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
         <button
           type="button"
           onClick={onChup}
-          className="mb-3 flex w-full cursor-pointer items-center gap-4 rounded-2xl border border-line bg-surface p-4 text-left shadow-[0_2px_10px_rgba(20,40,25,.05)] transition-all hover:border-leaf"
+          className="mb-3 flex w-full cursor-pointer items-center gap-4 rounded-2xl border border-line bg-surface p-4 text-left shadow-[0_2px_10px_rgba(20,40,25,.05)] transition-all hover:border-leaf lg:mb-0"
         >
           <span className="flex h-[52px] w-[52px] flex-none items-center justify-center rounded-lg bg-leaf-soft text-leaf-dark">
             <IconMayAnh />
@@ -338,6 +339,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           </span>
           <span className="text-[18px] font-bold text-muted">›</span>
         </button>
+        </div>
 
         <p className="mt-5 text-center text-[11px] font-semibold leading-relaxed text-muted">
           Điện thoại dùng để xác thực — thùng tự chụp và phân loại khi bạn mở phiên bỏ rác.
@@ -440,7 +442,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
   // 3. Màn hình xác nhận mã thùng & Bấm Bắt đầu bỏ rác
   if (trangThai === "ket-qua") {
     return (
-      <div className="min-h-full bg-cream px-[18px] pb-10 pt-11">
+      <div className="min-h-full bg-cream px-[18px] pb-10 pt-11 lg:mx-auto lg:max-w-[680px] lg:px-8">
         <div className="mb-1 text-[13px] font-bold text-bulky">Quét thành công</div>
         <h1 className="m-0 mb-1 font-[family-name:var(--font-display)] text-[26px] font-bold">
           Xác thực thùng rác
@@ -500,7 +502,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
     const diemNhanThuc = phienHienTai?.diem_nhan_thuc || 0;
 
     return (
-      <div className="min-h-full bg-cream px-[18px] pb-10 pt-11">
+      <div className="min-h-full bg-cream px-[18px] pb-10 pt-11 lg:mx-auto lg:max-w-[680px] lg:px-8">
         <div className="flex items-center justify-between mb-1">
           <div className="text-[13px] font-bold text-leaf-dark flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-leaf animate-ping" />
@@ -568,7 +570,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
 
   // 5. Màn hình Chúc mừng sau khi chốt phiên
   return (
-    <div className="min-h-full bg-cream px-[18px] pb-10 pt-11 text-center">
+      <div className="min-h-full bg-cream px-[18px] pb-10 pt-11 text-center lg:mx-auto lg:max-w-[680px] lg:px-8">
       <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-leaf-soft text-[32px]">
         🎉
       </div>

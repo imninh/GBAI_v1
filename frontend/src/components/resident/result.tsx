@@ -111,13 +111,15 @@ export function ResultScreen({
   return (
     <div className="min-h-full bg-cream pb-10 pt-11">
       <ScreenHeader title="Kết quả phân loại" onBack={onBack} />
-      <div className="px-4">
+      <div className="px-4 lg:mx-auto lg:max-w-[1100px]">
         {ketQua.degraded && ketQua.degraded_note && (
           <div className="mb-3">
             <DegradedBanner note={ketQua.degraded_note} />
           </div>
         )}
 
+        <div className="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
+        <div>
         <div
           className="animate-gbfade rounded-2xl p-5 text-white shadow-[0_16px_30px_-14px_rgba(47,127,224,.7)]"
           style={{ background: `linear-gradient(155deg, ${category.bin_color}, ${category.bin_color}dd)` }}
@@ -164,6 +166,8 @@ export function ResultScreen({
           </div>
         </div>
 
+        </div>
+        <div>
         {/* Điểm xanh — con số THẬT từ tài khoản, không phải +20 bịa */}
         <div className="animate-gbpop mt-3.5 flex items-center gap-3 rounded-2xl bg-leaf-soft p-4 [animation-delay:.3s]">
           <span className="text-[26px]">🌱</span>
@@ -219,6 +223,9 @@ export function ResultScreen({
             </div>
           </Card>
         )}
+
+        </div>
+        </div>
 
         <NguonChips sources={ketQua.advice_sources} onOpen={setNguon} />
 
@@ -294,7 +301,7 @@ export function HazardResultScreen({
   return (
     <div className="min-h-full bg-hazard-bg pb-10 pt-11">
       <ScreenHeader title="Kết quả phân loại" onBack={onBack} tone="hazard" />
-      <div className="px-4">
+      <div className="px-4 lg:mx-auto lg:max-w-[760px]">
         <div className="animate-gbfade rounded-2xl border-[3px] border-hazard bg-surface p-5 shadow-[0_0_0_5px_rgba(224,90,43,.12)]">
           <div className="mb-3.5 flex items-center gap-3">
             <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-2xl bg-hazard">
@@ -370,7 +377,7 @@ export function UnsureScreen({
   return (
     <div className="min-h-full bg-[linear-gradient(180deg,var(--color-recycle-muted),var(--color-unsure-bg))] pb-10 pt-11">
       <ScreenHeader title="" onBack={onBack} />
-      <div className="px-[22px]">
+      <div className="px-[22px] lg:mx-auto lg:max-w-[760px]">
         <div className="mb-4 flex h-[66px] w-[66px] items-center justify-center rounded-2xl bg-unsure-soft text-ink-muted">
           <IconChuaChac className="h-8 w-8" strokeWidth={1.8} />
         </div>

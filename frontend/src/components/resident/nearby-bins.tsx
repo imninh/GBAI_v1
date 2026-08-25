@@ -396,8 +396,9 @@ export function NearbyBinsScreen() {
 
       {/* Đang thêm mốc thì bản đồ cao hơn — người dùng phải chạm trúng một chỗ
           cụ thể, 220px là quá chật để ngắm. */}
+      <div className="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
       <div
-        className={`mb-4 overflow-hidden rounded-2xl border ${
+        className={`mb-4 overflow-hidden rounded-2xl border lg:sticky lg:top-[70px] lg:col-span-1 lg:h-[560px] ${
           dangThem ? "h-[320px] border-ink" : "h-[220px] border-line"
         }`}
       >
@@ -449,7 +450,8 @@ export function NearbyBinsScreen() {
             </Card>
           );
         })
-      )}
-    </div>
-  );
-}
+        )}
+      </div>
+      </div>
+    );
+  }

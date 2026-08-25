@@ -177,7 +177,7 @@ export function PickupWizard({
   const choPhepTiep = buoc === 1 ? mon.length > 0 && !thieuTen : buoc === 2 ? Boolean(khungGio) : daTick && !thieuDiaChi;
 
   return (
-    <div className="min-h-full bg-cream pb-10 pt-11">
+    <div className="min-h-full bg-cream pb-10 pt-11 lg:mx-auto lg:max-w-[720px]">
       <div className="flex items-center gap-3 px-[18px] pb-3.5 pt-1.5">
         <button
           onClick={() => (buoc === 1 ? onBack() : setBuoc((b) => b - 1))}

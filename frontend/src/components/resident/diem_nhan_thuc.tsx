@@ -125,7 +125,7 @@ export function DiemNhanThucScreen({ onBack }: DiemNhanThucProps) {
     .reduce((tong, d) => tong + d.diem, 0);
 
   return (
-    <div className="min-h-full bg-cream px-[18px] pb-[108px] pt-[54px]">
+    <div className="min-h-full bg-cream px-[18px] pb-[108px] pt-[54px] lg:mx-auto lg:max-w-[960px] lg:px-8">
       <ScreenHeader title="Điểm nhận thức" onBack={onBack} />
 
       {/* Cảnh báo phân biệt hai loại điểm */}
