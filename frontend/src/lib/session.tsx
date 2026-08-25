@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { api, ApiError, setToken } from "./api";
+import { api, ApiError, getToken, setToken } from "./api";
 import type { Permissions, User } from "./types";
 
 interface SessionValue {
@@ -30,6 +30,52 @@ interface SessionValue {
 
 const SessionContext = React.createContext<SessionValue | null>(null);
 
+// --- Phiên lưu máy (offline-first) -----------------------------------------
+//
+// Boot gọi `/auth/me` để biết còn đăng nhập không — mà endpoint đó cần token,
+// KHÔNG cache được ở SW (ranh giới riêng tư của sw.js). Offline thì lời gọi ấy
+// fail và app từng tưởng "chưa đăng nhập" → rơi về onboarding, dù lịch toà vẫn
+// nằm trong cache. Vậy nên lưu bản hồ sơ TỐI THIỂU vào localStorage khi online:
+// có token + có bản lưu ⇒ boot offline vẫn vào thẳng app, lời gọi /auth/me chỉ
+// còn vai trò làm mới nền. Chỉ dữ liệu dựng màn (tên/vai/căn hộ/toà) — không
+// ảnh, không thêm thông tin nhạy cảm hơn token vốn đã nằm trong localStorage.
+const KHOA_PHIEN_LUU = "greenbin_phien_luu";
+
+type PhienLuu = { user: User; permissions: Permissions };
+
+/** Bản ghi hỏng bị bỏ im lặng — localStorage là dữ liệu người dùng sửa được. */
+function docPhienLuu(): PhienLuu | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(KHOA_PHIEN_LUU);
+    if (!raw) return null;
+    const du = JSON.parse(raw) as Partial<PhienLuu>;
+    if (!du || typeof du !== "object") return null;
+    const u = du.user as User | undefined;
+    if (!u || typeof u.id !== "number" || typeof u.role !== "string") return null;
+    if (!du.permissions || typeof du.permissions !== "object") return null;
+    return { user: u, permissions: du.permissions };
+  } catch {
+    return null;
+  }
+}
+
+function ghiPhienLuu(phien: PhienLuu): void {
+  try {
+    window.localStorage.setItem(KHOA_PHIEN_LUU, JSON.stringify(phien));
+  } catch {
+    // Hết chỗ / chế độ riêng tư — bỏ qua, mất offline boot chứ không mất phiên.
+  }
+}
+
+function xoaPhienLuu(): void {
+  try {
+    window.localStorage.removeItem(KHOA_PHIEN_LUU);
+  } catch {
+    /* bỏ qua */
+  }
+}
+
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null);
   const [permissions, setPermissions] = React.useState<Permissions>({});
@@ -38,15 +84,29 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     let huy = false;
+
+    // Boot offline-first: token còn trong máy + đã từng lưu hồ sơ ⇒ coi là đang
+    // đăng nhập NGAY, dựng màn từ bản lưu. KHÔNG chờ mạng, KHÔNG ép gọi mới.
+    const daLuu = docPhienLuu();
+    if (getToken() && daLuu) {
+      setUser(daLuu.user);
+      setPermissions(daLuu.permissions);
+      setLoading(false);
+    }
+
+    // Làm mới nền: online thì cập nhật bản mới nhất; offline fail thì GIỮ nguyên
+    // bản đã phục hồi ở trên — tuyệt đối không reset về onboarding.
     api
       .me()
       .then((data) => {
         if (huy) return;
         setUser(data.user);
         setPermissions(data.permissions);
+        ghiPhienLuu({ user: data.user, permissions: data.permissions });
       })
       .catch(() => {
-        /* chưa đăng nhập là trạng thái bình thường, không phải lỗi */
+        /* offline + có bản lưu: giữ phiên đã phục hồi. Chưa từng lưu: chưa
+           đăng nhập là trạng thái bình thường, không phải lỗi. */
       })
       .finally(() => !huy && setLoading(false));
     return () => {
@@ -61,6 +121,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       setToken(data.token);
       setUser(data.user);
       setPermissions(data.permissions);
+      ghiPhienLuu({ user: data.user, permissions: data.permissions });
       return data.user;
     },
     [],
@@ -114,6 +175,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setUser(null);
     setPermissions({});
+    xoaPhienLuu();
   }, []);
 
   /** Thay hồ sơ và ma trận quyền của phiên đang chạy bằng dữ liệu server vừa trả.
@@ -125,6 +187,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const capNhatPhien = React.useCallback((data: { user: User; permissions: Permissions }) => {
     setUser(data.user);
     setPermissions(data.permissions);
+    ghiPhienLuu({ user: data.user, permissions: data.permissions });
   }, []);
 
   const value: SessionValue = {
