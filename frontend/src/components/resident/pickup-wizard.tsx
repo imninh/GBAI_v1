@@ -76,7 +76,6 @@ export function PickupWizard({
   );
   const [ngay, setNgay] = React.useState("");
   const [khungGio, setKhungGio] = React.useState("");
-  const [laGioNgoaiLich, setLaGioNgoaiLich] = React.useState(false);
   const [ghiChu, setGhiChu] = React.useState("");
   const [daTick, setDaTick] = React.useState(false);
   const [dangGui, setDangGui] = React.useState(false);
@@ -126,6 +125,14 @@ export function PickupWizard({
       ghiChu: c.ghi_chu,
     }));
   }, [scheduleHint?.khung_gio_da_co_chuyen]);
+
+  // `ngoai_lich` phải phản ánh THỰC TẾ lựa chọn — cặp (ngày, khung) hiện tại có
+  // nằm trong lịch chuyến thật của toà hay không — chứ không phải "người dùng
+  // đã đụng vào ô chọn giờ khác chưa". Trước đây cờ là state và ô đổi ngày ép
+  // `true` vô điều kiện, khiến yêu cầu chọn ĐÚNG lịch cũng bị kéo vào luồng
+  // duyệt oan (E2E §4, PR-0052). Tính dẫn xuất: khớp một chuyến thật ⇒ trong
+  // lịch; còn lại (kể cả khi chưa chọn gì) ⇒ ngoài lịch.
+  const laGioNgoaiLich = !khungBQL.some((k) => k.ngay === ngay && k.window === khungGio);
 
   async function gui() {
     setDangGui(true);
@@ -312,7 +319,7 @@ export function PickupWizard({
                   return (
                     <button
                       key={k.key}
-                      onClick={() => { setKhungGio(k.window); setNgay(k.ngay); setLaGioNgoaiLich(false); }}
+                      onClick={() => { setKhungGio(k.window); setNgay(k.ngay); }}
                       className="mb-2.5 w-full cursor-pointer rounded-2xl p-4 text-left"
                       style={{ background: dangChon ? "var(--color-leaf-soft)" : "var(--color-surface)", border: dangChon ? "2px solid var(--color-leaf)" : "1.5px solid var(--color-line-2)" }}
                     >
@@ -342,7 +349,7 @@ export function PickupWizard({
                 type="date"
                 value={laGioNgoaiLich ? ngay : ""}
                 min={new Date().toISOString().slice(0, 10)}
-                onChange={(e) => { setNgay(e.target.value); setLaGioNgoaiLich(true); if (!khungGio) setKhungGio(KHUNG_TU_CHON[0]); }}
+                onChange={(e) => { setNgay(e.target.value); if (!khungGio) setKhungGio(KHUNG_TU_CHON[0]); }}
                 className="mb-2.5 w-full rounded-xl border border-line-3 px-3 py-2 text-[14px] font-semibold outline-none focus:border-leaf"
               />
               <div className="flex flex-wrap gap-2">
@@ -351,7 +358,7 @@ export function PickupWizard({
                   return (
                     <button
                       key={w}
-                      onClick={() => { setKhungGio(w); setLaGioNgoaiLich(true); if (!ngay) { const d = new Date(); d.setDate(d.getDate() + 1); setNgay(d.toISOString().slice(0, 10)); } }}
+                      onClick={() => { setKhungGio(w); if (!ngay) { const d = new Date(); d.setDate(d.getDate() + 1); setNgay(d.toISOString().slice(0, 10)); } }}
                       className="cursor-pointer rounded-full px-3 py-1.5 text-[13px] font-bold"
                       style={{ background: chon ? "var(--color-bulky-chip)" : "var(--color-line-4)", color: chon ? "var(--color-category-selected)" : "var(--color-category-unselected)", border: chon ? "1.5px solid var(--color-bulky-stripe)" : "1.5px solid transparent" }}
                     >
@@ -361,7 +368,9 @@ export function PickupWizard({
                 })}
               </div>
             </div>
-            {laGioNgoaiLich && (
+            {/* Chưa chọn giờ thì chưa có gì để nói là ngoài lịch — đừng hiện
+                cảnh báo làm người dùng hoảng ngay khi vừa vào bước 2. */}
+            {khungGio !== "" && laGioNgoaiLich && (
               <div className="mb-2.5 rounded-2xl border-[1.5px] border-amber-line bg-amber-soft p-3.5 text-[13px] font-semibold leading-relaxed text-amber-dark">
                 Giờ này nằm ngoài lịch thu gom của toà — ban quản lý sẽ duyệt trước khi nhận yêu cầu.
               </div>
