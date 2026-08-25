@@ -322,6 +322,10 @@ export default function NavigationMode({
   }, [navData, livePos]);
 
   const speedKmh = livePos?.speed_mps != null ? Math.round(livePos.speed_mps * 3.6) : null;
+  // Chưa có dữ liệu đường (API chết/mạng lỗi — fetchNavigation chỉ warn) thì
+  // KHÔNG được hiện "0 km" như thể tuyến dài 0 (E2E §8: unknown giữ là unknown).
+  const kmHienThi = remaining?.km ?? navData?.distance_km;
+  const phutHienThi = remaining?.minutes ?? navData?.duration_minutes;
 
   async function handleComplete(issue = "") {
     setDangXuLy(true);
@@ -364,9 +368,15 @@ export default function NavigationMode({
               <span className="text-amber-400 animate-pulse">Đang tìm lại đường…</span>
             ) : (
               <span>
-                <strong className="text-emerald-400">{remaining?.km ?? navData?.distance_km ?? 0} km</strong>
-                <span className="mx-1 text-slate-400">·</span>
-                <span className="text-slate-200">~{remaining?.minutes ?? navData?.duration_minutes ?? 0} phút</span>
+                {kmHienThi != null ? (
+                  <>
+                    <strong className="text-emerald-400">{kmHienThi} km</strong>
+                    <span className="mx-1 text-slate-400">·</span>
+                    <span className="text-slate-200">~{phutHienThi ?? "—"} phút</span>
+                  </>
+                ) : (
+                  <span className="text-slate-400">Chưa tính được đường</span>
+                )}
               </span>
             )}
           </div>

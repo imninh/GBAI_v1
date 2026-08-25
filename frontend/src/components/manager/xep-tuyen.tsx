@@ -15,7 +15,7 @@ import * as React from "react";
 
 import { Button, Card, EmptyState, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { api } from "@/lib/api";
-import { kg, ngayVn } from "@/lib/format";
+import { kg, ngayVn, soVn } from "@/lib/format";
 import { IconDuyet, IconXeThuGom } from "@/lib/icons";
 import type { PickupRequest, PickupRoute } from "@/lib/types";
 
@@ -219,7 +219,7 @@ export function XepTuyen() {
                     Chuyến {ketQua.window} · {ngayVn(ketQua.service_date)}
                   </div>
                   <div className="text-xs font-semibold text-bulky-muted">
-                    {ketQua.stop_count} điểm dừng · {kg(ketQua.total_weight_kg)} · ~{ketQua.est_distance_km} km
+                    {ketQua.stop_count} điểm dừng · {kg(ketQua.total_weight_kg)} · ~{soVn(ketQua.est_distance_km, 1)} km
                     {ketQua.team ? ` · ${ketQua.team.full_name}` : ""}
                   </div>
                 </div>

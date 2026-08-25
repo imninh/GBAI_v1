@@ -36,6 +36,14 @@ export function dungLuong(bytes: number): string {
 
 export function ngayVn(iso: string | null | undefined): string {
   if (!iso) return "—";
+  // Chuỗi NGÀY trần "YYYY-MM-DD" (service_date, preferred_date…) KHÔNG được đẩy
+  // qua new Date(): JS hiểu là UTC nửa đêm rồi toLocaleDateString render theo giờ
+  // máy — máy lệch múi về phía Tây thì ngày tụt một hôm (E2E §8). Cắt thẳng
+  // trên chuỗi, không đụng timezone.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    const [y, m, d] = iso.split("-");
+    return `${d}/${m}/${y}`;
+  }
   const d = new Date(iso);
   return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 }

@@ -723,8 +723,15 @@ export function RouteApproval() {
                 {cumNgan}
               </span>
             )}
+            {/* Hai con số là HAI KHÁI NIỆM, không phải đo hai lần khác kết quả
+                (E2E §8): baseline = đi rời lẻ từng chuyến (số điểm × 3,6 km),
+                est_distance_km = tuyến GỘP sau tối ưu — số đã lưu, dùng làm số
+                hiển thị chuẩn. Thiếu baseline thì chỉ hiện số đã lưu. */}
             <span className="rounded-full bg-leaf-soft px-3.5 py-1.5 text-[13px] font-bold text-leaf-dark">
-              ~{soVn(tuyen.reasoning?.baseline_km ?? 0, 1)} → ~{soVn(tuyen.est_distance_km, 1)} km
+              {tuyen.reasoning?.baseline_km ? (
+                <>rời lẻ ~{soVn(tuyen.reasoning.baseline_km, 1)} km → </>
+              ) : null}
+              gộp chung ~{soVn(tuyen.est_distance_km, 1)} km
             </span>
           </div>
           {!tuyen.duong_di && (
