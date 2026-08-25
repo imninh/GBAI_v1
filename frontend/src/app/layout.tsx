@@ -20,6 +20,9 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_WEB_URL || "https://gbai-v1.vercel.app",
+  ),
   title: "GreenBin AI — Phân loại rác & điều phối thu gom",
   description:
     "Chụp một tấm — biết ngay bỏ thùng nào, để ở đâu, thu gom lúc mấy giờ. Ảnh được xoá thông tin vị trí và làm mờ khuôn mặt trước khi xử lý.",
@@ -33,6 +36,29 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icons/icon-192.png",
     apple: "/icons/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    siteName: "GreenBin AI",
+    title: "GreenBin AI — Phân loại rác & điều phối thu gom",
+    description:
+      "Chụp một tấm — biết ngay bỏ thùng nào, để ở đâu, thu gom lúc mấy giờ. Ảnh được xoá thông tin vị trí và làm mờ khuôn mặt trước khi xử lý.",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "GreenBin AI — phân loại rác bằng AI",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GreenBin AI — Phân loại rác & điều phối thu gom",
+    description:
+      "Chụp một tấm — biết ngay bỏ thùng nào, để ở đâu, thu gom lúc mấy giờ. Ảnh được xoá thông tin vị trí và làm mờ khuôn mặt trước khi xử lý.",
+    images: ["/og-image.jpg"],
   },
 };
 

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://gbai-v1.vercel.app/sitemap.xml

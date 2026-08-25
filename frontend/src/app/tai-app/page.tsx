@@ -129,6 +129,13 @@ export default function TaiAppPage() {
         Bản demo chạy trên hạ tầng miễn phí: máy chủ ngủ khi rảnh nên lần mở đầu tiên có thể chậm
         vài chục giây, và ảnh đã tải lên sẽ mất khi máy chủ khởi động lại.
       </p>
+
+      <Link
+        href="/rieng-tu/"
+        className="mx-auto mt-1 block w-fit text-center text-[12px] font-bold text-leaf underline-offset-4 hover:underline"
+      >
+        Chính sách riêng tư
+      </Link>
     </main>
   );
 }
