@@ -18,6 +18,7 @@ import * as React from "react";
 
 import { Button, Card, EmptyState, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { ScreenHeader } from "@/components/ui/shell";
+import { Mascot } from "@/components/resident/onboarding";
 import { api, ApiError } from "@/lib/api";
 import { IconDuyet, IconMamXanh, IconCanhBao } from "@/lib/icons";
 import { ngayVn, soVn } from "@/lib/format";
@@ -175,6 +176,7 @@ export function DiemNhanThucScreen({ onBack }: DiemNhanThucProps) {
             icon={IconMamXanh}
             title="Hôm nay chưa có nhiệm vụ"
             hint="Nhiệm vụ ngày sẽ hiện ở đây khi có. Hãy phân loại rác để bắt đầu."
+            minhHoa={<Mascot size={64} tuThe="nup-la" />}
           />
         ) : (
           <div className="space-y-2.5">

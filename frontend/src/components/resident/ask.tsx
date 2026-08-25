@@ -135,7 +135,7 @@ export function AskScreen({
           💬 Hỏi Bini nè!
           <div className="absolute bottom-[-4px] right-3 h-2 w-2 rotate-45 bg-emerald-800 border-r border-b border-emerald-600/40" />
         </div>
-        <Mascot size={138} tuThe="hello" className="animate-gbfloat drop-shadow-[0_16px_22px_rgba(30,80,50,.22)] transition-transform group-hover:rotate-3" />
+        <Mascot size={138} tuThe="nham-mat-cuoi" className="animate-gbfloat drop-shadow-[0_16px_22px_rgba(30,80,50,.22)] transition-transform group-hover:rotate-3" />
       </button>
 
       {/* ── hero: scan chính ── */}

@@ -420,8 +420,40 @@ body {
   .animate-gbfloat,
   .animate-gbwave,
   .animate-gbscan,
-  .animate-gbpulse {
+  .animate-gbpulse,
+  .animate-gbbreath,
+  .animate-gbappear {
     animation: none;
+  }
+}
+
+/* ---- Animation Bini v1 (F4.4a) — chỉ transform + opacity, quiet -----------
+   Chỉ chạy khi người dùng KHÔNG bật giảm chuyển động; giảm rồi thì dừng hẳn. */
+@keyframes gbbreath {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+@keyframes gbappear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .animate-gbbreath {
+    animation: gbbreath 3.6s ease-in-out infinite;
+  }
+  .animate-gbappear {
+    animation: gbappear 0.5s cubic-bezier(0.32, 0.72, 0, 1) both;
   }
 }
 

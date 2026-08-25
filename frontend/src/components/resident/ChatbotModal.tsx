@@ -228,7 +228,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
         <div className="w-full max-w-sm rounded-2xl bg-surface p-6 text-center shadow-2xl dark:bg-zinc-900 dark:text-zinc-100">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-700/90 text-white">
-            <Mascot size={48} tuThe="hello" />
+            <Mascot size={48} tuThe="hello" className="animate-gbbreath" />
           </div>
           <h3 className="font-bold text-base">Cần đăng nhập để dùng trợ lý</h3>
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
@@ -277,7 +277,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
             <div className="flex items-center justify-between border-b border-emerald-900/40 px-4 py-3 bg-gradient-to-r from-emerald-800 to-emerald-900 text-white rounded-t-2xl">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-700/90 border border-emerald-500/40 overflow-hidden shadow-md">
-                  <Mascot size={42} tuThe="hello" />
+                  <Mascot size={42} tuThe="hello" className="animate-gbbreath" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">

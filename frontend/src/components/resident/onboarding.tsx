@@ -9,38 +9,52 @@
  */
 
 import * as React from "react";
+import type { LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/primitives";
 import { api } from "@/lib/api";
-import { IconChao, IconManHinhRong, IconTiepTuc } from "@/lib/icons";
+import { IconChao, IconChupAnh, IconMamXanh, IconManHinhRong, IconTiepTuc, IconXeThuGom } from "@/lib/icons";
 import { useSession } from "@/lib/session";
 
-/** Ba tư thế, map đúng ba tình huống trong luồng cư dân. */
-export type TuTheMascot = "mascot" | "hello" | "magnify";
+/** Tư thế Bini — 6 pose SVG (NHAN_DIEN §6). Hai tên cũ giữ cho tương thích. */
+export type TuTheMascot =
+  | "mascot"
+  | "hello"
+  | "magnify"
+  | "om-tim"
+  | "nup-la"
+  | "nham-mat-cuoi"
+  | "may-anh";
+
+/** Map tư thế → file SVG. `mascot`/`hello` chung pose trung tính. */
+const FILE_TU_THE: Record<TuTheMascot, string> = {
+  mascot: "binh-thuong.svg",
+  hello: "binh-thuong.svg",
+  magnify: "kinh-lup.svg",
+  "om-tim": "om-tim.svg",
+  "nup-la": "nup-la.svg",
+  "nham-mat-cuoi": "nham-mat-cuoi.svg",
+  "may-anh": "may-anh.svg",
+};
 
 const MO_TA_TU_THE: Record<TuTheMascot, string> = {
   mascot: "Bini — linh vật GreenBin",
-  hello: "Bini vẫy tay chào",
-  magnify: "Bini đang soi món rác",
+  hello: "Bini hạt mầm, tư thế thường",
+  magnify: "Bini đang soi món rác bằng kính lúp",
+  "om-tim": "Bini ôm trái tim, vui mừng",
+  "nup-la": "Bini nấp sau lá — trạng thái trống",
+  "nham-mat-cuoi": "Bini nhắm mắt cười",
+  "may-anh": "Bini cầm máy ảnh",
 };
 
-/** Ảnh dự phòng khi file WebP không tải được. */
+/** Ảnh dự phòng khi file SVG không tải được. */
 function MascotSVG({ size, className }: { size: number; className?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 120 120" className={className} aria-label={MO_TA_TU_THE.mascot}>
-      <circle cx="60" cy="62" r="42" fill="#8a9a92" />
-      <ellipse cx="60" cy="72" rx="30" ry="26" fill="#cfdcd4" />
-      <path d="M22 34c4-12 14-16 22-10-6 5-9 11-9 18z" fill="#8a9a92" />
-      <path d="M98 34c-4-12-14-16-22-10 6 5 9 11 9 18z" fill="#8a9a92" />
-      <ellipse cx="45" cy="55" rx="15" ry="12" fill="#3a453d" />
-      <ellipse cx="75" cy="55" rx="15" ry="12" fill="#3a453d" />
-      <circle cx="47" cy="55" r="6" fill="#fff" />
-      <circle cx="73" cy="55" r="6" fill="#fff" />
-      <circle cx="48" cy="56" r="3" fill="#16211a" />
-      <circle cx="74" cy="56" r="3" fill="#16211a" />
-      <ellipse cx="60" cy="70" rx="6" ry="4.5" fill="#16211a" />
-      <path d="M52 80q8 7 16 0" stroke="#16211a" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      <path d="M28 96c8 6 20 9 32 9s24-3 32-9" stroke="#8a9a92" strokeWidth="7" fill="none" strokeLinecap="round" />
+    <svg width={size} height={size} viewBox="0 0 114 159" className={className} aria-label={MO_TA_TU_THE.mascot}>
+      <circle cx="57" cy="80" r="45" fill="#1E3045" />
+      <ellipse cx="57" cy="85" rx="30" ry="26" fill="#F6F2DD" />
+      <circle cx="45" cy="76" r="6" fill="#1C2C46" />
+      <circle cx="69" cy="76" r="6" fill="#1C2C46" />
     </svg>
   );
 }
@@ -57,19 +71,13 @@ export function Mascot({
   const [loi, setLoi] = React.useState(false);
   if (loi) return <MascotSVG size={size} className={className} />;
 
-  // Ba ảnh gốc gần vuông (tỉ lệ 0,99–1,03). Đặt trong khung vuông cố định +
-  // object-contain: không méo ảnh, không giật layout khi ảnh tải xong.
-  //
-  // Cố ý dùng `<img>` chứ không `next/image`: bản build là `output: "export"`
-  // nên `images.unoptimized: true`, tức next/image không tối ưu được gì thêm.
-  // Ba bề rộng WebP ở đây do `scripts/build_assets.py` dựng sẵn (2,3 MB →
-  // 22–80 KB) và `srcSet` bên dưới đã làm đúng việc mà rule này muốn.
+  // SVG Bini hạt mầm — asset phẳng (không tách lớp `<g>`), animation áp lên
+  // CẢ con (transform/opacity, xem globals.css). Vẫn dùng `<img>` cho đơn giản
+  // (mỗi pose là một file riêng) — `output: "export"` không cần next/image.
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={`/mascot/${tuThe}-512.webp`}
-      srcSet={`/mascot/${tuThe}-240.webp 240w, /mascot/${tuThe}-360.webp 360w, /mascot/${tuThe}-512.webp 512w`}
-      sizes={`${size}px`}
+      src={`/mascot/${FILE_TU_THE[tuThe]}`}
       width={size}
       height={size}
       alt={MO_TA_TU_THE[tuThe]}
@@ -83,101 +91,68 @@ export function Mascot({
  *  Mỗi beat: tint nền + blob khác nhau, Bini một tư thế, chữ khổng lồ, CTA duy nhất.
  *  Không phải form, không xin quyền — chỉ dẫn dắt người dùng tới màn đăng nhập.
  */
-const ONBOARDING_BEATS = [
-  {
-    over: "Cùng Bini bắt đầu",
-    h1: "Bỏ rác\nđúng thùng",
-    body: "Chai dầu, hộp sữa, pin cũ… ai cũng từng phân vân bỏ vào đâu.",
-    cta: "Tiếp tục",
-    tuThe: "mascot" as const,
-    tint: "linear-gradient(180deg,var(--color-leaf-soft),var(--color-cream))",
-    blob: "var(--color-blob-leaf)",
-    kick: "var(--color-leaf-dark)",
-  },
-  {
-    over: "Đơn giản thôi",
-    h1: "Chụp một\ntấm là xong",
-    body: "AI nhận ra món rác ngay, mách bạn bỏ thùng nào và để ở đâu.",
-    cta: "Tiếp tục",
-    tuThe: "magnify" as const,
-    tint: "linear-gradient(180deg,var(--color-recycle-soft),var(--color-cream))",
-    blob: "var(--color-blob-recycle)",
-    kick: "var(--color-recycle)",
-  },
-  {
-    over: "Chào bạn nhé",
-    h1: "Mình là\nBini",
-    body: "Hạt mầm đồng hành của bạn — mình sẽ khen khi bạn phân loại đúng.",
-    cta: "Tiếp tục",
-    tuThe: "hello" as const,
-    tint: "linear-gradient(180deg,var(--color-tint-lavender),var(--color-cream))",
-    blob: "var(--color-blob-bulky)",
-    kick: "var(--color-bulky)",
-  },
-  {
-    over: "Sẵn sàng chưa?",
-    h1: "Mỗi món\nđúng chỗ",
-    body: "là một lần bạn cứu hành tinh — và cây xanh của bạn lớn thêm.",
-    cta: "Bắt đầu",
-    tuThe: "mascot" as const,
-    tint: "linear-gradient(180deg,var(--color-leaf-soft),var(--color-cream))",
-    blob: "var(--color-blob-leaf)",
-    kick: "var(--color-leaf-dark)",
-  },
-];
-
 export function OnboardingScreen({ onNext }: { onNext: () => void }) {
-  const [beat, setBeat] = React.useState(0);
-  const b = ONBOARDING_BEATS[beat];
-
-  const tiep = () => (beat >= ONBOARDING_BEATS.length - 1 ? onNext() : setBeat((i) => i + 1));
+  // Ba điểm value gọn — trên CÙNG màn chào, không tách slide.
+  const GIA_TRI: { icon: LucideIcon; text: string }[] = [
+    { icon: IconChupAnh, text: "Chụp → biết bỏ đâu" },
+    { icon: IconMamXanh, text: "Điểm xanh đổi quà" },
+    { icon: IconXeThuGom, text: "Thu gom theo lịch" },
+  ];
+  // Stagger mỗi khối hiện so le một lần khi mở (transform+opacity, có
+  // prefers-reduced-motion ở globals.css).
+  const delay = (ms: number) => ({ animationDelay: `${ms}ms` });
 
   return (
-    <div
-      key={beat}
-      className="animate-gbfade relative flex min-h-full flex-col overflow-hidden px-[26px] pb-7 pt-[60px]"
-      style={{ background: b.tint }}
+    <div className="relative flex min-h-full flex-col items-center overflow-hidden px-6 pb-8 pt-[68px] text-center"
+      style={{ background: "linear-gradient(180deg,var(--color-leaf-soft),var(--color-cream))" }}
     >
-      {/* chấm tiến trình + bỏ qua */}
-      <div className="relative z-10 flex items-center justify-between">
-        <div className="flex gap-1.5">
-          {ONBOARDING_BEATS.map((_, i) => (
-            <span
-              key={i}
-              className="h-[6px] rounded-full transition-all"
-              style={{
-                width: i === beat ? "20px" : "6px",
-                background: i <= beat ? b.kick : "rgba(22,33,26,.18)",
-              }}
-            />
-          ))}
-        </div>
-        <button onClick={onNext} className="cursor-pointer bg-transparent text-[14px] font-bold text-ink-soft">
-          Bỏ qua
-        </button>
+      {/* bong bóng nền */}
+      <div className="absolute top-[12%] left-1/2 h-[300px] w-[300px] -translate-x-1/2 rounded-full"
+        style={{ background: "var(--color-blob-leaf)", filter: "blur(2px)" }} />
+
+      {/* Bini hero — hiện lên có sức nặng rồi trôi nhẹ; vài chấm "tia loé" một nhịp */}
+      <div className="animate-gbappear relative z-10" style={delay(0)}>
+        <span className="animate-gbappear absolute -left-5 top-4 h-2 w-2 rounded-full bg-leaf-mint" style={delay(160)} />
+        <span className="animate-gbappear absolute -right-6 top-10 h-1.5 w-1.5 rounded-full bg-leaf" style={delay(240)} />
+        <span className="animate-gbappear absolute -left-7 bottom-8 h-1.5 w-1.5 rounded-full bg-amber" style={delay(320)} />
+        <Mascot size={250} tuThe="hello"
+          className="animate-gbfloat relative z-10 drop-shadow-[0_22px_28px_rgba(24,20,15,.20)]" />
       </div>
 
-      {/* cảnh minh hoạ: blob + Bini + lá bay */}
-      <div className="relative z-0 mt-8 flex flex-1 items-center justify-center">
-        <div className="absolute h-[290px] w-[290px] rounded-full" style={{ background: b.blob, filter: "blur(2px)" }} />
-        <span className="animate-gbfloat absolute left-[8%] top-[6%] text-[22px]">🍃</span>
-        <span className="animate-gbfloat absolute bottom-[12%] right-[6%] text-[17px] [animation-delay:.6s]">✦</span>
-        <Mascot size={264} tuThe={b.tuThe} className="animate-gbfloat relative z-10 drop-shadow-[0_20px_26px_rgba(24,20,15,.22)]" />
-      </div>
-
-      {/* nội dung + CTA */}
-      <div className="relative z-10">
-        <div className="mb-2.5 text-[11px] font-extrabold uppercase tracking-[.1em]" style={{ color: b.kick }}>
-          {b.over}
-        </div>
-        <h1 className="mb-3 whitespace-pre-line font-[family-name:var(--font-display)] text-[46px] font-bold leading-[.98] tracking-tight text-ink">
-          {b.h1}
+      {/* thương hiệu */}
+      <div className="relative z-10 mt-6">
+        <h1 className="animate-gbappear font-[family-name:var(--font-display)] text-[34px] font-bold leading-none tracking-tight text-ink"
+          style={delay(120)}>
+          GreenBin <span className="text-leaf">AI</span>
         </h1>
-        <p className="mb-6 max-w-[300px] text-[15.5px] font-medium leading-relaxed text-ink-soft">{b.body}</p>
-        <Button block size="lg" onClick={tiep} className="text-[17px]">
-          {b.cta}
+        <p className="animate-gbappear mt-2.5 max-w-[300px] text-[15px] font-semibold leading-relaxed text-ink-soft"
+          style={delay(200)}>
+          Phân loại rác bằng AI, ngay tại nguồn.
+        </p>
+      </div>
+
+      {/* 3 điểm value */}
+      <div className="relative z-10 mt-8 w-full max-w-[320px] space-y-2.5">
+        {GIA_TRI.map((g, i) => (
+          <div key={g.text}
+            className="animate-gbappear flex items-center gap-3 rounded-2xl border border-line bg-surface/80 px-4 py-2.5 text-left"
+            style={delay(280 + i * 60)}>
+            <span className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-leaf-soft text-leaf-dark">
+              <g.icon className="h-5 w-5" strokeWidth={1.9} />
+            </span>
+            <span className="text-sm font-bold text-ink">{g.text}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* CTA */}
+      <div className="relative z-10 mt-8 w-full max-w-[320px]">
+        <Button block size="lg" onClick={onNext} className="animate-gbappear text-[17px]" style={delay(480)}>
+          Bắt đầu
         </Button>
-        <button onClick={onNext} className="mt-1.5 w-full cursor-pointer py-3 text-[14px] font-bold text-ink">
+        <button onClick={onNext}
+          className="animate-gbappear mt-2.5 w-full cursor-pointer py-3 text-[14px] font-bold text-ink-soft"
+          style={delay(540)}>
           Tôi đã có tài khoản
         </button>
       </div>

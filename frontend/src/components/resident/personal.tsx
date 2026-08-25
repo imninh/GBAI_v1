@@ -6,6 +6,7 @@ import * as React from "react";
 
 import { CaiAppCard } from "@/components/pwa/cai-app";
 import { DiemNhanThucScreen } from "@/components/resident/diem_nhan_thuc";
+import { Mascot } from "@/components/resident/onboarding";
 import { Button, Card, EmptyState, Skeleton } from "@/components/ui/primitives";
 import { ScreenHeader } from "@/components/ui/shell";
 import { api } from "@/lib/api";
@@ -234,7 +235,12 @@ export function RequestsScreen({ onOpen, onCreate }: { onOpen: (id: number) => v
       {items === null ? (
         <Skeleton className="h-24 w-full" />
       ) : items.length === 0 ? (
-        <EmptyState icon={IconMonDo} title="Chưa có yêu cầu nào" hint="Chụp món rác đầu tiên để bắt đầu nhé." />
+        <EmptyState
+          icon={IconMonDo}
+          title="Chưa có yêu cầu nào"
+          hint="Chụp món rác đầu tiên để bắt đầu nhé."
+          minhHoa={<Mascot size={64} tuThe="nup-la" />}
+        />
       ) : (
         items.map((yc) => {
           const tt = TRANG_THAI_YEU_CAU[yc.status] ?? {

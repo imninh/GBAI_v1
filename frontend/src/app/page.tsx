@@ -464,7 +464,7 @@ function ResidentApp() {
         aria-label="Phân loại thành công"
       >
         <div className="animate-gbpop relative w-full max-w-[300px] rounded-2xl bg-surface p-7 pb-6 text-center shadow-[0_30px_60px_-22px_rgba(0,0,0,.35)]">
-          <Mascot size={120} tuThe="hello" className="mx-auto -mt-16 mb-2 animate-gbwave" />
+          <Mascot size={120} tuThe="om-tim" className="mx-auto -mt-16 mb-2 animate-gbwave" />
           <div className="font-[family-name:var(--font-display)] text-[26px] font-bold text-leaf-dark">Tuyệt vời!</div>
           <div className="mt-1.5 text-[14px] font-semibold text-ink-soft">Bạn vừa phân loại đúng một món rác</div>
           <Button block className="mt-5" onClick={() => setChucMung(false)}>

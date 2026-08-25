@@ -102,17 +102,24 @@ export function EmptyState({
   title,
   hint,
   action,
+  minhHoa,
 }: {
   icon?: LucideIcon;
   title: string;
   hint?: string;
   action?: React.ReactNode;
+  /** Minh hoạ tuỳ chọn (vd mascot Bini pose `nup-la`) — hiện thay cho icon. */
+  minhHoa?: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-2.5 px-6 py-12 text-center animate-gbfade">
-      <div className="flex h-16 w-16 items-center justify-center rounded-[var(--gb-r-lg)] bg-cream-soft shadow-[var(--shadow-xs)]">
-        <Icon className="h-8 w-8 text-muted" strokeWidth={1.8} />
-      </div>
+      {minhHoa ? (
+        <div className="mb-1">{minhHoa}</div>
+      ) : (
+        <div className="flex h-16 w-16 items-center justify-center rounded-[var(--gb-r-lg)] bg-cream-soft shadow-[var(--shadow-xs)]">
+          <Icon className="h-8 w-8 text-muted" strokeWidth={1.8} />
+        </div>
+      )}
       <div className="font-[family-name:var(--font-display)] text-lg font-bold tracking-tight">{title}</div>
       {hint && <p className="max-w-xs text-xs font-semibold leading-relaxed text-muted">{hint}</p>}
       {action && <div className="mt-2">{action}</div>}
