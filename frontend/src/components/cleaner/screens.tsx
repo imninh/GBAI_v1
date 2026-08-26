@@ -50,6 +50,10 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
   const [loi, setLoi] = React.useState("");
   const [dangMoBaoLoi, setDangMoBaoLoi] = React.useState<number | null>(null);
   const [cheDo, setCheDo] = React.useState<"danh-sach" | "ban-do">("danh-sach");
+  // Khối lượng thật (kg) đội vệ sinh cân tại chỗ, theo từng điểm dừng — chỉ
+  // điểm loại yêu cầu mới cân; thùng đổ thì không. Số này do NGƯỜI nhập, lưu
+  // thật qua `completeStop({ actual_weight_kg })`, không tự bịa.
+  const [soKg, setSoKg] = React.useState<Record<number, string>>({});
   // Báo sự cố cả chuyến (api.baoSuCo): khác với nút "Báo lỗi" từng điểm dừng —
   // cái đó gắn issue vào điểm dừng khi hoàn thành, cái này là sự cố tự do của
   // chuyến đang làm (xe hỏng, đường chặn…), ban quản lý xử lý riêng.
@@ -93,6 +97,23 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
       setDangMoBaoLoi(null);
     } catch (e) {
       setLoi(e instanceof Error ? e.message : "Không lưu được");
+    }
+  }
+
+  /** Chốt điểm thu gom kèm khối lượng THẬT (kg) do đội vệ sinh cân tại chỗ. */
+  async function chotDiem(stopId: number, weightKg: number) {
+    if (!tuyen) return;
+    try {
+      const moi = await api.completeStop(tuyen.id, stopId, { actual_weight_kg: weightKg });
+      setTuyen(moi);
+      setSoKg((cu) => {
+        const sau = { ...cu };
+        delete sau[stopId];
+        return sau;
+      });
+      setDangMoBaoLoi(null);
+    } catch (e) {
+      setLoi(e instanceof Error ? e.message : "Không chốt được điểm");
     }
   }
 
@@ -150,7 +171,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
               </div>
 
               {/* Bộ chuyển đổi Danh sách <-> Bản đồ dẫn đường */}
-              <div className="mb-3 flex rounded-xl bg-slate-200/80 p-1">
+              <div className="mb-3 flex rounded-2xl bg-slate-200/80 p-1">
                 <button
                   type="button"
                   onClick={() => setCheDo("danh-sach")}
@@ -223,12 +244,12 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                                   key={ls.code}
                                   type="button"
                                   onClick={() => setLoaiSuCo(ls.code)}
-                                  className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 text-left text-[14px] font-bold transition-all ${
+                                  className={`flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-left text-[14px] font-bold transition-all ${
                                     dangChon ? "border-leaf bg-leaf-soft" : "border-line bg-surface hover:border-line-2"
                                   }`}
                                 >
                                   <span
-                                    className={`flex h-5 w-5 flex-none items-center justify-center rounded-md border ${
+                                    className={`flex h-5 w-5 flex-none items-center justify-center rounded-lg border ${
                                       dangChon ? "border-leaf bg-leaf text-white" : "border-line-2"
                                     }`}
                                   >
@@ -247,7 +268,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                             value={moTaSuCo}
                             onChange={(e) => setMoTaSuCo(e.target.value)}
                             placeholder="vd: đường xuống hố, xe không qua được"
-                            className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                            className="h-12 w-full rounded-2xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                           />
                           <Button
                             variant="leaf"
@@ -262,7 +283,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                         </Card>
                       )}
                       {thongBaoSuCo && (
-                        <div className="mt-2.5 rounded-xl bg-leaf-soft px-4 py-3 text-[13px] font-bold leading-relaxed text-leaf-dark">
+                        <div className="mt-2.5 rounded-2xl bg-leaf-soft px-4 py-3 text-[13px] font-bold leading-relaxed text-leaf-dark">
                           {thongBaoSuCo}
                         </div>
                       )}
@@ -274,7 +295,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                     <Card key={s.stop_id} className="mb-3 p-4 lg:mb-0" style={{ opacity: s.done_at ? 0.7 : 1 }}>
                       <div className="mb-3 flex items-start gap-3">
                         <span
-                          className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-xl text-[15px] font-extrabold"
+                          className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-2xl text-[15px] font-extrabold"
                           style={{ background: s.done_at ? "var(--color-leaf-soft)" : "var(--color-ink)", color: s.done_at ? "var(--color-leaf-dark)" : "var(--color-surface)" }}
                         >
                           {s.seq}
@@ -303,9 +324,10 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                       </div>
 
                       {s.done_at ? (
-                        <div className="flex items-center justify-center gap-1.5 rounded-xl bg-leaf-soft p-3 text-sm font-extrabold text-leaf-dark">
+                        <div className="flex items-center justify-center gap-1.5 rounded-2xl bg-leaf-soft p-3 text-sm font-extrabold text-leaf-dark">
                           <IconDuyet className="h-4 w-4 flex-none" />
                           Đã thu lúc {gioVn(s.done_at)}
+                          {s.actual_weight_kg != null ? ` · cân ${kg(s.actual_weight_kg)}` : ""}
                           {s.issue ? ` · ${s.issue}` : ""}
                         </div>
                       ) : dangMoBaoLoi === s.stop_id ? (
@@ -319,7 +341,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                             Đóng
                           </Button>
                         </div>
-                      ) : (
+                      ) : s.stop_kind === "thung" ? (
                         <div className="flex gap-2.5">
                           <Button variant="leaf" size="lg" className="flex-1" onClick={() => danhDau(s.stop_id)}>
                             <IconDuyet className="h-5 w-5" strokeWidth={2.6} />
@@ -328,6 +350,43 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                           <Button variant="outline" size="lg" className="flex-1 border-amber-line text-amber" onClick={() => setDangMoBaoLoi(s.stop_id)}>
                             <IconCanhBao className="h-5 w-5" />
                             Báo lỗi
+                          </Button>
+                        </div>
+                      ) : (
+                        <div>
+                          <label htmlFor={`can-${s.stop_id}`} className="mb-1 block text-[11px] font-extrabold text-muted">
+                            Khối lượng thật (kg) — cân tại chỗ
+                          </label>
+                          <div className="flex items-end gap-2.5">
+                            <input
+                              id={`can-${s.stop_id}`}
+                              type="number"
+                              min={0}
+                              step="0.1"
+                              inputMode="decimal"
+                              value={soKg[s.stop_id] ?? ""}
+                              onChange={(e) => setSoKg((cu) => ({ ...cu, [s.stop_id]: e.target.value }))}
+                              placeholder="vd: 18.5"
+                              className="h-12 w-full flex-1 rounded-lg border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                            />
+                            <Button
+                              variant="leaf"
+                              size="lg"
+                              className="flex-none"
+                              disabled={
+                                !(soKg[s.stop_id]?.trim()) ||
+                                !Number.isFinite(Number(soKg[s.stop_id])) ||
+                                Number(soKg[s.stop_id]) < 0
+                              }
+                              onClick={() => chotDiem(s.stop_id, Number(soKg[s.stop_id]))}
+                            >
+                              <IconDuyet className="h-5 w-5" strokeWidth={2.6} />
+                              Chốt điểm
+                            </Button>
+                          </div>
+                          <Button variant="outline" size="sm" block className="mt-2 border-amber-line text-amber" onClick={() => setDangMoBaoLoi(s.stop_id)}>
+                            <IconCanhBao className="h-4 w-4" />
+                            Báo lỗi thay vì chốt
                           </Button>
                         </div>
                       )}
@@ -397,9 +456,9 @@ function KienDangTheoSection() {
       );
     }
     if (tt === "da_giao_don_vi") {
-      return <div className="rounded-xl bg-muted-bg p-3 text-center text-[13px] font-bold text-muted">Chờ đơn vị xác nhận khối lượng</div>;
+      return <div className="rounded-2xl bg-muted-bg p-3 text-center text-[13px] font-bold text-muted">Chờ đơn vị xác nhận khối lượng</div>;
     }
-    return <div className="rounded-xl bg-muted-bg p-3 text-center text-[13px] font-bold text-muted">Đã kết thúc</div>;
+    return <div className="rounded-2xl bg-muted-bg p-3 text-center text-[13px] font-bold text-muted">Đã kết thúc</div>;
   }
 
   return (
@@ -418,7 +477,7 @@ function KienDangTheoSection() {
           return (
             <Card key={k.id} className="mb-3 p-4">
               <div className="mb-3 flex items-start gap-3">
-                <span className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-xl bg-recycle-soft text-[15px] font-extrabold text-recycle">
+                <span className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-2xl bg-recycle-soft text-[15px] font-extrabold text-recycle">
                   <IconMonDo className="h-4 w-4" />
                 </span>
                 <div className="flex-1">
