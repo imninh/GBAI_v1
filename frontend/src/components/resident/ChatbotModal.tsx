@@ -56,6 +56,8 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
     { category: string; label: string; question: string }[]
   >([]);
   const [expandedSources, setExpandedSources] = React.useState<Record<string, boolean>>({});
+  // Bong bóng chào Bini — hiện một lần (lưu localStorage), tắt khi bấm hoặc hết giờ.
+  const [hienBongBong, setHienBongBong] = React.useState(false);
 
   // Lưu cờ và toạ độ tracking duy nhất 1 lần
   const hasTrackedRef = React.useRef(false);
@@ -67,6 +69,16 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
   const [userLocation, setUserLocation] = React.useState<{ lat: number; lng: number } | null>(
     userLat && userLng ? { lat: userLat, lng: userLng } : null
   );
+
+  React.useEffect(() => {
+    try {
+      if (!window.localStorage.getItem("gbini_greeted")) setHienBongBong(true);
+    } catch {
+      /* localStorage không dùng được (incognito) → vẫn hiện bong bóng */
+    }
+    const t = window.setTimeout(() => setHienBongBong(false), 6000);
+    return () => window.clearTimeout(t);
+  }, []);
 
   /** Tracking vị trí GPS người dùng DUY NHẤT 1 LẦN khi tra cứu thùng rác */
   const trackLocationOnce = React.useCallback(
@@ -131,7 +143,15 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
 
   React.useEffect(() => {
     // Lắng nghe sự kiện mở chat khi bấm vào con vật Bini
-    const handleOpen = () => setIsOpen(true);
+    const handleOpen = () => {
+      setIsOpen(true);
+      setHienBongBong(false);
+      try {
+        window.localStorage.setItem("gbini_greeted", "1");
+      } catch {
+        /* ignore */
+      }
+    };
     window.addEventListener("open-greenbin-chat", handleOpen);
     return () => window.removeEventListener("open-greenbin-chat", handleOpen);
   }, []);
@@ -229,7 +249,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
     return (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
         <div className="w-full max-w-sm rounded-2xl bg-surface p-6 text-center shadow-2xl dark:bg-zinc-900 dark:text-zinc-100">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-700/90 text-white">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-leaf-dark/90 text-white">
             <Mascot size={48} tuThe="hello" className="animate-gbbreath" />
           </div>
           <h3 className="font-bold text-base">Cần đăng nhập để dùng trợ lý</h3>
@@ -239,7 +259,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
           <button
             type="button"
             onClick={() => dangXuat()}
-            className="mt-5 w-full rounded-xl bg-emerald-700 px-4 py-2.5 font-medium text-white shadow-xs transition-colors hover:bg-emerald-800 cursor-pointer"
+            className="mt-5 w-full rounded-xl bg-leaf px-4 py-2.5 font-medium text-white shadow-xs transition-colors hover:bg-leaf-dark cursor-pointer"
           >
             Đăng nhập lại
           </button>
@@ -250,25 +270,38 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
 
   return (
     <>
-      {/* Nút Bong Bóng Nổi (Floating Chat Bubble với linh vật Bini) */}
+      {/* Nút tròn mặt Bini nổi (thay pill) + bong bóng chào một lần */}
       {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-20 right-4 z-[1001] flex items-center gap-2.5 rounded-full bg-emerald-800/95 py-2 pl-2 pr-4 text-white shadow-[0_8px_30px_rgba(16,70,35,0.35)] backdrop-blur-xs border border-emerald-600/40 transition-all duration-300 hover:scale-105 hover:bg-emerald-700 active:scale-95 sm:bottom-6 sm:right-6 group"
-          title="Bấm vào để hỏi Bini AI"
-        >
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-emerald-700/80 overflow-hidden shadow-inner">
-            <Mascot size={38} tuThe="hello" className="transition-transform group-hover:rotate-6 group-hover:scale-110" />
-            <span className="absolute top-0 right-0 flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75"></span>
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+        <div className="fixed bottom-20 right-4 z-[1001] flex items-end gap-2.5 sm:bottom-6 sm:right-6">
+          {hienBongBong && (
+            <div className="gbchatgreet pointer-events-none relative mb-6 max-w-[228px] rounded-2xl border border-line bg-surface px-3.5 py-2.5 text-[12.5px] font-semibold leading-snug text-ink shadow-[0_10px_28px_-8px_rgba(28,66,41,.35)]">
+              Chào bạn, mình là Bini — hỏi mình cách phân loại rác nhé 👋
+              <span className="absolute -bottom-1.5 right-7 h-3 w-3 rotate-45 border-b border-r border-line bg-surface" />
+            </div>
+          )}
+          <button
+            onClick={() => {
+              setIsOpen(true);
+              setHienBongBong(false);
+              try {
+                window.localStorage.setItem("gbini_greeted", "1");
+              } catch {
+                /* ignore */
+              }
+            }}
+            className="relative flex h-16 w-16 items-center justify-center rounded-full bg-leaf-dark shadow-[0_10px_30px_-6px_rgba(28,66,41,.45)] ring-2 ring-leaf-mint/60 transition-transform duration-300 hover:scale-105 active:scale-95"
+            title="Bấm vào để hỏi Bini AI"
+            aria-label="Mở trợ lý Bini"
+          >
+            <span className="-mt-1 flex h-[72px] w-[72px] items-center justify-center overflow-visible">
+              <Mascot size={58} tuThe="hello" className="drop-shadow-[0_4px_8px_rgba(0,0,0,.25)]" />
             </span>
-          </div>
-          <div className="text-left">
-            <span className="block font-bold text-xs leading-none text-emerald-100">Hỏi Bini AI</span>
-            <span className="mt-0.5 block text-[10px] text-emerald-300 font-medium">Trợ lý luật & rác</span>
-          </div>
-        </button>
+            <span className="absolute top-1 right-1 flex h-3 w-3">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-leaf-mint opacity-75"></span>
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-leaf-mint"></span>
+            </span>
+          </button>
+        </div>
       )}
 
       {/* Cửa sổ Chat Modal */}
@@ -276,26 +309,26 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
         <div className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/40 backdrop-blur-xs p-0 sm:items-center sm:p-4">
           <div className="flex h-[92vh] w-full max-w-lg flex-col rounded-t-2xl bg-surface shadow-2xl sm:h-[650px] sm:rounded-2xl dark:bg-zinc-900 dark:text-zinc-100">
             {/* Header với Bini avatar */}
-            <div className="flex items-center justify-between border-b border-emerald-900/40 px-4 py-3 bg-gradient-to-r from-emerald-800 to-emerald-900 text-white rounded-t-2xl">
+            <div className="flex items-center justify-between border-b border-leaf-dark/40 bg-gradient-to-r from-leaf-dark to-leaf px-4 py-3 text-white rounded-t-2xl">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-700/90 border border-emerald-500/40 overflow-hidden shadow-md">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-leaf-dark/90 border border-leaf-mint/40 overflow-hidden shadow-md">
                   <Mascot size={42} tuThe="hello" className="animate-gbbreath" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-sm">Bini — Trợ lý AI GreenBin</h3>
-                    <span className="rounded-full bg-emerald-950/80 px-2 py-0.5 text-[10px] font-medium text-emerald-300 border border-emerald-600/30">
+                    <span className="rounded-full bg-leaf-dark/80 px-2 py-0.5 text-[10px] font-medium text-leaf-mint border border-leaf/30">
                       Mistral AI
                     </span>
                   </div>
-                  <p className="text-xs text-emerald-200/90">
+                  <p className="text-xs text-leaf-mint/90">
                     Luật rác · Thùng rác gần nhất · Hướng dẫn app
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="rounded-full p-2 text-emerald-200 hover:bg-emerald-700 hover:text-white transition-colors"
+                className="rounded-full p-2 text-leaf-mint hover:bg-leaf-dark hover:text-white transition-colors"
                 aria-label="Đóng"
               >
                 ✕
@@ -303,21 +336,21 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
             </div>
 
             {/* Thanh hiển thị trạng thái GPS Tracking thời gian thực */}
-            <div className="flex items-center justify-between border-b border-emerald-950/15 bg-emerald-50/90 px-3.5 py-1.5 text-[11px] text-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300">
+            <div className="flex items-center justify-between border-b border-leaf-dark/15 bg-leaf-soft/90 px-3.5 py-1.5 text-[11px] text-leaf-dark dark:bg-leaf-dark/50 dark:text-leaf-mint">
               <div className="flex items-center gap-1.5 overflow-hidden">
                 {gpsStatus === "tracking" ? (
                   <>
                     <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-leaf-mint opacity-75"></span>
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-leaf-mint"></span>
                     </span>
-                    <span className="font-medium animate-pulse text-emerald-700 dark:text-emerald-300">
+                    <span className="font-medium animate-pulse text-leaf-dark dark:text-leaf-mint">
                       Đang tracking vị trí GPS của bạn...
                     </span>
                   </>
                 ) : gpsStatus === "located" && userLocation ? (
                   <>
-                    <Crosshair className="h-4 w-4 text-emerald-600" strokeWidth={1.9} />
+                    <Crosshair className="h-4 w-4 text-leaf" strokeWidth={1.9} />
                     <span className="truncate font-medium">
                       GPS: {userLocation.lat.toFixed(4)}°N, {userLocation.lng.toFixed(4)}°E (Chính xác cao)
                     </span>
@@ -335,7 +368,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                 type="button"
                 onClick={() => void trackLocationOnce(true)}
                 disabled={gpsStatus === "tracking"}
-                className="shrink-0 rounded-md bg-emerald-100/80 px-2 py-0.5 font-semibold text-emerald-800 hover:bg-emerald-200 active:scale-95 disabled:opacity-50 dark:bg-emerald-900/60 dark:text-emerald-200 cursor-pointer"
+                className="shrink-0 rounded-md bg-leaf-soft/80 px-2 py-0.5 font-semibold text-leaf-dark hover:bg-leaf-soft active:scale-95 disabled:opacity-50 dark:bg-leaf-dark/60 dark:text-leaf-mint cursor-pointer"
                 title="Bấm để tracking lại toạ độ GPS"
               >
                 {gpsStatus === "tracking" ? "Đang đo..." : (<><RefreshCw className="mr-1.5 inline h-4 w-4" strokeWidth={1.9} />Cập nhật GPS</>)}
@@ -353,7 +386,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                     <button
                       key={idx}
                       onClick={() => handleSend(s.question)}
-                      className="shrink-0 rounded-full border border-emerald-200 bg-surface px-3 py-1 text-emerald-800 shadow-xs hover:bg-emerald-50 active:scale-95 dark:border-emerald-800 dark:bg-zinc-900 dark:text-emerald-300"
+                      className="shrink-0 rounded-full border border-leaf-soft bg-surface px-3 py-1 text-leaf-dark shadow-xs hover:bg-leaf-soft active:scale-95 dark:border-leaf-dark dark:bg-zinc-900 dark:text-leaf-mint"
                     >
                       {s.label}
                     </button>
@@ -374,14 +407,14 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                   <div
                     className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
                       m.sender === "user"
-                        ? "bg-emerald-700 text-white rounded-br-xs"
+                        ? "bg-leaf text-white rounded-br-xs"
                         : "bg-zinc-100 text-zinc-900 rounded-bl-xs dark:bg-zinc-800 dark:text-zinc-100"
                     }`}
                   >
                     {/* Badge nguồn và Confidence (cho AI) */}
                     {m.sender === "ai" && m.responseMeta && (
                       <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
-                        <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                        <span className="rounded-md bg-leaf-soft px-1.5 py-0.5 font-medium text-leaf-dark dark:bg-leaf-dark dark:text-leaf-mint">
                           {m.responseMeta.source_badge}
                         </span>
                         <span
@@ -405,7 +438,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                     {m.responseMeta?.viable_bins &&
                       m.responseMeta.viable_bins.length > 0 && (
                         <div className="mt-3 space-y-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
-                          <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center justify-between">
+                          <p className="text-xs font-semibold text-leaf-dark dark:text-leaf-mint flex items-center justify-between">
                             <span className="flex items-center gap-1"><IconViTri className="h-3.5 w-3.5" strokeWidth={1.9} />Thùng rác khả dụng gần bạn (GPS Tracking):</span>
                             <span className="text-[10px] font-normal text-zinc-500 dark:text-zinc-400">
                               Đã so khớp khoảng cách
@@ -421,7 +454,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                                 <span
                                   className={
                                     bin.fill_percent < 70
-                                      ? "text-emerald-600 font-bold"
+                                      ? "text-leaf font-bold"
                                       : "text-amber-600 font-bold"
                                   }
                                 >
@@ -431,7 +464,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                               <div className="text-zinc-500 dark:text-zinc-400 mt-1 flex items-center justify-between">
                                 <span className="truncate pr-2">{bin.address}</span>
                                 {bin.distance_meters !== null && (
-                                  <span className="shrink-0 font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-300/40">
+                                  <span className="shrink-0 font-semibold text-leaf-dark dark:text-leaf-mint bg-leaf-soft/80 dark:bg-leaf-dark px-1.5 py-0.5 rounded border border-leaf-mint/40">
                                     Cách ~{Math.round(bin.distance_meters)}m
                                   </span>
                                 )}
@@ -457,7 +490,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                         <div className="mt-2.5 border-t border-zinc-200/60 pt-1.5 dark:border-zinc-700/60">
                           <button
                             onClick={() => toggleSources(m.id)}
-                            className="text-[11px] font-semibold text-emerald-700 underline hover:text-emerald-800 dark:text-emerald-400"
+                            className="text-[11px] font-semibold text-leaf-dark underline hover:text-leaf-dark dark:text-leaf-mint"
                           >
                             {expandedSources[m.id]
                               ? "Ẩn căn cứ trích dẫn ▲"
@@ -471,7 +504,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                                   key={idx}
                                   className="rounded bg-surface/80 p-2 text-[11px] text-zinc-700 shadow-2xs dark:bg-zinc-900/90 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700/50"
                                 >
-                                  <div className="flex items-center gap-1 font-semibold text-emerald-800 dark:text-emerald-300">
+                                  <div className="flex items-center gap-1 font-semibold text-leaf-dark dark:text-leaf-mint">
                                     <ScrollText className="h-3.5 w-3.5 shrink-0" strokeWidth={1.9} />
                                     {s.doc_title} · {s.section}
                                   </div>
@@ -494,7 +527,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                           disabled={m.feedbackGiven !== undefined}
                           className={`rounded p-1 transition-colors ${
                             m.feedbackGiven === 1
-                              ? "bg-emerald-200 text-emerald-900 font-bold"
+                              ? "bg-leaf-soft text-leaf-dark font-bold"
                               : "hover:bg-zinc-200 dark:hover:bg-zinc-700"
                           }`}
                           title="Hữu ích"
@@ -521,7 +554,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
 
               {isLoading && (
                 <div className="flex items-center gap-2 text-xs text-zinc-500">
-                  <div className="flex h-6 w-6 animate-spin items-center justify-center rounded-full border-2 border-emerald-600 border-t-transparent"></div>
+                  <div className="flex h-6 w-6 animate-spin items-center justify-center rounded-full border-2 border-leaf border-t-transparent"></div>
                   <span>Trợ lý AI đang tra cứu quy định và dữ liệu...</span>
                 </div>
               )}
@@ -543,14 +576,14 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                   value={inputQuery}
                   onChange={(e) => setInputQuery(e.target.value)}
                   placeholder="Hỏi về mức phạt, thùng rác, cách dùng app..."
-                  className="flex-1 rounded-xl border border-zinc-300 px-3.5 py-2.5 text-sm focus:border-emerald-600 focus:outline-none dark:border-zinc-700 dark:bg-zinc-800"
+                  className="flex-1 rounded-xl border border-zinc-300 px-3.5 py-2.5 text-sm focus:border-leaf focus:outline-none dark:border-zinc-700 dark:bg-zinc-800"
                   disabled={isLoading}
                 />
                 <button
                   id="chatbot-send-btn"
                   type="submit"
                   disabled={!inputQuery.trim() || isLoading}
-                  className="rounded-xl bg-emerald-700 px-4 py-2.5 font-medium text-white shadow-xs transition-colors hover:bg-emerald-800 disabled:opacity-50 cursor-pointer"
+                  className="rounded-xl bg-leaf px-4 py-2.5 font-medium text-white shadow-xs transition-colors hover:bg-leaf-dark disabled:opacity-50 cursor-pointer"
                 >
                   Gửi
                 </button>

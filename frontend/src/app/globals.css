@@ -506,6 +506,21 @@ body {
   animation: gbscreen 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
+/* WOW-F: bong bóng chào Bini — one-shot trượt vào mềm. */
+@keyframes gbchatgreet {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.gbchatgreet {
+  animation: gbchatgreet 0.35s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
 /* WOW-B: Bini có hồn — idle thở/lắc nhẹ cho MỌI pose (cả bản <img> phẳng),
    entrance một nhịp khi mount, và phản ứng nhún-lắc khi chạm/hover. Chỉ
    transform+opacity. Áp trong component Mascot (onboarding.tsx), các màn không
@@ -569,7 +584,7 @@ body {
   .animate-gbpulse,
   .animate-gbbreath,
   .animate-gbappear,
-  .animate-gbreveal,
+.animate-gbreveal,
   .animate-gbpopin,
   .animate-gbring,
   .animate-gbhazardalert,
@@ -578,7 +593,8 @@ body {
   .gbmascot,
   .gbmascot:hover,
   .gbmascot:active,
-  .animate-gbscreen {
+  .animate-gbscreen,
+  .gbchatgreet {
     animation: none;
   }
 }
