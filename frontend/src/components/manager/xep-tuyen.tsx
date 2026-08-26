@@ -97,7 +97,22 @@ export function XepTuyen({ onDuyetTuyen }: { onDuyetTuyen?: () => void }) {
   }
 
   if (loi) return <ErrorState message={loi} onRetry={tai} />;
-  if (ds === null) return <Skeleton className="h-96 w-full" />;
+  if (ds === null) {
+    // WS-2/B2: skeleton đúng hình command-center (map trái + bảng phải) thay vì
+    // màn trắng khi Leaflet đang mount / dữ liệu đang tải. `.gb-skeleton` chỉ
+    // opacity, tôn trọng prefers-reduced-motion.
+    return (
+      <div className="lg:grid lg:grid-cols-[1.6fr_1fr] lg:items-start lg:gap-4">
+        <div className="mb-4 lg:mb-0">
+          <div className="h-[360px] overflow-hidden rounded-2xl border border-line bg-cream-soft gb-skeleton lg:h-[calc(100vh-10rem)]" />
+        </div>
+        <div className="space-y-4">
+          <div className="h-44 w-full rounded-2xl bg-cream-soft gb-skeleton" />
+          <div className="h-64 w-full rounded-2xl bg-cream-soft gb-skeleton" />
+        </div>
+      </div>
+    );
+  }
 
   const loTrinh = tuyen?.lo_trinh_meta;
   const tongKm = loTrinh ? loTrinh.total_km : tuyen?.est_distance_km;

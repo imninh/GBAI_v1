@@ -771,7 +771,21 @@ export function RouteApproval() {
     : null;
 
   if (loi) return <ErrorState message={loi} onRetry={tai} />;
-  if (ds === null) return <Skeleton className="h-96 w-full" />;
+  if (ds === null) {
+    // B4: skeleton đúng hình màn duyệt tuyến (map trái + bảng phải) — không
+    // "trắng" khi Leaflet đang mount. `.gb-skeleton` chỉ opacity.
+    return (
+      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-4">
+        <div className="mb-4 lg:mb-0">
+          <div className="h-[280px] rounded-2xl border border-line bg-cream-soft gb-skeleton lg:h-[calc(100vh-10rem)]" />
+        </div>
+        <div className="space-y-4">
+          <div className="h-24 w-full rounded-2xl bg-cream-soft gb-skeleton" />
+          <div className="h-64 w-full rounded-2xl bg-cream-soft gb-skeleton" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
