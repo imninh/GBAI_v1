@@ -23,10 +23,15 @@ const MARKER_STYLE: Record<Bin["status"], string> = {
 };
 
 function icon(bin: Bin) {
+  // WS-4: không còn "?" — thùng nào cũng hiện nhãn thật (phần trăm đầy, hoặc
+  // "–" khi chưa có số liệu). "Mất kết nối / số liệu cũ" được phân biệt bằng
+  // style (nét đứt + nhạt) và title, không phải bằng dấu hỏi.
   const label =
-    bin.status === "mat_ket_noi" || bin.status === "chua_trien_khai"
-      ? "?"
-      : `${Math.round(bin.fill_percent)}%`;
+    bin.fill_percent != null
+      ? `${Math.round(bin.fill_percent)}%`
+      : bin.status === "chua_trien_khai"
+        ? "chưa"
+        : "–";
   return L.divIcon({
     className: "bin-marker-icon",
     iconSize: [46, 30],
