@@ -94,15 +94,25 @@ def test_van_dung_lai_anhcotoken_co_san() -> None:
 
 
 def test_verifyqueue_van_tai_anh_lazy() -> None:
-    """`VerifyQueue` vẫn tải ảnh LAZY sau khi E2E-04b-FIX làm lại thẻ.
+    """`VerifyQueue` vẫn tải ảnh LAZY sau khi WS-1b đổi sang lazy theo tầm nhìn.
 
-    E2E-04b-FIX chuyển mỗi ca thành component `TheCa` có state cục bộ: ảnh chỉ
-    dựng `<AnhCoToken>` khi thẻ được MỞ (`{mo && ...}`, `mo` mặc định `false`).
-    Cơ chế đổi từ `dangMo === ca.classification_id` (state cha, P28/P32) sang `mo`
-    (state riêng thẻ) nhưng PHẢI giữ tính lazy — dựng ảnh cho mọi thẻ ngay khi
-    hàng đợi lên là ~100 lệnh tải ảnh đồng thời vào máy chủ 512 MB.
+    WS-1b chuyển cơ chế từ bấm-to-reveal (`{mo && ...}`, state riêng thẻ) sang
+    tự tải khi thẻ vào màn qua `IntersectionObserver` (hook `useInView`): ảnh
+    `<AnhCoToken>` CHỈ dựng khi thẻ đang trong tầm nhìn (`trongTamNhin`), thẻ
+    ngoài màn chỉ là khung xám. PHẢI giữ tính lazy — dựng ảnh cho mọi thẻ ngay
+    khi hàng đợi lên là ~100 lệnh tải ảnh đồng thời vào máy chủ 512 MB.
     """
-    than = _than_khoi(_noi_dung_queues(), "function VerifyQueue")
-    assert than, "Không tìm thấy thân hàm VerifyQueue"
+    # `TheCa` nhận props destructure (`function TheCa({ ca, ... }) {`) nên
+    # `_than_khoi` cắt nhầm vào tham số. Cắt thân: bắt đầu sau `}) {` của signature.
+    noi_dung = _noi_dung_queues()
+    vi = noi_dung.find("function TheCa(")
+    than = ""
+    if vi != -1:
+        dong = noi_dung.find("}) {", vi)
+        if dong != -1:
+            than = noi_dung[dong + 4 :]
+    assert than, "Không tìm thấy thân hàm TheCa"
     assert "<AnhCoToken" in than, "VerifyQueue vẫn phải dùng AnhCoToken để hiện ảnh"
-    assert "{mo && (" in than, "Cổng lazy của VerifyQueue (mo && ...) bị mất — ảnh sẽ tải cho MỌI thẻ"
+    assert "useInView" in than, "Phải có hook useInView (IntersectionObserver) để lazy theo tầm nhìn"
+    assert "trongTamNhin" in than, "Cơ chế lazy theo tầm nhìn bị mất"
+    assert "trongTamNhin ? (" in than or "trongTamNhin && (" in than, "Ảnh phải dựng có điều kiện theo tầm nhìn, không eager-render mọi thẻ"

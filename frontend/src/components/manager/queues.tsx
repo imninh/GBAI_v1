@@ -31,6 +31,36 @@ import {
 } from "@/lib/icons";
 import type { Classification, PickupRequest, PickupRoute, WasteCategory } from "@/lib/types";
 
+/** WS-1b: lazy ảnh theo tầm nhìn — thẻ cuộn vào màn mới tải ảnh, không cần bấm.
+ *  Báo `trongTamNhin = true` một lần rồi ngừng theo dõi; thẻ ngoài màn không tải
+ *  (vẫn giữ an toàn cho máy chủ 512 MB khi hàng đợi có hàng trăm ca). */
+function useInView<T extends HTMLElement>(threshold = 0.1) {
+  const ref = React.useRef<T | null>(null);
+  const [trongTamNhin, setTrongTamNhin] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setTrongTamNhin(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setTrongTamNhin(true);
+            io.disconnect();
+          }
+        }
+      },
+      { threshold },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [threshold]);
+  return { ref, trongTamNhin };
+}
+
 // Leaflet chạm thẳng vào `window` nên không dựng được lúc build tĩnh — phải qua
 // `next/dynamic` với `ssr:false` (dự án build bằng `output: "export"`). Placeholder
 // cao đúng tầm khung bản đồ để thẻ không bị nhảy khi map tải về.
@@ -309,7 +339,9 @@ export function VerifyQueue() {
 
   function TheCa({ ca, danhMuc, tai }: { ca: Classification; danhMuc: WasteCategory[]; tai: () => void }) {
     const thieu = ca.min_confidence - ca.confidence;
-    const [mo, setMo] = React.useState(false);
+    // WS-1b: ảnh tự tải khi thẻ vào tầm nhìn (IntersectionObserver), không cần bấm.
+    const { ref, trongTamNhin } = useInView<HTMLDivElement>();
+    const [phongTo, setPhongTo] = React.useState(false);
     const [replyText, setReplyText] = React.useState("");
     const [nhanDuocChon, setNhanDuocChon] = React.useState<WasteCategory | null>(ca.category ?? null);
     const [loiLuu, setLoiLuu] = React.useState("");
@@ -331,15 +363,19 @@ export function VerifyQueue() {
 
     return (
       <Card className="p-4 animate-gbreveal">
-        {/* Ảnh tải LAZY — mở thẻ mới tải ảnh. Dựng cho mọi thẻ ngay khi hàng
-            đợi lên là một `fetch` có token bắn cùng lúc cho từng ca: mở màn 100
-            ca là 100 lệnh tải ảnh đồng thời. AnhCoToken tự lo ca hỏi bằng chữ
-            (`media_id == null`): 0 lệnh gọi mạng, hiện ô giữ chỗ. */}
-        {mo && (
-          <div className="mb-3 aspect-[4/3] w-full overflow-hidden rounded-2xl bg-cream-soft">
-            <AnhCoToken mediaId={ca.media_id} alt="Ảnh cư dân gửi" className="h-full w-full object-cover" />
-          </div>
-        )}
+        {/* Ảnh LAZY theo tầm nhìn: thẻ vào màn là `<AnhCoToken>` tự tải, không
+            phải bấm. Thẻ chưa vào màn chỉ là khung xám — mở hàng đợi 100 ca là
+            100 lệnh tải đồng thời vào máy chủ 512 MB, nên chỉ tải thẻ đang thấy.
+            AnhCoToken tự lo ca hỏi bằng chữ (`media_id == null`): ô giữ chỗ. */}
+        <div ref={ref}>
+          {trongTamNhin ? (
+            <div className="mb-3 aspect-[4/3] w-full overflow-hidden rounded-2xl bg-cream-soft">
+              <AnhCoToken mediaId={ca.media_id} alt="Ảnh cư dân gửi" className="h-full w-full object-cover" />
+            </div>
+          ) : (
+            <div className="mb-3 aspect-[4/3] w-full rounded-2xl bg-cream-soft" />
+          )}
+        </div>
         <div className="mb-2 text-sm font-extrabold">
           AI đoán: {ca.guess?.item_name || ca.item_name || ca.text_query || "không rõ"} · {doTinCay(ca.confidence)}
         </div>
@@ -396,8 +432,8 @@ export function VerifyQueue() {
         )}
 
         <div className="mt-2 flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => setMo((v) => !v)}>
-            {mo ? "Thu ảnh" : "Xem ảnh"}
+          <Button size="sm" variant="outline" disabled={!trongTamNhin} onClick={() => setPhongTo(true)}>
+            Phóng to
           </Button>
           <span className="flex-1" />
           <Button
@@ -410,6 +446,26 @@ export function VerifyQueue() {
             {dangLuu ? "Đang lưu…" : "Xác nhận"}
           </Button>
         </div>
+
+        {/* Phóng to — tuỳ chọn xem ảnh lớn; ảnh thường đã hiện sẵn trong thẻ. */}
+        {phongTo && trongTamNhin && ca.media_id != null && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+            onClick={() => setPhongTo(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Phóng to ảnh"
+          >
+            <div className="max-h-full w-full max-w-3xl overflow-hidden rounded-2xl bg-surface p-2" onClick={(e) => e.stopPropagation()}>
+              <AnhCoToken mediaId={ca.media_id} alt="Ảnh cư dân gửi" className="max-h-[78vh] w-full object-contain" />
+              <div className="mt-2 text-center">
+                <Button size="sm" variant="outline" onClick={() => setPhongTo(false)}>
+                  Đóng
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
     );
   }
