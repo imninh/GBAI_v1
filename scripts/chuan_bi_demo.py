@@ -243,6 +243,41 @@ def kiem_tra(session: Session, now: datetime | None = None) -> list[MucKiemTra]:
             )
         )
 
+    # 5b. Tuyến demo "đủ điểm" — command-center phải khoe được PyVRP.
+    # Tuyến suy biến (2 điểm cùng toà, 0 km) làm bản đồ vẽ polyline vô nghĩa.
+    # Chỉ đọc: đếm điểm dừng + quãng đường đã lưu, không gọi agent gộp lại.
+    if tuyen is None:
+        ket_qua.append(
+            MucKiemTra(
+                ten="Tuyến demo đủ điểm",
+                da_dat=False,
+                dong="⚠️ Chưa có tuyến nào để khoe tối ưu — chạy `python scripts/seed.py --demo` rồi bấm 'Đề xuất lại' trên màn duyệt tuyến.",
+            )
+        )
+    else:
+        so_diem = len(tuyen.stops or [])
+        km = tuyen.est_distance_km or 0.0
+        if so_diem >= 5 and km > 0:
+            ket_qua.append(
+                MucKiemTra(
+                    ten="Tuyến demo đủ điểm",
+                    da_dat=True,
+                    dong=f"✅ Tuyến demo: {so_diem} điểm dừng · ~{km} km — command-center vẽ được tuyến thật.",
+                )
+            )
+        else:
+            ket_qua.append(
+                MucKiemTra(
+                    ten="Tuyến demo đủ điểm",
+                    da_dat=False,
+                    dong=(
+                        f"⚠️ Tuyến demo suy biến ({so_diem} điểm, {km} km) — bản đồ không chứng minh được "
+                        "PyVRP tối ưu. Chạy `python scripts/seed.py --demo` và `python scripts/dung_canh_demo.py "
+                        "--that --toi-chac-chan` để có thùng đầy gộp vào tuyến."
+                    ),
+                )
+            )
+
     # 6. Dữ liệu nền
     so_toa = session.scalar(select(func.count(Building.id))) or 0
     so_can_ho = session.scalar(select(func.count(Unit.id))) or 0
