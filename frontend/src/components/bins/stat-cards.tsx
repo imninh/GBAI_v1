@@ -37,7 +37,7 @@ export function StatCards({
         <div
           key={key}
           className={cn(
-            "rounded-xl border bg-card p-3.5",
+            "rounded-2xl border bg-card p-3.5",
             key === "can_gom" && "border-warn/40 bg-warn-soft",
           )}
         >
@@ -54,7 +54,7 @@ export function StatCards({
           )}
         </div>
       ))}
-      <div className="col-span-2 flex items-center justify-between rounded-xl border border-dashed bg-muted-bg/40 px-3.5 py-2.5">
+      <div className="col-span-2 flex items-center justify-between rounded-2xl border border-dashed bg-muted-bg/40 px-3.5 py-2.5">
         <span className="text-xs text-muted-foreground">Quãng đường gom — km</span>
         <span className="font-display text-lg text-muted-foreground">—</span>
       </div>

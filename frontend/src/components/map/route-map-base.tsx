@@ -120,7 +120,7 @@ export default function RouteMapBase({
 
   if (cacDiem.length === 0) {
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-xl bg-cream-soft px-4 text-center text-sm font-semibold text-muted">
+      <div className="flex h-full w-full items-center justify-center rounded-2xl bg-cream-soft px-4 text-center text-sm font-semibold text-muted">
         Tuyến chưa có toạ độ để vẽ bản đồ
       </div>
     );

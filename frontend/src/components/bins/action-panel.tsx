@@ -21,7 +21,7 @@ export function ActionPanel({
         onClick={onToggle}
         aria-pressed={running}
         className={cn(
-          "flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors",
+          "flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-colors",
           running ? "border-primary bg-accent/60" : "bg-card hover:bg-accent/40",
         )}
       >
@@ -51,7 +51,7 @@ export function ActionPanel({
         </span>
       </button>
 
-      <div className="rounded-xl border border-dashed bg-muted-bg/40 p-3">
+      <div className="rounded-2xl border border-dashed bg-muted-bg/40 p-3">
         <div className="flex items-center gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted-bg text-muted-foreground">
             <RouteIcon className="size-4" />

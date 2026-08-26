@@ -140,7 +140,7 @@ export function BinDetail({
         </h3>
 
         <select
-          className="mt-2 w-full rounded-xl border bg-card px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 w-full rounded-2xl border bg-card px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           value={bin.assigned_cleaner_id ?? ""}
           disabled={!coQuyenGiao || dangLuu || nhanVien === null}
           title={coQuyenGiao ? undefined : lyDoCam}

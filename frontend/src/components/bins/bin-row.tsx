@@ -23,7 +23,7 @@ export function BinRow({
       onClick={() => onSelect(bin)}
       aria-current={active ? "true" : undefined}
       className={cn(
-        "group w-full rounded-xl border bg-card p-3 text-left transition-colors hover:border-primary/40 hover:bg-accent/40",
+        "group w-full rounded-2xl border bg-card p-3 text-left transition-colors hover:border-primary/40 hover:bg-accent/40",
         active && "border-primary ring-2 ring-ring/25",
         bin.status === "can_gom" && "border-warn/50",
         stale && "border-dashed",
@@ -81,7 +81,7 @@ export function BinListSkeleton() {
   return (
     <div className="space-y-2.5">
       {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="h-[92px] w-full rounded-xl" />
+        <Skeleton key={i} className="h-[92px] w-full rounded-2xl" />
       ))}
     </div>
   );
