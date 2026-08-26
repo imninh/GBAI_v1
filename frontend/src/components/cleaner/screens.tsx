@@ -101,8 +101,10 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
       const moi = await api.completeStop(tuyen.id, stopId, { issue });
       setTuyen(moi);
       setDangMoBaoLoi(null);
-    } catch (e) {
-      setLoiHienTruong(e instanceof Error ? e.message : "Không lưu được");
+    } catch {
+      // B5: lỗi ngoài trời thường là mất mạng — nói rõ hướng xử lý, đừng để nút
+      // treo im. Số cân đã nhập không bị mất (chỉ xoá sau khi lưu thành công).
+      setLoiHienTruong("Chưa gửi được — kiểm tra mạng rồi thử lại. Số liệu đã nhập vẫn được giữ.");
     } finally {
       setDangChotId(null);
     }
@@ -122,8 +124,8 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
         return sau;
       });
       setDangMoBaoLoi(null);
-    } catch (e) {
-      setLoiHienTruong(e instanceof Error ? e.message : "Không chốt được điểm");
+    } catch {
+      setLoiHienTruong("Chưa chốt được — kiểm tra mạng rồi thử lại. Số kg đã nhập vẫn được giữ.");
     } finally {
       setDangChotId(null);
     }
