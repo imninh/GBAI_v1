@@ -3,6 +3,7 @@
 /** Quyền riêng tư · Lịch thu gom · Yêu cầu của tôi · Tôi. */
 
 import * as React from "react";
+import NumberFlow from "@number-flow/react";
 
 import { CaiAppCard } from "@/components/pwa/cai-app";
 import { DiemNhanThucScreen } from "@/components/resident/diem_nhan_thuc";
@@ -13,8 +14,10 @@ import { AnhCoToken } from "@/lib/anh-co-token";
 import { dungLuong, kg, ngayVn, TRANG_THAI_YEU_CAU } from "@/lib/format";
 import { CAP_DO, tinhCap, tinhStreak } from "@/lib/gamification";
 import { useSession } from "@/lib/session";
+import { Flame, Recycle } from "lucide-react";
 import {
   IconChoDuyet,
+  IconChupAnh,
   IconDuyet,
   IconGapLoi,
   IconKhoa,
@@ -645,10 +648,10 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
   }, []);
 
   const HUY_HIEU = [
-    { icon: "♻️", ten: "Tách đúng nhóm", moTa: "Phân loại đúng món đầu tiên", daMo: diem > 0 },
-    { icon: "📷", ten: "Lần chụp đầu", moTa: "Chụp ảnh món rác", daMo: diem > 0 },
-    { icon: "🔥", ten: "Streak 7 ngày", moTa: "Phân loại 7 ngày liên tiếp", daMo: streak >= 7 },
-    { icon: "🚚", ten: "Chuyến gộp", moTa: "Đặt lịch thu gom", daMo: coYeuCauThuGom },
+    { icon: Recycle, ten: "Tách đúng nhóm", moTa: "Phân loại đúng món đầu tiên", daMo: diem > 0 },
+    { icon: IconChupAnh, ten: "Lần chụp đầu", moTa: "Chụp ảnh món rác", daMo: diem > 0 },
+    { icon: Flame, ten: "Streak 7 ngày", moTa: "Phân loại 7 ngày liên tiếp", daMo: streak >= 7 },
+    { icon: IconXeThuGom, ten: "Chuyến gộp", moTa: "Đặt lịch thu gom", daMo: coYeuCauThuGom },
   ];
 
   return (
@@ -674,7 +677,7 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
           <CayCapDo level={CAP_DO.findIndex((c) => c.ten === cap.ten)} />
         </div>
         <div className="font-[family-name:var(--font-display)] text-[40px] font-bold leading-none text-leaf-dark tabular-nums">
-          {diem.toLocaleString("vi-VN")}
+          <NumberFlow value={diem} locales="vi-VN" />
         </div>
         <div className="mt-1 text-[13px] font-semibold text-ink-soft">
           điểm xanh · {cap.conThieu > 0 ? `còn ${cap.conThieu} điểm để lên Cây kế tiếp` : "đã đạt cấp cao nhất"}
@@ -686,7 +689,9 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
 
       {/* streak */}
       <div className="mt-3.5 flex items-center gap-3.5 rounded-2xl bg-amber-soft px-4 py-4">
-        <span className="text-[30px]">🔥</span>
+        <span className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-amber-soft text-amber">
+          <Flame className="h-6 w-6" strokeWidth={1.9} />
+        </span>
         <div className="flex-1">
           <div className="font-[family-name:var(--font-display)] text-[19px] font-bold leading-tight text-amber">
             {streak > 0 ? `${streak} ngày liên tiếp` : "Bắt đầu hôm nay"}
@@ -707,7 +712,9 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
               h.daMo ? "border-line bg-surface shadow-[0_2px_10px_rgba(20,40,25,.05)]" : "border-dashed border-line bg-cream opacity-60"
             }`}
           >
-            <div className={`text-[26px] ${h.daMo ? "" : "grayscale"}`}>{h.icon}</div>
+            <div className={`flex items-center justify-center ${h.daMo ? "" : "grayscale"}`}>
+              <h.icon className="h-7 w-7" strokeWidth={1.8} />
+            </div>
             <div className="mt-1 text-[12px] font-bold">{h.ten}</div>
             <div className="mt-0.5 text-[10.5px] font-semibold text-muted">{h.moTa}</div>
           </div>

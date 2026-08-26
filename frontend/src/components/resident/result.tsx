@@ -12,6 +12,7 @@
  */
 
 import * as React from "react";
+import NumberFlow from "@number-flow/react";
 
 import { Button, Card, Chip, DegradedBanner } from "@/components/ui/primitives";
 import { MarkdownContent } from "@/components/ui/markdown";
@@ -27,6 +28,7 @@ import {
   IconHoiBanQuanLy,
   IconHuuIch,
   IconKhungGio,
+  IconMamXanh,
   IconMonDo,
   IconNhanh,
   IconNhomRac,
@@ -170,10 +172,12 @@ export function ResultScreen({
         <div>
         {/* Điểm xanh — con số THẬT từ tài khoản, không phải +20 bịa */}
         <div className="animate-gbpop mt-3.5 flex items-center gap-3 rounded-2xl bg-leaf-soft p-4 [animation-delay:.3s]">
-          <span className="text-[26px]">🌱</span>
+          <span className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-leaf-soft text-leaf-dark">
+            <IconMamXanh className="h-5 w-5" strokeWidth={1.9} />
+          </span>
           <div className="flex-1">
             <div className="font-[family-name:var(--font-display)] text-[19px] font-bold leading-tight text-leaf-dark tabular-nums">
-              {diem.toLocaleString("vi-VN")} điểm xanh
+              <NumberFlow value={diem} locales="vi-VN" /> điểm xanh
             </div>
             <div className="mt-0.5 text-[12.5px] font-semibold text-ink-soft">
               Cấp {cap.ten} {cap.icon} · còn {cap.conThieu} điểm để lên cấp kế tiếp

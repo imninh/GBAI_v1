@@ -6,7 +6,8 @@ import RouteMapBase, { coToaDo } from "@/components/map/route-map-base";
 import LiveVehicleMarker, { type LivePosition } from "@/components/map/live-vehicle-marker";
 import NavigationMode from "@/components/map/navigation-mode";
 import { Button, Card } from "@/components/ui/primitives";
-import { IconCanhBao, IconDuyet, IconMonDo } from "@/lib/icons";
+import { IconCanhBao, IconDuyet, IconMonDo, IconViTri } from "@/lib/icons";
+import { Compass } from "lucide-react";
 import { kg } from "@/lib/format";
 
 interface NavigationMapProps {
@@ -87,7 +88,7 @@ export default function CleanerNavigationMap({
       {/* Header điều khiển bản đồ */}
       <div className="mb-2 flex items-center justify-between gap-2 px-1">
         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-          <span>📍 {daThuCount}/{stops.length} điểm đã thu</span>
+          <span><IconViTri className="mr-1 inline h-4 w-4 text-slate-500" strokeWidth={1.9} />{daThuCount}/{stops.length} điểm đã thu</span>
           {livePos?.speed_mps != null && (
             <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded">
               {Math.round(livePos.speed_mps * 3.6)} km/h
@@ -147,7 +148,7 @@ export default function CleanerNavigationMap({
             onClick={() => setNavigating(true)}
             className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold px-3 py-2 rounded-xl shadow-lg transition-transform active:scale-95"
           >
-            <span className="text-sm">🧭</span>
+            <Compass className="h-4 w-4" strokeWidth={1.9} />
             Dẫn đường
           </button>
         )}
@@ -236,7 +237,7 @@ export default function CleanerNavigationMap({
                   className="border-blue-300 text-blue-700 font-bold text-xs hover:bg-blue-50"
                   onClick={() => setNavigating(true)}
                 >
-                  <span>🧭</span>
+                  <Compass className="h-4 w-4" strokeWidth={1.9} />
                   Dẫn đường
                 </Button>
               )}

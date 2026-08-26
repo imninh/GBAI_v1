@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Marker, Popup, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
 import { API_URL, getToken } from "@/lib/api";
+import { IconXeThuGom } from "@/lib/icons";
 
 export interface LivePosition {
   lat: number;
@@ -196,7 +197,9 @@ export default function LiveVehicleMarker({
         </Tooltip>
         <Popup>
           <div className="text-xs">
-            <div className="font-bold text-emerald-700">🚛 Xe thu gom (Live Tracking)</div>
+            <div className="flex items-center gap-1.5 font-bold text-emerald-700">
+              <IconXeThuGom className="h-4 w-4" strokeWidth={1.9} /> Xe thu gom (Live Tracking)
+            </div>
             <div className="mt-1 font-semibold text-slate-700">
               Tốc độ: {speedKmh} km/h
             </div>

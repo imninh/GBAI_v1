@@ -7,7 +7,8 @@ import "leaflet/dist/leaflet.css";
 
 import { api } from "@/lib/api";
 import { kg } from "@/lib/format";
-import { IconCanhBao, IconDuyet, IconMonDo } from "@/lib/icons";
+import { IconCanhBao, IconDuyet, IconMonDo, IconNhanh, IconViTri, IconXeThuGom } from "@/lib/icons";
+import { Map as MapIcon, Satellite } from "lucide-react";
 import type { NavigationResult, RouteStop } from "@/lib/types";
 import LiveVehicleMarker, { type LivePosition } from "@/components/map/live-vehicle-marker";
 import { coToaDo } from "@/components/map/route-map-base";
@@ -361,7 +362,7 @@ export default function NavigationMode({
         {/* HUD Chỉ số trung tâm (Khoảng cách · Thời gian · Tốc độ) */}
         <div className="flex items-center gap-2 rounded-2xl bg-slate-900/95 px-3.5 py-2 text-white shadow-2xl backdrop-blur border border-slate-700/80">
           <div className="flex items-center gap-1.5 text-xs font-extrabold">
-            <span className="text-sm">🚛</span>
+            <IconXeThuGom className="h-4 w-4" strokeWidth={1.9} />
             {loadingRoute ? (
               <span className="text-slate-400 animate-pulse">Đang tính đường…</span>
             ) : isRerouting ? (
@@ -382,7 +383,7 @@ export default function NavigationMode({
           </div>
           {speedKmh != null && (
             <div className="flex items-center gap-1 border-l border-slate-700 pl-2 text-[11px] font-extrabold text-emerald-400">
-              <span>⚡</span>
+              <IconNhanh className="h-3.5 w-3.5" strokeWidth={2} />
               <span>{speedKmh} km/h</span>
             </div>
           )}
@@ -400,7 +401,7 @@ export default function NavigationMode({
             }`}
             title="Đổi kiểu bản đồ"
           >
-            <span>{tileMode === "satellite" ? "🛰" : "🗺"}</span>
+            <span>{tileMode === "satellite" ? <Satellite className="h-4 w-4" strokeWidth={1.9} /> : <MapIcon className="h-4 w-4" strokeWidth={1.9} />}</span>
             <span className="hidden sm:inline">{tileMode === "satellite" ? "Vệ tinh" : "Phố"}</span>
           </button>
           <button
@@ -487,7 +488,7 @@ export default function NavigationMode({
         >
           <Tooltip direction="top" offset={[0, -48]} permanent>
             <span className="inline-flex items-center gap-1 rounded bg-red-600 px-1.5 py-0.5 text-[11px] font-extrabold text-white shadow-md">
-              📍 Đích: {dest.diem_dung_vi || `Điểm ${dest.seq}`}
+              <IconViTri className="mr-1 inline h-3.5 w-3.5" strokeWidth={1.9} />Đích: {dest.diem_dung_vi || `Điểm ${dest.seq}`}
             </span>
           </Tooltip>
           <Popup>

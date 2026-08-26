@@ -4,6 +4,8 @@ import * as React from "react";
 import { Mascot } from "@/components/resident/onboarding";
 import { MarkdownContent } from "@/components/ui/markdown";
 import { ApiError, api } from "@/lib/api";
+import { IconViTri } from "@/lib/icons";
+import { Crosshair, Lightbulb, RefreshCw, ScrollText, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useSession } from "@/lib/session";
 import type { ChatbotResponse } from "@/lib/types";
 
@@ -315,14 +317,14 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                   </>
                 ) : gpsStatus === "located" && userLocation ? (
                   <>
-                    <span className="text-emerald-600">🎯</span>
+                    <Crosshair className="h-4 w-4 text-emerald-600" strokeWidth={1.9} />
                     <span className="truncate font-medium">
                       GPS: {userLocation.lat.toFixed(4)}°N, {userLocation.lng.toFixed(4)}°E (Chính xác cao)
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-zinc-500">📍</span>
+                    <IconViTri className="h-4 w-4 shrink-0 text-zinc-500" strokeWidth={1.9} />
                     <span className="truncate text-zinc-600 dark:text-zinc-400">
                       Vị trí: Toà nhà {userLat ? `(${userLat.toFixed(4)}, ${userLng?.toFixed(4)})` : "mặc định"}
                     </span>
@@ -336,15 +338,15 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                 className="shrink-0 rounded-md bg-emerald-100/80 px-2 py-0.5 font-semibold text-emerald-800 hover:bg-emerald-200 active:scale-95 disabled:opacity-50 dark:bg-emerald-900/60 dark:text-emerald-200 cursor-pointer"
                 title="Bấm để tracking lại toạ độ GPS"
               >
-                {gpsStatus === "tracking" ? "Đang đo..." : "🔄 Cập nhật GPS"}
+                {gpsStatus === "tracking" ? "Đang đo..." : (<><RefreshCw className="mr-1.5 inline h-4 w-4" strokeWidth={1.9} />Cập nhật GPS</>)}
               </button>
             </div>
 
             {/* Gợi ý câu hỏi nhanh */}
             {suggestions.length > 0 && messages.length <= 2 && (
               <div className="border-b border-zinc-100 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-950">
-                <p className="mb-1.5 px-1 text-[11px] font-medium text-zinc-500">
-                  💡 Câu hỏi gợi ý:
+                <p className="mb-1.5 flex items-center gap-1 px-1 text-[11px] font-medium text-zinc-500">
+                  <Lightbulb className="h-3.5 w-3.5" strokeWidth={1.9} /> Câu hỏi gợi ý:
                 </p>
                 <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">
                   {suggestions.map((s, idx) => (
@@ -404,7 +406,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                       m.responseMeta.viable_bins.length > 0 && (
                         <div className="mt-3 space-y-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
                           <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 flex items-center justify-between">
-                            <span>📍 Thùng rác khả dụng gần bạn (GPS Tracking):</span>
+                            <span className="flex items-center gap-1"><IconViTri className="h-3.5 w-3.5" strokeWidth={1.9} />Thùng rác khả dụng gần bạn (GPS Tracking):</span>
                             <span className="text-[10px] font-normal text-zinc-500 dark:text-zinc-400">
                               Đã so khớp khoảng cách
                             </span>
@@ -430,7 +432,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                                 <span className="truncate pr-2">{bin.address}</span>
                                 {bin.distance_meters !== null && (
                                   <span className="shrink-0 font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-300/40">
-                                    📍 Cách ~{Math.round(bin.distance_meters)}m
+                                    Cách ~{Math.round(bin.distance_meters)}m
                                   </span>
                                 )}
                               </div>
@@ -469,8 +471,9 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                                   key={idx}
                                   className="rounded bg-surface/80 p-2 text-[11px] text-zinc-700 shadow-2xs dark:bg-zinc-900/90 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700/50"
                                 >
-                                  <div className="font-semibold text-emerald-800 dark:text-emerald-300">
-                                    📜 {s.doc_title} · {s.section}
+                                  <div className="flex items-center gap-1 font-semibold text-emerald-800 dark:text-emerald-300">
+                                    <ScrollText className="h-3.5 w-3.5 shrink-0" strokeWidth={1.9} />
+                                    {s.doc_title} · {s.section}
                                   </div>
                                   <div className="mt-0.5 italic text-zinc-600 dark:text-zinc-400">
                                     &ldquo;{s.quote}&rdquo;
@@ -494,9 +497,9 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                               ? "bg-emerald-200 text-emerald-900 font-bold"
                               : "hover:bg-zinc-200 dark:hover:bg-zinc-700"
                           }`}
-                          title="Hữu ích (👍)"
+                          title="Hữu ích"
                         >
-                          👍
+                          <ThumbsUp className="h-4 w-4" strokeWidth={2} />
                         </button>
                         <button
                           onClick={() => handleFeedback(m.id, -1)}
@@ -506,9 +509,9 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                               ? "bg-red-200 text-red-900 font-bold"
                               : "hover:bg-zinc-200 dark:hover:bg-zinc-700"
                           }`}
-                          title="Chưa hữu ích (👎)"
+                          title="Chưa hữu ích"
                         >
-                          👎
+                          <ThumbsDown className="h-4 w-4" strokeWidth={2} />
                         </button>
                       </div>
                     )}

@@ -194,7 +194,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                       <div className="h-full rounded-full bg-leaf" style={{ width: `${stops.length ? (daThu / stops.length) * 100 : 0}%` }} />
                     </div>
                     <div className="mt-2 text-xs font-extrabold text-leaf-mint">
-                      {daThu === stops.length && stops.length > 0 ? `🎉 Đã thu gom hoàn tất toàn bộ ${stops.length}/${stops.length} điểm` : `${daThu}/${stops.length} điểm đã thu`}
+                      {daThu === stops.length && stops.length > 0 ? `Đã thu gom hoàn tất toàn bộ ${stops.length}/${stops.length} điểm` : `${daThu}/${stops.length} điểm đã thu`}
                     </div>
                   </div>
 
