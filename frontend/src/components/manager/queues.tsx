@@ -104,7 +104,7 @@ style={{ animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}
               >
                 <div className="mb-1 flex justify-between">
                   <span className="text-xs font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
-                  <span className="rounded-md bg-amber-soft border border-amber-line/60 px-2 py-0.5 text-[11px] font-extrabold text-amber">
+                  <span className="rounded-lg bg-amber-soft border border-amber-line/60 px-2 py-0.5 text-[11px] font-extrabold text-amber">
                     {kg(yc.est_weight_kg)}
                   </span>
                 </div>
@@ -120,7 +120,7 @@ style={{ animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}
             <Card className="overflow-hidden p-0">
               <div className="border-b border-line-4 px-5 py-4">
                 <div className="mb-1 flex items-center gap-2.5">
-                  <span className="rounded-md bg-amber-soft px-2.5 py-1 text-xs font-extrabold text-amber">CHỜ DUYỆT</span>
+                  <span className="rounded-lg bg-amber-soft px-2.5 py-1 text-xs font-extrabold text-amber">CHỜ DUYỆT</span>
                   <span className="text-[15px] font-extrabold text-bulky">#PR-{String(dangChon.id).padStart(4, "0")}</span>
                 </div>
                 <div className="text-[13px] font-semibold text-muted">
@@ -129,7 +129,7 @@ style={{ animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}
               </div>
 
               <div className="px-5 py-4">
-                <div className="mb-3.5 rounded-xl bg-console-bg p-3.5">
+                <div className="mb-3.5 rounded-2xl bg-console-bg p-3.5">
                   <div className="mb-2.5 text-[13px] font-bold">Vì sao yêu cầu này cần duyệt</div>
                   {dangChon.threshold_hit.map((t) => (
                     <div key={t.rule} className="flex justify-between py-1 text-[13px] font-bold">
@@ -160,7 +160,7 @@ style={{ animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}
                 <div className="mb-3.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {dangChon.items.map((m, i) => (
                     <div key={i}>
-                      <div className="mb-1 aspect-square overflow-hidden rounded-xl">
+                      <div className="mb-1 aspect-square overflow-hidden rounded-2xl">
                         <AnhCoToken
                           mediaId={m.media_id}
                           alt={m.name}
@@ -176,7 +176,7 @@ style={{ animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}
                 </div>
 
                 {dangChon.resident_history && (
-                  <div className="mb-3.5 rounded-xl border border-[var(--color-line-green)] bg-[var(--color-tint-green)] px-3.5 py-3 text-xs font-semibold leading-loose text-ink-soft">
+                  <div className="mb-3.5 rounded-2xl border border-[var(--color-line-green)] bg-[var(--color-tint-green)] px-3.5 py-3 text-xs font-semibold leading-loose text-ink-soft">
                     Cư dân này: {dangChon.resident_history.so_yeu_cau_truoc} yêu cầu trước,{" "}
                     {dangChon.resident_history.so_lan_hoan_thanh} lần hoàn thành, {dangChon.resident_history.so_lan_huy} lần huỷ
                     <br />
@@ -189,7 +189,7 @@ style={{ animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}
                 )}
 
                 {dangChon.agent_suggestion && (
-                  <div className="rounded-xl border-[1.5px] border-dashed border-[var(--color-bulky-line-faint)] bg-[var(--color-bulky-tint)] p-3.5">
+                  <div className="rounded-2xl border-[1.5px] border-dashed border-[var(--color-bulky-line-faint)] bg-[var(--color-bulky-tint)] p-3.5">
                     <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-extrabold text-bulky">
                       <IconAi className="h-3.5 w-3.5" />
                       {dangChon.agent_suggestion.label_vi}
@@ -336,7 +336,7 @@ export function VerifyQueue() {
             ca là 100 lệnh tải ảnh đồng thời. AnhCoToken tự lo ca hỏi bằng chữ
             (`media_id == null`): 0 lệnh gọi mạng, hiện ô giữ chỗ. */}
         {mo && (
-          <div className="mb-3 aspect-[4/3] w-full overflow-hidden rounded-xl bg-cream-soft">
+          <div className="mb-3 aspect-[4/3] w-full overflow-hidden rounded-2xl bg-cream-soft">
             <AnhCoToken mediaId={ca.media_id} alt="Ảnh cư dân gửi" className="h-full w-full object-cover" />
           </div>
         )}
@@ -366,7 +366,7 @@ export function VerifyQueue() {
                 type="button"
                 onClick={() => setNhanDuocChon(dm)}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition-all duration-150 active:scale-95",
+                  "flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs font-bold transition-all duration-150 active:scale-95",
                   dangChon
                     ? "border-leaf bg-leaf-soft text-leaf-dark"
                     : "border-line-2 bg-surface text-ink-soft hover:border-line-2"
@@ -385,12 +385,12 @@ export function VerifyQueue() {
           value={replyText}
           onChange={(e) => setReplyText(e.target.value)}
           placeholder="Ví dụ: sai loại rác, xác nhận nhãn AI..."
-          className="w-full rounded-xl border border-line-2 bg-surface px-3 py-2 text-base font-medium text-ink-soft outline-none focus:border-leaf resize-y min-h-20"
+          className="w-full rounded-2xl border border-line-2 bg-surface px-3 py-2 text-base font-medium text-ink-soft outline-none focus:border-leaf resize-y min-h-20"
           rows={3}
         />
 
         {loiLuu && (
-          <div className="mt-2 rounded-xl border border-hazard-light bg-hazard-soft px-3.5 py-2.5 text-[13px] font-bold text-hazard-dark">
+          <div className="mt-2 rounded-2xl border border-hazard-light bg-hazard-soft px-3.5 py-2.5 text-[13px] font-bold text-hazard-dark">
             {loiLuu}
           </div>
         )}
@@ -420,7 +420,7 @@ export function VerifyQueue() {
       <div className="mb-1 text-sm font-semibold text-muted">
         {du.total} ca hệ thống chưa chắc hoặc cư dân báo sai · HITL #2
       </div>
-      <div className="mb-4 rounded-xl bg-console-bg px-3.5 py-2.5 text-xs font-semibold leading-loose text-ink-soft">
+      <div className="mb-4 rounded-2xl bg-console-bg px-3.5 py-2.5 text-xs font-semibold leading-loose text-ink-soft">
         Chỉ những ca hệ thống tự thấy chưa chắc mới vào hàng đợi này — phần còn lại
         đã tự trả lời xong. Trong {du.total} ca đang chờ, {soCaPhaiXem} ca cần xem từng cái,
         {soCaDuyetNhanh} ca duyệt hàng loạt được.
@@ -466,11 +466,11 @@ export function VerifyQueue() {
             ) : (
               <>
                 {loiDuyetNhanh && (
-                  <div className="mb-2 rounded-xl border border-hazard-light bg-hazard-soft px-3.5 py-2.5 text-[13px] font-bold text-hazard-dark">
+                  <div className="mb-2 rounded-2xl border border-hazard-light bg-hazard-soft px-3.5 py-2.5 text-[13px] font-bold text-hazard-dark">
                     {loiDuyetNhanh}
                   </div>
                 )}
-                <div className="mb-3 rounded-xl border border-line bg-cream-soft px-3.5 py-2.5">
+                <div className="mb-3 rounded-2xl border border-line bg-cream-soft px-3.5 py-2.5">
                   {xacNhanDuyetNhanh ? (
                     <div className="flex flex-wrap items-center gap-2.5">
                       <span className="text-[13px] font-bold text-hazard-dark">
@@ -566,7 +566,7 @@ export function WeightConfirmQueue() {
                 <div className="mb-3 flex items-start gap-3">
                   <div className="flex-1">
                     <div className="mb-1 flex items-center gap-2.5">
-                      <span className="rounded-md bg-amber-soft px-2.5 py-1 text-xs font-extrabold text-amber">CHỜ XÁC NHẬN</span>
+                      <span className="rounded-lg bg-amber-soft px-2.5 py-1 text-xs font-extrabold text-amber">CHỜ XÁC NHẬN</span>
                       <span className="text-[15px] font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
                     </div>
                     <div className="text-[13px] font-semibold text-muted">
@@ -578,7 +578,7 @@ export function WeightConfirmQueue() {
                   </div>
                 </div>
 
-                <div className="mb-3 rounded-xl bg-console-bg px-3.5 py-3">
+                <div className="mb-3 rounded-2xl bg-console-bg px-3.5 py-3">
                   <div className="flex justify-between text-[13px] font-bold">
                     <span className="text-muted-2">Cư dân tự khai</span>
                     <span className="text-ink-soft">
@@ -590,12 +590,12 @@ export function WeightConfirmQueue() {
                 {daXacNhan ? (
                   <>
                     {trangThai === "hoan_tat" ? (
-                      <div className="flex items-center gap-2 rounded-xl bg-leaf-soft px-4 py-3 text-sm font-extrabold text-leaf-dark">
+                      <div className="flex items-center gap-2 rounded-2xl bg-leaf-soft px-4 py-3 text-sm font-extrabold text-leaf-dark">
                         <IconChucMung className="h-5 w-5 flex-none" />
                         Hoàn tất
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 rounded-xl border border-amber-line bg-amber-soft px-4 py-3 text-sm font-extrabold text-[var(--color-amber-deep)]">
+                      <div className="flex items-center gap-2 rounded-2xl border border-amber-line bg-amber-soft px-4 py-3 text-sm font-extrabold text-[var(--color-amber-deep)]">
                         <IconCanhBao className="h-5 w-5 flex-none" />
                         Tranh chấp — khối lượng thật lệch xa khoảng ước lượng
                       </div>
@@ -619,7 +619,7 @@ export function WeightConfirmQueue() {
                         value={soKg[yc.id] ?? ""}
                         onChange={(e) => setSoKg((cu) => ({ ...cu, [yc.id]: e.target.value }))}
                         placeholder="vd: 18.5"
-                        className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                        className="h-12 w-full rounded-2xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                       />
                     </div>
                     <Button
@@ -750,10 +750,18 @@ export function RouteApproval() {
         />
       ) : (
         <>
-          {/* Bản đồ là nhân vật chính — trọn chiều ngang, ngay dưới header. */}
-          <div className="mb-4 h-[280px] overflow-hidden rounded-2xl border border-line">
-            <RouteMap stops={tuyen.stops ?? []} duong_di={tuyen.duong_di} lo_trinh_meta={tuyen.lo_trinh_meta} route_id={tuyen.id} />
-          </div>
+          {/* W3: lg (≥1024px) chia 2 cột — trái bản đồ nửa màn sticky, phải
+              danh sách điểm + nút duyệt. Dưới lg giữ một cột như cũ. */}
+          <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-4">
+            {/* Cột trái (lg): bản đồ tuyến — nửa màn, dính khi cuộn. */}
+            <div className="lg:sticky lg:top-4">
+              <div className="mb-4 h-[280px] overflow-hidden rounded-2xl border border-line lg:mb-0 lg:h-[calc(100vh-8rem)]">
+                <RouteMap stops={tuyen.stops ?? []} duong_di={tuyen.duong_di} lo_trinh_meta={tuyen.lo_trinh_meta} route_id={tuyen.id} />
+              </div>
+            </div>
+
+            {/* Cột phải (lg): lý do gộp + danh sách điểm + nút duyệt. */}
+            <div>
 
           {/* Lý do gộp — hàng chip, không phải đoạn văn bullet. */}
           <div className="mb-1.5 flex flex-wrap gap-2">
@@ -850,7 +858,7 @@ export function RouteApproval() {
                     <div className="flex items-center gap-1.5">
                       <span className="truncate text-[14px] font-bold">{ten}</span>
                       {laThung && (
-                        <span className="flex-none rounded-md bg-amber-line px-1.5 py-0.5 text-[10px] font-extrabold text-amber-darker">
+                        <span className="flex-none rounded-lg bg-amber-line px-1.5 py-0.5 text-[10px] font-extrabold text-amber-darker">
                           THÙNG
                         </span>
                       )}
@@ -940,6 +948,8 @@ export function RouteApproval() {
                 Huỷ tuyến
               </Button>
             )}
+          </div>
+          </div>
           </div>
         </>
       )}
