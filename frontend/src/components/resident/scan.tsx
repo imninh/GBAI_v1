@@ -18,7 +18,8 @@ import * as React from "react";
 
 import { Button, Card } from "@/components/ui/primitives";
 import { api, ApiError } from "@/lib/api";
-
+import { IconChucMung, IconDuyet } from "@/lib/icons";
+import { Bot, Package, Rocket, Sparkles } from "lucide-react";
 import jsQR from "jsqr";
 
 type TrangThai = "chon" | "quet" | "ket-qua" | "dang-bo" | "da-chot";
@@ -30,6 +31,7 @@ interface PhienThungInfo {
   diem_nhan_thuc: number;
   bat_dau: string;
   ket_thuc: string | null;
+  het_han_luc: string;
 }
 
 /** Quét một khung video rồi tự lên lịch khung tiếp theo; đọc được mã thì dừng. */
@@ -126,6 +128,8 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
   const [dangMoPhien, setDangMoPhien] = React.useState(false);
   const [dangDongPhien, setDangDongPhien] = React.useState(false);
   const [loiPhien, setLoiPhien] = React.useState("");
+  // Đếm ngược tới mốc hết hạn (lấy từ server: phienHienTai.het_han_luc UTC)
+  const [conLaiGiay, setConLaiGiay] = React.useState<number | null>(null);
 
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
@@ -244,6 +248,25 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
     };
   }, [trangThai, phienHienTai?.ma_phien]);
+
+  // Đếm ngược tới mốc hết hạn của phiên — mốc lấy TỪ SERVER (het_han_luc UTC),
+  // không dùng setTimeout(600s) rời rạc phía client. Hết giờ → coi như phiên hết
+  // hạn và chuyển sang màn chốt.
+  React.useEffect(() => {
+    if (trangThai !== "dang-bo" || !phienHienTai?.het_han_luc) {
+      setConLaiGiay(null);
+      return;
+    }
+    const tinhConLai = () => {
+      const hetHan = new Date(phienHienTai.het_han_luc).getTime();
+      const con = Math.max(0, Math.round((hetHan - Date.now()) / 1000));
+      setConLaiGiay(con);
+      if (con <= 0) setTrangThai("da-chot");
+    };
+    tinhConLai();
+    const id = setInterval(tinhConLai, 1000);
+    return () => clearInterval(id);
+  }, [trangThai, phienHienTai?.het_han_luc, phienHienTai?.ma_phien]);
 
   const batDauPhienBoRac = async () => {
     const code = maThung.trim() || "BIN-01";
@@ -474,7 +497,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           disabled={dangMoPhien}
           className="bg-leaf text-white font-extrabold shadow-lg shadow-leaf/25"
         >
-          {dangMoPhien ? "Đang mở phiên..." : "🚀 Bắt đầu bỏ rác & Tích điểm"}
+          {dangMoPhien ? "Đang mở phiên..." : (<><Rocket className="mr-2 inline h-5 w-5" strokeWidth={2} />Bắt đầu bỏ rác & Tích điểm</>)}
         </Button>
 
         <div className="mt-4 flex gap-2.5">
@@ -500,6 +523,14 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
   if (trangThai === "dang-bo") {
     const soVat = phienHienTai?.so_vat || 0;
     const diemNhanThuc = phienHienTai?.diem_nhan_thuc || 0;
+    const maPhienHienThi = phienHienTai?.ma_phien
+      ? `#${phienHienTai.ma_phien.slice(0, 8).toUpperCase()}`
+      : "";
+    const fmtCountdown = (s: number) => {
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+    };
 
     return (
       <div className="min-h-full bg-cream px-[18px] pb-10 pt-11 lg:mx-auto lg:max-w-[680px] lg:px-8">
@@ -513,6 +544,30 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           </span>
         </div>
 
+        {/* Mã phiên + đếm ngược tới hết hạn (mốc từ server) */}
+        <div className="mb-4 flex items-center justify-between rounded-2xl border-2 border-bulky-soft bg-surface p-3.5 shadow-sm">
+          <div>
+            <div className="text-[10.5px] font-bold uppercase tracking-wider text-muted">
+              Mã phiên
+            </div>
+            <div className="font-[family-name:var(--font-display)] text-[20px] font-extrabold text-bulky-dark">
+              {maPhienHienThi}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[10.5px] font-bold uppercase tracking-wider text-muted">
+              Còn lại
+            </div>
+            <div
+              className={`font-[family-name:var(--font-display)] text-[22px] font-black font-mono ${
+                conLaiGiay !== null && conLaiGiay <= 60 ? "text-hazard-dark" : "text-leaf-dark"
+              }`}
+            >
+              {conLaiGiay !== null ? fmtCountdown(conLaiGiay) : "--:--"}
+            </div>
+          </div>
+        </div>
+
         <h1 className="m-0 mb-1 font-[family-name:var(--font-display)] text-[24px] font-bold">
           Hãy bỏ rác vào thùng
         </h1>
@@ -523,7 +578,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
         {/* Thẻ thống kê nhảy số Realtime */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <Card className="p-4 bg-surface border-2 border-leaf-soft flex flex-col items-center text-center shadow-sm">
-            <span className="text-[28px]">📦</span>
+            <span className="flex h-9 w-9 items-center justify-center text-leaf-dark"><Package className="h-7 w-7" strokeWidth={1.9} /></span>
             <div className="mt-1 text-[28px] font-black text-leaf-dark font-mono">
               {soVat}
             </div>
@@ -531,7 +586,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           </Card>
 
           <Card className="p-4 bg-surface border-2 border-bulky-soft flex flex-col items-center text-center shadow-sm">
-            <span className="text-[28px]">✨</span>
+            <span className="flex h-9 w-9 items-center justify-center text-bulky-dark"><Sparkles className="h-7 w-7" strokeWidth={1.9} /></span>
             <div className="mt-1 text-[28px] font-black text-bulky-dark font-mono">
               +{diemNhanThuc}
             </div>
@@ -541,8 +596,8 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
 
         <div className="mb-5 rounded-2xl bg-surface p-4 border border-line shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-leaf-soft text-leaf-dark text-[18px]">
-              🤖
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-leaf-soft text-leaf-dark">
+              <Bot className="h-5 w-5" strokeWidth={1.9} />
             </div>
             <div className="flex-1 text-left">
               <div className="text-[13px] font-bold text-ink">AI ESP32-CAM sẵn sàng</div>
@@ -558,7 +613,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           disabled={dangDongPhien}
           className="bg-leaf text-white font-extrabold shadow-lg shadow-leaf/25"
         >
-          {dangDongPhien ? "Đang chốt phiên..." : "✅ Hoàn tất & Chốt điểm"}
+          {dangDongPhien ? "Đang chốt phiên..." : (<><IconDuyet className="mr-2 inline h-5 w-5" strokeWidth={2.4} />Hoàn tất & Chốt điểm</>)}
         </Button>
 
         <p className="mt-3 text-center text-[11px] font-semibold text-muted">
@@ -571,8 +626,8 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
   // 5. Màn hình Chúc mừng sau khi chốt phiên
   return (
       <div className="min-h-full bg-cream px-[18px] pb-10 pt-11 text-center lg:mx-auto lg:max-w-[680px] lg:px-8">
-      <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-leaf-soft text-[32px]">
-        🎉
+      <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-leaf-soft text-leaf-dark">
+        <IconChucMung className="h-8 w-8" strokeWidth={1.9} />
       </div>
       <h1 className="m-0 mb-1 font-[family-name:var(--font-display)] text-[26px] font-bold text-ink">
         Tuyệt vời!
@@ -581,11 +636,17 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
         Bạn vừa hoàn thành một lượt phân loại rác bảo vệ môi trường.
       </p>
 
-      <Card className="mb-5 bg-surface p-5 border-2 border-leaf-soft shadow-md text-left">
-        <div className="flex justify-between items-center pb-3 border-b border-line">
-          <span className="text-[13px] font-semibold text-muted">Thiết bị:</span>
-          <span className="text-[14px] font-bold text-ink">{maThung || "BIN-01"}</span>
-        </div>
+        <Card className="mb-5 bg-surface p-5 border-2 border-leaf-soft shadow-md text-left">
+          <div className="flex justify-between items-center pb-3 border-b border-line">
+            <span className="text-[13px] font-semibold text-muted">Thiết bị:</span>
+            <span className="text-[14px] font-bold text-ink">{maThung || "BIN-01"}</span>
+          </div>
+          <div className="flex justify-between items-center py-3 border-b border-line">
+            <span className="text-[13px] font-semibold text-muted">Mã phiên:</span>
+            <span className="text-[14px] font-bold font-mono text-bulky-dark">
+              {phienHienTai?.ma_phien ? `#${phienHienTai.ma_phien.slice(0, 8).toUpperCase()}` : "—"}
+            </span>
+          </div>
         <div className="flex justify-between items-center py-3 border-b border-line">
           <span className="text-[13px] font-semibold text-muted">Số món đã phân loại:</span>
           <span className="text-[16px] font-black text-leaf font-mono">

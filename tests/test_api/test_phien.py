@@ -9,6 +9,7 @@ diem_thuong_log.
 from __future__ import annotations
 
 from collections.abc import Iterator
+from datetime import UTC, datetime
 
 import pytest
 import pytest_asyncio
@@ -263,3 +264,32 @@ async def test_dong_phien_tao_thong_bao_khong_cham_diem(
     assert cu_dan.green_points == 50, "green_points không được đổi"
     so_so_cai = api_session.scalar(select(func.count(DiemThuongLog.id)))
     assert so_so_cai == 0, "diem_thuong_log không được có dòng mới"
+
+
+@pytest.mark.asyncio
+async def test_phien_tra_het_han_luc_tu_server(
+    api: AsyncClient, api_session: Session
+) -> None:
+    """Response phải có het_han_luc = bat_dau + 10 phút (mốc server, không tự bịa)."""
+    _them_thung(api_session)
+    _them_cu_dan(api_session, "chu-phien-5@demo.vn")
+    api_session.commit()
+    token = await _dang_nhap(api, "chu-phien-5@demo.vn")
+
+    mo = await api.post("/api/v1/phien/bat-dau", json={"bin_code": "BIN-001"}, headers=_auth(token))
+    body = mo.json()
+    assert "het_han_luc" in body, "Thiếu het_han_luc để frontend đếm ngược"
+
+    bat_dau = datetime.fromisoformat(body["bat_dau"])
+    if bat_dau.tzinfo is None:
+        bat_dau = bat_dau.replace(tzinfo=UTC)
+    het_han = datetime.fromisoformat(body["het_han_luc"])
+    if het_han.tzinfo is None:
+        het_han = het_han.replace(tzinfo=UTC)
+
+    chenh = (het_han - bat_dau).total_seconds()
+    assert 590 <= chenh <= 610, f"het_han_luc phải cách bat_dau ~600s, nhận {chenh}s"
+
+    # Cùng mốc trả về khi xem lại phiên
+    xem = await api.get(f"/api/v1/phien/{body['ma_phien']}", headers=_auth(token))
+    assert xem.json()["het_han_luc"] == body["het_han_luc"]

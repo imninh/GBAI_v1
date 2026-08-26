@@ -426,6 +426,7 @@ export const api = {
       diem_nhan_thuc: number;
       bat_dau: string;
       ket_thuc: string | null;
+      het_han_luc: string;
     }>("/phien/bat-dau", {
       method: "POST",
       body: JSON.stringify({ bin_code: binCode }),
@@ -438,6 +439,7 @@ export const api = {
       diem_nhan_thuc: number;
       bat_dau: string;
       ket_thuc: string | null;
+      het_han_luc: string;
     }>(`/phien/${encodeURIComponent(maPhien)}`),
   dongPhien: (maPhien: string) =>
     request<{
@@ -447,6 +449,7 @@ export const api = {
       diem_nhan_thuc: number;
       bat_dau: string;
       ket_thuc: string | null;
+      het_han_luc: string;
     }>(`/phien/${encodeURIComponent(maPhien)}/dong`, {
       method: "POST",
     }),

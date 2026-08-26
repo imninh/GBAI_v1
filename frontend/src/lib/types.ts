@@ -454,6 +454,8 @@ export interface PhienBoRac {
   diem_nhan_thuc: number;
   bat_dau: string;
   ket_thuc: string | null;
+  /** Mốc hết hạn phiên (UTC ISO) — server tính từ bat_dau + 10 phút. */
+  het_han_luc: string;
 }
 
 // --- Điểm nhận thức & nhiệm vụ ---

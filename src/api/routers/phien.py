@@ -8,6 +8,8 @@ phải 403 (403 xác nhận mã phiên đó có thật).
 
 from __future__ import annotations
 
+from datetime import UTC, timedelta
+
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -29,6 +31,12 @@ class BatDauPayload(BaseModel):
 
 
 def _khuon(phien: PhienThung) -> dict:
+    # Mốc hết hạn của phiên = bat_dau + 10 phút (logic server, xem
+    # THOI_GIAN_TOI_DA_GIAY trong src.services.phien_thung). Tính ở server, trả
+    # timestamp UTC rõ ràng để frontend đếm ngược — KHÔNG tự bịa mốc phía client.
+    bat_dau = phien.bat_dau
+    if bat_dau.tzinfo is None:
+        bat_dau = bat_dau.replace(tzinfo=UTC)
     return {
         "ma_phien": phien.ma_phien,
         "trang_thai": phien.trang_thai,
@@ -36,6 +44,7 @@ def _khuon(phien: PhienThung) -> dict:
         "diem_nhan_thuc": phien.diem_nhan_thuc,
         "bat_dau": phien.bat_dau.isoformat(),
         "ket_thuc": phien.ket_thuc.isoformat() if phien.ket_thuc else None,
+        "het_han_luc": (bat_dau + timedelta(seconds=phien_thung.THOI_GIAN_TOI_DA_GIAY)).isoformat(),
     }
 
 
