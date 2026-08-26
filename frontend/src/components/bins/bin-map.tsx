@@ -80,6 +80,7 @@ export default function BinMap({
   viTriNguoiDung = null,
   tuMoc = null,
   duongDi = null,
+  loiDuongDi = null,
 }: {
   bins: Bin[];
   selected: Bin | null;
@@ -95,50 +96,64 @@ export default function BinMap({
   tuMoc?: { lat: number; lng: number } | null;
   /** Hình đường đi thật để vẽ; null thì vẽ đoạn thẳng mốc→thùng như cũ. */
   duongDi?: [number, number][] | null;
+  /** Thông báo lỗi đường đi (OSRM tắt/hỏng, hoặc bin chưa có toạ độ). Khi có,
+   *  KHÔNG vẽ đường thẳng giả — chỉ hiện banner (E2E-03b: không im lặng). */
+  loiDuongDi?: string | null;
 }) {
   return (
-    <MapContainer
-      center={[21.0285, 105.8522]}
-      zoom={15}
-      scrollWheelZoom
-      className="h-full w-full relative z-0 isolate"
-    >
-      <TileLayer
-        attribution='&copy; Google Maps'
-        url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi&gl=VN"
-      />
-      {/* Chỉ vẽ thùng đã có toạ độ — `lat`/`lng` được phép null trong API. */}
-      {bins.filter(hasCoords).map((bin) => (
-        <Marker
-          key={bin.code}
-          position={[bin.lat, bin.lng]}
-          icon={icon(bin)}
-          eventHandlers={{ click: () => onSelect(bin) }}
+    <div className="relative h-full w-full">
+      <MapContainer
+        center={[21.0285, 105.8522]}
+        zoom={15}
+        scrollWheelZoom
+        className="h-full w-full relative z-0 isolate"
+      >
+        <TileLayer
+          attribution='&copy; Google Maps'
+          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi&gl=VN"
         />
-      ))}
-      {diemDanhDau && (
-        <Marker position={[diemDanhDau.lat, diemDanhDau.lng]} icon={ICON_DANH_DAU} />
-      )}
-      {viTriNguoiDung && (
-        <Marker position={[viTriNguoiDung.lat, viTriNguoiDung.lng]} icon={ICON_VI_TRI_TOI} />
-      )}
-      {duongDi && duongDi.length >= 2 ? (
-        <Polyline positions={duongDi} pathOptions={{ color: '#1f6feb', weight: 4, opacity: 0.85 }} />
-      ) : (
-        tuMoc &&
-        selected &&
-        hasCoords(selected) && (
-          <Polyline
-            positions={[
-              [tuMoc.lat, tuMoc.lng],
-              [selected.lat, selected.lng],
-            ]}
-            pathOptions={{ color: '#1f6feb', weight: 4, opacity: 0.7, dashArray: "1 8" }}
+        {/* Chỉ vẽ thùng đã có toạ độ — `lat`/`lng` được phép null trong API. */}
+        {bins.filter(hasCoords).map((bin) => (
+          <Marker
+            key={bin.code}
+            position={[bin.lat, bin.lng]}
+            icon={icon(bin)}
+            eventHandlers={{ click: () => onSelect(bin) }}
           />
-        )
+        ))}
+        {diemDanhDau && (
+          <Marker position={[diemDanhDau.lat, diemDanhDau.lng]} icon={ICON_DANH_DAU} />
+        )}
+        {viTriNguoiDung && (
+          <Marker position={[viTriNguoiDung.lat, viTriNguoiDung.lng]} icon={ICON_VI_TRI_TOI} />
+        )}
+        {/* Có lỗi đường đi → KHÔNG vẽ đường giả, chỉ hiện banner (xử lý phía
+            dưới). Có几何 thật (≥2 điểm) → vẽ polyline OSRM. Không có gì cả (chưa
+            xin xong) → vẽ đoạn thẳng nét đứt mốc→thùng làm bản xem trước. */}
+        {!loiDuongDi && duongDi && duongDi.length >= 2 ? (
+          <Polyline positions={duongDi} pathOptions={{ color: '#1f6feb', weight: 4, opacity: 0.85 }} />
+        ) : (
+          !loiDuongDi &&
+          tuMoc &&
+          selected &&
+          hasCoords(selected) && (
+            <Polyline
+              positions={[
+                [tuMoc.lat, tuMoc.lng],
+                [selected.lat, selected.lng],
+              ]}
+              pathOptions={{ color: '#1f6feb', weight: 4, opacity: 0.7, dashArray: "1 8" }}
+            />
+          )
+        )}
+        {onMapClick && <BatSuKienCham onMapClick={onMapClick} />}
+        <Recenter bin={selected} />
+      </MapContainer>
+      {loiDuongDi && (
+        <div className="pointer-events-none absolute left-1/2 top-3 z-[500] -translate-x-1/2 rounded-full bg-hazard-soft px-3 py-1.5 text-[12px] font-bold text-hazard-dark shadow-[0_4px_14px_rgba(0,0,0,.18)]">
+          {loiDuongDi}
+        </div>
       )}
-      {onMapClick && <BatSuKienCham onMapClick={onMapClick} />}
-      <Recenter bin={selected} />
-    </MapContainer>
+    </div>
   );
 }

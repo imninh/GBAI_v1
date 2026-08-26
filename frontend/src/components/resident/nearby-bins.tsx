@@ -94,6 +94,9 @@ export function NearbyBinsScreen() {
   const [tenMoi, setTenMoi] = React.useState("");
   const [diemMoi, setDiemMoi] = React.useState<{ lat: number; lng: number } | null>(null);
   const [duongDi, setDuongDi] = React.useState<[number, number][] | null>(null);
+  // Thông báo khi không tính được đường thật (OSRM tắt/hỏng, hoặc bin chưa có toạ
+  // độ) — thay vì vẽ một đường thẳng giả gây hiểu nhầm (E2E-03b). null = bình thường.
+  const [loiDuongDi, setLoiDuongDi] = React.useState<string | null>(null);
   // Giữ id của watchPosition để dừng theo dõi khi rời màn.
   const watchIdRef = React.useRef<number | null>(null);
 
@@ -136,13 +139,34 @@ export function NearbyBinsScreen() {
   React.useEffect(() => {
     if (!mocToaDo || !dangChon || dangChon.lat == null || dangChon.lng == null) {
       setDuongDi(null);
+      // Báo rõ nếu nguyên nhân là bin chưa có toạ độ (chứ không im lặng).
+      setLoiDuongDi(
+        dangChon && (dangChon.lat == null || dangChon.lng == null)
+          ? "Điểm này chưa có toạ độ trên bản đồ"
+          : null,
+      );
       return;
     }
+    setLoiDuongDi(null);
     let huy = false;
     api
       .duongDiToiDiem([mocToaDo, { lat: dangChon.lat, lng: dangChon.lng }])
-      .then((r) => { if (!huy) setDuongDi(r.duong_di); })
-      .catch(() => { if (!huy) setDuongDi(null); });
+      .then((r) => {
+        if (huy) return;
+        if (r.duong_di && r.duong_di.length >= 2) {
+          setDuongDi(r.duong_di);
+          setLoiDuongDi(null);
+        } else {
+          // OSRM tắt/hỏng/hết giờ → null. Không vẽ đường giả, báo thẳng.
+          setDuongDi(null);
+          setLoiDuongDi("Không tính được đường đi tới điểm này");
+        }
+      })
+      .catch(() => {
+        if (huy) return;
+        setDuongDi(null);
+        setLoiDuongDi("Không tính được đường đi tới điểm này");
+      });
     return () => { huy = true; };
   }, [mocToaDo, dangChon]);
 
@@ -414,6 +438,7 @@ export function NearbyBinsScreen() {
           viTriNguoiDung={viTriGps}
           tuMoc={mocToaDo}
           duongDi={duongDi}
+          loiDuongDi={loiDuongDi}
         />
       </div>
 
