@@ -358,6 +358,10 @@ function ResidentApp() {
           ) : undefined
         }
       >
+      <div
+        key={man}
+        className={`min-h-full ${man === "processing" || man === "result" ? "" : "animate-gbscreen"}`}
+      >
       {loi && man === "ask" && (
         <div className="px-4 pt-14">
           <ErrorState message={loi.message} code={loi.code} onRetry={() => setLoi(null)} />
@@ -470,6 +474,7 @@ function ResidentApp() {
           onDiemXanh={() => setMan("diemxanh")}
         />
       )}
+      </div>
     </PhoneFrame>
 
     {/* Trợ lý AI Chatbot nổi — đặt ngoài PhoneFrame để phủ toàn màn hình thiết bị */}
@@ -524,9 +529,11 @@ function CleanerApp() {
       accent="var(--color-recycle)"
       tabBar={<TabBar items={tabs} active={man} onChange={setMan} accent="var(--color-recycle)" />}
     >
+      <div key={man} className="min-h-full animate-gbscreen">
       {man === "route" && <RouteTodayScreen onXemLichSu={() => setMan("history")} />}
       {man === "history" && <CleanerHistoryScreen />}
       {man === "me" && <CleanerMeScreen user={user!} onLogout={dangXuat} />}
+      </div>
     </PhoneFrame>
   );
 }
