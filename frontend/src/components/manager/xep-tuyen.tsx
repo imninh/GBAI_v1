@@ -1,31 +1,39 @@
 "use client";
 
-/** Màn "Xếp tuyến" của BQL — nơi nhìn thấy nhóm yêu cầu ``cho_nhan`` và gọi
- *  agent gộp thành tuyến đề xuất.
+/** Màn "Xếp tuyến" của BQL — WS-2: trung tâm điều phối hai cột.
  *
- *  Khoảng trống cũ: yêu cầu dưới ngưỡng (``cho_nhan``) không hiện ở màn BQL nào —
- *  hàng đợi duyệt chỉ lọc ``cho_duyet``, còn bước xếp tuyến (``POST /routes/propose``)
- *  không có nút nào trong UI. Cư dân + đội vệ sinh thấy được, BQL thì không.
+ *  Cột trái là BẢN ĐỒ tuyến tối ưu (polyline từ `duong_di` PyVRP; thiếu đường
+ *  thật thì nối thẳng và ghi rõ "tuyến ước lượng"). Cột phải là BẢNG ĐIỀU KHIỂN:
+ *  thẻ thông số tuyến + form gộp tuyến + danh sách điểm theo thứ tự tối ưu + nút
+ *  duyệt. Một chỗ vừa THẤY vừa XẾP/DUYỆT — không nhảy 3 nơi.
  *
  *  Màn này CHỈ tạo tuyến ở trạng thái ``proposed`` — đúng ADR-0003: agent không
- *  được tự đổi lịch làm việc của con người. Duyệt tuyến vẫn nằm ở màn Duyệt tuyến.
+ *  được tự đổi lịch làm việc của con người. Duyệt tuyến nằm ở màn Duyệt tuyến.
  */
 
+import dynamic from "next/dynamic";
 import * as React from "react";
 
 import { Button, Card, EmptyState, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { api } from "@/lib/api";
 import { kg, ngayVn, soVn } from "@/lib/format";
-import { IconDuyet, IconXeThuGom } from "@/lib/icons";
+import { IconDuyet, IconMuiTenPhai, IconXeThuGom } from "@/lib/icons";
 import type { PickupRequest, PickupRoute } from "@/lib/types";
+
+// Leaflet chạm thẳng vào `window` nên phải dynamic `ssr:false` (build `output: export`).
+const RouteMap = dynamic(() => import("@/components/manager/route-map"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full rounded-none" />,
+});
 
 const KHUNG_GIO = [
   { value: "08:00-10:00", label: "Sáng (08:00–10:00)" },
   { value: "14:00-16:00", label: "Chiều (14:00–16:00)" },
 ];
 
-export function XepTuyen() {
+export function XepTuyen({ onDuyetTuyen }: { onDuyetTuyen?: () => void }) {
   const [ds, setDs] = React.useState<PickupRequest[] | null>(null);
+  const [tuyen, setTuyen] = React.useState<PickupRoute | null>(null);
   const [loi, setLoi] = React.useState("");
   const [ngay, setNgay] = React.useState("");
   const [khung, setKhung] = React.useState("08:00-10:00");
@@ -33,15 +41,12 @@ export function XepTuyen() {
   const [taiTrong, setTaiTrong] = React.useState("");
   const [dangXep, setDangXep] = React.useState(false);
   const [loiXep, setLoiXep] = React.useState("");
-  const [ketQua, setKetQua] = React.useState<PickupRoute | null>(null);
 
   const tai = React.useCallback(async () => {
     try {
       const d = await api.pickupsChoNhan();
       setDs(d.items);
-      // Mặc định ngày xếp tuyến là ngày mong muốn sớm nhất của nhóm chờ xếp —
-      // người dùng ít kinh nghiệm không phải tự đoán. Không chạm vào nếu BQL đã
-      // chọn một ngày khác.
+      // Ngày xếp tuyến mặc định = ngày mong muốn sớm nhất của nhóm chờ xếp.
       setNgay((cu) => {
         if (cu) return cu;
         const ngayNhoNhat = d.items
@@ -55,15 +60,26 @@ export function XepTuyen() {
     }
   }, []);
 
+  // Tuyến đang hiển thị trên bản đồ: tuyến đề xuất gần nhất chưa hoàn thành.
+  const taiTuyen = React.useCallback(() => {
+    api
+      .routes()
+      .then(async (d) => {
+        const dangChay = d.items.find((r) => r.status === "proposed" || r.status === "approved" || r.status === "in_progress");
+        setTuyen(dangChay ? await api.route(dangChay.id) : null);
+      })
+      .catch(() => setTuyen(null));
+  }, []);
+
   React.useEffect(() => {
     tai();
-  }, [tai]);
+    taiTuyen();
+  }, [tai, taiTuyen]);
 
   async function xepTuyen() {
     if (!ngay || dangXep) return;
     setDangXep(true);
     setLoiXep("");
-    setKetQua(null);
     try {
       const tuyến = await api.proposeRoute({
         service_date: ngay,
@@ -71,7 +87,7 @@ export function XepTuyen() {
         team_id: maDoi ? Number(maDoi) : null,
         capacity_kg: taiTrong ? Number(taiTrong) : null,
       });
-      setKetQua(tuyến);
+      setTuyen(tuyến);
       await tai();
     } catch (e) {
       setLoiXep(e instanceof Error ? e.message : "Không xếp được tuyến, thử lại giúp mình nhé.");
@@ -83,47 +99,94 @@ export function XepTuyen() {
   if (loi) return <ErrorState message={loi} onRetry={tai} />;
   if (ds === null) return <Skeleton className="h-96 w-full" />;
 
+  const loTrinh = tuyen?.lo_trinh_meta;
+  const tongKm = loTrinh ? loTrinh.total_km : tuyen?.est_distance_km;
+
   return (
     <>
       <div className="mb-4 flex items-center gap-2.5">
-        <div className="font-[family-name:var(--font-display)] text-[22px] font-bold">Xếp tuyến thu gom</div>
+        <div className="font-[family-name:var(--font-display)] text-[22px] font-bold">Điều phối tuyến</div>
         <span className="rounded-lg border border-line-3 bg-console-bg px-2.5 py-1 text-xs font-bold text-muted">
           HITL #3 · agent gộp, BQL duyệt sau
         </span>
       </div>
 
-      <div className="grid items-start gap-4 grid-cols-1 lg:grid-cols-[340px_1fr]">
-        <div>
-          <div className="mb-2.5 text-xs font-extrabold text-muted">CHỜ XẾP TUYẾN ({ds.length})</div>
-          {ds.length === 0 ? (
-            <EmptyState icon={IconXeThuGom} title="Chưa có yêu cầu nào chờ xếp tuyến" />
-          ) : (
-            <div className="space-y-2.5">
-              {ds.map((yc) => (
-                <Card key={yc.id} className="p-3.5">
-                  <div className="mb-1 flex justify-between">
-                    <span className="text-[13px] font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
-                    <span className="rounded-lg bg-amber-soft px-2 py-0.5 text-[11px] font-extrabold text-amber">
-                      {yc.weight_min_kg}–{yc.weight_max_kg} kg
-                    </span>
-                  </div>
-                  <div className="text-[13px] font-bold">
-                    {yc.unit} · {yc.resident?.full_name}
-                  </div>
-                  <div className="mt-0.5 text-[11px] font-semibold text-muted">
-                    {yc.items.map((m) => `${m.qty > 1 ? `${m.qty} ` : ""}${m.name}`).join(", ")}
-                  </div>
-                  <div className="mt-1 text-[11px] font-semibold text-muted">
-                    mong muốn {yc.preferred_date ? ngayVn(yc.preferred_date) : "chưa rõ"}
-                    {yc.preferred_window ? ` · ${yc.preferred_window}` : ""}
-                  </div>
-                </Card>
-              ))}
-            </div>
+      {/* WS-2: hai cột ≥ lg — trái bản đồ tuyến tối ưu, phải bảng điều khiển. */}
+      <div className="lg:grid lg:grid-cols-[1.6fr_1fr] lg:items-start lg:gap-4">
+        {/* Cột trái — BẢN ĐỒ */}
+        <div className="mb-4 lg:sticky lg:top-4 lg:mb-0">
+          <div className="h-[360px] overflow-hidden rounded-2xl border border-line lg:h-[calc(100vh-10rem)]">
+            {tuyen ? (
+              <RouteMap
+                stops={tuyen.stops ?? []}
+                duong_di={tuyen.duong_di}
+                lo_trinh_meta={tuyen.lo_trinh_meta}
+                route_id={tuyen.id}
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center rounded-2xl bg-cream-soft px-4 text-center text-sm font-semibold text-muted">
+                Chưa có tuyến nào để vẽ — gộp tuyến ở cột bên phải.
+              </div>
+            )}
+          </div>
+          {tuyen && !tuyen.duong_di && (
+            <p className="mt-2 text-[11px] font-semibold text-muted">
+              Tuyến ước lượng — chưa có đường đi thật nên bản đồ nối thẳng giữa các điểm.
+            </p>
           )}
         </div>
 
+        {/* Cột phải — BẢNG ĐIỀU KHIỂN */}
         <div className="space-y-4">
+          {tuyen && (
+            <Card className="p-4">
+              <div className="mb-2 flex items-center gap-2.5">
+                <span className="rounded-lg bg-amber-line px-2.5 py-1 text-[11px] font-extrabold text-amber-darker">
+                  AI ĐỀ XUẤT — CHỜ DUYỆT
+                </span>
+                <div className="font-[family-name:var(--font-display)] text-[16px] font-bold">
+                  Chuyến {tuyen.window} · {ngayVn(tuyen.service_date)}
+                </div>
+              </div>
+              <div className="mb-3 grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-2xl bg-console-bg px-2 py-2">
+                  <div className="font-[family-name:var(--font-display)] text-lg font-bold">{soVn(tongKm ?? 0, 1)}</div>
+                  <div className="text-[10.5px] font-bold text-muted">km</div>
+                </div>
+                <div className="rounded-2xl bg-console-bg px-2 py-2">
+                  <div className="font-[family-name:var(--font-display)] text-lg font-bold">
+                    {loTrinh ? soVn(loTrinh.total_minutes, 0) : "—"}
+                  </div>
+                  <div className="text-[10.5px] font-bold text-muted">phút</div>
+                </div>
+                <div className="rounded-2xl bg-console-bg px-2 py-2">
+                  <div className="font-[family-name:var(--font-display)] text-lg font-bold">{tuyen.stop_count}</div>
+                  <div className="text-[10.5px] font-bold text-muted">điểm</div>
+                </div>
+              </div>
+              <div className="mb-1 text-xs font-bold text-muted">Thứ tự ghé (số = thứ tự tối ưu)</div>
+              <ol className="space-y-1.5">
+                {(tuyen.stops ?? []).map((s) => (
+                  <li key={s.stop_id} className="flex items-center gap-2.5 text-[13px] font-bold text-ink-soft">
+                    <span className="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-lg bg-ink text-xs font-extrabold text-white">
+                      {s.seq}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate">{s.diem_dung_vi || s.unit}</span>
+                    {s.stop_kind === "yeu_cau" && (
+                      <span className="flex-none text-[12px] font-extrabold text-recycle">{kg(s.weight_max_kg)}</span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+              {onDuyetTuyen && (
+                <Button size="lg" variant="leaf" block className="mt-3" onClick={onDuyetTuyen}>
+                  <IconMuiTenPhai className="h-4 w-4" />
+                  Đến màn duyệt tuyến
+                </Button>
+              )}
+            </Card>
+          )}
+
           <Card className="p-4">
             <div className="mb-3 font-[family-name:var(--font-display)] text-[16px] font-bold">
               Gộp thành tuyến đề xuất
@@ -208,39 +271,32 @@ export function XepTuyen() {
             </div>
           </Card>
 
-          {ketQua && (
-            <Card className="overflow-hidden p-0">
-              <div className="flex items-center gap-3 rounded-t-[20px] bg-[linear-gradient(150deg,var(--color-ink),var(--color-ink-forest))] px-5 py-4 text-white">
-                <span className="rounded-lg bg-amber-line px-2.5 py-1 text-[11px] font-extrabold text-amber-darker">
-                  AI ĐỀ XUẤT — CHỜ DUYỆT
-                </span>
-                <div className="flex-1">
-                  <div className="font-[family-name:var(--font-display)] text-[17px] font-bold">
-                    Chuyến {ketQua.window} · {ngayVn(ketQua.service_date)}
+          <div className="mb-2.5 text-xs font-extrabold text-muted">CHỜ XẾP TUYẾN ({ds.length})</div>
+          {ds.length === 0 ? (
+            <EmptyState icon={IconXeThuGom} title="Chưa có yêu cầu nào chờ xếp tuyến" />
+          ) : (
+            <div className="space-y-2.5">
+              {ds.map((yc) => (
+                <Card key={yc.id} className="p-3.5">
+                  <div className="mb-1 flex justify-between">
+                    <span className="text-[13px] font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
+                    <span className="rounded-lg bg-amber-soft px-2 py-0.5 text-[11px] font-extrabold text-amber">
+                      {yc.weight_min_kg}–{yc.weight_max_kg} kg
+                    </span>
                   </div>
-                  <div className="text-xs font-semibold text-bulky-muted">
-                    {ketQua.stop_count} điểm dừng · {kg(ketQua.total_weight_kg)} · ~{soVn(ketQua.est_distance_km, 1)} km
-                    {ketQua.team ? ` · ${ketQua.team.full_name}` : ""}
+                  <div className="text-[13px] font-bold">
+                    {yc.unit} · {yc.resident?.full_name}
                   </div>
-                </div>
-              </div>
-              <div className="px-5 py-4">
-                <div className="mb-1.5 text-[13px] font-bold text-muted">Thứ tự ghé</div>
-                <ol className="space-y-1.5">
-                  {(ketQua.stops ?? []).map((s) => (
-                    <li key={s.stop_id} className="flex items-center gap-2.5 text-[13px] font-bold text-ink-soft">
-                      <span className="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-lg bg-ink text-xs font-extrabold text-white">
-                        {s.seq}
-                      </span>
-                      {s.diem_dung_vi || s.unit}
-                    </li>
-                  ))}
-                </ol>
-                <div className="mt-3.5 rounded-2xl bg-leaf-soft px-3.5 py-2.5 text-[13px] font-bold text-leaf-dark">
-                  Tuyến ở trạng thái đề xuất, cần bấm duyệt ở màn Duyệt tuyến.
-                </div>
-              </div>
-            </Card>
+                  <div className="mt-0.5 text-[11px] font-semibold text-muted">
+                    {yc.items.map((m) => `${m.qty > 1 ? `${m.qty} ` : ""}${m.name}`).join(", ")}
+                  </div>
+                  <div className="mt-1 text-[11px] font-semibold text-muted">
+                    mong muốn {yc.preferred_date ? ngayVn(yc.preferred_date) : "chưa rõ"}
+                    {yc.preferred_window ? ` · ${yc.preferred_window}` : ""}
+                  </div>
+                </Card>
+              ))}
+            </div>
           )}
         </div>
       </div>

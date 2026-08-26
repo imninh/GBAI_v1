@@ -10,6 +10,7 @@
  */
 
 import * as React from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 
 import { AgentRunScreen, OpsScreen, OverviewScreen, QualityScreen } from "@/components/manager/insights";
@@ -18,7 +19,9 @@ import { PickupQueue, RouteApproval, VerifyQueue } from "@/components/manager/qu
 import { TatCaYeuCau } from "@/components/manager/tat-ca-yeu-cau";
 import { XepTuyen } from "@/components/manager/xep-tuyen";
 import { BrowserFrame } from "@/components/ui/shell";
+import { ErrorState, Skeleton } from "@/components/ui/primitives";
 import { api } from "@/lib/api";
+import type { Bin } from "@/lib/bins";
 import { IconKhoa } from "@/lib/icons";
 import { useSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -41,14 +44,16 @@ function useDuRong(): boolean | null {
   return duRong;
 }
 
-type Nav = "duyet" | "tat_ca" | "xep_tuyen" | "kip_suco" | "baocao" | "overview" | "runs";
+type Nav = "homnay" | "duyet" | "tat_ca" | "xep_tuyen" | "kip_suco" | "baocao" | "overview" | "runs";
 type TabDuyet = "pickup" | "verify" | "route";
 type TabBaoCao = "ops" | "quality";
 
 type Muc = { key: string; label: string; permission: string; href?: string };
 
 const MUC_CHINH: Muc[] = [
-  { key: "homnay", label: "Hôm nay đi đâu", permission: "view_bins", href: "/dieu-phoi" },
+  // WS-1a: "Hôm nay đi đâu" là tab nội bộ (không nhảy khỏi dashboard). Route
+  // `/dieu-phoi` vẫn tồn tại làm deep-link phụ, nhưng lối chính là tab này.
+  { key: "homnay", label: "Hôm nay đi đâu", permission: "view_bins" },
   { key: "duyet", label: "Chờ tôi duyệt", permission: "review_pickup" },
   { key: "tat_ca", label: "Tất cả yêu cầu", permission: "view_all_pickups" },
   { key: "xep_tuyen", label: "Xếp tuyến", permission: "review_route" },
@@ -71,6 +76,12 @@ const TAB_BAO_CAO: Muc[] = [
   { key: "ops", label: "Vận hành", permission: "view_ops" },
   { key: "quality", label: "Chất lượng AI", permission: "view_eval" },
 ];
+
+// Leaflet chạm thẳng vào `window` nên phải dynamic `ssr:false` (build `output: export`).
+const BinMap = dynamic(() => import("@/components/bins/bin-map"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full rounded-none" />,
+});
 
 export function ManagerConsole() {
   const { user, dangXuat, duocPhep, lyDoCam } = useSession();
@@ -171,7 +182,8 @@ export function ManagerConsole() {
         </div>
 
         <div className="gb-scroll flex-1 overflow-y-auto px-8 py-6">
-{nav === "duyet" && (
+          {nav === "homnay" && <HomNayPanel />}
+          {nav === "duyet" && (
             <div key={nav} className="animate-gbscreen min-h-full">
               <>
                 <SubTabs
@@ -206,7 +218,14 @@ export function ManagerConsole() {
             </div>
           )}
 
-          {nav === "xep_tuyen" && <XepTuyen />}
+          {nav === "xep_tuyen" && (
+            <XepTuyen
+              onDuyetTuyen={() => {
+                setNav("duyet");
+                setTabDuyet("route");
+              }}
+            />
+          )}
           {nav === "kip_suco" && <KipVaSuCo />}
           {nav === "tat_ca" && <TatCaYeuCau />}
           {nav === "overview" && <OverviewScreen
@@ -215,10 +234,85 @@ export function ManagerConsole() {
               setTabDuyet("pickup");
             }}
           />}
-          {nav === "runs" && <AgentRunScreen />}
+{nav === "runs" && <AgentRunScreen />}
         </div>
       </div>
     </BrowserFrame>
+  );
+}
+
+/** WS-1a: "Hôm nay đi đâu" — tab nội bộ hiện bản đồ theo dõi thùng ngay trong
+ *  dashboard, không nhảy khỏi shell. Bản đồ là nhân vật chính; cạnh phải là
+ *  danh sách thùng cần gom theo thứ tự ưu tiên. */
+function HomNayPanel() {
+  const [bins, setBins] = React.useState<Bin[] | null>(null);
+  const [dangChon, setDangChon] = React.useState<Bin | null>(null);
+  const [loi, setLoi] = React.useState("");
+
+  const tai = React.useCallback(() => {
+    setLoi("");
+    api
+      .bins()
+      .then((d) => setBins(d.items))
+      .catch((e) => setLoi(e instanceof Error ? e.message : "Không tải được danh sách thùng."));
+  }, []);
+  React.useEffect(tai, [tai]);
+
+  if (loi) return <ErrorState message={loi} onRetry={tai} />;
+  if (!bins) return <Skeleton className="h-96 w-full" />;
+
+  const canGom = [...bins]
+    .filter((b) => b.status === "can_gom" || b.status === "mat_ket_noi")
+    .sort((a, b) => b.fill_percent - a.fill_percent);
+
+  return (
+    <div key="homnay" className="animate-gbscreen min-h-full">
+      <div className="mb-1 flex items-center gap-2.5">
+        <div className="font-[family-name:var(--font-display)] text-[22px] font-bold">Hôm nay đi đâu</div>
+        <span className="rounded-lg border border-line-3 bg-console-bg px-2.5 py-1 text-xs font-bold text-muted">
+          {canGom.length} thùng cần gom
+        </span>
+      </div>
+      <p className="mb-4 text-sm font-semibold text-muted">Bản đồ thùng trong toà — bấm thùng để xem chi tiết.</p>
+
+      <div className="lg:grid lg:grid-cols-[1.5fr_1fr] lg:items-start lg:gap-4">
+        <div className="mb-4 h-[420px] overflow-hidden rounded-2xl border border-line lg:sticky lg:top-4 lg:mb-0 lg:h-[calc(100vh-9rem)]">
+          <BinMap bins={bins} selected={dangChon} onSelect={setDangChon} />
+        </div>
+
+        <div className="space-y-2.5">
+          <div className="mb-1 text-xs font-extrabold text-muted">THÙNG CẦN GOM</div>
+          {canGom.length === 0 ? (
+            <div className="rounded-2xl bg-surface px-4 py-6 text-center text-sm font-bold text-muted">
+              Hôm nay không có thùng nào cần gom.
+            </div>
+          ) : (
+            canGom.map((b) => (
+              <button
+                key={b.code}
+                type="button"
+                onClick={() => setDangChon(b)}
+                className={`block w-full cursor-pointer rounded-2xl border bg-surface px-3.5 py-3 text-left transition-all ${
+                  dangChon?.code === b.code ? "border-leaf shadow-[var(--shadow-sm)]" : "border-line-3 hover:border-line-2"
+                }`}
+              >
+                <div className="mb-0.5 flex items-center justify-between gap-2">
+                  <span className="text-[13px] font-extrabold">{b.code}</span>
+                  <span
+                    className={`flex-none rounded-lg px-2 py-0.5 text-[11px] font-extrabold ${
+                      b.status === "can_gom" ? "bg-amber-line text-amber-darker" : "bg-muted-bg text-muted"
+                    }`}
+                  >
+                    {b.status === "can_gom" ? `${Math.round(b.fill_percent)}%` : "số liệu cũ"}
+                  </span>
+                </div>
+                <div className="text-[13px] font-semibold text-ink-soft">{b.name}</div>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
