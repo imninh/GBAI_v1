@@ -156,7 +156,7 @@ export function DiemNhanThucScreen({ onBack }: DiemNhanThucProps) {
           <div className="mt-3 space-y-2">
             <div className="text-xs font-bold text-muted">Gần đây</div>
             {tongQuan.gan_day.slice(0, 5).map((item, i) => (
-              <div key={i} className="flex items-center justify-between gap-2 rounded-xl border border-line-3 bg-surface px-3 py-2 text-sm">
+              <div key={i} className="flex items-center justify-between gap-2 rounded-xl border border-line-3 bg-surface px-3 py-2 text-sm animate-gbreveal" style={{ animationDelay: `${Math.min(i, 7) * 0.06}s`, animationFillMode: "both" }}>
                 <span className="font-semibold text-ink-soft">{item.ghi_chu}</span>
                 <span className="flex-none font-extrabold text-leaf-dark">+{soVn(item.diem)}</span>
               </div>

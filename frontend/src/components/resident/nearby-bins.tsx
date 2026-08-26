@@ -449,12 +449,13 @@ export function NearbyBinsScreen() {
           hint="Chọn vật liệu khác, hoặc báo ban quản lý để họ bổ sung điểm gửi."
         />
       ) : (
-        sapXep.map((b) => {
+        sapXep.map((b, i) => {
           const mon = b.category_codes.map((ma) => tenNhom.get(ma) ?? ma).join(" · ");
           return (
             <Card
               key={b.code}
-              className={`mb-3 cursor-pointer p-4 ${dangChon?.code === b.code ? "border-leaf" : ""}`}
+              className={`mb-3 cursor-pointer p-4 animate-gbreveal ${dangChon?.code === b.code ? "border-leaf" : ""}`}
+              style={{ animationDelay: `${Math.min(i, 7) * 0.06}s`, animationFillMode: "both" }}
               onClick={() => setDangChon(b)}
             >
               <div className="mb-1 flex items-start justify-between gap-2">

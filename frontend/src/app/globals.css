@@ -594,9 +594,26 @@ body {
   .gbmascot:hover,
   .gbmascot:active,
   .animate-gbscreen,
-  .gbchatgreet {
+  .gbchatgreet,
+  .gb-skeleton {
     animation: none;
   }
+}
+
+/* WOW-A2: skeleton pulse nhẹ — opacity 0.5→1→0.5, chỉ opacity. Màu nền dùng
+   token (`bg-line`/`bg-cream-soft`) đặt ở JSX; class này chỉ lo nhịp chuyển
+   động. Tắt khi bật giảm chuyển động — khối xám đứng yên. */
+@keyframes gbskeleton {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.gb-skeleton {
+  animation: gbskeleton 1.4s ease-in-out infinite;
 }
 
 /* WOW-E: hoạ tiết drfit trôi cực nhẹ — chỉ transform+opacity, đọc dưới chỉ mục. */

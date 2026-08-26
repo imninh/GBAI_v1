@@ -247,14 +247,14 @@ export function RequestsScreen({ onOpen, onCreate }: { onOpen: (id: number) => v
           }
         />
       ) : (
-        items.map((yc) => {
+        items.map((yc, i) => {
           const tt = TRANG_THAI_YEU_CAU[yc.status] ?? {
             label: yc.status,
             icon: IconChoDuyet,
             className: "bg-muted-bg text-muted",
           };
           return (
-            <Card key={yc.id} onClick={() => onOpen(yc.id)} className="mb-3 cursor-pointer overflow-hidden p-0">
+            <Card key={yc.id} onClick={() => onOpen(yc.id)} className="mb-3 cursor-pointer overflow-hidden p-0 animate-gbreveal" style={{ animationDelay: `${Math.min(i, 7) * 0.06}s`, animationFillMode: "both" }}>
               {/* Viền trái màu trạng thái — nhìn nhanh biết yêu cầu đang ở đâu */}
               <div className="flex">
                 <div className={`w-1.5 flex-none ${tt.className}`} />
@@ -489,8 +489,8 @@ function LichSuVatLieu() {
           Chưa có gì để tổng hợp. Hỏi phân loại hoặc đăng ký thu gom là bắt đầu có lịch sử.
         </div>
       ) : (
-        ls.theo_vat_lieu.map((d) => (
-          <div key={d.category_code} className="border-b border-line-4 py-2.5 last:border-0">
+        ls.theo_vat_lieu.map((d, i) => (
+          <div key={d.category_code} className="border-b border-line-4 py-2.5 last:border-0 animate-gbreveal" style={{ animationDelay: `${Math.min(i, 7) * 0.06}s`, animationFillMode: "both" }}>
             <div className="mb-1.5 flex items-baseline justify-between gap-2">
               <span className="flex min-w-0 items-center gap-1.5 text-[13px] font-bold">
                 <span className="h-2.5 w-2.5 flex-none rounded-md" style={{ background: d.bin_color }} />
@@ -705,12 +705,13 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
       {/* huy hiệu */}
       <div className="mt-5 text-[15px] font-bold">Huy hiệu</div>
       <div className="mt-3 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-        {HUY_HIEU.map((h) => (
+        {HUY_HIEU.map((h, i) => (
           <div
             key={h.ten}
-            className={`rounded-lg border p-3 text-center ${
+            className={`rounded-lg border p-3 text-center animate-gbreveal ${
               h.daMo ? "border-line bg-surface shadow-[0_2px_10px_rgba(20,40,25,.05)]" : "border-dashed border-line bg-cream opacity-60"
             }`}
+            style={{ animationDelay: `${Math.min(i, 7) * 0.06}s`, animationFillMode: "both" }}
           >
             <div className={`flex items-center justify-center ${h.daMo ? "" : "grayscale"}`}>
               <h.icon className="h-7 w-7" strokeWidth={1.8} />
