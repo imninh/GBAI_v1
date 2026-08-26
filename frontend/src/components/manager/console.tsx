@@ -249,7 +249,7 @@ function SubTabs({
             disabled={!allowed}
             title={allowed ? undefined : lyDoCam(m.permission)}
             className={cn(
-              "flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition-all duration-200 ease-[var(--ease-spring)] select-none",
+              "flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-bold transition-all duration-200 ease-[var(--ease-spring)] select-none",
               allowed ? "cursor-pointer active:scale-95" : "cursor-not-allowed text-muted/40",
               dangChon
                 ? "bg-ink text-white shadow-[var(--shadow-xs)]"
@@ -261,7 +261,7 @@ function SubTabs({
             <span>{m.label}</span>
             {!allowed && <IconKhoa className="h-3.5 w-3.5 opacity-60" />}
             {allowed && dem[m.key] ? (
-              <span className="rounded-md bg-hazard px-1.5 py-0.5 text-[10px] font-extrabold text-white shadow-xs">
+              <span className="rounded-lg bg-hazard px-1.5 py-0.5 text-[10px] font-extrabold text-white shadow-xs">
                 {dem[m.key]}
               </span>
             ) : null}
@@ -289,7 +289,7 @@ function NavButton({
 }) {
   const dangChon = nav === muc.key;
   const btnClass = cn(
-    "mb-1 flex w-full items-center rounded-xl px-3 py-2.5 text-left text-xs font-bold transition-all duration-200 ease-[var(--ease-spring)] select-none",
+    "mb-1 flex w-full items-center rounded-2xl px-3 py-2.5 text-left text-xs font-bold transition-all duration-200 ease-[var(--ease-spring)] select-none",
     allowed ? "cursor-pointer active:scale-[0.98]" : "cursor-not-allowed text-muted/40",
     dangChon
       ? "bg-ink text-white shadow-[var(--shadow-xs)]"
@@ -327,7 +327,7 @@ function NavButton({
       <span className="flex-1" />
       {!allowed && <IconKhoa className="h-3.5 w-3.5 opacity-60" />}
       {allowed && badge ? (
-        <span className="rounded-md bg-hazard px-2 py-0.5 text-[11px] font-extrabold text-white shadow-xs">{badge}</span>
+        <span className="rounded-lg bg-hazard px-2 py-0.5 text-[11px] font-extrabold text-white shadow-xs">{badge}</span>
       ) : null}
     </button>
   );

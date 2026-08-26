@@ -74,7 +74,7 @@ export function KipVaSuCo() {
           <button
             key={m.key}
             onClick={() => setTab(m.key)}
-            className={`rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+            className={`rounded-2xl px-3.5 py-2 text-xs font-bold transition-all ${
               tab === m.key ? "bg-ink text-white shadow-[var(--shadow-xs)]" : "text-ink-soft hover:bg-black/5"
             }`}
           >
@@ -188,7 +188,7 @@ function CrewManagement() {
             setChon([]);
             setTruongKip(null);
           }}
-          className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+          className="h-12 w-full rounded-2xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
         >
           {tuyen.map((r) => (
             <option key={r.id} value={r.id}>
@@ -215,7 +215,7 @@ function CrewManagement() {
               .map((tv, i) => (
               <div
                 key={tv.id}
-                className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 ${
+                className={`flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 ${
                   tv.vai_tro === "truong_kip" ? "border-leaf-line bg-leaf-soft" : "border-line bg-surface"
                 }`}
               >
@@ -252,12 +252,12 @@ function CrewManagement() {
                 <button
                   key={nv.id}
                   onClick={() => toggleChon(nv.id)}
-                  className={`flex items-center gap-3 rounded-xl border px-3.5 py-2.5 text-left transition-all ${
+                  className={`flex items-center gap-3 rounded-2xl border px-3.5 py-2.5 text-left transition-all ${
                     dangChon ? "border-leaf bg-leaf-soft" : "border-line bg-surface hover:border-line-2"
                   }`}
                 >
                   <span
-                    className={`flex h-5 w-5 flex-none items-center justify-center rounded-md border ${
+                    className={`flex h-5 w-5 flex-none items-center justify-center rounded-lg border ${
                       dangChon ? "border-leaf bg-leaf text-white" : "border-line-2"
                     }`}
                   >
@@ -272,7 +272,7 @@ function CrewManagement() {
         )}
 
         {chon.length > 0 && (
-          <div className="mt-3 rounded-xl bg-console-bg px-3.5 py-3">
+          <div className="mt-3 rounded-2xl bg-console-bg px-3.5 py-3">
             <div className="mb-1.5 text-[11px] font-extrabold text-muted">TRƯỞNG KÍP</div>
             <div className="flex flex-wrap gap-2">
               {chon.map((id) => {
@@ -321,7 +321,7 @@ function CrewManagement() {
         </Button>
 
         {ketQuaLich && (
-          <div className="mt-3 rounded-xl border border-leaf-line bg-leaf-soft px-4 py-3">
+          <div className="mt-3 rounded-2xl border border-leaf-line bg-leaf-soft px-4 py-3">
             <div className="mb-2 text-[13px] font-extrabold text-leaf-dark">Kết quả tạo lịch tuần</div>
             <div className="divide-y divide-leaf-line/60">
               <DongLichTuan nhan="Số ngày được xét" so={ketQuaLich.so_ngay_xet} />
@@ -410,7 +410,7 @@ function IncidentBoard() {
           <button
             key={m.key}
             onClick={() => setTrangThai(m.key)}
-            className={`rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+            className={`rounded-2xl px-3.5 py-2 text-xs font-bold transition-all ${
               trangThai === m.key ? "bg-ink text-white shadow-[var(--shadow-xs)]" : "text-ink-soft hover:bg-black/5"
             }`}
           >
@@ -456,7 +456,7 @@ function IncidentBoard() {
             )}
 
             {dangXuLy === sc.id && (
-              <div className="mt-3 space-y-2.5 rounded-xl bg-console-bg p-3.5">
+              <div className="mt-3 space-y-2.5 rounded-2xl bg-console-bg p-3.5">
                 <div>
                   <label htmlFor={`ghichu-${sc.id}`} className="mb-1 block text-[11px] font-extrabold text-muted">
                     Ghi chú xử lý (tuỳ chọn)
@@ -466,7 +466,7 @@ function IncidentBoard() {
                     value={ghiChu}
                     onChange={(e) => setGhiChu(e.target.value)}
                     placeholder="vd: đã điều xe thay thế"
-                    className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                    className="h-12 w-full rounded-2xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                   />
                 </div>
                 <div className="flex gap-2.5">

@@ -103,7 +103,7 @@ export function XepTuyen() {
                 <Card key={yc.id} className="p-3.5">
                   <div className="mb-1 flex justify-between">
                     <span className="text-[13px] font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
-                    <span className="rounded-md bg-amber-soft px-2 py-0.5 text-[11px] font-extrabold text-amber">
+                    <span className="rounded-lg bg-amber-soft px-2 py-0.5 text-[11px] font-extrabold text-amber">
                       {yc.weight_min_kg}–{yc.weight_max_kg} kg
                     </span>
                   </div>
@@ -138,7 +138,7 @@ export function XepTuyen() {
                   type="date"
                   value={ngay}
                   onChange={(e) => setNgay(e.target.value)}
-                  className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                  className="h-12 w-full rounded-2xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                 />
               </div>
               <div>
@@ -149,7 +149,7 @@ export function XepTuyen() {
                   id="xt-khung"
                   value={khung}
                   onChange={(e) => setKhung(e.target.value)}
-                  className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                  className="h-12 w-full rounded-2xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                 >
                   {KHUNG_GIO.map((k) => (
                     <option key={k.value} value={k.value}>
@@ -170,7 +170,7 @@ export function XepTuyen() {
                   value={maDoi}
                   onChange={(e) => setMaDoi(e.target.value)}
                   placeholder="để trống nếu chưa chốt đội"
-                  className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                  className="h-12 w-full rounded-2xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                 />
               </div>
               <div>
@@ -186,13 +186,13 @@ export function XepTuyen() {
                   value={taiTrong}
                   onChange={(e) => setTaiTrong(e.target.value)}
                   placeholder="mặc định theo cấu hình"
-                  className="h-12 w-full rounded-xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                  className="h-12 w-full rounded-2xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                 />
               </div>
             </div>
 
             {loiXep && (
-              <div className="mb-3 mt-3 rounded-xl border border-hazard-light bg-hazard-soft px-3.5 py-2.5 text-[13px] font-bold text-hazard-dark">
+              <div className="mb-3 mt-3 rounded-2xl border border-hazard-light bg-hazard-soft px-3.5 py-2.5 text-[13px] font-bold text-hazard-dark">
                 {loiXep}
               </div>
             )}
@@ -236,7 +236,7 @@ export function XepTuyen() {
                     </li>
                   ))}
                 </ol>
-                <div className="mt-3.5 rounded-xl bg-leaf-soft px-3.5 py-2.5 text-[13px] font-bold text-leaf-dark">
+                <div className="mt-3.5 rounded-2xl bg-leaf-soft px-3.5 py-2.5 text-[13px] font-bold text-leaf-dark">
                   Tuyến ở trạng thái đề xuất, cần bấm duyệt ở màn Duyệt tuyến.
                 </div>
               </div>

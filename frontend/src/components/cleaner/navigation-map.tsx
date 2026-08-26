@@ -146,7 +146,7 @@ export default function CleanerNavigationMap({
           <button
             type="button"
             onClick={() => setNavigating(true)}
-            className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold px-3 py-2 rounded-xl shadow-lg transition-transform active:scale-95"
+            className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold px-3 py-2 rounded-2xl shadow-lg transition-transform active:scale-95"
           >
             <Compass className="h-4 w-4" strokeWidth={1.9} />
             Dẫn đường
@@ -159,7 +159,7 @@ export default function CleanerNavigationMap({
         <Card className="mt-2.5 p-3.5 bg-surface shadow-md border border-slate-200">
           <div className="flex items-start gap-2.5">
             <span
-              className="flex h-9 w-9 flex-none items-center justify-center rounded-xl text-sm font-extrabold shadow-sm"
+              className="flex h-9 w-9 flex-none items-center justify-center rounded-2xl text-sm font-extrabold shadow-sm"
               style={{
                 background: activeStop.done_at ? "var(--color-leaf-soft)" : "var(--color-ink)",
                 color: activeStop.done_at ? "var(--color-leaf-dark)" : "var(--color-surface)",
@@ -194,7 +194,7 @@ export default function CleanerNavigationMap({
 
           {/* Các nút hành động cho điểm dừng */}
           {activeStop.done_at ? (
-            <div className="mt-2 flex items-center justify-center gap-1.5 rounded-xl bg-leaf-soft py-2 text-xs font-extrabold text-leaf-dark">
+            <div className="mt-2 flex items-center justify-center gap-1.5 rounded-2xl bg-leaf-soft py-2 text-xs font-extrabold text-leaf-dark">
               <IconDuyet className="h-4 w-4 flex-none" />
               Điểm này đã thu gom xong
             </div>

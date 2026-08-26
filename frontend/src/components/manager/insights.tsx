@@ -59,7 +59,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
               : "bg-amber-soft border-amber-line/60 text-amber"
           )}
         >
-          <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-hazard text-white shadow-xs">
+          <span className="flex h-9 w-9 flex-none items-center justify-center rounded-2xl bg-hazard text-white shadow-xs">
             <IconCanhBao className="h-5 w-5" />
           </span>
           <span className="flex-1 text-sm font-bold">{c.title}</span>
@@ -145,7 +145,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
           <div className="flex flex-wrap gap-3 text-xs font-bold text-ink-soft">
             {du.category_distribution.map((c) => (
               <span key={c.code} className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-md" style={{ background: c.bin_color || "var(--color-neutral)" }} />
+                <span className="h-2.5 w-2.5 rounded-lg" style={{ background: c.bin_color || "var(--color-neutral)" }} />
                 {c.name} {phanTram(c.share, 0)}
               </span>
             ))}
@@ -158,7 +158,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
             <NumberFlow value={du.routing_efficiency.so_yeu_cau} locales="vi-VN" /> yêu cầu
             <br />→ {du.routing_efficiency.so_chuyen} chuyến
           </div>
-          <div className="mt-3.5 rounded-xl bg-surface/20 px-3 py-2.5 text-[13px] font-bold">
+          <div className="mt-3.5 rounded-2xl bg-surface/20 px-3 py-2.5 text-[13px] font-bold">
             Giảm {du.routing_efficiency.giam_so_chuyen} chuyến xe · tiết kiệm ~
             {soVn(du.routing_efficiency.tiet_kiem_km, 1)} km
           </div>
@@ -280,7 +280,7 @@ export function OpsScreen() {
       <div className="mb-4 grid grid-cols-2 gap-3.5">
         <Card className="p-4">
           <div className="mb-3 text-sm font-bold">Độ trễ</div>
-          <div className="mb-3 rounded-xl bg-console-bg p-3 text-[13px] font-bold">
+          <div className="mb-3 rounded-2xl bg-console-bg p-3 text-[13px] font-bold">
             Từ lúc gửi tới lúc có câu trả lời — p50 {soVn(du.latency.end_to_end.p50)} ms · p95{" "}
             {soVn(du.latency.end_to_end.p95)} ms
           </div>
@@ -552,7 +552,7 @@ export function QualityScreen() {
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {failureCases.slice(0, 12).map((f) => (
-              <div key={f.id} className="rounded-xl border border-line p-3">
+              <div key={f.id} className="rounded-2xl border border-line p-3">
                 <div className="mb-2 aspect-square rounded-lg bg-[repeating-linear-gradient(135deg,var(--color-recycle-muted),var(--color-recycle-muted)_7px,var(--color-skeleton-blue)_7px,var(--color-skeleton-blue)_14px)]" />
                 <div className="text-xs font-extrabold">{f.item_name}</div>
                 <div className="text-[11px] font-semibold text-muted">
@@ -595,7 +595,7 @@ export function AgentRunScreen() {
             <button
               key={r.id}
               onClick={() => api.run(r.id).then(setChiTiet)}
-              className="mb-2 w-full cursor-pointer rounded-xl bg-surface p-3 text-left"
+              className="mb-2 w-full cursor-pointer rounded-2xl bg-surface p-3 text-left"
               style={{ border: chiTiet?.id === r.id ? "2px solid var(--color-leaf)" : "1px solid var(--color-line-3)" }}
             >
               <div className="flex justify-between text-[13px] font-extrabold">
@@ -649,7 +649,7 @@ export function AgentRunScreen() {
                 </div>
               </div>
             ))}
-            <div className="mt-3 rounded-xl bg-console-bg p-3 text-[11px] font-semibold text-muted">
+            <div className="mt-3 rounded-2xl bg-console-bg p-3 text-[11px] font-semibold text-muted">
               Đường đã đi: {chiTiet.path.join(" → ")}
             </div>
           </Card>
