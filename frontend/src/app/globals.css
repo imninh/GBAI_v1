@@ -414,6 +414,81 @@ body {
   animation: gbpop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+/* WOW-C: reveal theo tầng — kết quả hiện lần lượt như kể chuyện (§2.1). */
+@keyframes gbreveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-gbreveal {
+  animation: gbreveal 0.45s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* Icon hero pop-in (§2.3): scale nhẹ + fade, không nảy vui. */
+@keyframes gbpopin {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.animate-gbpopin {
+  animation: gbpopin 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Ring độ tin cậy vẽ dần bằng stroke-dashoffset (§2.2) — MỘT NHỊP, ease-out.
+   Chỉ khai `from` (= rỗng, offset = chu vi); `to` lấy giá trị inline cuối
+   (đã tính theo confidence). Tắt animation (reduced-motion) → giữ giá trị
+   inline = ring tô đủ %. */
+@keyframes gbring {
+  from {
+    stroke-dashoffset: var(--circ);
+  }
+}
+.animate-gbring {
+  animation: gbring 0.9s ease-out both;
+}
+
+/* Màn nguy hại: nhịp khẩn MỘT NHỊP, có kiểm soát (§2.4) — không lặp, không vui. */
+@keyframes gbhazardalert {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 5px rgba(224, 90, 43, 0.12);
+  }
+  45% {
+    transform: scale(1.015);
+    box-shadow: 0 0 0 10px rgba(224, 90, 43, 0.22);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 5px rgba(224, 90, 43, 0.12);
+  }
+}
+.animate-gbhazardalert {
+  animation: gbhazardalert 0.6s ease-out both;
+  transform-origin: center;
+}
+@keyframes gbhazardicon {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.86);
+  }
+}
+.animate-gbhazardicon {
+  animation: gbhazardicon 0.5s ease-out both;
+}
+
 /* Người dùng bật "giảm chuyển động" thì tắt sạch animation — nhóm chuyển động
    vui nhộn (float, wave, pulse, scan) là thứ gây khó chịu nhất khi bật. */
 @media (prefers-reduced-motion: reduce) {
@@ -422,7 +497,12 @@ body {
   .animate-gbscan,
   .animate-gbpulse,
   .animate-gbbreath,
-  .animate-gbappear {
+  .animate-gbappear,
+  .animate-gbreveal,
+  .animate-gbpopin,
+  .animate-gbring,
+  .animate-gbhazardalert,
+  .animate-gbhazardicon {
     animation: none;
   }
 }

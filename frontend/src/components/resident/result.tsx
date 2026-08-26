@@ -109,6 +109,10 @@ export function ResultScreen({
   const lichThuGom = ketQua.schedule_hint?.lich_thu_gom?.[0];
   const diem = user?.green_points ?? 0;
   const cap = tinhCap(diem);
+  // Ring độ tin cậy (§2.2): bán kính 34 trong viewBox 80, chu vi = 2πr.
+  const ringR = 34;
+  const ringCirc = 2 * Math.PI * ringR;
+  const ringOffset = ringCirc * (1 - ketQua.confidence);
 
   return (
     <div className="min-h-full bg-cream pb-10 pt-11">
@@ -123,11 +127,11 @@ export function ResultScreen({
         <div className="lg:grid lg:grid-cols-2 lg:gap-5 lg:items-start">
         <div>
         <div
-          className="animate-gbfade rounded-2xl p-5 text-white shadow-[0_16px_30px_-14px_rgba(47,127,224,.7)]"
+          className="animate-gbreveal rounded-2xl p-5 text-white shadow-[0_16px_30px_-14px_rgba(47,127,224,.7)]"
           style={{ background: `linear-gradient(155deg, ${category.bin_color}, ${category.bin_color}dd)` }}
         >
           <div className="mb-4 flex items-center gap-2.5">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-surface/20">
+            <span className="flex h-11 w-11 animate-gbpopin items-center justify-center rounded-2xl bg-surface/20 [animation-delay:.15s]">
               <IconNhomRac code={category.code} className="h-6 w-6" />
             </span>
             <div>
@@ -137,7 +141,7 @@ export function ResultScreen({
               </div>
             </div>
           </div>
-          <div className="mb-3 text-[17px] font-bold">{ketQua.item_name}</div>
+          <div className="mb-3 animate-gbreveal text-[17px] font-bold [animation-delay:.2s]">{ketQua.item_name}</div>
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-leaf-soft px-3 py-1.5 text-xs font-extrabold text-leaf-dark">
               <span className="h-2 w-2 flex-none rounded-full bg-current" />
@@ -152,26 +156,60 @@ export function ResultScreen({
           </div>
         </div>
 
-        {/* Thanh độ tin cậy — người thường hiểu "độ chắc" mà không cần biết thang 0-1 */}
-        <div className="animate-gbfade mt-3.5 rounded-2xl border border-line bg-surface p-4 shadow-[0_2px_10px_rgba(20,40,25,.05)]">
-          <div className="mb-2.5 flex items-center justify-between">
+        {/* Độ tin cậy → ring tròn vẽ dần + số đếm (§2.2). Không phá grid 2 cột. */}
+        <div className="animate-gbreveal mt-3.5 rounded-2xl border border-line bg-surface p-4 shadow-[0_2px_10px_rgba(20,40,25,.05)] [animation-delay:.08s]">
+          <div className="mb-3 flex items-center justify-between">
             <span className="text-[14px] font-bold">{mucTinCay.label}</span>
             <span className="rounded-full bg-leaf-soft px-2.5 py-1 text-xs font-extrabold text-leaf-dark">
               {doTinCay(ketQua.confidence)}
             </span>
           </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-leaf-soft">
-            <div
-              className="animate-gbfill h-full rounded-full bg-gradient-to-r from-leaf to-leaf-mint"
-              style={{ width: `${Math.min(100, Math.round(ketQua.confidence * 100))}%` }}
-            />
+          <div className="flex items-center gap-4">
+            <div className="relative h-[84px] w-[84px] flex-none">
+              <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90">
+                <defs>
+                  <linearGradient id="gbringGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="var(--color-leaf)" />
+                    <stop offset="100%" stopColor="var(--color-leaf-mint)" />
+                  </linearGradient>
+                </defs>
+                <circle
+                  cx="40"
+                  cy="40"
+                  r={ringR}
+                  fill="none"
+                  stroke="var(--color-leaf-soft)"
+                  strokeWidth="8"
+                />
+                <circle
+                  cx="40"
+                  cy="40"
+                  r={ringR}
+                  fill="none"
+                  stroke="url(#gbringGrad)"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={ringCirc}
+                  className="animate-gbring"
+                  style={{ strokeDashoffset: ringOffset, "--circ": ringCirc } as React.CSSProperties}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="font-[family-name:var(--font-display)] text-[20px] font-extrabold leading-none text-leaf-dark tabular-nums">
+                  <NumberFlow value={Math.round(ketQua.confidence * 100)} />%
+                </span>
+              </div>
+            </div>
+            <div className="text-[13px] font-semibold leading-snug text-ink-soft">
+              Mức độ tự tin của AI khi nhận diện món này — càng đầy vòng càng chắc.
+            </div>
           </div>
         </div>
 
         </div>
         <div>
         {/* Điểm xanh — con số THẬT từ tài khoản, không phải +20 bịa */}
-        <div className="animate-gbpop mt-3.5 flex items-center gap-3 rounded-2xl bg-leaf-soft p-4 [animation-delay:.3s]">
+        <div className="animate-gbreveal mt-3.5 flex items-center gap-3 rounded-2xl bg-leaf-soft p-4 [animation-delay:.16s]">
           <span className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-leaf-soft text-leaf-dark">
             <IconMamXanh className="h-5 w-5" strokeWidth={1.9} />
           </span>
@@ -186,7 +224,7 @@ export function ResultScreen({
         </div>
 
         {category.handling_note && (
-          <Card className="mt-3.5 p-4">
+          <Card className="animate-gbreveal mt-3.5 p-4 [animation-delay:.24s]">
             <div className="mb-3 text-[15px] font-bold">Làm nhanh trước khi bỏ</div>
             <div className="flex flex-col gap-2.5">
               {category.handling_note.split("·").map((viec, i) => (
@@ -202,13 +240,13 @@ export function ResultScreen({
         )}
 
         {ketQua.advice && (
-          <Card className="mt-3 p-4 text-sm font-semibold leading-relaxed text-ink-soft">
+          <Card className="animate-gbreveal mt-3 p-4 text-sm font-semibold leading-relaxed text-ink-soft [animation-delay:.32s]">
             <MarkdownContent content={ketQua.advice} />
           </Card>
         )}
 
         {lichThuGom && (
-          <Card className="mt-3 p-4">
+          <Card className="animate-gbreveal mt-3 p-4 [animation-delay:.4s]">
             <div className="mb-3 flex items-start gap-2.5">
               <span className="flex h-8 w-8 flex-none items-center justify-center rounded-xl bg-recycle-soft text-recycle">
                 <IconViTri className="h-4 w-4" />
@@ -231,7 +269,9 @@ export function ResultScreen({
         </div>
         </div>
 
-        <NguonChips sources={ketQua.advice_sources} onOpen={setNguon} />
+        <div className="animate-gbreveal [animation-delay:.48s]">
+          <NguonChips sources={ketQua.advice_sources} onOpen={setNguon} />
+        </div>
 
         <div className="mt-4 flex gap-2">
           <Button
@@ -306,9 +346,10 @@ export function HazardResultScreen({
     <div className="min-h-full bg-hazard-bg pb-10 pt-11">
       <ScreenHeader title="Kết quả phân loại" onBack={onBack} tone="hazard" />
       <div className="px-4 lg:mx-auto lg:max-w-[760px]">
-        <div className="animate-gbfade rounded-2xl border-[3px] border-hazard bg-surface p-5 shadow-[0_0_0_5px_rgba(224,90,43,.12)]">
+        <div className="animate-gbreveal">
+        <div className="rounded-2xl border-[3px] border-hazard bg-surface p-5 shadow-[0_0_0_5px_rgba(224,90,43,.12)] animate-gbhazardalert">
           <div className="mb-3.5 flex items-center gap-3">
-            <span className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-2xl bg-hazard">
+            <span className="flex h-[46px] w-[46px] flex-none animate-gbhazardicon items-center justify-center rounded-2xl bg-hazard">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 3L2 20h20z" />
                 <path d="M12 10v4M12 17v.5" />
@@ -354,6 +395,7 @@ export function HazardResultScreen({
             </span>
           </div>
         </div>
+        </div>
 
         <Button block size="lg" className="mt-3.5" onClick={onPickup}>
           Đăng ký đội vệ sinh tới nhận
@@ -382,10 +424,10 @@ export function UnsureScreen({
     <div className="min-h-full bg-[linear-gradient(180deg,var(--color-recycle-muted),var(--color-unsure-bg))] pb-10 pt-11">
       <ScreenHeader title="" onBack={onBack} />
       <div className="px-[22px] lg:mx-auto lg:max-w-[760px]">
-        <div className="mb-4 flex h-[66px] w-[66px] items-center justify-center rounded-2xl bg-unsure-soft text-ink-muted">
+        <div className="animate-gbreveal mb-4 flex h-[66px] w-[66px] items-center justify-center rounded-2xl bg-unsure-soft text-ink-muted">
           <IconChuaChac className="h-8 w-8" strokeWidth={1.8} />
         </div>
-        <h1 className="m-0 mb-3 font-[family-name:var(--font-display)] text-[27px] font-bold leading-tight text-unsure-ink">
+        <h1 className="animate-gbreveal m-0 mb-3 font-[family-name:var(--font-display)] text-[27px] font-bold leading-tight text-unsure-ink [animation-delay:.1s]">
           {ketQua.refusal_headline_vi || "Mình chưa đủ chắc để hướng dẫn món này"}
         </h1>
 
