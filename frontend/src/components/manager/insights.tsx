@@ -13,6 +13,7 @@ import { Button, Card, EmptyState, ErrorState, SeedBadge, Skeleton } from "@/com
 import { api } from "@/lib/api";
 import { ngayGioVn, phanTram, soVn, tienUsd } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import NumberFlow from "@number-flow/react";
 import {
   IconBoQua,
   IconCanhBao,
@@ -71,7 +72,9 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
       <div className="mb-4 grid grid-cols-2 gap-3.5 xl:grid-cols-4">
         <Card className="cursor-pointer p-4 transition-all duration-300 ease-[var(--ease-spring)] hover:-translate-y-1 hover:shadow-[var(--shadow-md)]" onClick={() => onGoto("pickup")}>
           <div className="mb-1.5 text-xs font-bold text-muted uppercase tracking-wider">Cần duyệt</div>
-          <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums">{du.queues.total}</div>
+          <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums">
+            <NumberFlow value={du.queues.total} locales="vi-VN" />
+          </div>
           <div className="mt-1.5 text-[11px] font-semibold text-muted">
             {du.queues.pickup} thu gom · {du.queues.labels} nhãn · {du.queues.routes} tuyến
           </div>
@@ -84,7 +87,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
         <Card className="p-4 transition-all duration-300 ease-[var(--ease-spring)] hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
           <div className="mb-1.5 text-xs font-bold text-muted uppercase tracking-wider">Lượt phân loại tuần này</div>
           <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums">
-            {soVn(du.classifications_this_week)}
+            <NumberFlow value={du.classifications_this_week} locales="vi-VN" />
           </div>
           <div className="mt-1.5 text-[11px] font-extrabold text-leaf-dark">
             {du.growth === null ? (
@@ -101,7 +104,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
         <Card className="p-4 transition-all duration-300 ease-[var(--ease-spring)] hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
           <div className="mb-1.5 text-xs font-bold text-muted uppercase tracking-wider">Độ chính xác (có người xác nhận)</div>
           <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums">
-            {phanTram(du.accuracy)}
+            <NumberFlow value={du.accuracy ?? 0} locales="vi-VN" />
           </div>
           <div className="mt-1.5 text-[11px] font-semibold text-muted">trên {du.verified_count} ca đã xác nhận</div>
         </Card>
@@ -123,7 +126,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
             className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums"
             style={{ color: antoanXanh ? "var(--color-leaf-dark)" : "var(--color-hazard-dark)" }}
           >
-            {antoan.hazard_missed_count}
+            <NumberFlow value={antoan.hazard_missed_count} locales="vi-VN" />
           </div>
           <div className="mt-1.5 text-[11px] font-semibold" style={{ color: antoanXanh ? "var(--color-amber-green)" : "var(--color-amber-brown)" }}>
             mục tiêu 0 · trên {antoan.hazard_total} ca nguy hại
@@ -152,7 +155,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
         <div className="rounded-2xl bg-[linear-gradient(150deg,var(--color-leaf),var(--color-leaf-dark))] p-4 text-white">
           <div className="mb-3 text-sm font-bold">Hiệu quả điều phối</div>
           <div className="font-[family-name:var(--font-display)] text-[30px] font-bold leading-tight">
-            {du.routing_efficiency.so_yeu_cau} yêu cầu
+            <NumberFlow value={du.routing_efficiency.so_yeu_cau} locales="vi-VN" /> yêu cầu
             <br />→ {du.routing_efficiency.so_chuyen} chuyến
           </div>
           <div className="mt-3.5 rounded-xl bg-surface/20 px-3 py-2.5 text-[13px] font-bold">
@@ -190,7 +193,7 @@ export function OpsScreen() {
         <Card className="p-4">
           <div className="mb-1 text-[13px] font-bold text-muted">Chi phí kỳ này</div>
           <div className="font-[family-name:var(--font-display)] text-[34px] font-bold leading-none">
-            {tienUsd(du.cost.total)}
+            <NumberFlow value={du.cost.total} locales="vi-VN" />
           </div>
           <div className="mt-1 text-xs font-semibold text-muted">
             {soVn(du.cost.count)} lượt · {tienUsd(du.cost.cost_per_1000)} / 1.000 lượt

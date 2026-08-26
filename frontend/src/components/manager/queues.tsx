@@ -89,16 +89,18 @@ export function PickupQueue() {
         <div className="grid items-start gap-4 grid-cols-1 lg:grid-cols-[300px_1fr]">
           <div>
             <div className="mb-2.5 text-xs font-extrabold text-muted">CHỜ DUYỆT ({ds.length})</div>
-            {ds.map((yc) => (
-              <button
+            {ds.map((yc, _i) => (
+<button
                 key={yc.id}
                 onClick={() => api.pickup(yc.id).then(setDangChon)}
                 className={cn(
                   "mb-2.5 w-full cursor-pointer rounded-2xl bg-surface p-3.5 text-left transition-all duration-200 ease-[var(--ease-spring)] active:scale-[0.98]",
                   dangChon?.id === yc.id
                     ? "border-2 border-leaf shadow-[var(--shadow-sm)]"
-                    : "border border-line-3 shadow-[var(--shadow-xs)] hover:border-line-2 hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5"
+                    : "border border-line-3 shadow-[var(--shadow-xs)] hover:border-line-2 hover:shadow-[var(--shadow-sm)] hover:-translate-y-0.5",
+                  "animate-gbreveal"
                 )}
+style={{ animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}
               >
                 <div className="mb-1 flex justify-between">
                   <span className="text-xs font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
@@ -243,6 +245,7 @@ export function VerifyQueue() {
   const [dangDuyetNhanh, setDangDuyetNhanh] = React.useState(false);
   const [duyetNhanhDaXong, setDuyetNhanhDaXong] = React.useState(0);
   const [loiDuyetNhanh, setLoiDuyetNhanh] = React.useState("");
+  const [replyText, setReplyText] = React.useState<string>("");
 
   const tai = React.useCallback(() => {
     api.verifyQueue().then(setDu).catch((e) => setLoi(e.message));
@@ -306,10 +309,10 @@ export function VerifyQueue() {
     tai();
   }
 
-  function theCa(ca: Classification) {
+  function theCa(ca: Classification, replyText: string, onReplyTextChange: (s: string) => void) {
     const thieu = ca.min_confidence - ca.confidence;
     return (
-      <Card key={ca.classification_id} className="p-4">
+      <Card key={ca.classification_id} className="p-4 animate-gbreveal">
         {/* Ảnh tải LAZY — chỉ dựng `<AnhCoToken>` khi người duyệt mở thẻ
             (`dangMo`). Dựng cho mọi thẻ ngay khi hàng đợi lên là một `fetch`
             có token bắn cùng lúc cho từng ca: mở màn 100 ca là 100 lệnh tải ảnh
@@ -335,30 +338,41 @@ export function VerifyQueue() {
             </Chip>
           )}
         </div>
-        <div className="my-2 text-[11px] font-semibold text-muted">Lý do từ chối: {ca.refusal_label_vi}</div>
-        {dangMo === ca.classification_id ? (
-          <div className="flex flex-wrap gap-1.5">
-            {danhMuc.map((dm) => (
-              <Button
-                key={dm.code}
-                size="sm"
-                variant="outline"
-                onClick={async () => {
-                  await api.verifyLabel(ca.classification_id, dm.code);
-                  setDangMo(null);
-                  tai();
-                }}
-              >
-                <IconNhomRac code={dm.code} className="h-3.5 w-3.5" />
-                {dm.name}
-              </Button>
-            ))}
-          </div>
-        ) : (
-          <Button size="sm" onClick={() => setDangMo(ca.classification_id)}>
-            Chọn nhãn đúng & trả lời
+        <div className="mb-3 text-xs font-semibold text-muted">
+          Lý do/sửa chú (tùy chọn):
+        </div>
+        <textarea
+          value={replyText}
+          onChange={(e) => onReplyTextChange(e.target.value)}
+          placeholder="Ví dụ: sai loại rác, xác nhận nhãn AI..."
+          className="w-full rounded-xl border border-line-2 bg-surface px-3 py-2 text-base font-medium text-ink-soft outline-none focus:border-leaf resize-y min-h-20"
+          rows={3}
+        />
+        <div className="mt-2 flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setDangMo(null)}>
+            <IconDuyet className="h-3.5 w-3.5" />
+            Đóng
           </Button>
-        )}
+          <Button
+            size="sm"
+            variant="leaf"
+            disabled={!replyText.trim()}
+            onClick={async () => {
+              try {
+                await api.verifyLabel(ca.classification_id, ca.category?.code ?? "", replyText);
+                setDangMo(null);
+                tai();
+              } catch (e) {
+                setLoiDuyetNhanh(`Lỗi lưu: ${
+                  e instanceof Error ? e.message : "lỗi không xác định"
+                }`);
+              }
+            }}
+          >
+            <IconDuyet className="h-3.5 w-3.5" />
+            Xác nhận
+          </Button>
+        </div>
       </Card>
     );
   }
@@ -402,7 +416,7 @@ export function VerifyQueue() {
             {soCaPhaiXem === 0 ? (
               <div className="text-[13px] font-semibold text-muted">Không có ca nào cần xem riêng.</div>
             ) : (
-              <div className="grid grid-cols-2 gap-3.5">{cacCaPhaiXem.map(theCa)}</div>
+              <div className="grid grid-cols-2 gap-3.5">{cacCaPhaiXem.map((ca, _i) => theCa(ca, replyText, setReplyText))}</div>
             )}
           </div>
 
@@ -440,7 +454,7 @@ export function VerifyQueue() {
                     </Button>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-3.5">{cacCaDuyetNhanh.map(theCa)}</div>
+                <div className="grid grid-cols-2 gap-3.5">{cacCaDuyetNhanh.map((ca, _i) => theCa(ca, replyText, setReplyText))}</div>
               </>
             )}
           </div>
@@ -507,11 +521,11 @@ export function WeightConfirmQueue() {
         <EmptyState icon={IconChucMung} title="Chưa có kiện nào chờ xác nhận khối lượng" />
       ) : (
         <div className="grid gap-3.5">
-          {ds.map((yc) => {
+          {ds.map((yc, _i) => {
             const daXacNhan = ketQua[yc.id];
             const trangThai = daXacNhan ? daXacNhan.status : "";
             return (
-              <Card key={yc.id} className="p-4">
+              <Card key={yc.id} className="p-4 animate-gbreveal" style={{ animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}>
                 <div className="mb-3 flex items-start gap-3">
                   <div className="flex-1">
                     <div className="mb-1 flex items-center gap-2.5">
@@ -773,7 +787,7 @@ export function RouteApproval() {
 
           {/* Danh sách điểm dừng — mỗi điểm MỘT dòng. */}
           <div className="mb-4 rounded-2xl bg-surface px-4 py-2">
-            {(tuyen.stops ?? []).map((s) => {
+            {(tuyen.stops ?? []).map((s, _i) => {
               const laThung = s.stop_kind === "thung";
               const daBo = boBot.includes(s.stop_id);
               const ten = laThung
@@ -785,8 +799,8 @@ export function RouteApproval() {
               return (
                 <div
                   key={s.stop_id}
-                  className="flex items-center gap-3 border-b border-line py-2.5 last:border-0"
-                  style={{ opacity: daBo ? 0.4 : 1 }}
+                  className="flex items-center gap-3 border-b border-line py-2.5 last:border-0 animate-gbreveal"
+                  style={{ opacity: daBo ? 0.4 : 1, animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}
                 >
                   <span
                     className={`flex h-7 w-7 flex-none items-center justify-center rounded-full text-[12px] font-extrabold ${

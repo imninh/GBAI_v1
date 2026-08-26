@@ -599,6 +599,36 @@ body {
   }
 }
 
+/* WOW-E: hoạ tiết drfit trôi cực nhẹ — chỉ transform+opacity, đọc dưới chỉ mục. */
+@keyframes gbdrift {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(6px, 4px) rotate(1deg);
+  }
+}
+.gbdrift {
+  animation: gbdrift 40s ease-in-out infinite;
+}
+/* Phùng pha 3 loại lệch pha khác nhau để không trôi đồng loạt */
+.gbdrift-2 {
+  animation-delay: -12s;
+}
+.gbdrift-3 {
+  animation-delay: -24s;
+}
+
+/* Người dùng bật "giảm chuyển động" thì tắt sạch animation */
+@media (prefers-reduced-motion: reduce) {
+  .gbdrift,
+  .gbdrift-2,
+  .gbdrift-3 {
+    animation: none;
+  }
+}
+
 /* ---- Animation Bini v1 (F4.4a) — chỉ transform + opacity, quiet -----------
    Chỉ chạy khi người dùng KHÔNG bật giảm chuyển động; giảm rồi thì dừng hẳn. */
 @keyframes gbbreath {

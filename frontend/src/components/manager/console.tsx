@@ -171,52 +171,50 @@ export function ManagerConsole() {
         </div>
 
         <div className="gb-scroll flex-1 overflow-y-auto px-8 py-6">
-          {nav === "duyet" && (
-            <>
-              <SubTabs
-                muc={TAB_DUYET}
-                dang={tabDuyet}
-                setDang={(k) => setTabDuyet(k as TabDuyet)}
-                duocPhep={duocPhep}
-                lyDoCam={lyDoCam}
-                dem={demTab}
-              />
-              {tabDuyet === "pickup" && <PickupQueue />}
-              {tabDuyet === "verify" && <VerifyQueue />}
-              {tabDuyet === "route" && <RouteApproval />}
-            </>
+{nav === "duyet" && (
+            <div key={nav} className="animate-gbscreen min-h-full">
+              <>
+                <SubTabs
+                  muc={TAB_DUYET}
+                  dang={tabDuyet}
+                  setDang={(k) => setTabDuyet(k as TabDuyet)}
+                  duocPhep={duocPhep}
+                  lyDoCam={lyDoCam}
+                  dem={demTab}
+                />
+                {tabDuyet === "pickup" && <PickupQueue />}
+                {tabDuyet === "verify" && <VerifyQueue />}
+                {tabDuyet === "route" && <RouteApproval />}
+              </>
+            </div>
           )}
 
           {nav === "baocao" && (
-            <>
-              <SubTabs
-                muc={TAB_BAO_CAO}
-                dang={tabBaoCao}
-                setDang={(k) => setTabBaoCao(k as TabBaoCao)}
-                duocPhep={duocPhep}
-                lyDoCam={lyDoCam}
-                dem={{}}
-              />
-              {tabBaoCao === "ops" && <OpsScreen />}
-              {tabBaoCao === "quality" && <QualityScreen />}
-            </>
+            <div key={nav} className="animate-gbscreen min-h-full">
+              <>
+                <SubTabs
+                  muc={TAB_BAO_CAO}
+                  dang={tabBaoCao}
+                  setDang={(k) => setTabBaoCao(k as TabBaoCao)}
+                  duocPhep={duocPhep}
+                  lyDoCam={lyDoCam}
+                  dem={{}}
+                />
+                {tabBaoCao === "ops" && <OpsScreen />}
+                {tabBaoCao === "quality" && <QualityScreen />}
+              </>
+            </div>
           )}
 
           {nav === "xep_tuyen" && <XepTuyen />}
-
           {nav === "kip_suco" && <KipVaSuCo />}
-
           {nav === "tat_ca" && <TatCaYeuCau />}
-
-          {/* Tổng quan chỉ có một đích nhảy duy nhất là hàng đợi thu gom. */}
-          {nav === "overview" && (
-            <OverviewScreen
-              onGoto={() => {
-                setNav("duyet");
-                setTabDuyet("pickup");
-              }}
-            />
-          )}
+          {nav === "overview" && <OverviewScreen
+            onGoto={() => {
+              setNav("duyet");
+              setTabDuyet("pickup");
+            }}
+          />}
           {nav === "runs" && <AgentRunScreen />}
         </div>
       </div>

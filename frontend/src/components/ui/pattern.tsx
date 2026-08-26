@@ -22,9 +22,11 @@ const OPACITY: Record<string, string> = {
 
 export function HoaTiet({
   loai,
+  dong,
   className,
 }: {
   loai: "rings" | "blob" | "dots";
+  dong?: boolean;
   className?: string;
 }) {
   return (
@@ -33,7 +35,12 @@ export function HoaTiet({
       src={FILE[loai]}
       alt=""
       aria-hidden="true"
-      className={cn("pointer-events-none absolute select-none", OPACITY[loai], className)}
+      className={cn(
+        "pointer-events-none absolute select-none",
+        OPACITY[loai],
+        dong ? "gbdrift" : "",
+        className
+      )}
     />
   );
 }
