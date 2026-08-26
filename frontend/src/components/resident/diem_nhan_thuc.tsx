@@ -15,6 +15,7 @@
  */
 
 import * as React from "react";
+import NumberFlow from "@number-flow/react";
 
 import { Button, Card, EmptyState, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { ScreenHeader } from "@/components/ui/shell";
@@ -144,7 +145,9 @@ export function DiemNhanThucScreen({ onBack }: DiemNhanThucProps) {
       <Card className="mb-3.5 p-4">
         <div className="mb-2 flex items-baseline justify-between gap-2">
           <span className="text-sm font-extrabold">Tổng điểm nhận thức</span>
-          <span className="flex-none text-lg font-extrabold tabular-nums text-leaf-dark">{soVn(tongQuan.tong_diem_nhan_thuc)}</span>
+          <span className="flex-none text-lg font-extrabold tabular-nums text-leaf-dark">
+            <NumberFlow value={tongQuan.tong_diem_nhan_thuc} locales="vi-VN" />
+          </span>
         </div>
         <div className="text-[12px] font-semibold text-muted">Hôm nay: <span className="font-extrabold text-ink">{soVn(diemHomNay)}</span> điểm</div>
 

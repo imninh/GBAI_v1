@@ -239,6 +239,32 @@ function ResidentApp() {
   const [chucMung, setChucMung] = React.useState(false);
   const huyRef = React.useRef(false);
 
+  // Tia loé xanh MỘT NHỊP khi phân loại đúng (overlay chúc mừng) — ít hạt, màu
+  // brand, tự tắt khi bật prefers-reduced-motion (`disableForReducedMotion`).
+  // Dynamic import để không tải canvas-confetti vào bundle tĩnh. KHÔNG chạm
+  // đường chụp→phân loại (chỉ kích hoạt lúc overlay mount, sau khi đã có kết quả).
+  React.useEffect(() => {
+    if (!chucMung) return;
+    let huy = false;
+    import("canvas-confetti").then((mod) => {
+      if (huy) return;
+      mod.default({
+        particleCount: 28,
+        spread: 72,
+        startVelocity: 24,
+        gravity: 0.85,
+        scalar: 0.85,
+        ticks: 110,
+        origin: { y: 0.55 },
+        colors: ["#548045", "#A3CC57", "#1C4229"],
+        disableForReducedMotion: true,
+      });
+    });
+    return () => {
+      huy = true;
+    };
+  }, [chucMung]);
+
   async function chay(goi: () => Promise<Classification>, coAnh: boolean) {
     huyRef.current = false;
     setLoi(null);

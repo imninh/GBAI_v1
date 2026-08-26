@@ -39,6 +39,10 @@ ALLOWED_HEX_COLORS: dict[str, str] = {
     "#1e3045": "onboarding.tsx MascotSVG fallback Bini fill",
     "#f6f2dd": "onboarding.tsx MascotSVG fallback Bini fill",
     "#1c2c46": "onboarding.tsx MascotSVG fallback Bini fill",
+    # canvas-confetti vẽ trên canvas — màu phải là chuỗi hex, var() không nở
+    "#548045": "page.tsx confetti particle color (brand leaf)",
+    "#a3cc57": "page.tsx confetti particle color (brand accent)",
+    "#1c4229": "page.tsx confetti particle color (brand forest)",
     "#2f7fe0": "ask.tsx icon SVG stroke",
     "#8a7a5a": "result.tsx icon SVG stroke",
     "#fff": "SVG stroke trắng trên nền màu (ask/onboarding/result)",
