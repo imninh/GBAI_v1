@@ -49,6 +49,10 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
   const [dsSuCo, setDsSuCo] = React.useState<{ code: string; label_vi: string }[]>([]);
   const [loi, setLoi] = React.useState("");
   const [dangMoBaoLoi, setDangMoBaoLoi] = React.useState<number | null>(null);
+  // WS-3: lỗi HIỆN TRƯỜNG (chốt/đánh dấu thất bại) hiện banner trên đầu, không
+  // thay cả màn như lỗi tải (`loi`). Tách riêng để người dùng không mất ngữ cảnh.
+  const [loiHienTruong, setLoiHienTruong] = React.useState("");
+  const [dangChotId, setDangChotId] = React.useState<number | null>(null);
   const [cheDo, setCheDo] = React.useState<"danh-sach" | "ban-do">("danh-sach");
   // Khối lượng thật (kg) đội vệ sinh cân tại chỗ, theo từng điểm dừng — chỉ
   // điểm loại yêu cầu mới cân; thùng đổ thì không. Số này do NGƯỜI nhập, lưu
@@ -91,18 +95,24 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
 
   async function danhDau(stopId: number, issue = "") {
     if (!tuyen) return;
+    setDangChotId(stopId);
+    setLoiHienTruong("");
     try {
       const moi = await api.completeStop(tuyen.id, stopId, { issue });
       setTuyen(moi);
       setDangMoBaoLoi(null);
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : "Không lưu được");
+      setLoiHienTruong(e instanceof Error ? e.message : "Không lưu được");
+    } finally {
+      setDangChotId(null);
     }
   }
 
   /** Chốt điểm thu gom kèm khối lượng THẬT (kg) do đội vệ sinh cân tại chỗ. */
   async function chotDiem(stopId: number, weightKg: number) {
     if (!tuyen) return;
+    setDangChotId(stopId);
+    setLoiHienTruong("");
     try {
       const moi = await api.completeStop(tuyen.id, stopId, { actual_weight_kg: weightKg });
       setTuyen(moi);
@@ -113,7 +123,9 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
       });
       setDangMoBaoLoi(null);
     } catch (e) {
-      setLoi(e instanceof Error ? e.message : "Không chốt được điểm");
+      setLoiHienTruong(e instanceof Error ? e.message : "Không chốt được điểm");
+    } finally {
+      setDangChotId(null);
     }
   }
 
@@ -290,6 +302,12 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                     </div>
                   )}
 
+                  {loiHienTruong && (
+                    <div className="mb-3 rounded-2xl border border-hazard-light bg-hazard-soft px-4 py-3 text-[13px] font-bold text-hazard-dark">
+                      {loiHienTruong}
+                    </div>
+                  )}
+
                   <div className="lg:grid lg:grid-cols-2 lg:gap-3">
                   {stops.map((s) => (
                     <Card key={s.stop_id} className="mb-3 p-4 lg:mb-0" style={{ opacity: s.done_at ? 0.7 : 1 }}>
@@ -343,9 +361,9 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                         </div>
                       ) : s.stop_kind === "thung" ? (
                         <div className="flex gap-2.5">
-                          <Button variant="leaf" size="lg" className="flex-1" onClick={() => danhDau(s.stop_id)}>
+                          <Button variant="leaf" size="lg" className="flex-1" disabled={dangChotId === s.stop_id} onClick={() => danhDau(s.stop_id)}>
                             <IconDuyet className="h-5 w-5" strokeWidth={2.6} />
-                            ĐÃ THU
+                            {dangChotId === s.stop_id ? "Đang lưu…" : "ĐÃ THU"}
                           </Button>
                           <Button variant="outline" size="lg" className="flex-1 border-amber-line text-amber" onClick={() => setDangMoBaoLoi(s.stop_id)}>
                             <IconCanhBao className="h-5 w-5" />
@@ -374,6 +392,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                               size="lg"
                               className="flex-none"
                               disabled={
+                                dangChotId === s.stop_id ||
                                 !(soKg[s.stop_id]?.trim()) ||
                                 !Number.isFinite(Number(soKg[s.stop_id])) ||
                                 Number(soKg[s.stop_id]) < 0
@@ -381,7 +400,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
                               onClick={() => chotDiem(s.stop_id, Number(soKg[s.stop_id]))}
                             >
                               <IconDuyet className="h-5 w-5" strokeWidth={2.6} />
-                              Chốt điểm
+                              {dangChotId === s.stop_id ? "Đang chốt…" : "Chốt điểm"}
                             </Button>
                           </div>
                           <Button variant="outline" size="sm" block className="mt-2 border-amber-line text-amber" onClick={() => setDangMoBaoLoi(s.stop_id)}>
