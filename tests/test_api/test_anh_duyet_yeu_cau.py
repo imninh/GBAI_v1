@@ -93,13 +93,16 @@ def test_van_dung_lai_anhcotoken_co_san() -> None:
     assert "const AnhCoToken" not in noi_dung, "Không được tự định nghĩa component ảnh"
 
 
-def test_verifyqueue_khong_bi_dung_toi() -> None:
-    """Khối ảnh của `VerifyQueue` (hàng đợi nhãn) không bị đụng tới.
+def test_verifyqueue_van_tai_anh_lazy() -> None:
+    """`VerifyQueue` vẫn tải ảnh LAZY sau khi E2E-04b-FIX làm lại thẻ.
 
-    `VerifyQueue` tải ảnh LAZY — chỉ dựng `<AnhCoToken>` khi người duyệt mở một
-    thẻ (`dangMo === ca.classification_id`). Cổng này là của gói P28/P32; gói này
-    chỉ được sửa `PickupQueue`, đụng tới VerifyQueue là hồi quy.
+    E2E-04b-FIX chuyển mỗi ca thành component `TheCa` có state cục bộ: ảnh chỉ
+    dựng `<AnhCoToken>` khi thẻ được MỞ (`{mo && ...}`, `mo` mặc định `false`).
+    Cơ chế đổi từ `dangMo === ca.classification_id` (state cha, P28/P32) sang `mo`
+    (state riêng thẻ) nhưng PHẢI giữ tính lazy — dựng ảnh cho mọi thẻ ngay khi
+    hàng đợi lên là ~100 lệnh tải ảnh đồng thời vào máy chủ 512 MB.
     """
     than = _than_khoi(_noi_dung_queues(), "function VerifyQueue")
     assert than, "Không tìm thấy thân hàm VerifyQueue"
-    assert "dangMo === ca.classification_id" in than, "Cổng lazy của VerifyQueue bị đụng tới"
+    assert "<AnhCoToken" in than, "VerifyQueue vẫn phải dùng AnhCoToken để hiện ảnh"
+    assert "{mo && (" in than, "Cổng lazy của VerifyQueue (mo && ...) bị mất — ảnh sẽ tải cho MỌI thẻ"

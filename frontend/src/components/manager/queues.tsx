@@ -238,14 +238,12 @@ style={{ animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}
 export function VerifyQueue() {
   const [du, setDu] = React.useState<Awaited<ReturnType<typeof api.verifyQueue>> | null>(null);
   const [danhMuc, setDanhMuc] = React.useState<WasteCategory[]>([]);
-  const [dangMo, setDangMo] = React.useState<number | null>(null);
   const [loi, setLoi] = React.useState("");
   // Duyệt hàng loạt: một nhịp xác nhận, tuần tự từng ca, dừng khi gặp lỗi.
   const [xacNhanDuyetNhanh, setXacNhanDuyetNhanh] = React.useState(false);
   const [dangDuyetNhanh, setDangDuyetNhanh] = React.useState(false);
   const [duyetNhanhDaXong, setDuyetNhanhDaXong] = React.useState(0);
   const [loiDuyetNhanh, setLoiDuyetNhanh] = React.useState("");
-  const [replyText, setReplyText] = React.useState<string>("");
 
   const tai = React.useCallback(() => {
     api.verifyQueue().then(setDu).catch((e) => setLoi(e.message));
@@ -309,18 +307,35 @@ export function VerifyQueue() {
     tai();
   }
 
-  function theCa(ca: Classification, replyText: string, onReplyTextChange: (s: string) => void) {
+  function TheCa({ ca, danhMuc, tai }: { ca: Classification; danhMuc: WasteCategory[]; tai: () => void }) {
     const thieu = ca.min_confidence - ca.confidence;
+    const [mo, setMo] = React.useState(false);
+    const [replyText, setReplyText] = React.useState("");
+    const [nhanDuocChon, setNhanDuocChon] = React.useState<WasteCategory | null>(ca.category ?? null);
+    const [loiLuu, setLoiLuu] = React.useState("");
+    const [dangLuu, setDangLuu] = React.useState(false);
+
+    async function xacNhan() {
+      if (!nhanDuocChon || dangLuu) return;
+      setDangLuu(true);
+      setLoiLuu("");
+      try {
+        await api.verifyLabel(ca.classification_id, nhanDuocChon.code, replyText);
+        tai();
+      } catch (e) {
+        setLoiLuu(e instanceof Error ? e.message : "Không lưu được nhãn.");
+      } finally {
+        setDangLuu(false);
+      }
+    }
+
     return (
-      <Card key={ca.classification_id} className="p-4 animate-gbreveal">
-        {/* Ảnh tải LAZY — chỉ dựng `<AnhCoToken>` khi người duyệt mở thẻ
-            (`dangMo`). Dựng cho mọi thẻ ngay khi hàng đợi lên là một `fetch`
-            có token bắn cùng lúc cho từng ca: mở màn 100 ca là 100 lệnh tải ảnh
-            đồng thời vào một máy chủ 512 MB, cộng 100 `blob:` giữ trong bộ nhớ
-            trình duyệt. Tải theo yêu cầu khi bấm vào thẻ — ca thứ 101 cũng vô
-            hại. AnhCoToken tự lo ca hỏi bằng chữ (`media_id == null`): 0 lệnh
-            gọi mạng, hiện ô giữ chỗ. */}
-        {dangMo === ca.classification_id && (
+      <Card className="p-4 animate-gbreveal">
+        {/* Ảnh tải LAZY — mở thẻ mới tải ảnh. Dựng cho mọi thẻ ngay khi hàng
+            đợi lên là một `fetch` có token bắn cùng lúc cho từng ca: mở màn 100
+            ca là 100 lệnh tải ảnh đồng thời. AnhCoToken tự lo ca hỏi bằng chữ
+            (`media_id == null`): 0 lệnh gọi mạng, hiện ô giữ chỗ. */}
+        {mo && (
           <div className="mb-3 aspect-[4/3] w-full overflow-hidden rounded-xl bg-cream-soft">
             <AnhCoToken mediaId={ca.media_id} alt="Ảnh cư dân gửi" className="h-full w-full object-cover" />
           </div>
@@ -338,39 +353,61 @@ export function VerifyQueue() {
             </Chip>
           )}
         </div>
-        <div className="mb-3 text-xs font-semibold text-muted">
-          Lý do/sửa chú (tùy chọn):
+        <div className="mb-2 text-[11px] font-semibold text-muted">Lý do từ chối: {ca.refusal_label_vi}</div>
+
+        {/* Bộ chọn nhãn đúng — chips danh mục; mặc định = nhãn AI (đã chọn sẵn). */}
+        <div className="mb-1.5 text-xs font-bold text-muted">Nhãn đúng</div>
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {danhMuc.map((dm) => {
+            const dangChon = nhanDuocChon?.code === dm.code;
+            return (
+              <button
+                key={dm.code}
+                type="button"
+                onClick={() => setNhanDuocChon(dm)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition-all duration-150 active:scale-95",
+                  dangChon
+                    ? "border-leaf bg-leaf-soft text-leaf-dark"
+                    : "border-line-2 bg-surface text-ink-soft hover:border-line-2"
+                )}
+              >
+                <IconNhomRac code={dm.code} className="h-3.5 w-3.5" />
+                {dm.name}
+              </button>
+            );
+          })}
         </div>
+
+        {/* Ô ghi chú/lý do — RIÊNG thẻ này, không lây sang thẻ khác. */}
+        <div className="mb-1.5 text-xs font-semibold text-muted">Ghi chú / lý do (tuỳ chọn)</div>
         <textarea
           value={replyText}
-          onChange={(e) => onReplyTextChange(e.target.value)}
+          onChange={(e) => setReplyText(e.target.value)}
           placeholder="Ví dụ: sai loại rác, xác nhận nhãn AI..."
           className="w-full rounded-xl border border-line-2 bg-surface px-3 py-2 text-base font-medium text-ink-soft outline-none focus:border-leaf resize-y min-h-20"
           rows={3}
         />
+
+        {loiLuu && (
+          <div className="mt-2 rounded-xl border border-hazard-light bg-hazard-soft px-3.5 py-2.5 text-[13px] font-bold text-hazard-dark">
+            {loiLuu}
+          </div>
+        )}
+
         <div className="mt-2 flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => setDangMo(null)}>
-            <IconDuyet className="h-3.5 w-3.5" />
-            Đóng
+          <Button size="sm" variant="outline" onClick={() => setMo((v) => !v)}>
+            {mo ? "Thu ảnh" : "Xem ảnh"}
           </Button>
+          <span className="flex-1" />
           <Button
             size="sm"
             variant="leaf"
-            disabled={!replyText.trim()}
-            onClick={async () => {
-              try {
-                await api.verifyLabel(ca.classification_id, ca.category?.code ?? "", replyText);
-                setDangMo(null);
-                tai();
-              } catch (e) {
-                setLoiDuyetNhanh(`Lỗi lưu: ${
-                  e instanceof Error ? e.message : "lỗi không xác định"
-                }`);
-              }
-            }}
+            disabled={!nhanDuocChon || dangLuu}
+            onClick={xacNhan}
           >
             <IconDuyet className="h-3.5 w-3.5" />
-            Xác nhận
+            {dangLuu ? "Đang lưu…" : "Xác nhận"}
           </Button>
         </div>
       </Card>
@@ -416,7 +453,7 @@ export function VerifyQueue() {
             {soCaPhaiXem === 0 ? (
               <div className="text-[13px] font-semibold text-muted">Không có ca nào cần xem riêng.</div>
             ) : (
-              <div className="grid grid-cols-2 gap-3.5">{cacCaPhaiXem.map((ca, _i) => theCa(ca, replyText, setReplyText))}</div>
+              <div className="grid grid-cols-2 gap-3.5">{cacCaPhaiXem.map((ca) => <TheCa key={ca.classification_id} ca={ca} danhMuc={danhMuc} tai={tai} />)}</div>
             )}
           </div>
 
@@ -454,7 +491,7 @@ export function VerifyQueue() {
                     </Button>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-3.5">{cacCaDuyetNhanh.map((ca, _i) => theCa(ca, replyText, setReplyText))}</div>
+                <div className="grid grid-cols-2 gap-3.5">{cacCaDuyetNhanh.map((ca) => <TheCa key={ca.classification_id} ca={ca} danhMuc={danhMuc} tai={tai} />)}</div>
               </>
             )}
           </div>
