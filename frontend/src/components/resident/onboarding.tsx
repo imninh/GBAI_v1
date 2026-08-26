@@ -60,6 +60,18 @@ function MascotSVG({ size, className }: { size: number; className?: string }) {
   );
 }
 
+// Nội dung SVG tách lớp (`binh-thuong-layered.svg`) — fetch một lần rồi giữ trong
+// bộ nhớ. Các mã màu nằm TRONG file SVG (public), không phải trong .tsx, nên không
+// vi phạm test chặn hex.
+let biniLayeredCache: string | null = null;
+async function layBiniLayered(): Promise<string> {
+  if (!biniLayeredCache) {
+    const res = await fetch("/mascot/binh-thuong-layered.svg");
+    biniLayeredCache = await res.text();
+  }
+  return biniLayeredCache;
+}
+
 export function Mascot({
   size = 120,
   tuThe = "mascot",
@@ -70,7 +82,34 @@ export function Mascot({
   className?: string;
 }) {
   const [loi, setLoi] = React.useState(false);
+  const [noiDungBini, setNoiDungBini] = React.useState<string | null>(null);
+
+  // Pose trung tính + cỡ lớn ⇒ inline SVG tách lớp để CSS chạm được mắt (`bini-mat`)
+  // và mầm (`bini-mam`) — chớp mắt + nhú mầm. Pose khác / Bini nhỏ giữ `<img>`.
+  const inlineLon = tuThe === "hello" && size >= 120;
+  React.useEffect(() => {
+    if (!inlineLon) return;
+    let song = true;
+    layBiniLayered()
+      .then((s) => { if (song) setNoiDungBini(s); })
+      .catch(() => { /* rơi êm về <img> */ });
+    return () => { song = false; };
+  }, [inlineLon]);
+
   if (loi) return <MascotSVG size={size} className={className} />;
+
+  if (inlineLon && noiDungBini) {
+    return (
+      // SVG inline qua class `bini-inline` (globals.css). Chỉ chứa nội dung file
+      // SVG đã verify, không có input người dùng.
+      <div
+        className={`bini-inline ${className ?? ""}`}
+        style={{ width: size, height: Math.round((size * 159) / 114) }}
+        aria-label={MO_TA_TU_THE[tuThe]}
+        dangerouslySetInnerHTML={{ __html: noiDungBini }}
+      />
+    );
+  }
 
   // SVG Bini hạt mầm — asset phẳng (không tách lớp `<g>`), animation áp lên
   // CẢ con (transform/opacity, xem globals.css). Vẫn dùng `<img>` cho đơn giản

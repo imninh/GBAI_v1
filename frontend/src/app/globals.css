@@ -455,6 +455,54 @@ body {
   .animate-gbappear {
     animation: gbappear 0.5s cubic-bezier(0.32, 0.72, 0, 1) both;
   }
+
+  /* Bini sống (F4.4c-1): chớp mắt + nhú mầm — inline SVG tách lớp (class
+     `bini-mat` / `bini-mam`). Chỉ transform + opacity, biên độ nhỏ, kín đáo.
+     Mắt lệch pha nhẹ (mắt thứ hai trễ ~60ms). */
+  .bini-inline svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .bini-inline .bini-mat {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: bini-blink 6s ease-in-out infinite;
+  }
+  .bini-inline .bini-mat + .bini-mat {
+    animation-delay: 60ms;
+  }
+  .bini-inline .bini-mam {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: bini-sprout 0.6s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+}
+@keyframes bini-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+@keyframes bini-sprout {
+  from {
+    transform: scale(0.7) translateY(3px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bini-inline .bini-mat,
+  .bini-inline .bini-mam {
+    animation: none;
+  }
 }
 
 /* Bảng và biểu đồ rộng cuộn ngang TRONG khung riêng, không để cả trang cuộn. */
