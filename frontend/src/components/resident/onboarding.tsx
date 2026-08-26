@@ -96,34 +96,47 @@ export function Mascot({
     return () => { song = false; };
   }, [inlineLon]);
 
-  if (loi) return <MascotSVG size={size} className={className} />;
-
-  if (inlineLon && noiDungBini) {
-    return (
+  // Mascot có "hồn" (WOW-B): className của caller nằm trên wrapper NGOÀI CÙNG
+  // (đúng gốc render trước WOW-B → -mt-16/mb-2/mx-auto giữ nguyên vị trí). Mỗi
+  // animation ở một element riêng để không xung đột `animation`:
+  //   ngoài  = className caller (định vị + có thể có animate-*)
+  //   giữa   = .gbmascot (entrance một nhịp + wiggle khi hover/chạm)
+  //   trong  = .gbidle (thở/lắc nhẹ mọi pose), bỏ khi caller đã có animate-*
+  // Idle ở wrapper trong nên KHÔNG phá transform-box của .bini-mat/.bini-mam.
+  const coAnimation = className?.includes("animate-");
+  const inner =
+    loi ? (
+      <MascotSVG size={size} />
+    ) : inlineLon && noiDungBini ? (
       // SVG inline qua class `bini-inline` (globals.css). Chỉ chứa nội dung file
-      // SVG đã verify, không có input người dùng.
+      // SVG đã verify, không có input người dùng. KHÔNG mang className caller.
       <div
-        className={`bini-inline ${className ?? ""}`}
+        className="bini-inline"
         style={{ width: size, height: Math.round((size * 159) / 114) }}
         aria-label={MO_TA_TU_THE[tuThe]}
         dangerouslySetInnerHTML={{ __html: noiDungBini }}
       />
+    ) : (
+      // SVG Bini hạt mầm — asset phẳng (không tách lớp `<g>`), animation áp lên
+      // CẢ con (transform/opacity, xem globals.css). KHÔNG mang className caller.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/mascot/${FILE_TU_THE[tuThe]}`}
+        width={size}
+        height={size}
+        alt={MO_TA_TU_THE[tuThe]}
+        className="object-contain"
+        onError={() => setLoi(true)}
+      />
     );
-  }
 
-  // SVG Bini hạt mầm — asset phẳng (không tách lớp `<g>`), animation áp lên
-  // CẢ con (transform/opacity, xem globals.css). Vẫn dùng `<img>` cho đơn giản
-  // (mỗi pose là một file riêng) — `output: "export"` không cần next/image.
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`/mascot/${FILE_TU_THE[tuThe]}`}
-      width={size}
-      height={size}
-      alt={MO_TA_TU_THE[tuThe]}
-      className={`object-contain ${className ?? ""}`}
-      onError={() => setLoi(true)}
-    />
+    // `inline-block` để wrapper ngoài nhận margin dọc (-mt-16/mb-2) y như gốc <img>.
+    <span className={`inline-block ${className ?? ""}`}>
+      <span className="gbmascot">
+        <span className={`inline-block ${coAnimation ? "" : "gbidle"}`}>{inner}</span>
+      </span>
+    </span>
   );
 }
 

@@ -489,6 +489,60 @@ body {
   animation: gbhazardicon 0.5s ease-out both;
 }
 
+/* WOW-B: Bini có hồn — idle thở/lắc nhẹ cho MỌI pose (cả bản <img> phẳng),
+   entrance một nhịp khi mount, và phản ứng nhún-lắc khi chạm/hover. Chỉ
+   transform+opacity. Áp trong component Mascot (onboarding.tsx), các màn không
+   cần tự thêm class. */
+@keyframes gbidle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.015) rotate(0.8deg);
+  }
+}
+.gbidle {
+  animation: gbidle 4.5s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+@keyframes gbenter {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.gbmascot {
+  display: inline-block;
+  animation: gbenter 0.45s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+/* Phản ứng chạm/hover: nhún + lắc vui một nhịp, rồi về idle. Không lặp. */
+@keyframes gbwiggle {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.05) rotate(-4deg);
+  }
+  60% {
+    transform: scale(1.03) rotate(4deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+.gbmascot:hover,
+.gbmascot:active {
+  animation: gbwiggle 0.4s ease-out;
+}
+
 /* Người dùng bật "giảm chuyển động" thì tắt sạch animation — nhóm chuyển động
    vui nhộn (float, wave, pulse, scan) là thứ gây khó chịu nhất khi bật. */
 @media (prefers-reduced-motion: reduce) {
@@ -502,7 +556,11 @@ body {
   .animate-gbpopin,
   .animate-gbring,
   .animate-gbhazardalert,
-  .animate-gbhazardicon {
+  .animate-gbhazardicon,
+  .gbidle,
+  .gbmascot,
+  .gbmascot:hover,
+  .gbmascot:active {
     animation: none;
   }
 }
