@@ -178,17 +178,24 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
     setIsLoading(true);
 
     try {
-      // CHỈ tracking GPS duy nhất 1 lần khi người dùng tìm kiếm thùng rác
-      let loc = locationRef.current;
-      if (isBinQuery(q) && !hasTrackedRef.current) {
-        loc = await trackLocationOnce();
+      // Ưu tiên lấy toạ độ toà nhà từ database của cư dân
+      let sendLat = userLat ?? null;
+      let sendLng = userLng ?? null;
+
+      // Nếu người dùng chưa có toạ độ toà nhà (khách vãng lai), mới dùng GPS thiết bị
+      if ((sendLat === null || sendLng === null) && isBinQuery(q) && !hasTrackedRef.current) {
+        const loc = await trackLocationOnce();
+        if (loc) {
+          sendLat = loc.lat;
+          sendLng = loc.lng;
+        }
       }
 
       const res = await api.chatbotAsk({
         question: q,
         building_id: buildingId,
-        lat: loc?.lat ?? userLat,
-        lng: loc?.lng ?? userLng,
+        lat: sendLat,
+        lng: sendLng,
       });
 
       const aiMsg: ChatMessage = {
@@ -439,9 +446,9 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                       m.responseMeta.viable_bins.length > 0 && (
                         <div className="mt-3 space-y-2 border-t border-zinc-200 pt-2 dark:border-zinc-700">
                           <p className="text-xs font-semibold text-leaf-dark dark:text-leaf-mint flex items-center justify-between">
-                            <span className="flex items-center gap-1"><IconViTri className="h-3.5 w-3.5" strokeWidth={1.9} />Thùng rác khả dụng gần bạn (GPS Tracking):</span>
+                            <span className="flex items-center gap-1"><IconViTri className="h-3.5 w-3.5" strokeWidth={1.9} />Thùng rác khả dụng gần bạn:</span>
                             <span className="text-[10px] font-normal text-zinc-500 dark:text-zinc-400">
-                              Đã so khớp khoảng cách
+                              Đã so khớp toạ độ & khoảng cách
                             </span>
                           </p>
                           {m.responseMeta.viable_bins.map((bin) => (
@@ -465,7 +472,11 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                                 <span className="truncate pr-2">{bin.address}</span>
                                 {bin.distance_meters !== null && (
                                   <span className="shrink-0 font-semibold text-leaf-dark dark:text-leaf-mint bg-leaf-soft/80 dark:bg-leaf-dark px-1.5 py-0.5 rounded border border-leaf-mint/40">
-                                    Cách ~{bin.distance_meters < 1000 ? `${Math.round(bin.distance_meters)}m` : `${(bin.distance_meters / 1000).toFixed(1)}km`}
+                                    {bin.distance_meters < 10
+                                      ? "Ngay tại toà nhà"
+                                      : bin.distance_meters < 1000
+                                      ? `Cách ~${Math.round(bin.distance_meters)}m`
+                                      : `Cách ~${(bin.distance_meters / 1000).toFixed(1)}km`}
                                   </span>
                                 )}
                               </div>

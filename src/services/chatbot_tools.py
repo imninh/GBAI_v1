@@ -106,8 +106,8 @@ def query_viable_bins(
     for cat in session.scalars(select(WasteCategory)).all():
         categories_map[cat.code] = cat.name
 
-    # Lấy toạ độ toà nhà nếu có building_id mà chưa có GPS
-    if building_id is not None and (user_lat is None or user_lng is None):
+    # Ưu tiên lấy toạ độ toà nhà từ database nếu có building_id
+    if building_id is not None:
         building = session.get(Building, building_id)
         if building and building.lat is not None and building.lng is not None:
             user_lat = building.lat

@@ -26,7 +26,7 @@ from typing import Any, Literal
 from sqlalchemy.orm import Session
 
 from src.config import PROVIDER_DEFAULT_MODELS, get_settings
-from src.db.models import ChatMessage, ChatSession
+from src.db.models import Building, ChatMessage, ChatSession
 from src.services.chatbot_tools import (
     format_bins_for_llm_context,
     handle_book_bulky_pickup,
@@ -662,7 +662,14 @@ def handle_bin_query(
     # --- Xác định trạng thái vị trí ---
     dia_danh_name = ""
     vi_tri = "khong_biet"
-    if user_lat is not None and user_lng is not None:
+    if building_id is not None:
+        building = session.get(Building, building_id)
+        if building and building.lat is not None and building.lng is not None:
+            user_lat = building.lat
+            user_lng = building.lng
+            vi_tri = "gps"
+            dia_danh_name = building.name
+    elif user_lat is not None and user_lng is not None:
         vi_tri = "gps"
     else:
         kq = _tra_dia_danh(norm_q)
