@@ -8,7 +8,6 @@ import "leaflet/dist/leaflet.css";
 import { api } from "@/lib/api";
 import { kg } from "@/lib/format";
 import { IconCanhBao, IconDuyet, IconMonDo, IconNhanh, IconViTri, IconXeThuGom } from "@/lib/icons";
-import { Map as MapIcon, Satellite } from "lucide-react";
 import type { NavigationResult, RouteStop } from "@/lib/types";
 import LiveVehicleMarker, { type LivePosition } from "@/components/map/live-vehicle-marker";
 import { coToaDo } from "@/components/map/route-map-base";
@@ -191,7 +190,6 @@ export default function NavigationMode({
   onExit,
   dsSuCo = [],
 }: NavigationModeProps) {
-  const [tileMode, setTileMode] = useState<"satellite" | "standard">("satellite");
   const [livePos, setLivePos] = useState<LivePosition | null>(propLivePos ?? null);
   const [navData, setNavData] = useState<NavigationResult | null>(null);
   const [loadingRoute, setLoadingRoute] = useState(true);
@@ -389,32 +387,19 @@ export default function NavigationMode({
           )}
         </div>
 
-        {/* Nút bật/tắt Vệ tinh & Bám xe */}
+        {/* Nút bám theo xe */}
         <div className="flex items-center gap-1.5">
           <button
             type="button"
-            onClick={() => setTileMode((m) => (m === "satellite" ? "standard" : "satellite"))}
-            className={`flex items-center gap-1 rounded-xl px-2.5 py-2 text-xs font-bold shadow-lg backdrop-blur border transition-all ${
-              tileMode === "satellite"
-                ? "bg-emerald-700/90 text-white border-emerald-500"
-                : "bg-slate-900/90 text-slate-200 border-slate-700 hover:bg-slate-800"
-            }`}
-            title="Đổi kiểu bản đồ"
-          >
-            <span>{tileMode === "satellite" ? <Satellite className="h-4 w-4" strokeWidth={1.9} /> : <MapIcon className="h-4 w-4" strokeWidth={1.9} />}</span>
-            <span className="hidden sm:inline">{tileMode === "satellite" ? "Vệ tinh" : "Phố"}</span>
-          </button>
-          <button
-            type="button"
             onClick={() => setFollowVehicle((f) => !f)}
-            className={`flex items-center justify-center h-8 w-8 rounded-xl shadow-lg backdrop-blur border transition-all ${
+            className={`flex items-center justify-center h-9 w-9 rounded-xl shadow-lg backdrop-blur border transition-all ${
               followVehicle
                 ? "bg-emerald-600 text-white border-emerald-400 shadow-emerald-900/50"
                 : "bg-slate-900/90 text-slate-400 border-slate-700"
             }`}
             title={followVehicle ? "Đang khóa tâm xe" : "Bật bám theo xe"}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <circle cx="12" cy="12" r="3" fill="currentColor" />
             </svg>
@@ -429,18 +414,10 @@ export default function NavigationMode({
         scrollWheelZoom
         className="h-full w-full relative z-0 isolate"
       >
-        {tileMode === "satellite" ? (
-          <TileLayer
-            attribution='&copy; Google Maps'
-            url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}&hl=vi&gl=VN"
-            maxZoom={19}
-          />
-        ) : (
-          <TileLayer
-            attribution='&copy; Google Maps'
-            url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi&gl=VN"
-          />
-        )}
+        <TileLayer
+          attribution='&copy; Google Maps'
+          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi&gl=VN"
+        />
 
         <MapController
           pos={livePos}
