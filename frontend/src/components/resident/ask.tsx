@@ -137,7 +137,7 @@ export function AskScreen({
 
       {/* ── hero: scan chính ── */}
       <div className="relative z-10 mt-14">
-        <h1 className="mb-4 max-w-[240px] font-[family-name:var(--font-display)] text-[34px] font-extrabold leading-[1.04] tracking-tight text-leaf-dark drop-shadow-[0_2px_10px_rgba(255,255,255,0.95)]">
+        <h1 className="mb-4 max-w-[240px] font-[family-name:var(--font-display)] text-[34px] font-extrabold leading-[1.04] tracking-tight text-white drop-shadow-[0_2px_12px_rgba(20,40,25,0.75)] [text-shadow:_0_2px_8px_rgba(0,0,0,0.55),_0_0_20px_rgba(28,44,70,0.45)]">
           Không biết bỏ
           <br />
           vào thùng nào?
