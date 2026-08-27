@@ -429,118 +429,159 @@ export function LoginScreen() {
   }
 
   const oNhap =
-    "w-full rounded-2xl border-[1.5px] border-line-2 bg-surface px-4 py-4 text-[15px] font-semibold outline-none focus:border-leaf";
+    "w-full rounded-2xl border-[1.5px] border-line-2 bg-surface px-4 py-4 text-[15px] font-semibold outline-none focus:border-leaf-dark";
   const nutCach = (dang: boolean) =>
-    `flex-1 cursor-pointer rounded-xl py-2 text-[13px] font-bold ${dang ? "bg-surface shadow-sm" : "text-muted"}`;
+    `flex-1 cursor-pointer rounded-xl py-3 text-[13px] font-bold ${dang ? "bg-surface shadow-sm" : "text-muted"}`;
   const dinhDanhTrong = cach === "sdt" ? !sdt.trim() : !email.trim();
 
   return (
-    <div className="flex min-h-full flex-col bg-cream px-6 pb-8 pt-[70px]">
-      <div className="mb-[18px] flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-leaf shadow-[0_10px_22px_-8px_rgba(47,174,102,.6)]">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M7 19a2 2 0 0 1-2-2l-1-9h16l-1 9a2 2 0 0 1-2 2z" />
-          <path d="M3 8h18" />
-          <path d="M9 8V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
-        </svg>
-      </div>
-      <h1 className="mb-1.5 flex items-center gap-2.5 font-[family-name:var(--font-display)] text-[34px] font-bold leading-none tracking-tight">
-        Chào bạn
-        <IconChao className="h-7 w-7 text-leaf" />
-      </h1>
-      <p className="mb-6 text-[15px] font-semibold leading-snug text-ink-faint">Chụp ảnh — biết ngay bỏ vào thùng nào.</p>
+    <div className="relative flex min-h-full flex-col overflow-hidden bg-cream px-6 pb-8 pt-[70px]">
+      {/* Lớp sóng nền — z-0, không che tương tác. Mobile: giãn theo bề rộng cột
+          (≤560px). Desktop ≥lg: neo góc bằng bề rộng cố định để không phình ở 1920px. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/pattern/song-tren-phai.svg"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute right-0 top-0 z-0 h-auto w-full lg:w-[min(60vw,560px)]"
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/pattern/song-duoi-trai.svg"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-0 left-0 z-0 h-auto w-full lg:w-[min(60vw,560px)]"
+      />
 
-      {cheDo === "dangky" ? (
-        <FormDangKy />
-      ) : (
-        <>
-          <div className="mb-2.5 flex gap-1 rounded-2xl bg-muted-bg p-1">
-            <button onClick={() => setCach("sdt")} className={nutCach(cach === "sdt")}>
-              Số điện thoại
-            </button>
-            <button onClick={() => setCach("email")} className={nutCach(cach === "email")}>
-              Email
-            </button>
+      {/* Nội dung — z-10, desktop không trải rộng quá 480px */}
+      <div className="relative z-10 mx-auto flex w-full max-w-[480px] flex-col">
+        {/* Đầu: logo + "GreenBin AI" + Bini nhắm mắt cười */}
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo/chinh.svg" alt="GreenBin" className="h-8 w-auto" />
+            <span className="font-[family-name:var(--font-display)] text-[20px] font-bold tracking-tight text-ink">
+              GreenBin <span className="text-leaf">AI</span>
+            </span>
           </div>
+          <Mascot size={56} tuThe="nham-mat-cuoi" />
+        </div>
+        <h1 className="mb-1.5 flex items-center gap-2.5 font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tracking-tight text-ink">
+          Chào bạn
+          <IconChao className="h-7 w-7 text-leaf" />
+        </h1>
+        <p className="mb-6 text-[15px] font-semibold leading-snug text-ink-faint">
+          Cùng phân loại rác, đúng nơi &amp; xanh hơn mỗi ngày.
+        </p>
 
-          {cach === "sdt" ? (
-            <input
-              value={sdt}
-              onChange={(e) => setSdt(e.target.value)}
-              type="tel"
-              inputMode="numeric"
-              autoComplete="tel"
-              placeholder="Số điện thoại"
-              className={`mb-2.5 ${oNhap}`}
-            />
+        {/* Form — thẻ nổi kem-soft, bo 24px, giữ nguyên cơ chế cheDo */}
+        <div
+          className="animate-gbappear rounded-[var(--gb-r-lg)] border-[1.5px] border-line-2 bg-cream-soft p-4 shadow-[var(--shadow-md)]"
+          style={{ borderWidth: "1.5px" }}
+        >
+          {cheDo === "dangky" ? (
+            <FormDangKy />
           ) : (
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-              autoComplete="email"
-              placeholder="Email"
-              className={`mb-2.5 ${oNhap}`}
-            />
+            <>
+              <div className="mb-2.5 flex gap-1 rounded-2xl bg-surface/70 p-1">
+                <button onClick={() => setCach("sdt")} className={nutCach(cach === "sdt")}>
+                  Số điện thoại
+                </button>
+                <button onClick={() => setCach("email")} className={nutCach(cach === "email")}>
+                  Email
+                </button>
+              </div>
+
+              {cach === "sdt" ? (
+                <input
+                  value={sdt}
+                  onChange={(e) => setSdt(e.target.value)}
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  placeholder="Số điện thoại"
+                  className={`mb-2.5 ${oNhap}`}
+                />
+              ) : (
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Email"
+                  className={`mb-2.5 ${oNhap}`}
+                />
+              )}
+              <input
+                value={matKhau}
+                onChange={(e) => setMatKhau(e.target.value)}
+                type="password"
+                autoComplete="current-password"
+                placeholder="Mật khẩu"
+                className={`mb-3.5 ${oNhap}`}
+              />
+              {error && <div className="mb-3 text-[13px] font-bold text-hazard-dark">{error}</div>}
+              <Button
+                block
+                size="lg"
+                className="bg-leaf-dark text-cream hover:bg-leaf"
+                disabled={dangGui || dinhDanhTrong}
+                onClick={() => (cach === "sdt" ? vaoBangSdt() : vao(email, matKhau))}
+              >
+                {dangGui ? "Đang vào…" : "Đăng nhập"}
+              </Button>
+            </>
           )}
-          <input
-            value={matKhau}
-            onChange={(e) => setMatKhau(e.target.value)}
-            type="password"
-            autoComplete="current-password"
-            placeholder="Mật khẩu"
-            className={`mb-3.5 ${oNhap}`}
-          />
-          {error && <div className="mb-3 text-[13px] font-bold text-hazard-dark">{error}</div>}
-          <Button
-            block
-            size="lg"
-            disabled={dangGui || dinhDanhTrong}
-            onClick={() => (cach === "sdt" ? vaoBangSdt() : vao(email, matKhau))}
-          >
-            {dangGui ? "Đang vào…" : "Đăng nhập"}
-          </Button>
-        </>
-      )}
-
-      <button
-        onClick={() => setCheDo(cheDo === "dangky" ? "dangnhap" : "dangky")}
-        className="mt-3 w-full cursor-pointer py-2 text-[14px] font-bold text-leaf-dark"
-      >
-        {cheDo === "dangky" ? "Đã có tài khoản? Đăng nhập" : "Chưa có tài khoản? Đăng ký bằng số điện thoại"}
-      </button>
-
-      <div className="my-5 flex items-center gap-3">
-        <span className="h-px flex-1 bg-line-2" />
-        <span className="text-xs font-bold text-label-faint">TÀI KHOẢN DEMO</span>
-        <span className="h-px flex-1 bg-line-2" />
-      </div>
-
-      {demo?.accounts.map((tk) => {
-        const mau = VAI_TRO[tk.role as keyof typeof VAI_TRO] ?? VAI_TRO.resident;
-        return (
           <button
-            key={tk.email}
-            onClick={() => vao(tk.email, demo.password)}
-            disabled={dangGui}
-            className="mb-2.5 flex w-full cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] bg-surface p-3.5 text-left"
-            style={{ borderColor: mau.border }}
+            onClick={() => setCheDo(cheDo === "dangky" ? "dangnhap" : "dangky")}
+            className="mt-3 w-full cursor-pointer py-2 text-[14px] font-bold text-leaf-dark"
           >
-            <span className="flex h-[42px] w-[42px] flex-none items-center justify-center rounded-xl" style={{ background: mau.bg }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={mau.fg} strokeWidth="2" strokeLinecap="round">
-                <circle cx="12" cy="8" r="4" />
-                <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
-              </svg>
-            </span>
-            <span className="flex-1">
-              <span className="block text-[15px] font-bold">
-                Vào với vai trò {tk.role === "resident" ? "Cư dân" : tk.role === "cleaner" ? "Đội vệ sinh" : "Ban quản lý"}
-              </span>
-              <span className="block text-xs font-semibold text-muted">{tk.description}</span>
-            </span>
-            <IconTiepTuc className="h-[18px] w-[18px]" style={{ color: mau.fg }} />
+            {cheDo === "dangky" ? "Đã có tài khoản? Đăng nhập" : "Chưa có tài khoản? Đăng ký bằng số điện thoại"}
           </button>
-        );
-      })}
+        </div>
+
+        {/* Divider demo */}
+        <div className="my-5 flex items-center gap-3">
+          <span className="h-px flex-1 bg-line-2" />
+          <span className="text-xs font-bold tracking-wider text-label-faint">TRẢI NGHIỆM NHANH (DEMO)</span>
+          <span className="h-px flex-1 bg-line-2" />
+        </div>
+
+        {/* 3 thẻ demo 1-chạm — thay icon người bằng ảnh role-*.svg */}
+        {demo?.accounts.map((tk) => {
+          const mau = VAI_TRO[tk.role as keyof typeof VAI_TRO] ?? VAI_TRO.resident;
+          const hinh =
+            tk.role === "resident"
+              ? "/illus/role-cu-dan.svg"
+              : tk.role === "cleaner"
+                ? "/illus/role-ve-sinh.svg"
+                : "/illus/role-quan-li.svg";
+          return (
+            <button
+              key={tk.email}
+              onClick={() => vao(tk.email, demo.password)}
+              disabled={dangGui}
+              className="mb-2.5 flex w-full cursor-pointer items-center gap-3 rounded-2xl border-[1.5px] bg-surface p-3.5 text-left"
+              style={{ borderColor: mau.border }}
+            >
+              <span
+                aria-hidden="true"
+                className="flex h-11 w-11 flex-none items-center justify-center rounded-xl"
+                style={{ background: mau.bg }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={hinh} alt="" className="h-11 w-11 object-contain" />
+              </span>
+              <span className="flex-1">
+                <span className="block text-[15px] font-bold">
+                  Vào với vai trò {tk.role === "resident" ? "Cư dân" : tk.role === "cleaner" ? "Đội vệ sinh" : "Ban quản lý"}
+                </span>
+                <span className="block text-xs font-semibold text-muted">{tk.description}</span>
+              </span>
+              <IconTiepTuc className="h-[18px] w-[18px]" style={{ color: mau.fg }} />
+            </button>
+          );
+        })}
 
       {/* Lối vào bản mô phỏng thiết bị. Là trang tĩnh trong `public/` nên đi
           thẳng bằng thẻ <a>, không qua bộ định tuyến của ứng dụng — bản xuất
@@ -570,6 +611,7 @@ export function LoginScreen() {
         {demo?.notice ??
           "Hệ thống demo dùng dữ liệu mô phỏng và dữ liệu công khai. Ảnh tải lên được tự động xoá thông tin vị trí và làm mờ khuôn mặt trước khi xử lý."}
       </p>
+      </div>
     </div>
   );
 }
