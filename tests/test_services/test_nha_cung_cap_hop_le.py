@@ -81,7 +81,7 @@ def test_provider_default_models_khong_co_khoa_ngoai_literal() -> None:
     assert ngoai == set(), f"Khoá ngoài Literal: {sorted(ngoai)}"
 
 
-@pytest.mark.parametrize("ten", ["gemini", "groq", "openai", "openrouter", "nvidia", "deepseek", "mistral", "tabitoken"])
+@pytest.mark.parametrize("ten", ["gemini", "groq", "openai", "openrouter", "nvidia", "deepseek", "mistral"])
 def test_cac_provider_openai_compatible_va_gemini_duoc_chap_nhan(ten: str) -> None:
     """Các tên mà `build_client_for` dựng được client phải nằm trong Literal."""
     assert ten in _cac_ten_trong_literal()

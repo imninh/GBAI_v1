@@ -200,7 +200,10 @@ def format_bins_for_llm_context(bins: list[ViableBinInfo], *, has_gps: bool = Tr
     lines = ["<bin_data>"]
     for b in bins:
         if has_gps and b.distance_meters is not None:
-            dist_str = f", Khoảng cách: ~{int(b.distance_meters)}m"
+            if b.distance_meters < 1000:
+                dist_str = f", Khoảng cách: ~{int(b.distance_meters)}m"
+            else:
+                dist_str = f", Khoảng cách: ~{(b.distance_meters / 1000):.1f}km"
         else:
             dist_str = ""
         cats_str = ", ".join(b.category_names) if b.category_names else ", ".join(b.category_codes)

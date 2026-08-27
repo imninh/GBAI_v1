@@ -465,7 +465,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                                 <span className="truncate pr-2">{bin.address}</span>
                                 {bin.distance_meters !== null && (
                                   <span className="shrink-0 font-semibold text-leaf-dark dark:text-leaf-mint bg-leaf-soft/80 dark:bg-leaf-dark px-1.5 py-0.5 rounded border border-leaf-mint/40">
-                                    Cách ~{Math.round(bin.distance_meters)}m
+                                    Cách ~{bin.distance_meters < 1000 ? `${Math.round(bin.distance_meters)}m` : `${(bin.distance_meters / 1000).toFixed(1)}km`}
                                   </span>
                                 )}
                               </div>
