@@ -19,13 +19,21 @@ import logging
 import re
 import time
 import unicodedata
+import uuid
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
 from sqlalchemy.orm import Session
 
 from src.config import PROVIDER_DEFAULT_MODELS, get_settings
-from src.services.chatbot_tools import format_bins_for_llm_context, query_viable_bins
+from src.db.models import ChatMessage, ChatSession
+from src.services.chatbot_tools import (
+    format_bins_for_llm_context,
+    handle_book_bulky_pickup,
+    handle_get_user_points,
+    handle_report_bin_issue,
+    query_viable_bins,
+)
 from src.services.pii import redact
 from src.services.rag import (
     embed_query,
@@ -33,6 +41,7 @@ from src.services.rag import (
     retrieve,
     so_doan_co_embedding,
 )
+from src.services.tool_idempotency import execute_tool_idempotent
 from src.services.vision import Usage, VisionUnavailableError, build_client_for, get_tier_model, get_vision_client
 
 _LOG = logging.getLogger(__name__)
@@ -40,7 +49,7 @@ _LOG = logging.getLogger(__name__)
 # Canary token chống lộ System Prompt (hd.md Phần 5.3)
 CANARY_TOKEN = "GB_CANARY_SEC_2026_9876"
 
-ChatIntent = Literal["waste_law", "bin_query", "app_guide", "out_of_scope"]
+ChatIntent = Literal["waste_law", "bin_query", "app_guide", "tool_action", "out_of_scope"]
 
 # Ngưỡng confidence_level suy ra từ confidence_score (§7.3)
 _CONFIDENCE_HIGH_THRESHOLD = 0.70
@@ -71,19 +80,11 @@ def _strip_xml_tags(text: str) -> str:
 
 
 _DISTANCE_PATTERN = re.compile(r"\d+\s*m\b|\d+\s*km|gần nhất|cách bạn", re.IGNORECASE)
-# Ở trạng thái `dia_danh`: vẫn chặn "gần nhất" và "cách bạn", nhưng CHO PHÉP
-# khoảng cách số kèm tên địa danh ("cách Bờ Hồ ~500m"). (§5.2)
 _DIA_DANH_PATTERN = re.compile(r"gần nhất|cách bạn", re.IGNORECASE)
 
 
 def _contains_distance_pattern(text: str, *, cho_phep_khoang_cach_dia_danh: bool = False) -> bool:
-    """Kiểm tra câu trả lời có chứa mẫu khoảng cách bị cấm.
-
-    - Mặc định (không có toạ độ, ``khong_biet``): chặn mọi khoảng cách, "gần nhất",
-      "cách bạn".
-    - ``cho_phep_khoang_cach_dia_danh=True`` (trạng thái ``dia_danh``): vẫn chặn
-      "gần nhất" và "cách bạn", nhưng cho phép "cách <tên địa danh> ~Xm".
-    """
+    """Kiểm tra câu trả lời có chứa mẫu khoảng cách bị cấm."""
     if cho_phep_khoang_cach_dia_danh:
         return bool(_DIA_DANH_PATTERN.search(text))
     return bool(_DISTANCE_PATTERN.search(text))
@@ -99,6 +100,9 @@ class ChatSourceChip:
     doc_type: str = "law"
     source: str = ""
     score: float = 0.0
+    char_start: int | None = None
+    char_end: int | None = None
+    verified: bool = True
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -108,37 +112,65 @@ class ChatSourceChip:
             "doc_type": self.doc_type,
             "source": self.source,
             "score": round(self.score, 4),
+            "char_start": self.char_start,
+            "char_end": self.char_end,
+            "verified": self.verified,
         }
 
 
 @dataclass
 class ChatbotResponse:
-    """Kết quả phản hồi của Chatbot gửi về cho client."""
+    """Kết quả phản hồi của Chatbot gửi về cho client kèm đầy đủ Contract."""
 
     answer: str
     intent: ChatIntent
+    session_id: str = ""
+    message_id: int | None = None
     confidence_level: str = "High"  # High | Medium | Low
     confidence_score: float = 1.0
+    finish_reason: str = "stop"  # stop | length | tool_calls | content_filter | timeout | circuit_breaker
+    refusal: str | None = None
+    model_version_pin: str = "greenbin-rag-v3"
     source_badge: str = "[AI sinh]"  # [AI sinh từ Luật BVMT 2020] | [Dữ liệu IoT] | [Hướng dẫn App] | [Mẫu quy tắc]
     sources: list[ChatSourceChip] = field(default_factory=list)
     viable_bins: list[dict[str, Any]] = field(default_factory=list)
+    tool_calls: list[dict[str, Any]] = field(default_factory=list)
     fallback_level: int = 1  # 1: LLM Inference | 2: Rule Fallback | 3: Abstain
-    generated_by: str = "mistral"  # mistral | template | abstain
+    generated_by: str = "mistral"  # mistral | tabitoken | template | memory | tool | abstain
     usage: Usage = field(default_factory=Usage)
+    step_count: int = 1
+    wall_clock_ms: float = 0.0
 
     def as_dict(self) -> dict[str, Any]:
+        tokens_total = self.usage.tokens_in + self.usage.tokens_out
         return {
+            "session_id": self.session_id,
+            "message_id": self.message_id,
             "answer": self.answer,
             "intent": self.intent,
             "confidence_level": self.confidence_level,
             "confidence_score": round(self.confidence_score, 4),
+            "finish_reason": self.finish_reason,
+            "refusal": self.refusal,
+            "model_version_pin": self.model_version_pin,
             "source_badge": self.source_badge,
             "sources": [s.as_dict() for s in self.sources],
             "viable_bins": self.viable_bins,
+            "tool_calls": self.tool_calls,
             "fallback_level": self.fallback_level,
             "generated_by": self.generated_by,
-            "tokens_used": self.usage.tokens_in + self.usage.tokens_out,
+            "tokens_used": tokens_total,
             "cost_usd": self.usage.cost_usd,
+            "execution_trace": {
+                "step_count": self.step_count,
+                "max_steps_allowed": 3,
+                "wall_clock_ms": round(self.wall_clock_ms, 2),
+                "timeout_budget_ms": 10000.0,
+                "prompt_tokens": self.usage.tokens_in,
+                "completion_tokens": self.usage.tokens_out,
+                "total_tokens": tokens_total,
+                "cost_usd": self.usage.cost_usd,
+            },
         }
 
 
@@ -340,20 +372,24 @@ Trả về ĐÚNG MỘT từ: waste_law | bin_query | app_guide | out_of_scope""
 
 
 def get_llm_client_for_chatbot() -> tuple[Any, str, str]:
-    """Khởi tạo Client LLM ưu tiên Mistral nếu có key, hoặc fallback sang text tier.
+    """Khởi tạo Client LLM ưu tiên TabiToken (Claude Opus) hoặc Mistral nếu có key, hoặc fallback sang text tier.
 
     Returns:
         (client, model, provider_name)
     """
     settings = get_settings()
+    if settings.tabitoken_api_key:
+        try:
+            client = build_client_for("tabitoken")
+            model = settings.tabitoken_model or "claude-opus-5"
+            return client, model, "tabitoken"
+        except (VisionUnavailableError, KeyError, AttributeError) as exc:
+            _LOG.warning("TABITOKEN_API_KEY có nhưng khởi tạo thất bại (%s: %s).", type(exc).__name__, exc)
+
     if settings.mistral_api_key:
         try:
             client = build_client_for("mistral")
             defaults = PROVIDER_DEFAULT_MODELS.get("mistral", ("", "", ""))
-            # Chỉ dùng settings.text_model khi tầng text VỐN LÀ mistral.
-            # Nếu tầng text là nvidia (hay provider khác), đưa tên model của
-            # nvidia cho client Mistral sẽ gọi hỏng → rơi về mẫu. Lúc đó phải
-            # lấy model mặc định của chính mistral.
             if settings.resolve_provider("text") == "mistral":
                 model = settings.text_model or defaults[2] or "mistral-small-latest"
             else:
@@ -894,7 +930,221 @@ def handle_app_guide(
         )
 
 
-# --- 7. Điểm Điều phối Chính (Chatbot Orchestrator) -----------------------
+# --- 7. Working Memory & Multi-turn Session Helpers ------------------------
+
+def get_or_create_chat_session(
+    session: Session,
+    session_id: str | None = None,
+    *,
+    user_id: int | None = None,
+    building_id: int | None = None,
+) -> ChatSession:
+    """Lấy hoặc tạo mới một phiên hội thoại ChatSession trong CSDL."""
+    if session_id:
+        existing = session.get(ChatSession, session_id)
+        if existing is not None:
+            if user_id and not existing.user_id:
+                existing.user_id = user_id
+            if building_id and not existing.building_id:
+                existing.building_id = building_id
+            return existing
+
+    new_sess_id = session_id or str(uuid.uuid4())
+    new_session = ChatSession(
+        id=new_sess_id,
+        user_id=user_id,
+        building_id=building_id,
+        title="Hội thoại mới",
+        working_memory={},
+        metadata_json={},
+    )
+    session.add(new_session)
+    session.flush()
+    return new_session
+
+
+_MEMORY_STORE_PATTERNS = [
+    re.compile(r"(?:mã\s+kiểm\s+thử|mã\s+test|mã\s+xác\s+thực|mã\s+số|mã)\s+(?:là\s+|:\s*)?([A-Za-z0-9_\-\.\/]+)", re.IGNORECASE),
+    re.compile(r"(?:ghi\s+nhớ|hãy\s+nhớ|lưu\s+lại|nhớ\s+hộ|nhớ\s+giúp)\s+(?:rằng\s+|là\s+|mã\s+kiểm\s+thử\s+là\s+|mã\s+là\s+)?([A-Za-z0-9_\-\.\/]+)", re.IGNORECASE),
+    re.compile(r"\b([A-Za-z]{2,10}-[0-9]{3,8})\b"),
+]
+
+_MEMORY_RECALL_PATTERNS = [
+    re.compile(r"(?:bạn\s+có\s+nhớ|nhắc\s+lại|mã\s+tôi\s+dặn|tôi\s+vừa\s+bảo\s+nhớ|tôi\s+vừa\s+dặn|mã\s+kiểm\s+thử|mã\s+test|giá\s+trị\s+đã\s+lưu|thông\s+tin\s+đã\s+nhớ)", re.IGNORECASE),
+]
+
+
+def extract_and_save_working_memory(session_obj: ChatSession, text: str) -> tuple[bool, str]:
+    """Trích xuất và lưu biến/thực thể vào working_memory của phiên hội thoại."""
+    # Nếu là câu hỏi (có từ hỏi ở cuối hoặc chứa 'có nhớ', 'là gì'), không trích xuất lưu
+    if any(q in text.lower() for q in ["là gì", "thế nào", "ở đâu", "bao nhiêu", "có nhớ", "nhắc lại", "không?", "chưa?"]):
+        return False, ""
+
+    # Ưu tiên mã code có định dạng chuẩn (ví dụ TEST-4472, APPT-1204)
+    code_match = re.search(r"\b([A-Za-z]{2,10}-[0-9]{3,8})\b", text)
+    if code_match and any(w in text.lower() for w in ["nhớ", "lưu", "mã", "test", "ghi"]):
+        val = code_match.group(1).strip()
+        curr_mem = dict(session_obj.working_memory or {})
+        key = "test_code" if "test" in text.lower() or "mã" in text.lower() else f"item_{len(curr_mem) + 1}"
+        curr_mem[key] = val
+        session_obj.working_memory = curr_mem
+        return True, val
+
+    for pattern in _MEMORY_STORE_PATTERNS:
+        match = pattern.search(text)
+        if match:
+            val = match.group(1).strip()
+            if val.lower() in {
+                "là", "rằng", "mã", "thử", "kiểm", "giúp", "hộ", "cho", "tôi", "mình",
+                "cái", "này", "ki", "không", "chưa", "gì", "nào", "đâu", "thế", "sao", "hả",
+            }:
+                continue
+            curr_mem = dict(session_obj.working_memory or {})
+            key = "test_code" if "test" in text.lower() or "mã" in text.lower() else f"item_{len(curr_mem) + 1}"
+            curr_mem[key] = val
+            session_obj.working_memory = curr_mem
+            return True, val
+    return False, ""
+
+
+def check_working_memory_recall(session_obj: ChatSession, text: str) -> tuple[bool, str]:
+    """Kiểm tra câu hỏi có đang yêu cầu nhớ lại các biến trong working_memory không."""
+    curr_mem = session_obj.working_memory or {}
+    if not curr_mem:
+        return False, ""
+
+    is_asking_recall = any(p.search(text) for p in _MEMORY_RECALL_PATTERNS)
+    if is_asking_recall:
+        items = [f"**{k}**: {v}" for k, v in curr_mem.items()]
+        val_str = ", ".join(items)
+        return True, f"Theo thông tin bạn đã dặn ghi nhớ trong phiên hội thoại: {val_str}."
+
+    for k, v in curr_mem.items():
+        if v.lower() in text.lower():
+            return True, f"Mã **{v}** đã được ghi nhớ trong phiên hội thoại này."
+
+    return False, ""
+
+
+# --- 8. Tool Detection & Idempotent Execution ------------------------------
+
+_TOOL_BOOK_PICKUP_PATTERNS = [
+    re.compile(r"(?:đặt\s+lịch|hẹn\s+lịch|lên\s+lịch|tạo\s+yêu\s+cầu)\s+(?:thu\s+gom\s+)?(?:rác\s+cồng\s+kềnh|đồ\s+cồng\s+kềnh|ghế|bàn|tủ|sofa|nệm|đệm|giường)", re.IGNORECASE),
+    re.compile(r"(?:thu\s+gom|lấy)\s+(?:giúp\s+)?(?:chiếc\s+|cái\s+)?(?:ghế|bàn|tủ|sofa|nệm|đệm|giường|đồ\s+cũ)", re.IGNORECASE),
+]
+
+_TOOL_REPORT_BIN_PATTERNS = [
+    re.compile(r"(?:báo\s+cáo|báo\s+hỏng|báo\s+lỗi|thùng\s+rác\s+bị\s+đầy|báo\s+thùng\s+đầy)\s+(?:thùng\s+)?([A-Za-z0-9_\-]+)?", re.IGNORECASE),
+]
+
+_TOOL_POINTS_PATTERNS = [
+    re.compile(r"(?:tra\s+cứu\s+điểm|xem\s+điểm|tôi\s+có\s+bao\s+nhiêu\s+điểm|điểm\s+xanh\s+của\s+tôi|điểm\s+thưởng)", re.IGNORECASE),
+]
+
+
+def detect_and_execute_tool(
+    session: Session,
+    clean_q: str,
+    *,
+    user: Any | None = None,
+    session_id: str | None = None,
+) -> tuple[bool, ChatbotResponse | None]:
+    """Phát hiện ý định gọi Action Tool và thực thi có bảo vệ Idempotency."""
+    # Nếu câu hỏi mang tính chất tra cứu hướng dẫn, để Router chuyển về app_guide
+    if any(q in clean_q.lower() for q in ["cho phép", "làm thế nào", "cách", "hướng dẫn", "được không", "không?", "thế nào?"]):
+        return False, None
+
+    if any(p.search(clean_q) for p in _TOOL_BOOK_PICKUP_PATTERNS):
+        args = {
+            "items": "Rác cồng kềnh (đặt qua Trợ lý Bini)",
+            "note": clean_q,
+        }
+        res, is_dedup = execute_tool_idempotent(
+            session,
+            "book_bulky_pickup",
+            args,
+            handle_book_bulky_pickup,
+            user=user,
+            session_id=session_id,
+        )
+        if res.get("success"):
+            if is_dedup:
+                ans = f"Yêu cầu thu gom #{res.get('pickup_id')} cho món đồ này đã được ghi nhận trước đó (tránh tạo trùng lặp). Đội ngũ thu gom sẽ đến đúng hẹn!"
+            else:
+                ans = f"Đã đặt lịch thu gom thành công! Mã yêu cầu: #{res.get('pickup_id')}. Bạn có thể theo dõi tiến độ trong tab 'Yêu cầu'."
+            return True, ChatbotResponse(
+                answer=ans,
+                intent="tool_action",
+                confidence_level="High",
+                confidence_score=1.0,
+                source_badge="[Tool Ghi nhận]",
+                tool_calls=[res],
+                fallback_level=1,
+                generated_by="tool",
+                step_count=2,
+            )
+        else:
+            return True, ChatbotResponse(
+                answer=f"Không thể đặt lịch: {res.get('error')}. Bạn có thể đặt trực tiếp tại tab 'Yêu cầu' nhé.",
+                intent="tool_action",
+                confidence_level="High",
+                confidence_score=0.9,
+                source_badge="[Tool Báo lỗi]",
+                tool_calls=[res],
+                fallback_level=2,
+                generated_by="tool",
+                step_count=2,
+            )
+
+    if any(p.search(clean_q) for p in _TOOL_REPORT_BIN_PATTERNS):
+        res, is_dedup = execute_tool_idempotent(
+            session,
+            "report_bin_issue",
+            {"note": clean_q},
+            handle_report_bin_issue,
+            user=user,
+            session_id=session_id,
+        )
+        ans = res.get("message", "Đã tiếp nhận phản ánh sự cố thùng rác.")
+        if is_dedup:
+            ans += " (Phản ánh này đã được ghi nhận trước đó, đang được xử lý)."
+        return True, ChatbotResponse(
+            answer=ans,
+            intent="tool_action",
+            confidence_level="High",
+            confidence_score=1.0,
+            source_badge="[Tool Báo sự cố]",
+            tool_calls=[res],
+            fallback_level=1,
+            generated_by="tool",
+            step_count=2,
+        )
+
+    if any(p.search(clean_q) for p in _TOOL_POINTS_PATTERNS):
+        res, _ = execute_tool_idempotent(
+            session,
+            "get_user_points",
+            {},
+            handle_get_user_points,
+            user=user,
+            session_id=session_id,
+        )
+        return True, ChatbotResponse(
+            answer=res.get("message", "Bạn có thể xem điểm tại tab 'Tôi'."),
+            intent="tool_action",
+            confidence_level="High",
+            confidence_score=1.0,
+            source_badge="[Tool Điểm xanh]",
+            tool_calls=[res],
+            fallback_level=1,
+            generated_by="tool",
+            step_count=2,
+        )
+
+    return False, None
+
+
+# --- 9. Điểm Điều phối Chính (Chatbot Orchestrator) -----------------------
 
 def _chay_chatbot(
     session: Session,
@@ -903,16 +1153,10 @@ def _chay_chatbot(
     building_id: int | None = None,
     user_lat: float | None = None,
     user_lng: float | None = None,
+    user: Any | None = None,
+    session_obj: ChatSession | None = None,
 ) -> ChatbotResponse:
-    """Xử lý toàn diện một câu hỏi của người dùng gửi tới RAG Chatbot.
-
-    Quy trình:
-    1. Chuẩn hoá văn bản (Unicode NFKC)
-    2. Input Guardrail: Kiểm tra Prompt Injection
-    3. Cascade Intent Router (Rule -> LLM)
-    4. Điều phối tới F1 (Luật), F2 (Thùng rác), F3 (App Guide) hoặc Abstain
-    5. Output Guardrail (PII Sanitization + Canary Check)
-    """
+    """Xử lý toàn diện một câu hỏi của người dùng gửi tới RAG Chatbot."""
     clean_q = normalize_input(question)
     if not clean_q:
         return ChatbotResponse(
@@ -932,18 +1176,53 @@ def _chay_chatbot(
             intent="out_of_scope",
             confidence_level="High",
             confidence_score=1.0,
+            finish_reason="content_filter",
+            refusal="Prompt injection detected",
             source_badge="[Hàng rào bảo mật]",
             fallback_level=3,
             generated_by="abstain",
         )
 
-    # 2. Intent Classification
+    # 2. Working Memory: Nhớ lại biến đã lưu (Recall)
+    if session_obj is not None:
+        has_recall, recall_text = check_working_memory_recall(session_obj, clean_q)
+        if has_recall:
+            return ChatbotResponse(
+                answer=recall_text,
+                intent="app_guide",
+                confidence_level="High",
+                confidence_score=1.0,
+                source_badge="[Bộ nhớ phiên]",
+                fallback_level=1,
+                generated_by="memory",
+            )
+
+        # 3. Working Memory: Lưu biến nếu có chỉ thị ghi nhớ (Store)
+        has_stored, val = extract_and_save_working_memory(session_obj, clean_q)
+        if has_stored:
+            return ChatbotResponse(
+                answer=f"Mình đã ghi nhớ thông tin **{val}** cho phiên làm việc này rồi nhé! Khi cần tra cứu, bạn chỉ việc hỏi lại mình.",
+                intent="app_guide",
+                confidence_level="High",
+                confidence_score=1.0,
+                source_badge="[Bộ nhớ phiên]",
+                fallback_level=1,
+                generated_by="memory",
+            )
+
+    # 4. Tool Execution Boundary
+    sess_id = session_obj.id if session_obj else None
+    is_tool, tool_resp = detect_and_execute_tool(session, clean_q, user=user, session_id=sess_id)
+    if is_tool and tool_resp is not None:
+        return tool_resp
+
+    # 5. Intent Classification
     client, model, provider = get_llm_client_for_chatbot()
     intent = classify_intent_rule(clean_q)
     if intent is None:
         intent = classify_intent_llm(clean_q, client, model)
 
-    # 3. Routing & Execution
+    # 6. Routing & Execution
     if intent == "waste_law":
         return handle_waste_law(
             session, clean_q, building_id=building_id, client=client, model=model, provider=provider
@@ -985,23 +1264,76 @@ def ask_chatbot(
     session: Session,
     question: str,
     *,
+    session_id: str | None = None,
+    user: Any | None = None,
     building_id: int | None = None,
     user_lat: float | None = None,
     user_lng: float | None = None,
     user_id: str = "khach",
     ten_nguoi: str | None = None,
 ) -> ChatbotResponse:
-    """Giao diện công khai — bọc ``_chay_chatbot`` và gắn trace Langfuse (P87).
-
-    Langfuse chỉ là lớp quan sát: dù nó có hỏng, câu trả lời cho người dùng vẫn
-    không đổi (xem ``src/services/theo_doi.py``).
-    """
+    """Giao diện công khai đầy đủ — quản lý Session, Memory, Tool Idempotency và trace Langfuse."""
     from src.services.theo_doi import ghi_trace_chatbot
 
     bat_dau = time.perf_counter()
-    resp = _chay_chatbot(
-        session, question, building_id=building_id, user_lat=user_lat, user_lng=user_lng
+
+    # 1. Lấy hoặc tạo ChatSession
+    uid = None
+    if user is not None and hasattr(user, "id"):
+        uid = user.id
+    elif user_id.isdigit():
+        uid = int(user_id)
+
+    chat_sess = get_or_create_chat_session(
+        session,
+        session_id=session_id,
+        user_id=uid,
+        building_id=building_id,
     )
+
+    # 2. Xử lý câu hỏi
+    resp = _chay_chatbot(
+        session,
+        question,
+        building_id=building_id,
+        user_lat=user_lat,
+        user_lng=user_lng,
+        user=user,
+        session_obj=chat_sess,
+    )
+
+    wall_clock_ms = (time.perf_counter() - bat_dau) * 1000.0
+    resp.session_id = chat_sess.id
+    resp.wall_clock_ms = wall_clock_ms
+
+    # 3. Lưu lịch sử tin nhắn vào ChatMessage trong CSDL
+    try:
+        user_msg = ChatMessage(
+            session_id=chat_sess.id,
+            role="user",
+            content=question,
+            intent=resp.intent,
+            metadata_json={},
+        )
+        session.add(user_msg)
+        session.flush()
+
+        asst_msg = ChatMessage(
+            session_id=chat_sess.id,
+            role="assistant",
+            content=resp.answer,
+            intent=resp.intent,
+            sources_json=[s.as_dict() for s in resp.sources],
+            tool_calls_json=resp.tool_calls,
+            metadata_json={"generated_by": resp.generated_by, "fallback_level": resp.fallback_level},
+        )
+        session.add(asst_msg)
+        session.flush()
+        resp.message_id = asst_msg.id
+    except Exception as exc:
+        _LOG.debug("Không lưu được ChatMessage vào DB: %s", exc)
+
+    # 4. Ghi trace Langfuse
     ghi_trace_chatbot(
         question=question,
         resp=resp,

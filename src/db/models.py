@@ -22,6 +22,7 @@ from __future__ import annotations
 
 from src.db.models_base import Base, utcnow  # noqa: F401
 from src.db.models_bins import Bin, BinReading  # noqa: F401
+from src.db.models_chatbot import ChatMessage, ChatSession, ToolExecutionRecord  # noqa: F401
 from src.db.models_classify import Classification, ClassificationFeedback, Media  # noqa: F401
 from src.db.models_diem import (  # noqa: F401
     DiemNhanThucLog,
@@ -58,6 +59,8 @@ __all__ = [
     "Bin",
     "BinReading",
     "Building",
+    "ChatMessage",
+    "ChatSession",
     "Classification",
     "ClassificationFeedback",
     "CollectionSchedule",
@@ -85,6 +88,7 @@ __all__ = [
     "STOP_KIND_YEU_CAU",
     "SuCoThuGom",
     "TokenThietBi",
+    "ToolExecutionRecord",
     "Unit",
     "User",
     "WasteCategory",

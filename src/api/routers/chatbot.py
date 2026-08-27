@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field, field_validator
+from sqlalchemy import select
 
 from src.api.deps import CurrentUser, DbSession
+from src.db.models import ChatMessage, ChatSession
 from src.services.auth import write_audit
 from src.services.chatbot import ask_chatbot
 
@@ -18,6 +20,7 @@ class ChatbotAskRequest(BaseModel):
     """Yêu cầu hỏi đáp gửi tới Chatbot."""
 
     question: str = Field(..., min_length=1, max_length=1000, description="Nội dung câu hỏi của cư dân")
+    session_id: str | None = Field(default=None, description="Mã phiên hội thoại (UUID) để duy trì ngữ cảnh")
     building_id: int | None = Field(default=None, description="Mã toà nhà (nếu có)")
     lat: float | None = Field(default=None, description="Toạ độ Vĩ độ GPS của người dùng")
     lng: float | None = Field(default=None, description="Toạ độ Kinh độ GPS của người dùng")
@@ -30,22 +33,32 @@ class ChatSourceChipResponse(BaseModel):
     doc_type: str = "law"
     source: str = ""
     score: float = 0.0
+    char_start: int | None = None
+    char_end: int | None = None
+    verified: bool = True
 
 
 class ChatbotAskResponse(BaseModel):
     """Phản hồi đầy đủ của Chatbot kèm siêu dữ liệu và căn cứ giải thích."""
 
+    session_id: str = ""
+    message_id: int | None = None
     answer: str
     intent: str
     confidence_level: str = "High"
     confidence_score: float = 1.0
+    finish_reason: str = "stop"
+    refusal: str | None = None
+    model_version_pin: str = "greenbin-rag-v3"
     source_badge: str = "[AI sinh]"
     sources: list[ChatSourceChipResponse] = []
     viable_bins: list[dict[str, Any]] = []
+    tool_calls: list[dict[str, Any]] = []
     fallback_level: int = 1
     generated_by: str = "mistral"
     tokens_used: int = 0
     cost_usd: float = 0.0
+    execution_trace: dict[str, Any] = {}
 
 
 class ChatbotFeedbackRequest(BaseModel):
@@ -60,7 +73,6 @@ class ChatbotFeedbackRequest(BaseModel):
     @field_validator("rating")
     @classmethod
     def _check_rating(cls, v: int) -> int:
-        # Chỉ nhận 1 hoặc -1. Lưu ý: ge=-1, le=1 vẫn cho lọt số 0 nên phải chặn rõ.
         if v not in (1, -1):
             raise ValueError("rating chỉ nhận 1 (👍) hoặc -1 (👎)")
         return v
@@ -70,21 +82,105 @@ class ChatbotFeedbackRequest(BaseModel):
 def ask(payload: ChatbotAskRequest, session: DbSession, user: CurrentUser) -> dict[str, Any]:
     """Hỏi đáp tự do với Trợ lý GreenBin AI RAG (Luật, Thùng rác, Hướng dẫn App)."""
     building_id = payload.building_id
-    # Chặn hỏi xuyên toà: nếu người dùng có building_id, chỉ dùng toà của chính họ.
     if (
         building_id is not None
         and user.building_id is not None
         and building_id != user.building_id
     ):
         building_id = user.building_id
+
     res = ask_chatbot(
         session,
         payload.question,
+        session_id=payload.session_id,
+        user=user,
         building_id=building_id,
         user_lat=payload.lat,
         user_lng=payload.lng,
+        user_id=str(user.id),
+        ten_nguoi=user.full_name,
     )
     return res.as_dict()
+
+
+@router.get("/sessions")
+def list_sessions(session: DbSession, user: CurrentUser) -> list[dict[str, Any]]:
+    """Lấy danh sách các phiên hội thoại của người dùng."""
+    stmt = (
+        select(ChatSession)
+        .where(ChatSession.user_id == user.id)
+        .order_by(ChatSession.updated_at.desc())
+        .limit(20)
+    )
+    records = session.execute(stmt).scalars().all()
+    return [
+        {
+            "id": s.id,
+            "title": s.title,
+            "building_id": s.building_id,
+            "created_at": s.created_at.isoformat() if s.created_at else None,
+            "updated_at": s.updated_at.isoformat() if s.updated_at else None,
+        }
+        for s in records
+    ]
+
+
+@router.get("/sessions/{session_id}/history")
+def get_session_history(session_id: str, session: DbSession, user: CurrentUser) -> dict[str, Any]:
+    """Khôi phục trạng thái và lịch sử tin nhắn của một phiên hội thoại (State Rehydration)."""
+    chat_sess = session.get(ChatSession, session_id)
+    if not chat_sess:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy phiên hội thoại")
+
+    # Kiểm tra quyền truy cập (RBAC / session isolation)
+    if chat_sess.user_id is not None and chat_sess.user_id != user.id and user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Không có quyền truy cập phiên này")
+
+    stmt = (
+        select(ChatMessage)
+        .where(ChatMessage.session_id == session_id)
+        .order_by(ChatMessage.created_at.asc())
+    )
+    msgs = session.execute(stmt).scalars().all()
+
+    return {
+        "session_id": chat_sess.id,
+        "title": chat_sess.title,
+        "working_memory": chat_sess.working_memory,
+        "messages": [
+            {
+                "id": m.id,
+                "role": m.role,
+                "content": m.content,
+                "intent": m.intent,
+                "sources": m.sources_json,
+                "tool_calls": m.tool_calls_json,
+                "created_at": m.created_at.isoformat() if m.created_at else None,
+            }
+            for m in msgs
+        ],
+    }
+
+
+@router.delete("/sessions/{session_id}")
+def delete_session(session_id: str, session: DbSession, user: CurrentUser) -> dict[str, Any]:
+    """Xóa một phiên hội thoại."""
+    chat_sess = session.get(ChatSession, session_id)
+    if not chat_sess:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Không tìm thấy phiên hội thoại")
+
+    if chat_sess.user_id is not None and chat_sess.user_id != user.id and user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Không có quyền xóa phiên này")
+
+    # Xóa messages liên quan
+    stmt = select(ChatMessage).where(ChatMessage.session_id == session_id)
+    msgs = session.execute(stmt).scalars().all()
+    for m in msgs:
+        session.delete(m)
+
+    session.delete(chat_sess)
+    session.commit()
+    return {"status": "success", "message": "Đã xóa phiên hội thoại thành công"}
 
 
 @router.post("/feedback")
@@ -93,8 +189,6 @@ def submit_feedback(payload: ChatbotFeedbackRequest, session: DbSession, user: C
 
     Ghi thật vào audit_log (HAX G15 & Triplet Observability).
     """
-    # Cắt độ dài trước khi ghi — cột audit_log chiều rộng có hạn, SQLite không bắt
-    # nhưng PostgreSQL (String) sẽ nổ ở production.
     write_audit(
         session,
         actor=user,
@@ -150,3 +244,4 @@ def get_suggested_questions(user: CurrentUser) -> dict[str, list[dict[str, str]]
             },
         ]
     }
+

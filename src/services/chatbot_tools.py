@@ -211,3 +211,151 @@ def format_bins_for_llm_context(bins: list[ViableBinInfo], *, has_gps: bool = Tr
         )
     lines.append("</bin_data>")
     return "\n".join(lines)
+
+
+# --- 2. Action Tools & Idempotent Executions (HAX G9 & Tool Boundary) ---
+
+def handle_book_bulky_pickup(
+    session: Session,
+    args: dict[str, Any],
+    *,
+    user: Any | None = None,
+    session_id: str | None = None,
+) -> dict[str, Any]:
+    """Handler tạo yêu cầu thu gom cồng kềnh cho cư dân."""
+    if user is None:
+        return {
+            "success": False,
+            "error": "Cần đăng nhập tài khoản cư dân để thực hiện đặt lịch thu gom.",
+        }
+
+    from src.services.pickup import create_pickup_request
+
+    items = args.get("items") or args.get("item_name") or "Rác cồng kềnh (qua trợ lý AI)"
+    if isinstance(items, str):
+        items_list = [items]
+    else:
+        items_list = list(items)
+
+    items_dicts = [{"name": str(it), "qty": 1} for it in items_list]
+
+    preferred_date_str = args.get("preferred_date")
+    pref_date = None
+    if preferred_date_str:
+        try:
+            from datetime import date
+            pref_date = date.fromisoformat(str(preferred_date_str)[:10])
+        except Exception:
+            pref_date = None
+
+    est_weight = float(args.get("est_weight_kg", 5.0) or 5.0)
+    note = str(args.get("note", "Đặt qua Chatbot Trợ lý Xanh Bini"))
+    address = str(args.get("address", "")).strip()
+    if not address and user and getattr(user, "unit_id", None) is None:
+        if getattr(user, "address", None):
+            address = str(user.address)
+        elif getattr(user, "building_id", None):
+            from src.db.models import Building
+            b_obj = session.get(Building, user.building_id)
+            if b_obj:
+                address = b_obj.address or b_obj.name
+        if not address:
+            address = "Khu vực toà nhà cư dân"
+
+    try:
+        req = create_pickup_request(
+            session,
+            resident=user,
+            items=items_dicts,
+            est_weight_kg=est_weight,
+            preferred_date=pref_date,
+            note=note,
+            address=address,
+        )
+        return {
+            "success": True,
+            "pickup_id": req.id,
+            "status": req.status,
+            "items": req.items,
+            "preferred_date": req.preferred_date.isoformat() if req.preferred_date else None,
+            "message": f"Đã ghi nhận yêu cầu thu gom #{req.id} cho {', '.join(items_list)}.",
+        }
+    except Exception as exc:
+        return {
+            "success": False,
+            "error": f"Không thể tạo yêu cầu: {exc}",
+        }
+
+
+def handle_report_bin_issue(
+    session: Session,
+    args: dict[str, Any],
+    *,
+    user: Any | None = None,
+    session_id: str | None = None,
+) -> dict[str, Any]:
+    """Handler báo cáo sự cố / đầy thùng rác."""
+    bin_id = args.get("bin_id")
+    bin_code = args.get("bin_code")
+    issue_type = args.get("issue_type", "day_rac")
+    note = args.get("note", "Báo qua Chatbot Bini")
+
+    bin_obj = None
+    if bin_id:
+        bin_obj = session.get(Bin, int(bin_id))
+    elif bin_code:
+        bin_obj = session.scalars(select(Bin).where(Bin.code == str(bin_code))).first()
+
+    if not bin_obj:
+        return {
+            "success": False,
+            "error": f"Không tìm thấy thùng rác với thông tin {bin_id or bin_code}.",
+        }
+
+    return {
+        "success": True,
+        "bin_id": bin_obj.id,
+        "bin_code": bin_obj.code,
+        "issue_type": issue_type,
+        "note": note,
+        "message": f"Đã tiếp nhận phản ánh sự cố cho thùng {bin_obj.code} ({bin_obj.name}). Đội ngũ kỹ thuật sẽ kiểm tra ngay.",
+    }
+
+
+def handle_get_user_points(
+    session: Session,
+    args: dict[str, Any],
+    *,
+    user: Any | None = None,
+    session_id: str | None = None,
+) -> dict[str, Any]:
+    """Handler tra cứu điểm thưởng & thành tích của cư dân."""
+    if user is None:
+        return {
+            "success": False,
+            "error": "Cần đăng nhập để tra cứu điểm thưởng.",
+        }
+
+    from sqlalchemy import func
+
+    from src.db.models import DiemNhanThucLog
+
+    tong_diem = session.scalar(
+        select(func.coalesce(func.sum(DiemNhanThucLog.diem), 0)).where(DiemNhanThucLog.user_id == user.id)
+    ) or 0
+
+    return {
+        "success": True,
+        "user_id": user.id,
+        "user_name": user.full_name,
+        "points": int(tong_diem),
+        "message": f"Cư dân {user.full_name} hiện đang có {int(tong_diem)} điểm xanh.",
+    }
+
+
+AVAILABLE_TOOLS = {
+    "book_bulky_pickup": handle_book_bulky_pickup,
+    "report_bin_issue": handle_report_bin_issue,
+    "get_user_points": handle_get_user_points,
+}
+

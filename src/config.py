@@ -28,7 +28,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Đừng hạ xuống `str`: gõ sai tên provider sẽ không ai phát hiện cho tới lúc gọi
 # model và nhận VISION-400 — lỗi đã tốn hai ngày tuần trước.
 VisionProvider = Literal[
-    "gemini", "groq", "openai", "openrouter", "nvidia", "deepseek", "mistral", "local_only", "stub"
+    "gemini", "groq", "openai", "openrouter", "nvidia", "deepseek", "mistral", "tabitoken", "local_only", "stub"
 ]
 
 # Ba tầng có gọi model đám mây. T0 (cache pHash) và T0.5 (CLIP local) không gọi
@@ -45,6 +45,7 @@ OPENAI_COMPATIBLE_BASE_URLS: dict[str, str] = {
     "deepseek": "https://api.deepseek.com/v1",
     "groq": "https://api.groq.com/openai/v1",
     "mistral": "https://api.mistral.ai/v1",
+    "tabitoken": "https://tabitoken.com/v1",
 }
 
 # Phiên bản prompt phân loại. **Một nguồn sự thật duy nhất** — nâng ở đây mỗi khi
@@ -146,6 +147,7 @@ PROVIDER_DEFAULT_MODELS: dict[str, tuple[str, str, str]] = {
     # ⚠️ Tên dưới đây là ứng viên, PHẢI đối chiếu trang model của Mistral trước
     # khi chạy thật — tên model đổi thường xuyên.
     "mistral": ("pixtral-12b-2409", "pixtral-large-latest", "mistral-small-latest"),
+    "tabitoken": ("claude-opus-5", "claude-opus-5", "claude-opus-5"),
     "local_only": ("", "", ""),
 }
 
@@ -161,6 +163,7 @@ PROVIDER_DEFAULT_EMBEDDING_MODELS: dict[str, str] = {
     # không có cái nào sinh vector. Để trống thì RAG tự lui về BM25 thuần, nên
     # EMBEDDING_PROVIDER phải giữ ở `gemini` nếu muốn giữ phần hybrid.
     "groq": "",
+    "tabitoken": "",
     "local_only": "",
 }
 
@@ -249,6 +252,9 @@ class Settings(BaseSettings):
     deepseek_api_key: str = ""
     groq_api_key: str = ""
     mistral_api_key: str = ""
+    tabitoken_api_key: str = ""
+    tabitoken_base_url: str = "https://tabitoken.com/v1"
+    tabitoken_model: str = "claude-opus-5"
 
     # Tên model từng tầng. Mặc định điền theo provider trong ``resolve_models``
     # nếu để trống, nên thường không cần đụng tới.
@@ -471,6 +477,7 @@ class Settings(BaseSettings):
             "deepseek": self.deepseek_api_key,
             "groq": self.groq_api_key,
             "mistral": self.mistral_api_key,
+            "tabitoken": self.tabitoken_api_key,
             "local_only": "",
         }
         return keys.get(provider, "")
