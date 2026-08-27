@@ -141,9 +141,19 @@ def _chay_script(*args: str, env: dict | None = None, input_data: str | None = N
     """Chạy script sao_luu_csdl.py qua subprocess, trả về CompletedProcess."""
     cmd = [sys.executable, "scripts/sao_luu_csdl.py", *args]
     env_moi = dict(os.environ)
+    env_moi["PYTHONIOENCODING"] = "utf-8"
     if env:
         env_moi.update(env)
-    return subprocess.run(cmd, capture_output=True, text=True, input=input_data, env=env_moi, cwd=Path(__file__).resolve().parents[1])
+    return subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        input=input_data,
+        env=env_moi,
+        cwd=Path(__file__).resolve().parents[1],
+    )
 
 
 def _doc_bang(engine, ten_bang: str) -> list[dict]:

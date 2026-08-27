@@ -100,7 +100,7 @@ export function AskScreen({
   }, []);
 
   return (
-    <div className="relative flex min-h-full flex-col overflow-hidden bg-[var(--color-cream,#fbf7ee)] px-5 pb-[120px] pt-[54px] lg:mx-auto lg:max-w-[960px]">
+    <div className="relative flex min-h-full flex-col overflow-hidden bg-cream px-5 pb-[120px] pt-[54px] lg:mx-auto lg:max-w-[960px]">
       {/* ── Background Banner Hoạt Cảnh Mới (Thay thế hoàn toàn background cũ được khoanh đỏ) ── */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[295px] z-0 overflow-hidden">
         <img
@@ -109,7 +109,7 @@ export function AskScreen({
           className="w-full h-full object-cover object-bottom select-none"
         />
         {/* Lớp chuyển sắc mềm mượt ở đáy nối vào nền kem bên dưới */}
-        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--color-cream,#fbf7ee)] via-[var(--color-cream,#fbf7ee)]/70 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-cream via-cream/70 to-transparent pointer-events-none" />
       </div>
 
       {/* ── header: lời chào + chuông ── */}

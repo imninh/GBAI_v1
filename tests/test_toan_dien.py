@@ -290,7 +290,7 @@ async def test_1_09_demo_accounts_tra_3_tai_khoan(api: AsyncClient) -> None:
     r = await api.get("/api/v1/auth/demo-accounts")
     assert r.status_code == 200
     data = r.json()
-    assert len(data["items"]) == 3
+    assert len(data["accounts"]) == 3
 
 
 @pytest.mark.asyncio
@@ -299,7 +299,7 @@ async def test_1_10_xem_ho_so_ca_nhan(api: AsyncClient) -> None:
     r = await api.get("/api/v1/auth/me", headers=_auth(token))
     assert r.status_code == 200
     data = r.json()
-    assert data["role"] == "resident"
+    assert data["user"]["role"] == "resident"
     assert "permissions" in data
 
 
@@ -312,7 +312,7 @@ async def test_1_11_cap_nhat_ten_ca_nhan(api: AsyncClient) -> None:
         headers=_auth(token),
     )
     assert r.status_code == 200
-    assert r.json()["full_name"] == "Tên Mới Test"
+    assert r.json()["user"]["full_name"] == "Tên Mới Test"
 
 
 @pytest.mark.asyncio
@@ -351,7 +351,7 @@ async def test_2_01_phan_loai_bang_chu_thanh_cong(
 async def test_2_02_confidence_thap_thi_tu_choi(
     api: AsyncClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    _fake_vision(monkeypatch, make_result(confidence=0.30))
+    _fake_vision(monkeypatch, make_result(confidence=0.30), make_result(confidence=0.30))
     token = await _dang_nhap(api, "resident@demo.vn")
 
     r = await api.post(
@@ -430,7 +430,7 @@ async def test_3_03_tu_choi_khong_kem_huong_dan(api: AsyncClient) -> None:
 async def test_3_04_danh_sach_hard_block(api: AsyncClient) -> None:
     r = await api.get("/api/v1/safety/hard-blocks")
     assert r.status_code == 200
-    assert len(r.json()["items"]) > 0
+    assert len(r.json()["rules"]) > 0
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -537,7 +537,7 @@ async def test_5_04_manager_tu_choi_co_ly_do(api: AsyncClient) -> None:
 
     r = await api.post(
         f"/api/v1/pickups/{data['id']}/review",
-        json={"action": "reject", "reason": "khong_dung_quy_cach"},
+        json={"action": "reject", "reason": "vuot_nang_luc"},
         headers=_auth(manager),
     )
     assert r.status_code == 200
@@ -738,7 +738,7 @@ async def test_7_03_manager_duyet_tuyen(api: AsyncClient) -> None:
     tuyen = (
         await api.post(
             "/api/v1/routes/propose",
-            json={"service_date": ngay.isoformat(), "window": "08:00-10:00"},
+            json={"service_date": ngay.isoformat(), "window": "08:00-10:00", "team_id": 1},
             headers=_auth(manager),
         )
     ).json()
@@ -777,8 +777,8 @@ async def test_8_02_thong_ke_trang_thai(api: AsyncClient) -> None:
     r = await api.get("/api/v1/bins/stats", headers=_auth(token))
     assert r.status_code == 200
     data = r.json()
-    # Phải có 4 nhóm trạng thái
-    for key in ("binh_thuong", "can_gom", "het_pin", "mat_ket_noi"):
+    # Phải có các nhóm trạng thái
+    for key in ("tong", "can_gom", "het_pin", "mat_ket_noi", "chua_trien_khai"):
         assert key in data
 
 
@@ -944,9 +944,10 @@ async def test_10_05_dong_phien_khong_cham_green_points(
 
 @pytest.mark.asyncio
 async def test_11_01_goi_y_cau_hoi_nhanh(api: AsyncClient) -> None:
-    r = await api.get("/api/v1/chatbot/suggested-questions")
+    token = await _dang_nhap(api, "resident@demo.vn")
+    r = await api.get("/api/v1/chatbot/suggested-questions", headers=_auth(token))
     assert r.status_code == 200
-    assert len(r.json()["items"]) > 0
+    assert len(r.json()["suggestions"]) > 0
 
 
 # ═══════════════════════════════════════════════════════════════════════════
