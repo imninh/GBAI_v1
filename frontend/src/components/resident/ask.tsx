@@ -15,11 +15,11 @@ import { Mascot } from "@/components/resident/onboarding";
 import { Button } from "@/components/ui/primitives";
 import { tinhCap, tinhStreak, homNay } from "@/lib/gamification";
 import { IconChonAnh, IconDuyet, IconMoTaChu, IconChuong, IconMamXanh, IconXeThuGom } from "@/lib/icons";
-import { Flame, MessageCircle } from "lucide-react";
+import { Flame } from "lucide-react";
 import { chonAnh, chupAnh } from "@/lib/platform";
 import { useSession } from "@/lib/session";
 import type { Classification } from "@/lib/types";
-import { cn, openGreenBinChat } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 const GOI_Y_NHANH = [
   { label: "Hộp sữa giấy", query: "hộp sữa giấy tráng nhôm", tone: "" },
@@ -134,21 +134,6 @@ export function AskScreen({
           </button>
         </div>
       </div>
-
-      {/* ── Bini tràn viền phải — Bấm vào để mở Chatbot RAG ── */}
-      <button
-        type="button"
-        onClick={() => openGreenBinChat()}
-        className="absolute right-[-14px] top-[104px] z-20 w-[138px] cursor-pointer transition-transform duration-300 hover:scale-110 active:scale-95 group focus:outline-none"
-        title="Bấm vào Bini để hỏi đáp phân loại rác & luật!"
-      >
-        {/* Bóng thoại nhỏ mời gọi bấm chat */}
-        <div className="absolute -top-3 left-[-24px] z-30 animate-bounce rounded-full bg-emerald-800 px-2.5 py-1 text-[11px] font-bold text-white shadow-lg border border-emerald-600/40 whitespace-nowrap">
-          <MessageCircle className="mr-1 inline h-3.5 w-3.5" strokeWidth={2} /> Hỏi Bini nè!
-          <div className="absolute bottom-[-4px] right-3 h-2 w-2 rotate-45 bg-emerald-800 border-r border-b border-emerald-600/40" />
-        </div>
-        <Mascot size={138} tuThe="nham-mat-cuoi" className="animate-gbfloat drop-shadow-[0_16px_22px_rgba(30,80,50,.22)] transition-transform group-hover:rotate-3" />
-      </button>
 
       {/* ── hero: scan chính ── */}
       <div className="relative z-10 mt-14">
