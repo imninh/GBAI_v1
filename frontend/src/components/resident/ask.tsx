@@ -100,16 +100,16 @@ export function AskScreen({
   }, []);
 
   return (
-    <div className="relative flex min-h-full flex-col overflow-hidden bg-cream px-5 pb-[120px] pt-7 lg:mx-auto lg:max-w-[960px]">
+    <div className="relative flex min-h-full flex-col overflow-hidden bg-cream px-5 pb-[120px] pt-[54px] lg:mx-auto lg:max-w-[960px]">
       {/* ── Background Banner Hoạt Cảnh Mới (Thay thế hoàn toàn background cũ được khoanh đỏ) ── */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[295px] z-0 overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 -top-8 h-[325px] z-0 overflow-hidden">
         <img
           src="/Background.svg"
           alt="GreenBin City Background"
           className="w-full h-full object-cover object-bottom select-none"
         />
         {/* Lớp chuyển sắc mềm mượt ở đáy nối vào nền kem bên dưới */}
-        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-cream via-cream/70 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-cream via-cream/70 to-transparent pointer-events-none" />
       </div>
 
       {/* ── header: lời chào + chuông ── */}
@@ -136,7 +136,7 @@ export function AskScreen({
       </div>
 
       {/* ── hero: scan chính ── */}
-      <div className="relative z-10 mt-8">
+      <div className="relative z-10 mt-14">
         <h1 className="mb-4 max-w-[240px] font-[family-name:var(--font-display)] text-[34px] font-extrabold leading-[1.04] tracking-tight text-white drop-shadow-[0_2px_12px_rgba(20,40,25,0.75)] [text-shadow:_0_2px_8px_rgba(0,0,0,0.55),_0_0_20px_rgba(28,44,70,0.45)]">
           Không biết bỏ
           <br />
