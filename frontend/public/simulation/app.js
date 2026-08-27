@@ -140,17 +140,19 @@
       ? "http://localhost:8000/api/v1"
       : "https://greenbin-api-production-d08d.up.railway.app/api/v1";
     const baseVal = ($("cfgBase") && $("cfgBase").value.trim()) ? $("cfgBase").value.trim() : defaultBase;
+    const commonBinCode = ($("cfgBinCode") && $("cfgBinCode").value.trim()) || "BIN-01";
 
     return {
       base: baseVal.replace(/\/$/,""),
       device: ($("cfgDevice") && $("cfgDevice").value.trim()) || "GBIN-001",
       key: ($("cfgKey") && $("cfgKey").value.trim()) || "sim-test-key",
       binKey: ($("cfgBinKey") && $("cfgBinKey").value.trim()) || "M4c7_1EJaTo2vUgKkS4zXmKghjCmPlh5LQ3Vg7hTs3o",
+      binCode: commonBinCode,
       bins: {
-        plastic: "BIN-01",
-        metal: "BIN-02",
-        paper: "BIN-03",
-        other: "BIN-04"
+        plastic: commonBinCode,
+        metal: commonBinCode,
+        paper: commonBinCode,
+        other: commonBinCode
       }
     };
   }
@@ -266,19 +268,40 @@
     }
   }
 
-  // Vòng lặp báo mức đầy nền HC-SR04 lên Backend Realtime
+  // Tính toán mức đầy lớn nhất trong 4 ngăn của trạm
+  function getMaxFillInfo(){
+    let maxFill = 0;
+    let bottleneckKey = "plastic";
+    for(const k of ["plastic", "metal", "paper", "other"]){
+      const val = binState[k] ? (binState[k].fill || 0) : 0;
+      if(val >= maxFill){
+        maxFill = val;
+        bottleneckKey = k;
+      }
+    }
+    const nameMap = { plastic: "NHỰA", metal: "KIM LOẠI", paper: "GIẤY/BÌA", other: "RÁC KHÁC" };
+    return {
+      maxFill: Math.min(100, maxFill),
+      bottleneckKey,
+      bottleneckName: nameMap[bottleneckKey] || bottleneckKey.toUpperCase()
+    };
+  }
+
+  // Vòng lặp báo mức đầy thùng (Lấy max 4 ngăn) lên Backend Realtime
   let fillLoopTimer = null;
-  async function reportOneBin(key){
+  let lastReportedStatus = "binh_thuong";
+
+  async function reportStationMaxFill(){
     const c = cfg();
-    const code = c.bins[key];
-    const s = binState[key];
-    const url = `${c.base}/bins/${encodeURIComponent(code)}/readings`;
+    const binCode = c.binCode || "BIN-01";
+    const info = getMaxFillInfo();
+    const url = `${c.base}/bins/${encodeURIComponent(binCode)}/readings`;
     try{
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Device-Key": c.binKey },
         body: JSON.stringify({
-          fill_percent: s.fill,
+          fill_percent: Math.round(info.maxFill),
           battery_percent: 100,
           source: "simulator",
           device_id: c.device,
@@ -288,10 +311,10 @@
       if(!res.ok) return;
       const data = await res.json();
       const newStatus = data.status;
-      if((newStatus === "can_gom" || s.fill >= 80) && s.lastStatus !== "can_gom"){
-        log("BIN", `⚠️ Ngăn ${key.toUpperCase()} đạt mức ${s.fill.toFixed(0)}% → Gửi yêu cầu thu gom (Pickup request) tới xe gom.`);
+      if((newStatus === "can_gom" || info.maxFill >= 80) && lastReportedStatus !== "can_gom"){
+        log("BIN", `⚠️ Thùng ${binCode} đạt ${info.maxFill.toFixed(0)}% (Ngăn đầy nhất: ${info.bottleneckName}) → Kích hoạt trạng thái CẦN THU GOM (can_gom)!`);
       }
-      s.lastStatus = newStatus;
+      lastReportedStatus = newStatus;
     }catch(err){
       // Chạy nền im lặng
     }
@@ -300,9 +323,9 @@
   function startFillLoop(){
     if(fillLoopTimer) return;
     fillLoopTimer = setInterval(() => {
-      Object.keys(binState).forEach(reportOneBin);
+      reportStationMaxFill();
     }, 4000);
-    Object.keys(binState).forEach(reportOneBin);
+    reportStationMaxFill();
   }
 
   // ---------- Kiểm tra phiên đang mở từ App Cư Dân (QR Scan Sync) ----------
@@ -394,6 +417,245 @@
     }, 2200);
   }
 
+  // ---------- Quản lý Nguồn Ảnh Camera (Webcam / Upload / Sample) ----------
+  let cameraSourceMode = "webcam"; // "webcam" | "upload" | "sample"
+  let webcamStream = null;
+  let isWebcamLive = false;
+  let customUploadedBlob = null;
+  let customUploadedFileName = "uploaded_item.jpg";
+
+  // Khởi động luồng Webcam thật từ trình duyệt
+  async function startWebcam(){
+    if(isWebcamLive && webcamStream) return true;
+    try {
+      log("CAM", "📷 Đang yêu cầu quyền truy cập Camera / Webcam thiết bị...");
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          facingMode: "environment"
+        },
+        audio: false
+      });
+      webcamStream = stream;
+      isWebcamLive = true;
+
+      const dockVideo = $("dockWebcamVideo");
+      const mechVideo = $("mechCamVideo");
+      const offPlaceholder = $("webcamOffPlaceholder");
+      const liveBadge = $("webcamLiveBadge");
+      const toggleBtn = $("toggleWebcamBtn");
+      const snapBtn = $("snapAndDepositBtn");
+      const previewPlaceholder = $("previewPlaceholder");
+      const previewImg = $("previewImg");
+
+      if(dockVideo){
+        dockVideo.srcObject = stream;
+        dockVideo.style.display = "block";
+      }
+      if(mechVideo){
+        mechVideo.srcObject = stream;
+        mechVideo.style.display = "block";
+      }
+      if(offPlaceholder) offPlaceholder.style.display = "none";
+      if(liveBadge) liveBadge.style.display = "block";
+      if(toggleBtn) {
+        toggleBtn.textContent = "🛑 Tắt Webcam";
+        toggleBtn.style.background = "#450a0a";
+        toggleBtn.style.borderColor = "#991b1b";
+      }
+      if(snapBtn) snapBtn.disabled = isBusy;
+      if(previewPlaceholder) previewPlaceholder.style.display = "none";
+      if(previewImg) previewImg.style.display = "none";
+
+      const camBadge = $("camBadge");
+      if(camBadge) camBadge.textContent = "webcam live";
+
+      log("CAM", "✅ ĐÃ KẾT NỐI WEBCAM THÀNH CÔNG! Đang truyền luồng video trực tiếp tới ESP32-CAM.");
+      return true;
+    } catch (err) {
+      log("ERR", `⚠️ Không thể mở Webcam: ${err.name} - ${err.message}. (Bạn có thể chuyển sang tab 'Tải Ảnh Lên' hoặc '5 Mẫu Rác')`);
+      stopWebcam();
+      return false;
+    }
+  }
+
+  function stopWebcam(){
+    if(webcamStream){
+      webcamStream.getTracks().forEach(track => track.stop());
+      webcamStream = null;
+    }
+    isWebcamLive = false;
+
+    const dockVideo = $("dockWebcamVideo");
+    const mechVideo = $("mechCamVideo");
+    const offPlaceholder = $("webcamOffPlaceholder");
+    const liveBadge = $("webcamLiveBadge");
+    const toggleBtn = $("toggleWebcamBtn");
+    const snapBtn = $("snapAndDepositBtn");
+
+    if(dockVideo){ dockVideo.style.display = "none"; dockVideo.srcObject = null; }
+    if(mechVideo){ mechVideo.style.display = "none"; mechVideo.srcObject = null; }
+    if(offPlaceholder) offPlaceholder.style.display = "block";
+    if(liveBadge) liveBadge.style.display = "none";
+    if(toggleBtn){
+      toggleBtn.textContent = "📷 Bật Webcam Thật";
+      toggleBtn.style.background = "#1e293b";
+      toggleBtn.style.borderColor = "#334155";
+    }
+    if(snapBtn) snapBtn.disabled = true;
+
+    const camBadge = $("camBadge");
+    if(camBadge) camBadge.textContent = "chưa có ảnh";
+    log("CAM", "Đã tắt Webcam.");
+  }
+
+  // Chụp 1 khung hình JPEG từ luồng video Webcam thật
+  async function captureWebcamJpegBlob(){
+    const dockVideo = $("dockWebcamVideo");
+    if(!dockVideo || !isWebcamLive){
+      throw new Error("Webcam chưa được kích hoạt!");
+    }
+
+    const vw = dockVideo.videoWidth || 1280;
+    const vh = dockVideo.videoHeight || 720;
+    const canvas = $("webcamCaptureCanvas") || document.createElement("canvas");
+    canvas.width = vw;
+    canvas.height = vh;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(dockVideo, 0, 0, vw, vh);
+
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if(blob){
+          // Cập nhật ảnh chụp lên khung preview sơ đồ cơ khí
+          const previewImg = $("previewImg");
+          const mechVideo = $("mechCamVideo");
+          if(previewImg){
+            previewImg.src = URL.createObjectURL(blob);
+            previewImg.style.display = "block";
+          }
+          if(mechVideo) mechVideo.style.display = "none";
+          resolve(blob);
+        } else {
+          reject(new Error("Lỗi khi xuất ảnh từ canvas"));
+        }
+      }, "image/jpeg", 0.92);
+    });
+  }
+
+  // Khởi tạo các Tab chọn nguồn ảnh (Webcam / Upload / Mẫu)
+  function initCameraSourceTabs(){
+    const tabWebcam = $("tabWebcam");
+    const tabUpload = $("tabUpload");
+    const tabSample = $("tabSample");
+    const panelWebcam = $("panelWebcam");
+    const panelUpload = $("panelUpload");
+    const panelSample = $("panelSample");
+    const sourceStatusBadge = $("sourceStatusBadge");
+
+    function setSource(mode){
+      cameraSourceMode = mode;
+      [tabWebcam, tabUpload, tabSample].forEach(t => {
+        if(t) t.classList.toggle("active", t.dataset.source === mode);
+      });
+      if(panelWebcam) panelWebcam.style.display = (mode === "webcam") ? "flex" : "none";
+      if(panelUpload) panelUpload.style.display = (mode === "upload") ? "flex" : "none";
+      if(panelSample) panelSample.style.display = (mode === "sample") ? "flex" : "none";
+
+      if(sourceStatusBadge){
+        if(mode === "webcam"){
+          sourceStatusBadge.textContent = "● WEBCAM TRỰC TIẾP";
+          sourceStatusBadge.style.color = "#10b981";
+        } else if(mode === "upload"){
+          sourceStatusBadge.textContent = "● TẢI ẢNH LÊN";
+          sourceStatusBadge.style.color = "#38bdf8";
+        } else {
+          sourceStatusBadge.textContent = "● 5 MẪU SẴN CÓ";
+          sourceStatusBadge.style.color = "#fbbf24";
+        }
+      }
+
+      if(mode === "webcam"){
+        startWebcam();
+      } else {
+        const previewImg = $("previewImg");
+        const mechVideo = $("mechCamVideo");
+        if(mechVideo) mechVideo.style.display = "none";
+        if(mode === "sample"){
+          selectWasteItem(selectedKey);
+        } else if(mode === "upload" && customUploadedBlob){
+          if(previewImg){
+            previewImg.src = URL.createObjectURL(customUploadedBlob);
+            previewImg.style.display = "block";
+          }
+        }
+      }
+    }
+
+    if(tabWebcam) tabWebcam.addEventListener("click", () => setSource("webcam"));
+    if(tabUpload) tabUpload.addEventListener("click", () => setSource("upload"));
+    if(tabSample) tabSample.addEventListener("click", () => setSource("sample"));
+
+    const toggleBtn = $("toggleWebcamBtn");
+    if(toggleBtn){
+      toggleBtn.addEventListener("click", () => {
+        if(isWebcamLive) stopWebcam();
+        else startWebcam();
+      });
+    }
+
+    const snapBtn = $("snapAndDepositBtn");
+    if(snapBtn){
+      snapBtn.addEventListener("click", () => {
+        executeWasteDeposit();
+      });
+    }
+
+    // Xử lý Upload file ảnh từ máy
+    const chooseFileBtn = $("chooseFileBtn");
+    const wasteFileInput = $("wasteFileInput");
+    const uploadAndDepositBtn = $("uploadAndDepositBtn");
+    const uploadPreviewImg = $("uploadPreviewImg");
+    const uploadOffPlaceholder = $("uploadOffPlaceholder");
+
+    if(chooseFileBtn && wasteFileInput){
+      chooseFileBtn.addEventListener("click", () => wasteFileInput.click());
+      wasteFileInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if(file){
+          customUploadedBlob = file;
+          customUploadedFileName = file.name;
+          const url = URL.createObjectURL(file);
+          if(uploadPreviewImg){
+            uploadPreviewImg.src = url;
+            uploadPreviewImg.style.display = "block";
+          }
+          if(uploadOffPlaceholder) uploadOffPlaceholder.style.display = "none";
+          if(uploadAndDepositBtn) uploadAndDepositBtn.disabled = false;
+
+          const previewImg = $("previewImg");
+          const previewPlaceholder = $("previewPlaceholder");
+          const camBadge = $("camBadge");
+          if(previewImg){
+            previewImg.src = url;
+            previewImg.style.display = "block";
+          }
+          if(previewPlaceholder) previewPlaceholder.style.display = "none";
+          if(camBadge) camBadge.textContent = "ảnh tải lên";
+
+          log("CAM", `📁 Đã chọn file ảnh: ${file.name} (${Math.round(file.size / 1024)} KB)`);
+        }
+      });
+    }
+
+    if(uploadAndDepositBtn){
+      uploadAndDepositBtn.addEventListener("click", () => {
+        executeWasteDeposit();
+      });
+    }
+  }
+
   // ---------- Chọn vật rác thực tế ----------
   function selectWasteItem(key){
     selectedKey = key;
@@ -408,14 +670,16 @@
     }
 
     // Hiển thị ảnh chụp xem trước trên camera box của sơ đồ cơ khí
-    const previewImg = $("previewImg");
-    const previewPlaceholder = $("previewPlaceholder");
-    const camBadge = $("camBadge");
-    if(previewImg){
-      previewImg.src = item.fixture;
-      previewImg.style.display = "block";
-      if(previewPlaceholder) previewPlaceholder.style.display = "none";
-      if(camBadge) camBadge.textContent = "ảnh mẫu";
+    if(cameraSourceMode === "sample"){
+      const previewImg = $("previewImg");
+      const previewPlaceholder = $("previewPlaceholder");
+      const camBadge = $("camBadge");
+      if(previewImg){
+        previewImg.src = item.fixture;
+        previewImg.style.display = "block";
+        if(previewPlaceholder) previewPlaceholder.style.display = "none";
+        if(camBadge) camBadge.textContent = "ảnh mẫu";
+      }
     }
 
     log("STATE", `Người dùng chọn cầm: ${item.title} (${item.emoji})`);
@@ -442,16 +706,22 @@
     $("walkBtn").disabled = true;
     $("depositBtn").disabled = true;
     if($("scanQrBtn")) $("scanQrBtn").disabled = true;
+    if($("snapAndDepositBtn")) $("snapAndDepositBtn").disabled = true;
+    if($("uploadAndDepositBtn")) $("uploadAndDepositBtn").disabled = true;
 
     startFillLoop();
 
     const c = cfg();
-    const item = WASTE_ITEMS[selectedKey];
+    const item = WASTE_ITEMS[selectedKey] || WASTE_ITEMS.plastic;
 
     try {
       // 1. Hoạt ảnh 5 pha trên Three.js
       setState("DEPOSITING", "active");
-      log("STATE", `Người dùng đưa ${item.title} vào lỗ nhận rác của MUN™...`);
+      const displayTitle = (cameraSourceMode === "webcam")
+        ? "Vật thể thật trước Webcam"
+        : (cameraSourceMode === "upload" ? customUploadedFileName : item.title);
+
+      log("STATE", `Người dùng đưa ${displayTitle} vào lỗ nhận rác của MUN™...`);
       
       if(window.Scene3D){
         window.Scene3D.updateKioskScreen({ state: "COUNTDOWN", sec: 3 });
@@ -460,23 +730,54 @@
 
       // 2. HC-SR04 xác nhận vật thể rơi vào & Flash ESP32-CAM
       log("HC-SR04", "Cảm biến siêu âm xác nhận vật thể: before=50.0cm after=24.5cm delta=25.5cm -> waste_confirmed ✅");
-      log("CAM", `ESP32-CAM chớp đèn flash 📸 — Đã chụp ảnh khung hình độ nét cao của ${item.title}.`);
+      
+      // Chớp đèn flash toàn màn hình
+      if(typeof window.appFlashTrigger === "function"){
+        window.appFlashTrigger();
+      }
+
+      let imgBlob;
+      let uploadFileName = "waste_capture.jpg";
+
+      if(cameraSourceMode === "webcam"){
+        if(!isWebcamLive){
+          log("CAM", "📷 Tự động bật Webcam để chụp ảnh...");
+          await startWebcam();
+          await sleep(600);
+        }
+        try {
+          imgBlob = await captureWebcamJpegBlob();
+          uploadFileName = `webcam_${Date.now()}.jpg`;
+          log("CAM", `📸 ESP32-CAM đã chụp 1 ảnh thật từ WEBCAM (${Math.round(imgBlob.size / 1024)} KB)`);
+        } catch(snapErr){
+          log("WARN", `Không chụp được từ webcam: ${snapErr.message} → Dùng ảnh mẫu thay thế.`);
+          imgBlob = await loadFixtureBlob(item.fixture);
+          uploadFileName = item.fixture.split("/").pop();
+        }
+      } else if(cameraSourceMode === "upload" && customUploadedBlob){
+        imgBlob = customUploadedBlob;
+        uploadFileName = customUploadedFileName;
+        log("CAM", `📁 Sử dụng ảnh tải lên từ máy: ${uploadFileName}`);
+      } else {
+        imgBlob = await loadFixtureBlob(item.fixture);
+        uploadFileName = item.fixture.split("/").pop();
+        log("CAM", `ESP32-CAM chớp đèn flash 📸 — Đã nạp ảnh mẫu: ${item.title}.`);
+      }
 
       const camBadge = $("camBadge");
       if(camBadge) camBadge.textContent = "đã chụp";
 
       if(window.Scene3D){
         window.Scene3D.setLedRing(0x38bdf8, 1.5);
-        window.Scene3D.updateKioskScreen({ state: "ANALYZING", itemTitle: item.title });
+        window.Scene3D.updateKioskScreen({ state: "ANALYZING", itemTitle: displayTitle });
       }
 
       // 3. Gửi ảnh thật lên Backend AI (/api/v1/iot/captures)
       setState("AI_ANALYZING", "wait");
-      log("NET", `POST ${c.base}/iot/captures (multipart image, X-Device-Key=sim-test-key)`);
-      const imgBlob = await loadFixtureBlob(item.fixture);
+      log("NET", `POST ${c.base}/iot/captures (multipart image: ${uploadFileName}, X-Device-Key=${c.key})`);
 
       const form = new FormData();
-      form.append("image", imgBlob, item.fixture.split("/").pop());
+      form.append("image", imgBlob, uploadFileName);
       form.append("device_id", c.device);
       form.append("bin_code", c.bins[item.route] || "BIN-01");
       form.append("event_type", "waste_detected");
@@ -498,9 +799,9 @@
           return;
         }
         data = await resp.json();
-        log("AI", `Backend phản hồi sau ${elapsed}ms: status=${data.status} label=${data.label} route=${data.route} confidence=${data.confidence}`);
+        log("AI", `Backend Vision AI phản hồi sau ${elapsed}ms: status=${data.status} label=${data.label} route=${data.route} confidence=${data.confidence}`);
         if(data.ma_phien){
-          log("QR", `✨ Backend đã tự động gắn kết quả vào phiên ${data.ma_phien.slice(0,8)}... (Tổng số vật hiện tại: ${data.so_vat})`);
+          log("QR", `🎯 Backend đã tự động gắn kết quả vào phiên ${data.ma_phien.slice(0,8)}... (Tổng số vật hiện tại: ${data.so_vat})`);
         }
       } catch (netErr) {
         log("WARN", `⚠️ Không thể kết nối Backend (${c.base}): ${netErr.message} → Tự động chạy mô phỏng AI offline.`);
@@ -579,11 +880,12 @@
 
         await animateMechanicalDrop(route, item.emoji);
 
-        // 8. Tăng mức đầy ngăn tương ứng và đồng bộ realtime lên Backend ngay
+        // 8. Tăng mức đầy ngăn tương ứng và đồng bộ mức đầy lớn nhất (max của 4 ngăn) lên Backend
         binState[route].fill = Math.min(100, binState[route].fill + 10);
         paintBin(route);
-        reportOneBin(route);
-        log("BIN", `📦 Ngăn kính ${route.toUpperCase()} đã nhận thêm 1 ${item.title} (Hiện có: ${depositedCounts[route]} vật phẩm, Mức đầy: ${binState[route].fill.toFixed(0)}%)`);
+        reportStationMaxFill();
+        const info = getMaxFillInfo();
+        log("BIN", `📦 Ngăn kính ${route.toUpperCase()} nhận thêm 1 ${item.title} (Ngăn này: ${binState[route].fill.toFixed(0)}% | Độ đầy toàn thùng ${c.binCode}: ${info.maxFill.toFixed(0)}% - Ngăn ${info.bottleneckName} đầy nhất)`);
         
         await sleep(800);
         clearDucts();
@@ -593,6 +895,8 @@
       $("startBtn").disabled = false;
       $("walkBtn").disabled = false;
       if($("scanQrBtn")) $("scanQrBtn").disabled = false;
+      if($("snapAndDepositBtn")) $("snapAndDepositBtn").disabled = !isWebcamLive;
+      if($("uploadAndDepositBtn")) $("uploadAndDepositBtn").disabled = !customUploadedBlob;
       finishCycle(true);
     }
   }
@@ -603,6 +907,8 @@
     if(playerNear){
       setState("PRESENCE", "active");
       $("depositBtn").disabled = false;
+      if($("snapAndDepositBtn")) $("snapAndDepositBtn").disabled = !isWebcamLive;
+      if($("uploadAndDepositBtn")) $("uploadAndDepositBtn").disabled = !customUploadedBlob;
       log("STATE", "MUN™ sẵn sàng cho món rác tiếp theo (Gia hạn 30s).");
       startSessionTimer();
       startBackendSessionPolling();
@@ -617,6 +923,8 @@
       stopBackendSessionPolling();
       setState("IDLE", "idle");
       $("depositBtn").disabled = true;
+      if($("snapAndDepositBtn")) $("snapAndDepositBtn").disabled = true;
+      if($("uploadAndDepositBtn")) $("uploadAndDepositBtn").disabled = true;
       log("STATE", "MUN™ Recycler trở về trạng thái IDLE — sẵn sàng đón người dùng tiếp theo.");
       if(window.Scene3D){
         window.Scene3D.setWasteItem(selectedKey);
@@ -632,6 +940,8 @@
     $("pirLed").classList.add("on");
     $("pirStatus").textContent = "ĐÃ PHÁT HIỆN NGƯỜI DÙNG!";
     $("depositBtn").disabled = false;
+    if($("snapAndDepositBtn")) $("snapAndDepositBtn").disabled = !isWebcamLive;
+    if($("uploadAndDepositBtn")) $("uploadAndDepositBtn").disabled = !customUploadedBlob;
 
     setState("PRESENCE", "active");
     log("PIR", "Cảm biến PIR (HC-SR501) tự động kích hoạt khi người dùng vào vùng ~2m!");
@@ -670,18 +980,38 @@
     }
   });
 
+  let isQrZoomedActive = false;
+
   if($("scanQrBtn")){
     $("scanQrBtn").addEventListener("click", async () => {
       if(isBusy) return;
-      log("QR", "📱 Người dùng mở ứng dụng MUN trên điện thoại và quét màn hình nhỏ QR trên thùng rác!");
+
+      // Nếu đang phóng to QR -> Bấm một lần nữa để hoàn tác về toàn cảnh
+      if(isQrZoomedActive){
+        isQrZoomedActive = false;
+        log("QR", "↩️ Hoàn tác: Thu nhỏ góc nhìn về toàn cảnh trạm MUN™.");
+        if(window.Scene3D){
+          window.Scene3D.setCameraPreset("overview");
+        }
+        return;
+      }
+
+      // Lần bấm đầu tiên -> Phóng to vào QR để người dùng dùng điện thoại quét thật
+      isQrZoomedActive = true;
+      log("QR", "📱 Đang phóng to mã QR. Hãy dùng App Cư Dân quét mã QR trên màn hình! (Bấm lại nút này để thu nhỏ).");
+      
+      // Kích hoạt cảm biến và màn hình QR nếu đang ở trạng thái IDLE
+      if(!isQrScanned && statePill.textContent === "IDLE"){
+        onPlayerApproached();
+      }
+
       if(window.Scene3D){
         window.Scene3D.setCameraPreset("qr");
-        window.Scene3D.updateQrScreenState("SCANNED", "Đã xác thực tài khoản");
+        window.Scene3D.updateQrScreenState(isQrScanned ? "SCANNED" : "PRESENCE", isQrScanned ? "Đã xác thực tài khoản" : "Đưa điện thoại quét");
       }
-      isQrScanned = true;
-      log("QR", "✅ Xác thực thành công tài khoản: MUN_USER_VIP (ID: #VN-8829). Tích lũy +10 điểm sẵn sàng!");
+
       startSessionTimer();
-      await sleep(1200);
+      startBackendSessionPolling();
     });
   }
 
@@ -701,12 +1031,13 @@
       await sleep(500);
     }
 
-    // 2. Quét QR trên màn hình nhỏ
-    log("QR", "📱 Tự động quét mã QR trên màn hình nhỏ...");
+    // 2. Phóng to màn hình QR
+    log("QR", "📱 Hiển thị mã QR phiên làm việc trên trạm...");
     if(window.Scene3D){
-      window.Scene3D.updateQrScreenState("SCANNED", "Đã xác thực tài khoản");
+      window.Scene3D.setCameraPreset("qr");
+      window.Scene3D.updateQrScreenState(isQrScanned ? "SCANNED" : "PRESENCE", isQrScanned ? "Đã xác thực" : "Đưa điện thoại quét");
     }
-    await sleep(400);
+    await sleep(800);
     
     // 3. Thực hiện bỏ rác
     await executeWasteDeposit();
@@ -719,8 +1050,10 @@
       depositedCounts[k] = 0;
       paintBin(k);
     });
+    isQrZoomedActive = false;
     stopSessionTimer();
     stopBackendSessionPolling();
+    reportStationMaxFill();
     clearDucts();
 
     const previewImg = $("previewImg");
@@ -764,9 +1097,10 @@
     });
   });
 
-  // Khởi tạo Three.js
+  // Khởi tạo Three.js & Camera Tabs
   window.addEventListener("DOMContentLoaded", () => {
     initBackendConfig();
+    initCameraSourceTabs();
     if(window.Scene3D){
       window.Scene3D.init("threeCanvasHost");
       window.Scene3D.armApproach(onPlayerApproached, onPlayerLeft);
@@ -774,7 +1108,7 @@
     Object.keys(binState).forEach(paintBin);
     selectWasteItem("plastic");
     const c = cfg();
-    log("STATE", "Hệ thống MUN™ AI Recycler 3D (Đồng bộ Realtime Backend & App Cư Dân) đã sẵn sàng.");
+    log("STATE", "Hệ thống MUN™ AI Recycler 3D (Webcam Live AI & Đồng bộ Realtime) đã sẵn sàng.");
     log("NET", `Backend API: ${c.base}/iot/captures (X-Device-Key: ${c.key})`);
   });
 })();

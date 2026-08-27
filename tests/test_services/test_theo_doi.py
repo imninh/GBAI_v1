@@ -219,6 +219,7 @@ class _CapClient:
 
 def _enable_langfuse(monkeypatch, client_cls):
     """Bật Langfuse thật sự (với client giả) và ép tạo lại singleton."""
+    monkeypatch.setattr("src.services.theo_doi._CO_LANGFUSE", True)
     monkeypatch.setenv("LANGFUSE_ENABLED", "true")
     monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-test")
     monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-test")

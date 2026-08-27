@@ -12,7 +12,6 @@ import * as React from "react";
 import NumberFlow from "@number-flow/react";
 
 import { Mascot } from "@/components/resident/onboarding";
-import { HoaTiet } from "@/components/ui/pattern";
 import { Button } from "@/components/ui/primitives";
 import { tinhCap, tinhStreak, homNay } from "@/lib/gamification";
 import { IconChonAnh, IconDuyet, IconMoTaChu, IconChuong, IconMamXanh, IconXeThuGom } from "@/lib/icons";
@@ -101,12 +100,20 @@ export function AskScreen({
   }, []);
 
   return (
-    <div className="relative flex min-h-full flex-col overflow-hidden bg-[linear-gradient(180deg,var(--color-nen-trang-chu)_0%,var(--color-cream)_40%)] px-5 pb-[120px] pt-[54px] lg:mx-auto lg:max-w-[960px]">
-      {/* Hoạ tiết góc — mờ, ở rìa, dưới nội dung */}
-      <HoaTiet loai="blob" className="right-[-52px] top-16 h-44 w-44" />
+    <div className="relative flex min-h-full flex-col overflow-hidden bg-cream px-5 pb-[120px] pt-[54px] lg:mx-auto lg:max-w-[960px]">
+      {/* ── Background Banner Hoạt Cảnh Mới (Thay thế hoàn toàn background cũ được khoanh đỏ) ── */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[295px] z-0 overflow-hidden">
+        <img
+          src="/Background.svg"
+          alt="GreenBin City Background"
+          className="w-full h-full object-cover object-bottom select-none"
+        />
+        {/* Lớp chuyển sắc mềm mượt ở đáy nối vào nền kem bên dưới */}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-cream via-cream/70 to-transparent pointer-events-none" />
+      </div>
 
       {/* ── header: lời chào + chuông ── */}
-      <div className="flex items-center justify-between">
+      <div className="relative z-10 flex items-center justify-between">
         <div className="min-w-0">
           <div className="text-xs font-semibold text-ink-soft">{greeting}</div>
           <div className="mt-0.5 truncate font-[family-name:var(--font-display)] text-[26px] font-bold leading-none tracking-tight">
@@ -129,7 +136,6 @@ export function AskScreen({
       </div>
 
       {/* ── Bini tràn viền phải — Bấm vào để mở Chatbot RAG ── */}
-      <div className="pointer-events-none absolute right-[-26px] top-[92px] z-0 h-[170px] w-[170px] rounded-full bg-[radial-gradient(circle_at_46%_40%,var(--color-hero-blob),rgba(233,250,240,0))]" />
       <button
         type="button"
         onClick={() => openGreenBinChat()}
@@ -293,8 +299,8 @@ export function AskScreen({
                 g.tone === "hazard"
                   ? "border border-hazard/30 bg-hazard-soft text-hazard-dark hover:border-hazard"
                   : g.tone === "unsure"
-                  ? "border border-line-2 bg-chip-bg text-ink-muted hover:border-muted"
-                  : "border border-line-2 bg-surface text-ink hover:border-leaf hover:bg-leaf-soft/40"
+                    ? "border border-line-2 bg-chip-bg text-ink-muted hover:border-muted"
+                    : "border border-line-2 bg-surface text-ink hover:border-leaf hover:bg-leaf-soft/40"
               )}
             >
               {g.label}
