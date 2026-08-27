@@ -1,7 +1,7 @@
-import os
 import sys
 import time
 from pathlib import Path
+
 from playwright.sync_api import sync_playwright
 
 if sys.platform == "win32":
@@ -16,10 +16,10 @@ def capture_all():
     print("Capturing web and product assets via Playwright...", flush=True)
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        
+
         # 1. Desktop 1080p
         page = browser.new_page(viewport={"width": 1920, "height": 1080})
-        
+
         # Live Web Vercel
         print("  -> Capturing https://gbai-v1.vercel.app/ ...", flush=True)
         try:
@@ -37,7 +37,7 @@ def capture_all():
             page.goto(bql_url)
             time.sleep(2)
             page.screenshot(path=str(ASSETS_DIR / "bql_map_default.png"))
-            
+
             # Interactive Route click
             page.evaluate("""
                 const btns = Array.from(document.querySelectorAll('button, .btn'));
@@ -56,15 +56,15 @@ def capture_all():
             page.goto(twin_url)
             time.sleep(3)
             page.screenshot(path=str(ASSETS_DIR / "digital_twin_idle.png"))
-            
+
             page.evaluate("if (typeof triggerPIR === 'function') triggerPIR();")
             time.sleep(1.5)
             page.screenshot(path=str(ASSETS_DIR / "digital_twin_trigger.png"))
-            
+
             page.evaluate("if (typeof classifyItem === 'function') classifyItem('plastic');")
             time.sleep(2)
             page.screenshot(path=str(ASSETS_DIR / "digital_twin_classified.png"))
-            
+
             page.evaluate("if (typeof rotateServo === 'function') rotateServo(1, 45);")
             time.sleep(1.5)
             page.screenshot(path=str(ASSETS_DIR / "digital_twin_servo.png"))
@@ -73,7 +73,7 @@ def capture_all():
 
         # Generate HTML Canvas Graphics
         print("  -> Generating Motion Graphic Panels (Privacy, Test, HITL, Hero)...", flush=True)
-        
+
         # Privacy Diagram
         privacy_html = """<!DOCTYPE html><html><head><meta charset="utf-8"><style>
         body { margin: 0; background: #080e1e; color: #fff; font-family: system-ui, sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }

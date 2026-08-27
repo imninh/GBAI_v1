@@ -1,7 +1,7 @@
-import os
-import sys
 import asyncio
+import sys
 from pathlib import Path
+
 import edge_tts
 
 if sys.platform == "win32":

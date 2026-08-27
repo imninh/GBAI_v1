@@ -26,7 +26,6 @@ Chạy một lệnh duy nhất để kiểm tra toàn bộ hệ thống còn ho�
 
 from __future__ import annotations
 
-import io
 from collections.abc import Iterator
 from datetime import date, timedelta
 
@@ -43,8 +42,6 @@ from src.db.models import (
     Base,
     Bin,
     DiemThuongLog,
-    Notification,
-    PhienThung,
     User,
 )
 from src.main import app

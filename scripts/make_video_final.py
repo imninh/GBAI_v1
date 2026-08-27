@@ -1,6 +1,5 @@
-import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 if sys.platform == "win32":
@@ -48,27 +47,27 @@ def get_audio_duration(audio_path):
 def build_all_scenes():
     SCENES_DIR.mkdir(parents=True, exist_ok=True)
     rendered_clips = []
-    
+
     print("--- Rendering 17 Video Scene Clips with FFmpeg ---", flush=True)
     for item in SCENES_CONFIG:
         sid = item["id"]
         img_file = ASSETS_DIR / item["asset"]
         if not img_file.exists():
             img_file = ASSETS_DIR / "brand_hero.png"
-            
+
         audio_file = AUDIO_DIR / f"scene_{sid:02d}.mp3"
         out_clip = SCENES_DIR / f"scene_{sid:02d}.mp4"
-        
+
         aud_dur = get_audio_duration(audio_file)
         dur = max(aud_dur + 0.6, item["min_dur"])
         frames = int(dur * 30)
-        
+
         # Smooth Ken Burns zoom effect
         vf = (
             f"scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,"
             f"zoompan=z='min(zoom+0.0004,1.08)':d={frames}:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1920x1080:fps=30"
         )
-        
+
         cmd = [
             "ffmpeg", "-y",
             "-loop", "1", "-i", str(img_file),
@@ -79,7 +78,7 @@ def build_all_scenes():
             "-t", str(dur),
             str(out_clip)
         ]
-        
+
         subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         if out_clip.exists() and out_clip.stat().st_size > 50000:
             print(f"  [OK] Rendered Scene {sid:02d} ({dur:.1f}s) -> {out_clip.name}", flush=True)
@@ -100,16 +99,16 @@ def build_all_scenes():
         str(FINAL_VIDEO)
     ]
     subprocess.run(concat_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    
+
     if FINAL_VIDEO.exists() and FINAL_VIDEO.stat().st_size > 100000:
         total_size_mb = FINAL_VIDEO.stat().st_size / (1024 * 1024)
         total_dur = get_audio_duration(FINAL_VIDEO)
-        print(f"\n=======================================================", flush=True)
-        print(f"🎉 VIDEO PRODUCT DEMO ĐÃ ĐƯỢC TẠO THÀNH CÔNG!", flush=True)
+        print("\n=======================================================", flush=True)
+        print("🎉 VIDEO PRODUCT DEMO ĐÃ ĐƯỢC TẠO THÀNH CÔNG!", flush=True)
         print(f"📁 Video: {FINAL_VIDEO.resolve()}", flush=True)
         print(f"⏱️ Tổng thời lượng: {total_dur:.1f} giây (khoảng {int(total_dur//60)}p{int(total_dur%60):02d}s)", flush=True)
         print(f"📦 Dung lượng: {total_size_mb:.2f} MB", flush=True)
-        print(f"=======================================================", flush=True)
+        print("=======================================================", flush=True)
     else:
         print("Lỗi khi tạo video hoàn chỉnh.", flush=True)
 
