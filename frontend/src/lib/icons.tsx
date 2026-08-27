@@ -34,6 +34,7 @@ import {
   Hourglass,
   Image,
   Leaf,
+  Lightbulb,
   Lock,
   Magnet,
   MapPin,
@@ -49,7 +50,6 @@ import {
   SkipForward,
   Smartphone,
   Sofa,
-  Sparkles,
   Sprout,
   ThumbsDown,
   ThumbsUp,
@@ -103,9 +103,8 @@ export const IconSua = defineIcon(Pencil, "IconSua");
 export const IconTang = defineIcon(TrendingUp, "IconTang");
 export const IconGiam = defineIcon(TrendingDown, "IconGiam");
 
-/** Dấu hiệu "chỗ này do AI sinh ra" — trước đây là ✦, dùng ở khối AI đề xuất và
- *  AI giải thích. Khối lượng do cư dân tự nhập, không phải AI ước lượng. */
-export const IconAi = defineIcon(Sparkles, "IconAi");
+/** Biểu tượng gợi ý hệ thống / giải thích đề xuất */
+export const IconAi = defineIcon(Lightbulb, "IconAi");
 
 /** Ca khó hay bị nhầm, rút từ eval — trước đây là ⚑. */
 export const IconCaKho = defineIcon(Flag, "IconCaKho");

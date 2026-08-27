@@ -168,3 +168,8 @@ docs/TECH_STACK.md
 # Khoá tài khoản dịch vụ = toàn quyền quản trị dự án Firebase.
 *firebase-adminsdk*.json
 serviceAccountKey.json
+
+# Temporary media output
+video_output/
+*.mp3
+*.mp4

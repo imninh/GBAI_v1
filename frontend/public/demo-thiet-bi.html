@@ -2,7 +2,6 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<base href="/">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MUN™ Smart Recycler — 3D Visual Simulation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -349,13 +348,13 @@
   #log .tag-HAZARD { color: #f87171; font-weight: 700; }
   #log .tag-ERR { color: #f87171; font-weight: 700; }
 
-  /* Floating Bottom Dock: Sample Waste Selector */
+  /* Floating Bottom Dock: Waste & Camera Controls */
   #bottomDock {
     position: absolute;
     bottom: 14px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(15, 23, 42, 0.92);
+    background: rgba(15, 23, 42, 0.94);
     border: 1px solid var(--panel-border);
     backdrop-filter: blur(20px);
     border-radius: 14px;
@@ -365,6 +364,7 @@
     gap: 6px;
     z-index: 20;
     box-shadow: 0 10px 35px rgba(0,0,0,0.5);
+    max-width: 90vw;
   }
   .dock-header {
     display: flex;
@@ -374,6 +374,102 @@
     font-weight: 800;
     color: #94a3b8;
   }
+
+  /* Camera Source Tabs */
+  .source-tabs-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #090e1c;
+    padding: 3px;
+    border-radius: 8px;
+    border: 1px solid #1e293b;
+  }
+  .source-tab {
+    flex: 1;
+    padding: 4px 10px;
+    font-size: 10.5px;
+    font-weight: 700;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .source-tab:hover { color: #f8fafc; background: #1e293b; }
+  .source-tab.active { background: #10b981; color: #042f2e; font-weight: 800; }
+
+  /* Live Webcam Box in Dock */
+  .webcam-dock-panel, .upload-dock-panel {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #090e1c;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 8px 12px;
+    min-width: 480px;
+  }
+  .webcam-stream-container {
+    position: relative;
+    width: 140px;
+    height: 90px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #020617;
+    border: 1.5px solid #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+    flex-shrink: 0;
+  }
+  .webcam-stream-container video, .webcam-stream-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .webcam-badge-live {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    background: rgba(239, 68, 68, 0.9);
+    color: #fff;
+    font-size: 8.5px;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+  }
+  .webcam-ctrl-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+  }
+  .webcam-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: #f8fafc;
+    transition: all 0.2s;
+  }
+  .webcam-btn:hover { border-color: #10b981; background: #064e3b; color: #fff; }
+  .webcam-btn.snap { background: #10b981; color: #042f2e; border-color: #10b981; font-weight: 800; }
+  .webcam-btn.snap:hover { background: #34d399; }
+  .webcam-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #334155; background: #1e293b; color: #64748b; }
+
   .waste-cards-grid { display: flex; gap: 8px; }
   .waste-card {
     background: #0f172a;
@@ -442,9 +538,8 @@
 
 <header class="top-nav">
   <div class="brand">
-    <a href="/" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;color:#94a3b8;background:#1e293b;border:1px solid #334155;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;margin-right:8px;transition:all .2s">← Về App</a>
     <span>♻ MUN™</span>
-    <span class="brand-badge">AI 3D RECYCLER</span>
+    <span class="brand-badge">3D SMART RECYCLER</span>
   </div>
 
   <div class="state-pill idle" id="statePill">IDLE</div>
@@ -454,7 +549,7 @@
   <div class="header-actions">
     <button class="btn primary" id="startBtn">⚡ Chạy tự động A-Z</button>
     <button class="btn" id="walkBtn">🏃 Lại gần máy</button>
-    <button class="btn qr-btn" id="scanQrBtn">📱 Quét mã QR App</button>
+    <button class="btn qr-btn" id="scanQrBtn">📱 Phóng to mã QR để quét</button>
     <button class="btn" id="depositBtn" disabled>📥 Bỏ rác vào lỗ</button>
     <button class="btn" id="resetAllBtn">↺ Reset</button>
 
@@ -470,6 +565,9 @@
         </label>
         <label>X-Device-Key cho /iot/captures:
           <input id="cfgKey" value="sim-test-key">
+        </label>
+        <label>Mã Thùng Rác (Chung 4 ngăn):
+          <input id="cfgBinCode" value="BIN-01">
         </label>
         <label>X-Device-Key cho /bins/{code}/readings:
           <input id="cfgBinKey" value="M4c7_1EJaTo2vUgKkS4zXmKghjCmPlh5LQ3Vg7hTs3o">
@@ -530,8 +628,9 @@
         <rect x="-32" y="-16" width="64" height="42" rx="6" class="camBox"/>
         <foreignObject x="-30" y="-14" width="60" height="38">
           <div xmlns="http://www.w3.org/1999/xhtml" class="camFO">
-            <img id="previewImg" alt="ảnh rác">
-            <span id="previewPlaceholder">🖼️</span>
+            <video id="mechCamVideo" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:none;"></video>
+            <img id="previewImg" alt="ảnh rác" style="width:100%;height:100%;object-fit:cover;display:none;">
+            <span id="previewPlaceholder">📷</span>
           </div>
         </foreignObject>
         <rect id="flashRect" x="-32" y="-16" width="64" height="42" rx="6" class="flashRect"/>
@@ -644,18 +743,18 @@
     </svg>
   </div>
 
-  <!-- AI Response & Log Box -->
+  <!-- Live Response & Log Box -->
   <div id="inspectorDrawer">
     <div class="drawer-head">
-      <span>⚡ AI RESPONSE (TỪ BACKEND)</span>
+      <span>📊 KẾT QUẢ NHẬN DIỆN (TỪ BACKEND)</span>
       <span id="clock" style="font-family:'JetBrains Mono',monospace;color:#64748b"></span>
     </div>
 
     <div class="ai-response-box">
       <div class="ai-res-row"><span class="k">Status:</span><span class="v" id="rStatus">—</span></div>
-      <div class="ai-res-row"><span class="k">Label AI:</span><span class="v" id="rLabel">—</span></div>
+      <div class="ai-res-row"><span class="k">Chất liệu:</span><span class="v" id="rLabel">—</span></div>
       <div class="ai-res-row"><span class="k">Route Ngăn:</span><span class="v" id="rRoute">—</span></div>
-      <div class="ai-res-row"><span class="k">Confidence:</span><span class="v" id="rConf">—</span></div>
+      <div class="ai-res-row"><span class="k">Độ tự tin:</span><span class="v" id="rConf">—</span></div>
       <div id="confbar"><div id="confbarFill"></div></div>
     </div>
 
@@ -666,13 +765,66 @@
   </div>
 </div>
 
-<!-- Floating Bottom Dock: Sample Waste Selector -->
+<!-- Floating Bottom Dock: Waste & Camera Controls -->
 <div id="bottomDock">
   <div class="dock-header">
-    <span>Chọn vật rác mẫu để nhân vật cầm trên tay:</span>
-    <span style="color:#10b981">Rác 3D sẽ rơi thực tế vào ngăn kính & sơ đồ cơ khí</span>
+    <span>📸 NGUỒN ẢNH VẬT THỂ CHO ESP32-CAM:</span>
+    <span id="sourceStatusBadge" style="color:#10b981;font-weight:800">● WEBCAM TRỰC TIẾP</span>
   </div>
-  <div class="waste-cards-grid">
+
+  <!-- Tab chuyển đổi nguồn ảnh -->
+  <div class="source-tabs-bar">
+    <button id="tabWebcam" class="source-tab active" data-source="webcam">📷 Webcam / Camera Thật</button>
+    <button id="tabUpload" class="source-tab" data-source="upload">📁 Tải Ảnh Lên</button>
+    <button id="tabSample" class="source-tab" data-source="sample">🖼️ 5 Mẫu Rác Test Nhanh</button>
+  </div>
+
+  <!-- Panel 1: Webcam Trực Tiếp (Mặc định) -->
+  <div id="panelWebcam" class="webcam-dock-panel">
+    <div class="webcam-stream-container">
+      <video id="dockWebcamVideo" autoplay playsinline muted style="display:none"></video>
+      <canvas id="webcamCaptureCanvas" style="display:none"></canvas>
+      <div id="webcamLiveBadge" class="webcam-badge-live" style="display:none">● LIVE</div>
+      <div id="webcamOffPlaceholder" style="font-size:10.5px;color:#64748b;text-align:center;padding:6px">
+        📷 Camera đang tắt<br><span style="font-size:9.5px;color:#10b981;font-weight:700">Bấm "Bật Webcam"</span>
+      </div>
+    </div>
+    <div class="webcam-ctrl-col">
+      <div style="font-size:11.5px;font-weight:800;color:#f8fafc">
+        Giơ vật thể rác (chai, lon, cốc, giấy, đồ vật) trước camera
+      </div>
+      <div style="font-size:10.5px;color:#94a3b8">
+        ESP32-CAM sẽ chụp ảnh thực tế và gửi lên máy chủ để phân tích chất liệu.
+      </div>
+      <div style="display:flex;gap:8px;margin-top:2px">
+        <button id="toggleWebcamBtn" class="webcam-btn">📷 Bật Webcam Thật</button>
+        <button id="snapAndDepositBtn" class="webcam-btn snap" disabled>📸 Chụp & Phân Loại Ngay</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 2: Tải Ảnh Lên -->
+  <div id="panelUpload" class="upload-dock-panel" style="display:none">
+    <div class="webcam-stream-container">
+      <img id="uploadPreviewImg" style="width:100%;height:100%;object-fit:cover;display:none" alt="Ảnh tải lên">
+      <div id="uploadOffPlaceholder" style="font-size:10.5px;color:#64748b;text-align:center;padding:6px">
+        📁 Chưa chọn ảnh
+      </div>
+    </div>
+    <div class="webcam-ctrl-col">
+      <div style="font-size:11.5px;font-weight:800;color:#f8fafc">
+        Chọn ảnh chụp vật rác từ máy tính của bạn
+      </div>
+      <div style="display:flex;gap:8px;margin-top:2px;align-items:center">
+        <input type="file" id="wasteFileInput" accept="image/*" style="display:none">
+        <button id="chooseFileBtn" class="webcam-btn">📁 Chọn File Ảnh</button>
+        <button id="uploadAndDepositBtn" class="webcam-btn snap" disabled>🚀 Gửi Ảnh Phân Loại</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 3: 5 Mẫu Rác Test Nhanh -->
+  <div id="panelSample" class="waste-cards-grid" style="display:none">
     <div class="waste-card active" data-key="plastic">
       <div class="waste-card-img">
         <img src="fixtures/plastic_bottle.jpg" alt="Chai nhựa PET">

@@ -19,7 +19,7 @@ import * as React from "react";
 import { Button, Card } from "@/components/ui/primitives";
 import { api, ApiError } from "@/lib/api";
 import { IconChucMung, IconDuyet } from "@/lib/icons";
-import { Bot, Package, Rocket, Sparkles } from "lucide-react";
+import { Award, Camera, Package, Rocket } from "lucide-react";
 import jsQR from "jsqr";
 
 type TrangThai = "chon" | "quet" | "ket-qua" | "dang-bo" | "da-chot";
@@ -586,7 +586,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           </Card>
 
           <Card className="p-4 bg-surface border-2 border-bulky-soft flex flex-col items-center text-center shadow-sm">
-            <span className="flex h-9 w-9 items-center justify-center text-bulky-dark"><Sparkles className="h-7 w-7" strokeWidth={1.9} /></span>
+            <span className="flex h-9 w-9 items-center justify-center text-bulky-dark"><Award className="h-7 w-7" strokeWidth={1.9} /></span>
             <div className="mt-1 text-[28px] font-black text-bulky-dark font-mono">
               +{diemNhanThuc}
             </div>
@@ -597,11 +597,11 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
         <div className="mb-5 rounded-2xl bg-surface p-4 border border-line shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-leaf-soft text-leaf-dark">
-              <Bot className="h-5 w-5" strokeWidth={1.9} />
+              <Camera className="h-5 w-5" strokeWidth={1.9} />
             </div>
             <div className="flex-1 text-left">
-              <div className="text-[13px] font-bold text-ink">AI ESP32-CAM sẵn sàng</div>
-              <div className="text-[11.5px] text-muted">Tự động nhận diện và tính điểm khi rác rơi</div>
+              <div className="text-[13px] font-bold text-ink">Cảm biến ESP32-CAM sẵn sàng</div>
+              <div className="text-[11.5px] text-muted">Tự động chụp ảnh và phân loại khi rác rơi</div>
             </div>
           </div>
         </div>

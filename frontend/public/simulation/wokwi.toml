@@ -1,0 +1,26 @@
+# Wokwi simulation config for GreenBinAI.
+#
+# Two demo builds share this diagram. Swap which pair of lines is commented out,
+# then restart the simulator.
+#
+# ── A. Offline demo (default) ────────────────────────────────────────────────
+# Mock camera + mock classifier. No backend, no gateway, no webcam — the whole
+# Checkpoint 1 flow runs standalone. Build it with:
+#
+#     cd iot/firmware && pio run -e wokwi
+#
+[wokwi]
+version = 1
+# firmware = "../firmware/.pio/build/wokwi/firmware.bin"
+# elf = "../firmware/.pio/build/wokwi/firmware.elf"
+
+# ── B. Full demo: real webcam + real backend ─────────────────────────────────
+# The ESP32 fetches a JPEG from the PC's webcam, uploads it itself, and the real
+# classifier answers. Needs three things running on the host: wokwigw, the
+# backend on :8123 and webcam_service.py on :8124. See
+# iot/docs/iot-checkpoint-1.md § "Demo with a real webcam".
+#
+#     cd iot/firmware && pio run -e wokwi_camera
+#
+firmware = "../firmware/.pio/build/wokwi_camera/firmware.bin"
+elf = "../firmware/.pio/build/wokwi_camera/firmware.elf"

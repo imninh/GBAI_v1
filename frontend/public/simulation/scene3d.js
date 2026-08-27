@@ -245,7 +245,7 @@
       ctx.fillText("✅ ĐÃ QUÉT QR XONG", size/2, 34);
 
       ctx.font = "52px sans-serif";
-      ctx.fillText("✨", size/2, 98);
+      ctx.fillText("🌱", size/2, 98);
 
       ctx.fillStyle = "#15803d";
       ctx.font = "bold 14px sans-serif";
@@ -266,7 +266,7 @@
       ctx.fillText("📥 HÃY BỎ RÁC VÀO LỖ", size/2, 221);
     }
 
-    // D. TRẠNG THÁI ĐANG PHÂN TÍCH AI (ANALYZING)
+    // D. TRẠNG THÁI ĐANG PHÂN TÍCH (ANALYZING)
     else if(qrState === "ANALYZING"){
       ctx.fillStyle = "#f0f9ff";
       ctx.fillRect(0, 0, size, size);
@@ -278,7 +278,7 @@
       ctx.fillStyle = "#0369a1";
       ctx.font = "bold 14px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("🤖 AI ĐANG PHÂN TÍCH", size/2, 36);
+      ctx.fillText("🔍 ĐANG PHÂN LOẠI...", size/2, 36);
 
       ctx.font = "48px sans-serif";
       ctx.fillText("📸", size/2, 105);
@@ -1011,8 +1011,20 @@
     camera.lookAt(camTarget);
   }
 
-  function setCameraPreset(presetName){
+  let currentPreset = "overview";
+  let previousPreset = "overview";
+
+  function setCameraPreset(presetName, force = false){
     ensureVectors();
+
+    // Nếu bấm lại chính preset đang active (ví dụ QR) -> hoàn tác về preset trước đó (hoặc overview)
+    if(!force && currentPreset === presetName && (presetName === "qr" || presetName === "front" || presetName === "bins")){
+      presetName = (previousPreset && previousPreset !== presetName) ? previousPreset : "overview";
+    } else if(currentPreset !== presetName){
+      previousPreset = currentPreset;
+    }
+
+    currentPreset = presetName;
     cameraMode = "free";
 
     if(presetName === "overview"){
@@ -1028,10 +1040,10 @@
       if(targetLookAt) targetLookAt.set(0, 1.35, 0);
     }
     else if(presetName === "qr" || presetName === "chute"){
-      targetSpherical.radius = 1.85;
-      targetSpherical.theta = 0.18;
-      targetSpherical.phi = 1.42;
-      if(targetLookAt) targetLookAt.set(0.1, 1.35, 0.45);
+      targetSpherical.radius = 0.68;
+      targetSpherical.theta = 0.0;
+      targetSpherical.phi = 1.57;
+      if(targetLookAt) targetLookAt.set(0.474, 1.83, 0.46);
     }
     else if(presetName === "bins"){
       targetSpherical.radius = 2.4;
@@ -1048,6 +1060,15 @@
     else if(presetName === "autorotate"){
       cameraMode = "autorotate";
     }
+
+    // Cập nhật trạng thái active trên thanh nút toolbar
+    if(typeof document !== "undefined"){
+      document.querySelectorAll(".cam-btn").forEach(b => {
+        b.classList.toggle("active", b.dataset.preset === presetName);
+      });
+    }
+
+    return currentPreset;
   }
 
   function updatePlayer(dt){
