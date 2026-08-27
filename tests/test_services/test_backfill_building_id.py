@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from src.db.models import Building, Unit, User
 from scripts.backfill_building_id import backfill
+from src.db.models import Building, Unit, User
 
 
 def _tao_toa_va_can(db_session: Session) -> tuple[Building, Unit]:
@@ -38,7 +38,7 @@ def test_backfill_chi_unit_id_keo_theo_toa(db_session: Session) -> None:
     assert db_session.get(User, user.id).building_id is None
 
     # Apply: ghi thật.
-    ke = backfill(db_session, dry_run=False)
+    backfill(db_session, dry_run=False)
     db_session.commit()
     db_session.expire_all()
     assert db_session.get(User, user.id).building_id == toa.id

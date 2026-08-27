@@ -228,7 +228,6 @@ async def test_chuyen_sang_toa_khong_co_unit_thi_xoa_can_cu(
     res = await api.patch("/api/v1/auth/me", json={"unit_id": can_ho.id}, headers=_bearer(token))
     assert res.status_code == 200, res.text
 
-    cac_toa_co_phong = {u.building_id for u in api_session.scalars(select(Unit)).all()}
     toa = Building(code="KO-PHONG-PROFILE", name="Toà không phòng", address="9 Đường X", lat=10.0, lng=20.0)
     api_session.add(toa)
     api_session.flush()
