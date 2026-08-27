@@ -1,34 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Foreground icon (leaf-only, khong nên kem) tu logo chinh.svg (Figma GreenBin).
+     Adaptive icon dang dung @mipmap/ic_launcher_foreground (PNG route); vector nay
+     duoc giu de dong bo, khong con logo cu (gradient thung rac). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
-    android:viewportHeight="108"
-    android:viewportWidth="108">
-    <path
-        android:fillType="evenOdd"
-        android:pathData="M32,64C32,64 38.39,52.99 44.13,50.95C51.37,48.37 70.14,49.57 70.14,49.57L108.26,87.69L108,109.01L75.97,107.97L32,64Z"
-        android:strokeColor="#00000000"
-        android:strokeWidth="1">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="78.5885"
-                android:endY="90.9159"
-                android:startX="48.7653"
-                android:startY="61.0927"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M66.94,46.02L66.94,46.02C72.44,50.07 76,56.61 76,64L32,64C32,56.61 35.56,50.11 40.98,46.06L36.18,41.19C35.45,40.45 35.45,39.3 36.18,38.56C36.91,37.81 38.05,37.81 38.78,38.56L44.25,44.05C47.18,42.57 50.48,41.71 54,41.71C57.48,41.71 60.78,42.57 63.68,44.05L69.11,38.56C69.84,37.81 70.98,37.81 71.71,38.56C72.44,39.3 72.44,40.45 71.71,41.19L66.94,46.02ZM62.94,56.92C64.08,56.92 65,56.01 65,54.88C65,53.76 64.08,52.85 62.94,52.85C61.8,52.85 60.88,53.76 60.88,54.88C60.88,56.01 61.8,56.92 62.94,56.92ZM45.06,56.92C46.2,56.92 47.13,56.01 47.13,54.88C47.13,53.76 46.2,52.85 45.06,52.85C43.92,52.85 43,53.76 43,54.88C43,56.01 43.92,56.92 45.06,56.92Z"
-        android:strokeColor="#00000000"
-        android:strokeWidth="1" />
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.643"
+        android:scaleY="0.643"
+        android:translateX="11.83"
+        android:translateY="12.08">
+        <path
+            android:fillColor="#21482C"
+            android:pathData="M62.5122 71.6422C69.0912 55.1705 93.0752 53.5439 99.0972 70.8942C106.404 91.9462 88.3952 111.081 67.3942 112.12C47.5522 116.814 24.7602 108.012 29.0312 84.1552C36.0772 69.8632 43.0802 72.0352 56.7892 69.9142L58.3102 70.2842L62.5122 71.6422Z" />
+        <path
+            android:fillColor="#A3CC57"
+            android:pathData="M62.5122 71.6422C69.0912 55.1705 93.0752 53.5439 99.0972 70.8942C106.404 91.9462 88.3952 111.081 67.3942 112.12C77.0912 106.996 87.0382 100.182 82.1572 86.7442C79.4022 79.1582 72.2842 75.5202 65.2022 72.4422L62.5122 71.6422Z" />
+        <path
+            android:fillColor="#527C43"
+            android:pathData="M56.7892 69.9142L58.3102 70.2842L62.5122 71.6422L65.2022 72.4422C61.0442 76.1912 44.5292 83.6432 38.9192 85.7602C36.0222 85.2842 31.8392 84.4562 29.0312 84.1552C36.0772 69.8632 43.0802 72.0352 56.7892 69.9142Z" />
+        <path
+            android:fillColor="#21482C"
+            android:pathData="M56.7892 69.9142C52.0152 55.5596 51.0372 49.773 56.8362 34.9937C64.2862 16.0044 96.7342 13.5568 89.6892 38.5238C84.4452 57.1115 60.8542 48.5464 58.3102 70.2842L56.7892 69.9142Z" />
+    </group>
 </vector>
