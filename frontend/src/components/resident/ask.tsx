@@ -115,8 +115,8 @@ export function AskScreen({
       {/* ── header: lời chào + chuông ── */}
       <div className="relative z-10 flex items-center justify-between">
         <div className="min-w-0">
-          <div className="text-xs font-bold text-ink-soft drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]">{greeting}</div>
-          <div className="mt-0.5 truncate font-[family-name:var(--font-display)] text-[26px] font-extrabold leading-none tracking-tight text-ink drop-shadow-[0_1px_4px_rgba(255,255,255,0.9)]">
+          <div className="text-xs font-bold text-ink-soft">{greeting}</div>
+          <div className="mt-0.5 truncate font-[family-name:var(--font-display)] text-[26px] font-extrabold leading-none tracking-tight text-ink">
             {user?.full_name?.split(" ").pop() ?? "Bạn"} <IconMamXanh className="ml-0.5 inline h-6 w-6 text-leaf" strokeWidth={1.9} />
           </div>
         </div>
@@ -136,8 +136,8 @@ export function AskScreen({
       </div>
 
       {/* ── hero: scan chính ── */}
-      <div className="relative z-10 mt-14">
-        <h1 className="mb-4 max-w-[240px] font-[family-name:var(--font-display)] text-[34px] font-extrabold leading-[1.04] tracking-tight text-white drop-shadow-[0_2px_12px_rgba(20,40,25,0.75)] [text-shadow:_0_2px_8px_rgba(0,0,0,0.55),_0_0_20px_rgba(28,44,70,0.45)]">
+      <div className="relative z-10 mt-[210px]">
+        <h1 className="mb-4 max-w-[240px] font-[family-name:var(--font-display)] text-[30px] font-bold leading-[1.04] tracking-tight text-ink">
           Không biết bỏ
           <br />
           vào thùng nào?

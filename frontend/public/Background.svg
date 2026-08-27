@@ -1,16 +1,7 @@
 <svg width="508" height="265" viewBox="0 0 508 265" fill="none" xmlns="http://www.w3.org/2000/svg">
   <style>
     /* <![CDATA[ */
-    /* 1. Khung canh dung yen, rung dong nho nhe nhip nhang theo nhip lan banh */
-    @keyframes sceneryMicroVibe {
-      0%, 100% { transform: translate(0px, 0px); }
-      25% { transform: translate(-0.25px, -0.65px); }
-      50% { transform: translate(0.2px, 0.35px); }
-      75% { transform: translate(-0.15px, -0.45px); }
-    }
-    #background-scenery {
-      animation: sceneryMicroVibe 0.35s ease-in-out infinite;
-    }
+    /* 1. Khung canh dung yen — khong con animation rung toan canh */
 
     /* 2. Than xe rung nhip may no va giam xoc (xe dung yen tai cho) */
     @keyframes carEngineIdle {
@@ -20,7 +11,7 @@
       75% { transform: translateY(-0.8px) rotate(-0.2deg); }
     }
     #car-body {
-      animation: carEngineIdle 0.35s ease-in-out infinite;
+      animation: carEngineIdle 1.6s ease-in-out infinite;
       transform-origin: 295px 240px;
     }
 
@@ -86,6 +77,11 @@
     }
     .speed-streak-1 { animation-delay: 0s; }
     .speed-streak-2 { animation-delay: 0.3s; }
+
+    /* 8. Ton trong thiet lap giam chuyen dong: tat toan bo animation */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
+    }
     /* ]]> */
   </style>
 <defs>

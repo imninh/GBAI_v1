@@ -14,7 +14,6 @@ import { startGPSTracker, stopGPSTracker } from "@/lib/gps-tracker";
 import { gioVn, kg, ngayVn, soVn } from "@/lib/format";
 import {
   IconCanhBao,
-  IconDoiVeSinh,
   IconDuyet,
   IconLichSuChuyen,
   IconMonDo,
@@ -534,8 +533,9 @@ function KienDangTheoSection() {
 export function CleanerMeScreen({ user, onLogout }: { user: User; onLogout: () => void }) {
   return (
     <div className="flex min-h-full flex-col items-center justify-center bg-crew-bg px-4 pb-[108px] pt-[52px] text-center">
-      <div className="mb-3.5 flex h-16 w-16 items-center justify-center rounded-2xl bg-recycle-soft text-recycle">
-        <IconDoiVeSinh className="h-7 w-7" strokeWidth={1.8} />
+      <div className="mb-3.5 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-recycle-soft">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/avatar/ve-sinh.svg" alt="Avatar đội vệ sinh" className="h-16 w-16 object-contain" />
       </div>
       <div className="mb-1.5 font-[family-name:var(--font-display)] text-[19px] font-bold">{user.full_name}</div>
       <div className="text-[13px] font-semibold text-muted">Tổ vệ sinh · Sunrise Residence</div>

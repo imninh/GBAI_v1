@@ -793,8 +793,9 @@ export function MeScreen({ user, onPrivacy, onLogout, onDiemXanh }: { user: User
   return (
     <div className="min-h-full bg-cream px-[18px] pb-[108px] pt-[54px] lg:mx-auto lg:max-w-[1080px] lg:px-8">
       <div className="mb-5 flex items-center gap-3.5">
-        <div className="flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-leaf-soft text-leaf-dark">
-          <IconNguoiDung className="h-7 w-7" strokeWidth={1.8} />
+        <div className="flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-2xl bg-leaf-soft">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/avatar/cu-dan.svg" alt="Avatar cư dân" className="h-[60px] w-[60px] object-contain" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-[family-name:var(--font-display)] text-xl font-bold">{user.full_name}</div>

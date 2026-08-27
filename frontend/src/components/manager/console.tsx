@@ -137,13 +137,10 @@ export function ManagerConsole() {
         </span>
         <span className="flex-1" />
         <span className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-bulky-soft text-[13px] font-extrabold text-bulky">
-            {user?.full_name
-              ?.split(" ")
-              .slice(-2)
-              .map((w) => w[0])
-              .join("") ?? "ĐV"}
-          </span>
+          <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-bulky-soft">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/avatar/quan-ly.svg" alt="Avatar ban quản lý" className="h-8 w-8 object-contain" />
+        </span>
           <span>
             <span className="block text-[13px] font-bold leading-tight">{user?.full_name}</span>
             <span className="text-[11px] font-semibold text-muted">Đơn vị thu gom</span>

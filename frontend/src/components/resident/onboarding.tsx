@@ -156,7 +156,7 @@ export function OnboardingScreen({ onNext }: { onNext: () => void }) {
   const delay = (ms: number) => ({ animationDelay: `${ms}ms` });
 
   return (
-    <div className="relative flex min-h-full flex-col items-center overflow-hidden px-6 pb-8 pt-[68px] text-center"
+    <div className="relative flex min-h-full flex-col items-center overflow-hidden px-6 pb-8 pt-[48px] text-center"
       style={{ background: "linear-gradient(180deg,var(--color-leaf-soft),var(--color-cream))" }}
     >
       {/* bong bóng nền */}
@@ -171,12 +171,12 @@ export function OnboardingScreen({ onNext }: { onNext: () => void }) {
         <span className="animate-gbappear absolute -left-5 top-4 h-2 w-2 rounded-full bg-leaf-mint" style={delay(160)} />
         <span className="animate-gbappear absolute -right-6 top-10 h-1.5 w-1.5 rounded-full bg-leaf" style={delay(240)} />
         <span className="animate-gbappear absolute -left-7 bottom-8 h-1.5 w-1.5 rounded-full bg-amber" style={delay(320)} />
-        <Mascot size={250} tuThe="hello"
+        <Mascot size={170} tuThe="hello"
           className="animate-gbfloat relative z-10 drop-shadow-[0_22px_28px_rgba(24,20,15,.20)]" />
       </div>
 
       {/* thương hiệu */}
-      <div className="relative z-10 mt-6">
+      <div className="relative z-10 mt-4">
         <h1 className="animate-gbappear font-[family-name:var(--font-display)] text-[34px] font-bold leading-none tracking-tight text-ink"
           style={delay(120)}>
           GreenBin <span className="text-leaf">AI</span>
@@ -187,22 +187,22 @@ export function OnboardingScreen({ onNext }: { onNext: () => void }) {
         </p>
       </div>
 
-      {/* 3 điểm value */}
-      <div className="relative z-10 mt-8 w-full max-w-[320px] space-y-2.5">
+      {/* 3 điểm value — hàng ngang 3 chip gọn */}
+      <div className="relative z-10 mt-5 flex w-full max-w-[320px] gap-2">
         {GIA_TRI.map((g, i) => (
           <div key={g.text}
-            className="animate-gbappear flex items-center gap-3 rounded-2xl border border-line bg-surface/80 px-4 py-2.5 text-left"
+            className="animate-gbappear flex flex-1 flex-col items-center gap-1 rounded-xl border border-line bg-surface/80 px-2 py-2 text-center"
             style={delay(280 + i * 60)}>
             <span className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-leaf-soft text-leaf-dark">
               <g.icon className="h-5 w-5" strokeWidth={1.9} />
             </span>
-            <span className="text-sm font-bold text-ink">{g.text}</span>
+            <span className="text-xs font-bold leading-tight text-ink">{g.text}</span>
           </div>
         ))}
       </div>
 
       {/* CTA */}
-      <div className="relative z-10 mt-8 w-full max-w-[320px]">
+      <div className="relative z-10 mt-5 w-full max-w-[320px]">
         <Button block size="lg" onClick={onNext} className="animate-gbappear text-[17px]" style={delay(480)}>
           Bắt đầu
         </Button>
