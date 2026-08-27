@@ -210,6 +210,10 @@ async def classify(
             image_bytes = handle.read()
 
     building = building_id
+    # Ưu tiên toà đã gắn trên hồ sơ (`user.building_id`) trước, rồi mới lui về
+    # đường cũ qua `unit → building` — tương thích client chưa gửi building_id.
+    if building is None and user.building_id:
+        building = user.building_id
     if building is None and user.unit_id:
         from src.db.models import Unit
 
@@ -230,6 +234,10 @@ async def classify(
 def classify_text(payload: ClassifyTextRequest, session: DbSession, user: CurrentUser) -> dict:
     """Phân loại theo mô tả bằng chữ — dùng cho các chip gợi ý nhanh khi demo."""
     building = payload.building_id
+    # Ưu tiên toà đã gắn trên hồ sơ (`user.building_id`) trước, rồi mới lui về
+    # đường cũ qua `unit → building`.
+    if building is None and user.building_id:
+        building = user.building_id
     if building is None and user.unit_id:
         from src.db.models import Unit
 

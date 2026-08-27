@@ -99,3 +99,27 @@ def test_co_noi_o_dung_theo_noi_o_cua(db_session: Session, toa_va_can_ho: tuple[
     assert co_noi_o(db_session, _cu_dan(db_session, email="a@noi-o.vn", unit_id=can_ho.id)) is True
     assert co_noi_o(db_session, _cu_dan(db_session, email="b@noi-o.vn", address="số 1 đường X")) is True
     assert co_noi_o(db_session, _cu_dan(db_session, email="c@noi-o.vn")) is False
+
+
+def test_chi_toa_khong_can_ho_tra_toa(db_session: Session, toa_va_can_ho: tuple[Building, Unit]) -> None:
+    """Gói worker 27/08: cư dân chỉ gắn toà (chưa gắn căn) vẫn trả toạ độ toà."""
+    toa, _ = toa_va_can_ho
+    cu_dan = _cu_dan(db_session, building_id=toa.id)
+
+    dia_chi, lat, lng = noi_o_cua(db_session, cu_dan)
+
+    assert dia_chi == toa.address
+    assert lat == toa.lat
+    assert lng == toa.lng
+
+
+def test_chi_toa_van_thang_ca_address_rieng(db_session: Session, toa_va_can_ho: tuple[Building, Unit]) -> None:
+    """Toà thắng cả khi user có cả cột địa chỉ riêng — khẳng định thứ tự ưu tiên."""
+    toa, _ = toa_va_can_ho
+    cu_dan = _cu_dan(db_session, building_id=toa.id, address="địa chỉ riêng", lat=1.0, lng=2.0)
+
+    dia_chi, lat, lng = noi_o_cua(db_session, cu_dan)
+
+    assert dia_chi == toa.address
+    assert lat == toa.lat
+    assert lng == toa.lng

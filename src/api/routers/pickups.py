@@ -104,7 +104,14 @@ def list_pickups(
             raise bad_request(f"Giá trị trạng thái '{status}' không hợp lệ.", code="PU-400") from exc
         statement = statement.where(PickupRequest.status.in_(trang_thai_tuong_duong(trang_thai_chuan)))
     if building_id is not None:
-        statement = statement.join(Unit, PickupRequest.unit_id == Unit.id).where(Unit.building_id == building_id)
+        # Lọc theo toà phải tính CẢ hai dạng cư dân: có căn hộ (PickupRequest ->
+        # Unit -> Building) và chỉ gắn toà (PickupRequest -> resident.building_id,
+        # unit_id = NULL). Giữ hai nhánh OR, không chỉ join Unit như đường lọc
+        # duy nhất — nếu không pickup của cư dân building-only bị loại sạch.
+        statement = statement.where(
+            PickupRequest.unit_id.in_(select(Unit.id).where(Unit.building_id == building_id))
+            | PickupRequest.resident_id.in_(select(User.id).where(User.building_id == building_id))
+        )
 
     total = len(session.scalars(statement).all())
     rows = session.scalars(

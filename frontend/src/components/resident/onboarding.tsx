@@ -13,7 +13,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/primitives";
 import { HoaTiet } from "@/components/ui/pattern";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { IconChao, IconChupAnh, IconMamXanh, IconManHinhRong, IconTiepTuc, IconXeThuGom } from "@/lib/icons";
 import { useSession } from "@/lib/session";
 
@@ -232,7 +232,7 @@ const VAI_TRO = {
  *  thấy có `user` là tự vẽ màn hình chính.
  */
 function FormDangKy() {
-  const { dangKy, error } = useSession();
+  const { dangKy } = useSession();
   const [sdt, setSdt] = React.useState("");
   const [matKhau, setMatKhau] = React.useState("");
   const [ten, setTen] = React.useState("");
@@ -241,6 +241,9 @@ function FormDangKy() {
   const [dsToa, setDsToa] = React.useState<{ id: number; code: string; name: string }[]>([]);
   const [dsCanHo, setDsCanHo] = React.useState<{ id: number; code: string; building_id: number }[]>([]);
   const [dangGui, setDangGui] = React.useState(false);
+  const [daCham, setDaCham] = React.useState({ sdt: false, matKhau: false, ten: false });
+  // Lỗi: từng trường (dưới input) và chung (dưới nút). Server trả mã → map.
+  const [loi, setLoi] = React.useState<{ sdt?: string; matKhau?: string; ten?: string; noiO?: string; chung?: string }>({});
 
   React.useEffect(() => {
     api.buildings().then((d) => setDsToa(d.items)).catch(() => setDsToa([]));
@@ -257,12 +260,31 @@ function FormDangKy() {
     api.units(toaId).then((d) => setDsCanHo(d.items)).catch(() => setDsCanHo([]));
   }, [toaId]);
 
+  const sdtHopLe = /^0\d{9}$/.test(sdt.replace(/\s/g, ""));
+  const tenHopLe = ten.trim().length >= 2;
+  const matKhauHopLe = matKhau.length >= 8;
+
+  // Lỗi client inline — chỉ hiện sau khi người dùng chạm trường đó.
+  const loiSdtClient = daCham.sdt && sdt.trim() && !sdtHopLe ? "Số điện thoại chưa đúng (10 chữ số, bắt đầu 0)." : "";
+  const loiTenClient = daCham.ten && ten.trim() && !tenHopLe ? "Tên hiển thị ít nhất 2 ký tự." : "";
+  const loiMatKhauClient = daCham.matKhau && matKhau && !matKhauHopLe ? "Mật khẩu ít nhất 8 ký tự." : "";
+
   async function tao() {
+    setLoi({});
     setDangGui(true);
     try {
-      await dangKy({ phone: sdt, password: matKhau, full_name: ten, unit_id: canHoId });
-    } catch {
-      /* câu lỗi đã nằm trong context */
+      await dangKy({ phone: sdt, password: matKhau, full_name: ten, unit_id: canHoId, building_id: toaId });
+    } catch (err) {
+      // Map mã lỗi server sang đúng trường — không chỉ một câu chung cuối form.
+      if (err instanceof ApiError) {
+        if (err.code === "REG-409") setLoi({ sdt: "Số điện thoại này đã có tài khoản. Bạn đăng nhập nhé." });
+        else if (err.code === "RATE-429") setLoi({ chung: err.message });
+        else if (err.code === "REG-404" || err.code === "REG-400")
+          setLoi({ noiO: err.message });
+        else setLoi({ chung: err.message });
+      } else {
+        setLoi({ chung: "Không tạo được tài khoản, bạn thử lại nhé." });
+      }
     } finally {
       setDangGui(false);
     }
@@ -270,40 +292,60 @@ function FormDangKy() {
 
   const o =
     "w-full rounded-2xl border-[1.5px] border-line-2 bg-surface px-4 py-4 text-[15px] font-semibold outline-none focus:border-leaf";
-  const chuaDu = !sdt.trim() || matKhau.length < 8 || ten.trim().length < 2;
+  const chuaDu = !sdtHopLe || !matKhauHopLe || !tenHopLe;
+  const tenToa = dsToa.find((t) => t.id === toaId)?.name ?? "";
+  const toaKhongCoPhong = toaId !== null && dsCanHo.length === 0;
 
   return (
     <>
       <input
         value={sdt}
         onChange={(e) => setSdt(e.target.value)}
+        onBlur={() => setDaCham((d) => ({ ...d, sdt: true }))}
         type="tel"
         inputMode="numeric"
         autoComplete="tel"
         placeholder="Số điện thoại"
-        className={`mb-2.5 ${o}`}
+        aria-invalid={!!(loi.sdt || loiSdtClient)}
+        className={`mb-1 ${o}`}
       />
+      {(loiSdtClient || loi.sdt) && <p className="m-0 mb-2.5 text-[12px] font-bold text-hazard-dark">{loi.sdt || loiSdtClient}</p>}
+
       <input
         value={ten}
         onChange={(e) => setTen(e.target.value)}
+        onBlur={() => setDaCham((d) => ({ ...d, ten: true }))}
         autoComplete="name"
         maxLength={120}
         placeholder="Tên của bạn"
-        className={`mb-2.5 ${o}`}
+        aria-invalid={!!(loi.ten || loiTenClient)}
+        className={`mb-1 ${o}`}
       />
+      {(loiTenClient || loi.ten) && <p className="m-0 mb-2.5 text-[12px] font-bold text-hazard-dark">{loi.ten || loiTenClient}</p>}
+
       <input
         value={matKhau}
         onChange={(e) => setMatKhau(e.target.value)}
+        onBlur={() => setDaCham((d) => ({ ...d, matKhau: true }))}
         type="password"
         autoComplete="new-password"
         placeholder="Mật khẩu (ít nhất 8 ký tự)"
-        className={`mb-2.5 ${o}`}
+        aria-invalid={!!(loi.matKhau || loiMatKhauClient)}
+        className={`mb-1 ${o}`}
       />
+      {(loiMatKhauClient || loi.matKhau) && (
+        <p className="m-0 mb-2.5 text-[12px] font-bold text-hazard-dark">{loi.matKhau || loiMatKhauClient}</p>
+      )}
+
+      <div className="mb-2 mt-1 flex items-center gap-2">
+        <span className="text-[12px] font-extrabold uppercase tracking-wide text-muted">Nơi ở (tuỳ chọn)</span>
+        <span className="h-px flex-1 bg-line-2" />
+      </div>
 
       <select
         value={toaId ?? ""}
         onChange={(e) => setToaId(e.target.value ? Number(e.target.value) : null)}
-        className={`mb-2.5 ${o}`}
+        className={`mb-1 ${o}`}
       >
         <option value="">Toà — để trống nếu chưa biết</option>
         {dsToa.map((t) => (
@@ -325,12 +367,21 @@ function FormDangKy() {
           </option>
         ))}
       </select>
-      <p className="m-0 mb-3.5 text-[11px] font-semibold text-muted">
-        Gắn căn hộ để xem đúng lịch thu gom của toà và sắp điểm gửi theo khoảng cách. Bỏ trống cũng dùng
-        được, sửa sau ở mục Tôi.
-      </p>
 
-      {error && <div className="mb-3 text-[13px] font-bold text-hazard-dark">{error}</div>}
+      {toaKhongCoPhong ? (
+        <p className="m-0 mb-2 text-[12px] font-semibold text-leaf-dark">
+          Tòa này chưa có danh sách phòng. Bạn vẫn có thể tiếp tục với toà đã chọn.
+        </p>
+      ) : canHoId !== null ? (
+        <p className="m-0 mb-2 text-[12px] font-semibold text-muted">Đã chọn phòng {dsCanHo.find((c) => c.id === canHoId)?.code} thuộc {tenToa}.</p>
+      ) : (
+        <p className="m-0 mb-2 text-[12px] font-semibold text-muted">
+          Bạn có thể bổ sung nơi ở sau. Chọn toà giúp xem đúng lịch thu gom.
+        </p>
+      )}
+      {loi.noiO && <p className="m-0 mb-2 text-[12px] font-bold text-hazard-dark">{loi.noiO}</p>}
+
+      {loi.chung && <div className="mb-3 text-[13px] font-bold text-hazard-dark">{loi.chung}</div>}
       <Button block size="lg" disabled={dangGui || chuaDu} onClick={tao}>
         {dangGui ? "Đang tạo…" : "Tạo tài khoản"}
       </Button>

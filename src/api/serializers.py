@@ -168,7 +168,10 @@ def pickup_dict(session: Session, request: PickupRequest, *, full: bool = False)
     # session.get(Unit, None) trả None kèm SAWarning.
     unit = session.get(Unit, request.unit_id) if request.unit_id is not None else None
     building = session.get(Building, unit.building_id) if unit else None
+    # Cư dân chỉ gắn toà (không có căn) → lấy toà từ resident.building_id.
     resident = session.get(User, request.resident_id)
+    if building is None and resident is not None and resident.building_id is not None:
+        building = session.get(Building, resident.building_id)
 
     data: dict[str, Any] = {
         "id": request.id,

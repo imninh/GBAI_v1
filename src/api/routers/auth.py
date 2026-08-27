@@ -11,7 +11,7 @@ from src.api.deps import CurrentUser, DbSession, require
 from src.api.errors import ApiError, bad_request, not_found
 from src.api.serializers import user_dict
 from src.config import get_settings
-from src.db.models import Classification, DiemThuongLog, PickupRequest, Unit, User, WasteCategory
+from src.db.models import Building, Classification, DiemThuongLog, PickupRequest, Unit, User, WasteCategory
 from src.db.seed_data import DEMO_PASSWORD, USERS
 from src.models.schemas import LoginRequest, LoginResponse, RegisterRequest, UpdateProfileRequest
 from src.services.auth import (
@@ -86,6 +86,7 @@ def register(payload: RegisterRequest, session: DbSession, request: Request) -> 
             password=payload.password,
             full_name=payload.full_name,
             unit_id=payload.unit_id,
+            building_id=payload.building_id,
         )
     except AuthError as exc:
         raise ApiError(MA_HTTP_DANG_KY.get(exc.code, 400), exc.code, exc.message_vi) from exc
@@ -118,7 +119,7 @@ def update_me(
     Trả về đúng khuôn của ``GET /me`` để client thay thẳng phiên hiện tại.
     """
     # Giá trị TRƯỚC phải chụp TRƯỚC khi sửa — chụp sau thì log không còn ý nghĩa.
-    truoc = {"full_name": user.full_name, "unit_id": user.unit_id}
+    truoc = {"full_name": user.full_name, "building_id": user.building_id, "unit_id": user.unit_id}
 
     if payload.full_name is not None:
         ten = payload.full_name.strip()
@@ -126,12 +127,52 @@ def update_me(
             raise bad_request("Tên hiển thị không được để trống.")
         user.full_name = ten
 
-    if payload.xoa_can_ho:
+    # --- Toà nhà + căn hộ: giải quyết chung để luôn nhất quán ---
+    # Quy tắc bất di bất dịch: ``unit.building_id`` PHẢI == ``user.building_id``.
+    # Không dùng ``null`` mơ hồ — ba nghĩa tách bằng cờ ``xoa_toa`` /
+    # ``xoa_can_ho``. Khi chuyển sang toà khác, căn cũ lạc toà sẽ bị bỏ (không
+    # giữ lại một cặp toà-căn mâu thuẫn).
+    if payload.xoa_toa:
+        user.building_id = None
         user.unit_id = None
-    elif payload.unit_id is not None:
-        if session.get(Unit, payload.unit_id) is None:
-            raise not_found("căn hộ này")
-        user.unit_id = payload.unit_id
+    else:
+        # Xác định toà đích.
+        if payload.building_id is not None:
+            if session.get(Building, payload.building_id) is None:
+                raise not_found("toà nhà này")
+            target_building = payload.building_id
+        else:
+            target_building = user.building_id  # giữ nguyên
+
+        # Xác định căn đích.
+        if payload.xoa_can_ho:
+            target_unit = None
+        elif payload.unit_id is not None:
+            unit = session.get(Unit, payload.unit_id)
+            if unit is None:
+                raise not_found("căn hộ này")
+            if target_building is None:
+                # Chưa có toà → suy toà từ căn (tương thích client cũ).
+                target_building = unit.building_id
+            elif unit.building_id != target_building:
+                raise bad_request("Căn hộ này không thuộc toà bạn đã chọn.")
+            target_unit = payload.unit_id
+        else:
+            # Không đổi căn → giữ căn cũ NẾU vẫn thuộc toà đích, ngược lại bỏ.
+            if user.unit_id is not None:
+                cu = session.get(Unit, user.unit_id)
+                if cu is not None:
+                    if target_building is None:
+                        # Chưa có toà → suy toà từ căn cũ để giữ nhất quán.
+                        target_building = cu.building_id
+                    target_unit = user.unit_id if cu.building_id == target_building else None
+                else:
+                    target_unit = None
+            else:
+                target_unit = None
+
+        user.building_id = target_building
+        user.unit_id = target_unit
 
     session.flush()
 
@@ -143,7 +184,11 @@ def update_me(
         entity_id=str(user.id),
         detail={
             "truoc": truoc,
-            "sau": {"full_name": user.full_name, "unit_id": user.unit_id},
+            "sau": {
+                "full_name": user.full_name,
+                "building_id": user.building_id,
+                "unit_id": user.unit_id,
+            },
         },
     )
     return {"user": user_dict(session, user), "permissions": permission_matrix(user)}

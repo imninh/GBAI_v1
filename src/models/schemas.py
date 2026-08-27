@@ -42,6 +42,10 @@ class RegisterRequest(BaseModel):
     # Bỏ trống nghĩa là chưa gắn căn hộ — hợp lệ. Màn "Điểm gửi" và "Lịch thu
     # gom" đều đã chịu được trạng thái không có nơi ở.
     unit_id: int | None = None
+    # Toà nhà thuộc về — liên kết hành chính chính, tuỳ chọn độc lập với căn hộ.
+    # Chỉ toà (không căn) vẫn hợp lệ; client cũ không gửi trường này thì server
+    # tự suy từ `unit_id` nếu có. Không dùng `null` để diễn tả nhiều ý nghĩa.
+    building_id: int | None = None
 
 
 class UserOut(BaseModel):
@@ -74,6 +78,14 @@ class UpdateProfileRequest(BaseModel):
     full_name: str | None = Field(default=None, max_length=120)
     unit_id: int | None = None
     xoa_can_ho: bool = False
+    # Sửa liên kết toà nhà. Ba ý nghĩa tách rõ bằng cờ, KHÔNG dùng `null` mơ hồ:
+    #   * `building_id` không gửi (giữ nguyên mặc định `None`) → giữ nguyên toà.
+    #   * `xoa_toa = True` → bỏ cả toà (kéo theo bỏ cả căn hộ, vì căn hộ luôn
+    #     thuộc một toà).
+    #   * `building_id` có giá trị → gắn/chuyển toà, validate tồn tại và khớp với
+    #     căn hộ đang chọn (nếu có).
+    building_id: int | None = None
+    xoa_toa: bool = False
 
 
 class LoginResponse(BaseModel):

@@ -526,6 +526,7 @@ function SuaHoSo({ user, onXong, onHuy }: { user: User; onXong: () => void; onHu
   const [dsCanHo, setDsCanHo] = React.useState<{ id: number; code: string; building_id: number }[]>([]);
   const [dangLuu, setDangLuu] = React.useState(false);
   const [chacBo, setChacBo] = React.useState(false);
+  const [chacToa, setChacToa] = React.useState(false);
   const [loi, setLoi] = React.useState("");
 
   React.useEffect(() => {
@@ -543,7 +544,19 @@ function SuaHoSo({ user, onXong, onHuy }: { user: User; onXong: () => void; onHu
     api.units(toaId).then((d) => setDsCanHo(d.items)).catch(() => setDsCanHo([]));
   }, [toaId]);
 
-  async function gui(payload: { full_name?: string; unit_id?: number; xoa_can_ho?: boolean }) {
+  /** Gom payload sửa hồ sơ — tách rõ ba nghĩa, không dùng `null` mơ hồ:
+   *  - toaId có giá trị → gắn/chuyển toà (building_id).
+   *  - toaId rỗng mà trước đó có toà → bỏ cả toà (xoa_toa, kéo theo bỏ căn).
+   *  - canHoId có giá trị → gắn/chuyển căn (unit_id). */
+  function payloadLuu(): Record<string, unknown> {
+    const p: Record<string, unknown> = { full_name: ten };
+    if (toaId !== null) p.building_id = toaId;
+    else if (user.building_id !== null) p.xoa_toa = true;
+    if (canHoId !== null) p.unit_id = canHoId;
+    return p;
+  }
+
+  async function gui(payload: { full_name?: string; unit_id?: number; xoa_can_ho?: boolean; building_id?: number | null; xoa_toa?: boolean }) {
     setDangLuu(true);
     setLoi("");
     try {
@@ -601,7 +614,7 @@ function SuaHoSo({ user, onXong, onHuy }: { user: User; onXong: () => void; onHu
         <Button
           block
           disabled={dangLuu || !ten.trim()}
-          onClick={() => gui({ full_name: ten, ...(canHoId !== null ? { unit_id: canHoId } : {}) })}
+          onClick={() => gui(payloadLuu())}
         >
           {dangLuu ? "Đang lưu…" : "Lưu thay đổi"}
         </Button>
@@ -611,13 +624,22 @@ function SuaHoSo({ user, onXong, onHuy }: { user: User; onXong: () => void; onHu
       </div>
 
       {user.building_id !== null && (
-        <button
-          disabled={dangLuu}
-          onClick={() => (chacBo ? gui({ xoa_can_ho: true }) : setChacBo(true))}
-          className="w-full cursor-pointer rounded-xl border border-line-3 bg-surface px-3 py-2 text-[13px] font-bold text-hazard-dark"
-        >
-          {chacBo ? "Chắc chắn bỏ? Bấm lần nữa" : "Bỏ gắn căn hộ"}
-        </button>
+        <div className="flex flex-col gap-2">
+          <button
+            disabled={dangLuu}
+            onClick={() => (chacBo ? gui({ xoa_can_ho: true, full_name: ten }) : setChacBo(true))}
+            className="w-full cursor-pointer rounded-xl border border-line-3 bg-surface px-3 py-2 text-[13px] font-bold text-hazard-dark"
+          >
+            {chacBo ? "Chắc chắn bỏ căn hộ? Bấm lần nữa" : "Bỏ gắn căn hộ"}
+          </button>
+          <button
+            disabled={dangLuu}
+            onClick={() => (chacToa ? gui({ xoa_toa: true, full_name: ten }) : setChacToa(true))}
+            className="w-full cursor-pointer rounded-xl border border-line-3 bg-surface px-3 py-2 text-[13px] font-bold text-hazard-dark"
+          >
+            {chacToa ? "Chắc chắn bỏ toà? Bấm lần nữa" : "Bỏ gắn toà"}
+          </button>
+        </div>
       )}
     </Card>
   );

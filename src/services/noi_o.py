@@ -33,8 +33,12 @@ def noi_o_cua(session: Session, user: User) -> tuple[str, float | None, float | 
 
     1. ``user.unit_id`` có giá trị → tra ``Unit`` → tra ``Building`` → trả địa chỉ
        và toạ độ của **toà** (toà thắng, kể cả khi user cũng có cột riêng).
-    2. Không có căn hộ nhưng ``user.address`` khác rỗng → trả cột riêng của user.
-    3. Không có gì → ``("", None, None)``.
+    2. Không có căn hộ nhưng ``user.building_id`` có giá trị (cư dân chỉ gắn toà,
+       chưa gắn căn — 41 toà trong hệ thống chưa có danh sách căn) → tra thẳng
+       ``Building`` → trả địa chỉ/toạ độ của toà.
+    3. Không có căn hộ, không có toà, nhưng ``user.address`` khác rỗng → trả cột
+       riêng của user (hộ dân lẻ trên phố, có toạ độ riêng).
+    4. Không có gì → ``("", None, None)``.
 
     Thuần đọc, không ghi CSDL.
     """
@@ -44,6 +48,11 @@ def noi_o_cua(session: Session, user: User) -> tuple[str, float | None, float | 
             building = session.get(Building, unit.building_id)
             if building is not None:
                 return building.address, building.lat, building.lng
+
+    if user.building_id is not None:
+        building = session.get(Building, user.building_id)
+        if building is not None:
+            return building.address, building.lat, building.lng
 
     if user.address:
         return user.address, user.lat, user.lng

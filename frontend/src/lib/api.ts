@@ -127,16 +127,19 @@ export const api = {
       body: JSON.stringify({ phone, password }),
     }),
   /** Đăng ký cư dân mới. Server LUÔN gán vai trò `resident` và tự sinh email nội
-   *  bộ — đừng gửi `role`, `email` hay `green_points`, chúng bị bỏ qua. */
-  register: (payload: { phone: string; password: string; full_name: string; unit_id?: number | null }) =>
+   *  bộ — đừng gửi `role`, `email` hay `green_points`, chúng bị bỏ qua.
+   *  `building_id` tuỳ chọn, độc lập với `unit_id` — chỉ toà vẫn hợp lệ. */
+  register: (payload: { phone: string; password: string; full_name: string; unit_id?: number | null; building_id?: number | null }) =>
     request<{ token: string; user: User; permissions: Permissions }>("/auth/register", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
   me: () => request<{ user: User; permissions: Permissions }>("/auth/me"),
-  /** Sửa hồ sơ của chính mình. Không gửi `unit_id` nghĩa là giữ nguyên căn hộ;
-   *  muốn bỏ căn hộ phải gửi `xoa_can_ho: true`. */
-  updateMe: (payload: { full_name?: string; unit_id?: number; xoa_can_ho?: boolean }) =>
+  /** Sửa hồ sơ của chính mình.
+   *  - Không gửi `unit_id` nghĩa là giữ nguyên căn hộ; muốn bỏ căn hộ gửi `xoa_can_ho: true`.
+   *  - Không gửi `building_id` nghĩa là giữ nguyên toà; `xoa_toa: true` bỏ cả toà
+   *    (kéo theo bỏ cả căn hộ). Gửi `building_id` để gắn/chuyển toà. */
+  updateMe: (payload: { full_name?: string; unit_id?: number; xoa_can_ho?: boolean; building_id?: number | null; xoa_toa?: boolean }) =>
     request<{ user: User; permissions: Permissions }>("/auth/me", {
       method: "PATCH",
       body: JSON.stringify(payload),

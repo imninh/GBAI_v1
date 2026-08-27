@@ -113,3 +113,48 @@ async def test_chua_gan_can_ho_thi_khong_co_toa_do(api: AsyncClient, api_session
 
     assert user["building_lat"] is None
     assert user["building_lng"] is None
+
+
+@pytest.mark.asyncio
+async def test_loc_pickup_theo_building_bao_gom_chi_toa(api: AsyncClient, api_session: Session) -> None:
+    """BQL lọc pickup theo toà phải tính cả cư dân CHỈ gắn toà (unit_id = NULL)."""
+    toa = Building(code="KO-PHONG-PICKUP", name="Toà không phòng", address="9 Đường X", lat=10.0, lng=20.0)
+    api_session.add(toa)
+    api_session.flush()
+
+    # Cư dân chỉ gắn toà, chưa gắn căn hộ.
+    api_session.add(
+        User(
+            email="chi-toa@test.vn",
+            full_name="Chỉ toà",
+            role="resident",
+            password_hash=hash_password(MAT_KHAU),
+            building_id=toa.id,
+        )
+    )
+    api_session.commit()
+
+    token = (await api.post("/api/v1/auth/login", json={"email": "chi-toa@test.vn", "password": MAT_KHAU})).json()["token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    pr = await api.post(
+        "/api/v1/pickups",
+        json={
+            "items": [{"name": "Ghế cũ", "category_code": "bulky", "qty": 1}],
+            "est_weight_kg": 5.0,
+            "confirmed_no_hazardous": True,
+        },
+        headers=headers,
+    )
+    assert pr.status_code in (200, 201), pr.text
+    pr_id = pr.json()["id"]
+
+    # Lọc đúng toà → pickup hiện ra (không bị loại vì unit_id = NULL).
+    dung = await api.get(f"/api/v1/pickups?building_id={toa.id}", headers=headers)
+    assert dung.status_code == 200
+    assert pr_id in [p["id"] for p in dung.json()["items"]]
+
+    # Lọc toà khác → pickup không xuất hiện.
+    toa_khac = api_session.scalar(select(Building).where(Building.id != toa.id))
+    sai = await api.get(f"/api/v1/pickups?building_id={toa_khac.id}", headers=headers)
+    assert pr_id not in [p["id"] for p in sai.json()["items"]]

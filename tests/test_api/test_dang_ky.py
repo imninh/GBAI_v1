@@ -13,7 +13,7 @@ from sqlalchemy.pool import StaticPool
 
 from src.api.deps import get_db
 from src.config import reset_settings_cache
-from src.db.models import Base, Unit, User
+from src.db.models import Base, Building, Unit, User
 from src.main import app
 from src.services.gioi_han_tan_suat import dat_lai
 
@@ -212,3 +212,90 @@ async def test_client_khong_tu_phong_vai_tro_duoc(api: AsyncClient, api_session:
     assert body["user"]["role"] == "resident"
     assert body["user"]["green_points"] == 0
     assert body["permissions"]["review_route"]["allowed"] is False
+
+
+# --- Liên kết nơi ở: building_id (gói worker 27/08) ---------------------------
+
+
+def _toa_khong_co_phong(api_session: Session) -> Building:
+    """Chọn một toà KHÔNG có căn hộ nào — 41/44 toà trong seed rơi vào nhóm này."""
+    cac_toa_co_phong = {u.building_id for u in api_session.scalars(select(Unit)).all()}
+    toa = api_session.scalar(select(Building).where(Building.id.notin_(cac_toa_co_phong)))
+    assert toa is not None, "seed phải có ít nhất một toà không có phòng"
+    return toa
+
+
+@pytest.mark.asyncio
+async def test_dang_ky_chi_toa_thanh_cong(api: AsyncClient, api_session: Session) -> None:
+    """Chỉ gửi building_id (không căn) → tạo được, có toạ độ toà, unit rỗng."""
+    toa = Building(code="KO-PHONG-1", name="Toà không phòng", address="9 Đường X", lat=10.0, lng=20.0)
+    api_session.add(toa)
+    api_session.flush()
+
+    response = await api.post(
+        "/api/v1/auth/register",
+        json={"phone": "0912345980", "password": "matkhau123", "full_name": "Chỉ Toà", "building_id": toa.id},
+    )
+
+    assert response.status_code == 201, response.text
+    user = response.json()["user"]
+    assert user["building_id"] == toa.id
+    assert user["unit"] == ""
+    assert user["building_lat"] == toa.lat
+    assert user["building_lng"] == toa.lng
+
+
+@pytest.mark.asyncio
+async def test_dang_ky_chi_can_ho_tu_dien_toa(api: AsyncClient, api_session: Session) -> None:
+    """Chỉ gửi unit_id → server tự suy building từ căn (tương thích client cũ)."""
+    can_ho = api_session.scalar(select(Unit).where(Unit.code == "S1-0302"))
+    assert can_ho is not None
+
+    response = await api.post(
+        "/api/v1/auth/register",
+        json={"phone": "0912345981", "password": "matkhau123", "full_name": "Chỉ Căn", "unit_id": can_ho.id},
+    )
+
+    assert response.status_code == 201, response.text
+    user = response.json()["user"]
+    assert user["unit"] == "S1-0302"
+    assert user["building_id"] == can_ho.building_id
+
+
+@pytest.mark.asyncio
+async def test_dang_ky_toa_khac_can_ho_thi_400(api: AsyncClient, api_session: Session) -> None:
+    """Gửi building_id và unit_id không khớp → 400 rõ nghĩa, không tạo tài khoản."""
+    so_truoc = _so_dong_user(api_session)
+    can_ho = api_session.scalar(select(Unit).where(Unit.code == "S1-0302"))
+    toa_khac = api_session.scalar(select(Building).where(Building.id != can_ho.building_id))
+
+    response = await api.post(
+        "/api/v1/auth/register",
+        json={
+            "phone": "0912345982",
+            "password": "matkhau123",
+            "full_name": "Sai Khớp",
+            "unit_id": can_ho.id,
+            "building_id": toa_khac.id,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "REG-400"
+    api_session.expire_all()
+    assert _so_dong_user(api_session) == so_truoc
+
+
+@pytest.mark.asyncio
+async def test_dang_ky_toa_khong_ton_tai_thi_404(api: AsyncClient, api_session: Session) -> None:
+    so_truoc = _so_dong_user(api_session)
+
+    response = await api.post(
+        "/api/v1/auth/register",
+        json={"phone": "0912345983", "password": "matkhau123", "full_name": "Toà Ảo", "building_id": 99999},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "REG-404"
+    api_session.expire_all()
+    assert _so_dong_user(api_session) == so_truoc

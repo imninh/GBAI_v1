@@ -213,3 +213,57 @@ async def test_toa_khong_ton_tai_thi_404(api: AsyncClient, api_session: Session)
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NF-404"
+
+
+# --- Sửa liên kết toà nhà (gói worker 27/08) ---------------------------------
+
+
+@pytest.mark.asyncio
+async def test_chuyen_sang_toa_khong_co_unit_thi_xoa_can_cu(
+    api: AsyncClient, api_session: Session
+) -> None:
+    """Chuyển sang toà không có căn hộ → không để lại căn của toà cũ."""
+    token = await _dang_nhap(api, "resident@demo.vn")
+    can_ho = api_session.scalar(select(Unit).where(Unit.code == "S3-0710"))
+    res = await api.patch("/api/v1/auth/me", json={"unit_id": can_ho.id}, headers=_bearer(token))
+    assert res.status_code == 200, res.text
+
+    cac_toa_co_phong = {u.building_id for u in api_session.scalars(select(Unit)).all()}
+    toa = Building(code="KO-PHONG-PROFILE", name="Toà không phòng", address="9 Đường X", lat=10.0, lng=20.0)
+    api_session.add(toa)
+    api_session.flush()
+
+    res2 = await api.patch("/api/v1/auth/me", json={"building_id": toa.id}, headers=_bearer(token))
+    assert res2.status_code == 200, res2.text
+    user = res2.json()["user"]
+    assert user["building_id"] == toa.id
+    assert user["unit"] == ""
+    assert user["building_lat"] == toa.lat
+
+
+@pytest.mark.asyncio
+async def test_xoa_toa_thi_bo_ca_can(api: AsyncClient, api_session: Session) -> None:
+    token = await _dang_nhap(api, "resident@demo.vn")
+    can_ho = api_session.scalar(select(Unit).where(Unit.code == "S3-0710"))
+    await api.patch("/api/v1/auth/me", json={"unit_id": can_ho.id}, headers=_bearer(token))
+
+    res = await api.patch("/api/v1/auth/me", json={"xoa_toa": True}, headers=_bearer(token))
+    assert res.status_code == 200, res.text
+    user = res.json()["user"]
+    assert user["building_id"] is None
+    assert user["unit"] == ""
+
+
+@pytest.mark.asyncio
+async def test_building_khac_can_ho_thi_400(api: AsyncClient, api_session: Session) -> None:
+    token = await _dang_nhap(api, "resident@demo.vn")
+    can_ho = api_session.scalar(select(Unit).where(Unit.code == "S3-0710"))
+    toa_khac = api_session.scalar(select(Building).where(Building.id != can_ho.building_id))
+
+    res = await api.patch(
+        "/api/v1/auth/me",
+        json={"unit_id": can_ho.id, "building_id": toa_khac.id},
+        headers=_bearer(token),
+    )
+    assert res.status_code == 400
+    assert res.json()["error"]["code"] == "REQ-400"

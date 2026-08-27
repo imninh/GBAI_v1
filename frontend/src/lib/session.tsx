@@ -18,6 +18,7 @@ interface SessionValue {
     password: string;
     full_name: string;
     unit_id?: number | null;
+    building_id?: number | null;
   }) => Promise<User>;
   dangXuat: () => void;
   /** Thay hồ sơ + quyền của phiên bằng dữ liệu server vừa trả, không đụng token. */
@@ -158,7 +159,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   /** Đăng ký rồi vào luôn — server trả token ngay trong phản hồi đăng ký. */
   const dangKy = React.useCallback(
-    async (payload: { phone: string; password: string; full_name: string; unit_id?: number | null }) => {
+    async (payload: { phone: string; password: string; full_name: string; unit_id?: number | null; building_id?: number | null }) => {
       setError("");
       try {
         return nhanPhien(await api.register(payload));

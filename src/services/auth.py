@@ -20,7 +20,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.config import get_settings
-from src.db.models import AuditLog, Unit, User
+from src.db.models import AuditLog, Building, Unit, User
 from src.services.security import hash_password, verify_password
 
 ROLES = ("resident", "cleaner", "manager")
@@ -145,6 +145,7 @@ def dang_ky(
     password: str,
     full_name: str,
     unit_id: int | None = None,
+    building_id: int | None = None,
 ) -> User:
     """Tạo tài khoản cư dân mới, định danh bằng số điện thoại.
 
@@ -157,9 +158,18 @@ def dang_ky(
     Tính duy nhất của SĐT ép ở đây chứ không ở CSDL: cột ``phone`` cố tình không
     ``unique`` vì mọi dòng có từ trước đều mang chuỗi rỗng.
 
+    Liên kết nơi ở lỏng ba trường hợp, đều hợp lệ:
+      * Chỉ toà (``building_id`` có, ``unit_id`` None) → lưu toà, không căn.
+      * Toà + căn (cả hai có) → lưu cả hai, BẮT BUỘC ``Unit.building_id ==``
+        ``User.building_id``, lệch nhau trả ``REG-400``.
+      * Chỉ căn (``unit_id`` có, ``building_id`` None) → tự suy toà từ căn để tương
+        thích client cũ không gửi ``building_id``.
+      * Cả hai rỗng → tài khoản chưa gắn nơi ở, vẫn hợp lệ.
+
     Raises:
-        AuthError: mã ``REG-400`` số điện thoại hoặc tên không hợp lệ ·
-            ``REG-409`` số đã có tài khoản · ``REG-404`` căn hộ không tồn tại.
+        AuthError: mã ``REG-400`` số điện thoại/tên không hợp lệ hoặc toà-căn
+            không khớp · ``REG-409`` số đã có tài khoản · ``REG-404`` toà/căn
+            không tồn tại.
     """
     sdt = chuan_hoa_sdt(phone)
     if not sdt:
@@ -174,8 +184,25 @@ def dang_ky(
     if session.scalar(select(User).where(User.phone == sdt)) is not None:
         raise AuthError("Số điện thoại này đã có tài khoản. Bạn đăng nhập nhé.", code="REG-409")
 
-    if unit_id is not None and session.get(Unit, unit_id) is None:
-        raise AuthError("Không tìm thấy căn hộ này.", code="REG-404")
+    # Validate toà / căn tồn tại và nhất quán TRƯỚC flush().
+    building_id_resolved: int | None = None
+    if building_id is not None:
+        if session.get(Building, building_id) is None:
+            raise AuthError("Không tìm thấy toà nhà này.", code="REG-404")
+        building_id_resolved = building_id
+
+    if unit_id is not None:
+        unit = session.get(Unit, unit_id)
+        if unit is None:
+            raise AuthError("Không tìm thấy căn hộ này.", code="REG-404")
+        # Chỉ gửi căn → suy toà từ căn (tương thích client cũ).
+        if building_id_resolved is None:
+            building_id_resolved = unit.building_id
+        elif unit.building_id != building_id_resolved:
+            raise AuthError(
+                "Căn hộ này không thuộc toà bạn đã chọn. Chọn lại cho khớp nhé.",
+                code="REG-400",
+            )
 
     user = User(
         email=f"{sdt}@sdt.local",
@@ -184,6 +211,7 @@ def dang_ky(
         role="resident",
         password_hash=hash_password(password),
         unit_id=unit_id,
+        building_id=building_id_resolved,
     )
     session.add(user)
     session.flush()
@@ -195,7 +223,7 @@ def dang_ky(
         action="register",
         entity="user",
         entity_id=str(user.id),
-        detail={"phone": sdt, "unit_id": unit_id},
+        detail={"phone": sdt, "building_id": building_id_resolved, "unit_id": unit_id},
     )
     return user
 
