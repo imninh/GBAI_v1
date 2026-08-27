@@ -325,7 +325,15 @@ export const api = {
   runs: () => request<{ items: { id: number; kind: string; status: string; duration_ms: number; total_cost_usd: number; started_at: string }[] }>("/runs"),
   run: (id: number) => request<AgentRunDetail>(`/runs/${id}`),
   notifications: () =>
-    request<{ items: { id: number; title: string; body: string; created_at: string }[]; unread: number }>("/notifications"),
+    request<{
+      items: { id: number; title: string; body: string; entity: string; entity_id: string; read: boolean; created_at: string }[];
+      unread: number;
+    }>("/notifications"),
+  notificationsRead: (ids: number[] | null) =>
+    request<{ ok: boolean }>("/notifications/read", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }),
 
   // --- Thùng thu gom ---
   // Ba endpoint đọc; đường ghi (`POST /bins/{code}/readings`) xác thực bằng khoá

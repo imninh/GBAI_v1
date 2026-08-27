@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import * as React from "react";
 
 import { CaiAppCard } from "@/components/pwa/cai-app";
+import { BellButton, NotificationSheet, type NotifyTarget } from "@/components/ui/notifications";
 import { Button, Card, Chip, EmptyState, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { api } from "@/lib/api";
 import { startGPSTracker, stopGPSTracker } from "@/lib/gps-tracker";
@@ -43,7 +44,13 @@ const LOAI_SU_CO: { code: string; label: string }[] = [
   { code: "khac", label: "Khác" },
 ];
 
-export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) {
+export function RouteTodayScreen({
+  onXemLichSu,
+  onThongBaoNavigate,
+}: {
+  onXemLichSu?: () => void;
+  onThongBaoNavigate?: (target: NotifyTarget) => void;
+}) {
   const [tuyen, setTuyen] = React.useState<PickupRoute | null>(null);
   const [dsSuCo, setDsSuCo] = React.useState<{ code: string; label_vi: string }[]>([]);
   const [loi, setLoi] = React.useState("");
@@ -65,6 +72,7 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
   const [moTaSuCo, setMoTaSuCo] = React.useState("");
   const [dangGuiSuCo, setDangGuiSuCo] = React.useState(false);
   const [thongBaoSuCo, setThongBaoSuCo] = React.useState("");
+  const [moThongBao, setMoThongBao] = React.useState(false);
 
   const tai = React.useCallback(() => {
     api
@@ -176,12 +184,25 @@ export function RouteTodayScreen({ onXemLichSu }: { onXemLichSu?: () => void }) 
             <>
               <div className="mb-3 flex items-center justify-between">
                 <div className="font-[family-name:var(--font-display)] text-[21px] font-bold">Tuyến hôm nay</div>
-                {tuyen.status === "proposed" ? (
-                  <span className="rounded-full bg-amber-soft px-3 py-1.5 text-xs font-extrabold text-amber">chờ BQL duyệt</span>
-                ) : daThu === stops.length && stops.length > 0 ? (
-                  <span className="rounded-full bg-leaf-soft px-3 py-1.5 text-xs font-extrabold text-leaf-dark">✓ Đã hoàn tất</span>
-                ) : null}
+                <div className="flex flex-none items-center gap-2">
+                  <BellButton onOpen={() => setMoThongBao(true)} />
+                  {tuyen.status === "proposed" ? (
+                    <span className="rounded-full bg-amber-soft px-3 py-1.5 text-xs font-extrabold text-amber">chờ BQL duyệt</span>
+                  ) : daThu === stops.length && stops.length > 0 ? (
+                    <span className="rounded-full bg-leaf-soft px-3 py-1.5 text-xs font-extrabold text-leaf-dark">✓ Đã hoàn tất</span>
+                  ) : null}
+                </div>
               </div>
+
+              {moThongBao && (
+                <NotificationSheet
+                  onClose={() => setMoThongBao(false)}
+                  onNavigate={(target) => {
+                    setMoThongBao(false);
+                    onThongBaoNavigate?.(target);
+                  }}
+                />
+              )}
 
               {/* Bộ chuyển đổi Danh sách <-> Bản đồ dẫn đường */}
               <div className="mb-3 flex rounded-2xl bg-slate-200/80 p-1">

@@ -19,6 +19,7 @@ import { PickupQueue, RouteApproval, VerifyQueue } from "@/components/manager/qu
 import { TatCaYeuCau } from "@/components/manager/tat-ca-yeu-cau";
 import { XepTuyen } from "@/components/manager/xep-tuyen";
 import { BrowserFrame } from "@/components/ui/shell";
+import { BellButton, NotificationSheet } from "@/components/ui/notifications";
 import { ErrorState, Skeleton } from "@/components/ui/primitives";
 import { api } from "@/lib/api";
 import type { Bin } from "@/lib/bins";
@@ -91,6 +92,7 @@ export function ManagerConsole() {
   const [tabDuyet, setTabDuyet] = React.useState<TabDuyet>("pickup");
   const [tabBaoCao, setTabBaoCao] = React.useState<TabBaoCao>("ops");
   const [dem, setDem] = React.useState({ pickup: 0, labels: 0, routes: 0 });
+  const [moThongBao, setMoThongBao] = React.useState(false);
 
   React.useEffect(() => {
     const lay = () =>
@@ -137,6 +139,7 @@ export function ManagerConsole() {
         </span>
         <span className="flex-1" />
         <span className="flex items-center gap-2.5">
+          <BellButton onOpen={() => setMoThongBao(true)} />
           <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-bulky-soft">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/avatar/quan-ly.svg" alt="Avatar ban quản lý" className="h-8 w-8 object-contain" />
@@ -234,6 +237,19 @@ export function ManagerConsole() {
 {nav === "runs" && <AgentRunScreen />}
         </div>
       </div>
+
+      {moThongBao && (
+        <NotificationSheet
+          onClose={() => setMoThongBao(false)}
+          onNavigate={(target) => {
+            setMoThongBao(false);
+            if (target === "manager:queues") {
+              setNav("duyet");
+              setTabDuyet("pickup");
+            }
+          }}
+        />
+      )}
     </BrowserFrame>
   );
 }

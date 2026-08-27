@@ -12,9 +12,10 @@ import * as React from "react";
 import NumberFlow from "@number-flow/react";
 
 import { Mascot } from "@/components/resident/onboarding";
+import { BellButton, NotificationSheet, type NotifyTarget } from "@/components/ui/notifications";
 import { Button } from "@/components/ui/primitives";
 import { tinhCap, tinhStreak, homNay } from "@/lib/gamification";
-import { IconChonAnh, IconDuyet, IconMoTaChu, IconChuong, IconMamXanh, IconXeThuGom } from "@/lib/icons";
+import { IconChonAnh, IconDuyet, IconMoTaChu, IconMamXanh, IconXeThuGom } from "@/lib/icons";
 import { Flame } from "lucide-react";
 import { chonAnh, chupAnh } from "@/lib/platform";
 import { useSession } from "@/lib/session";
@@ -50,6 +51,7 @@ export function AskScreen({
   onDatLich,
   onAskText,
   onPickImage,
+  onThongBaoNavigate,
 }: {
   unit: string;
   /** Nút Chụp nổi ở tab bar tăng con số này → mở camera ngay khi mount/đổi. */
@@ -59,11 +61,14 @@ export function AskScreen({
   onDatLich?: () => void;
   onAskText: (query: string) => void;
   onPickImage: (file: File) => void;
+  /** Deep-link từ sheet thông báo → màn đích (cư dân: tab Yêu cầu / tab Tôi). */
+  onThongBaoNavigate: (target: NotifyTarget) => void;
 }) {
   const { user } = useSession();
   const [moTa, setMoTa] = React.useState("");
   const [dangGoMoTa, setDangGoMoTa] = React.useState(false);
   const [loiAnh, setLoiAnh] = React.useState("");
+  const [moThongBao, setMoThongBao] = React.useState(false);
 
   async function layAnh(nguon: "camera" | "thu-vien") {
     setLoiAnh("");
@@ -124,16 +129,19 @@ export function AskScreen({
           <span className="rounded-full bg-surface px-3 py-1.5 text-[13px] font-bold text-ink-soft shadow-[0_2px_8px_rgba(20,40,25,.06)]">
             {unit || "Chưa gắn căn hộ"}
           </span>
-          <button
-            type="button"
-            aria-label="Thông báo"
-            className="relative flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface shadow-[0_2px_8px_rgba(20,40,25,.06)]"
-          >
-            <IconChuong className="h-5 w-5 text-ink" />
-            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-hazard ring-2 ring-white" />
-          </button>
+          <BellButton onOpen={() => setMoThongBao(true)} />
         </div>
       </div>
+
+      {moThongBao && (
+        <NotificationSheet
+          onClose={() => setMoThongBao(false)}
+          onNavigate={(target) => {
+            setMoThongBao(false);
+            onThongBaoNavigate(target);
+          }}
+        />
+      )}
 
       {/* ── hero: scan chính ── */}
       <div className="relative z-10 mt-[210px]">

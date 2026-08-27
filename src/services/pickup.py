@@ -246,6 +246,26 @@ def create_pickup_request(
             )
         )
     session.flush()
+
+    # Điểm gửi thứ 6 — báo ban quản lý CÙNG TOÀ có yêu cầu thu gom mới. Không có
+    # manager cùng toà thì bỏ qua, không lỗi (yêu cầu không căn hộ / toà thì
+    # ``building_of`` trả ``None``).
+    building = building_of(session, request)
+    if building is not None:
+        managers = session.scalars(
+            select(User).where(User.role == "manager", User.building_id == building.id)
+        ).all()
+        for manager in managers:
+            session.add(
+                Notification(
+                    user_id=manager.id,
+                    title="Có yêu cầu thu gom mới",
+                    body=f"{resident.full_name} vừa gửi yêu cầu thu gom tại {building.name}.",
+                    entity="yeu_cau_thu_gom",
+                    entity_id=str(request.id),
+                )
+            )
+    session.flush()
     return request
 
 

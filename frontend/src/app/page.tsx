@@ -383,6 +383,10 @@ function ResidentApp() {
             }}
             onAskText={(q) => chay(() => api.classifyText(q, user!.building_id), false)}
             onPickImage={(f) => chay(() => api.classifyImage(f, user!.building_id), true)}
+            onThongBaoNavigate={(target) => {
+              if (target === "resident:requests") setMan("requests");
+              else if (target === "resident:me") setMan("me");
+            }}
           />
         </>
       )}
@@ -530,7 +534,14 @@ function CleanerApp() {
       tabBar={<TabBar items={tabs} active={man} onChange={setMan} accent="var(--color-recycle)" />}
     >
       <div key={man} className="min-h-full animate-gbscreen">
-      {man === "route" && <RouteTodayScreen onXemLichSu={() => setMan("history")} />}
+      {man === "route" && (
+        <RouteTodayScreen
+          onXemLichSu={() => setMan("history")}
+          onThongBaoNavigate={(target) => {
+            if (target === "cleaner:route") setMan("route");
+          }}
+        />
+      )}
       {man === "history" && <CleanerHistoryScreen />}
       {man === "me" && <CleanerMeScreen user={user!} onLogout={dangXuat} />}
       </div>

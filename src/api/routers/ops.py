@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -43,6 +43,12 @@ class DongBatchBody(BaseModel):
     """Body cho ``POST /ops/batch/{batch_id}/dong`` — thời điểm đóng (ISO)."""
 
     dong_luc: str | None = None
+
+
+class DocThongBaoBody(BaseModel):
+    """Body cho ``POST /notifications/read`` — danh sách id đọc, ``None`` = đọc hết."""
+
+    ids: list[int] | None = None
 
 
 def _khoi_co_che(session: DbSession) -> dict:
@@ -244,6 +250,24 @@ def list_notifications(session: DbSession, user: CurrentUser) -> dict:
         ],
         "unread": sum(1 for n in rows if n.read_at is None),
     }
+
+
+@router.post("/notifications/read")
+def doc_thong_bao(body: DocThongBaoBody, session: DbSession, user: CurrentUser) -> dict:
+    """Đánh dấu thông báo đã đọc.
+
+    Chỉ được đánh dấu **thông báo của chính user** — truyền id của người khác thì
+    dòng đó bị bỏ qua, không lỗi. ``ids = null`` đánh dấu đọc hết.
+    """
+    statement = select(Notification).where(Notification.user_id == user.id)
+    if body.ids:
+        statement = statement.where(Notification.id.in_(body.ids))
+    rows = session.scalars(statement).all()
+    for n in rows:
+        if n.read_at is None:
+            n.read_at = datetime.now(UTC)
+    session.flush()
+    return {"ok": True}
 
 
 # --- Gom ảnh lỗi thành lô gán nhãn (gói P74) ------------------------------
