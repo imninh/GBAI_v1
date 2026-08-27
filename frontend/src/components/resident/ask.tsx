@@ -101,26 +101,22 @@ export function AskScreen({
 
   return (
     <div className="relative flex min-h-full flex-col overflow-hidden bg-cream px-5 pb-[120px] pt-[54px] lg:mx-auto lg:max-w-[960px]">
-      {/* ── Background Banner Hoạt Cảnh Mới (Được tăng cường tương phản cho chữ) ── */}
+      {/* ── Background Banner Hoạt Cảnh Mới (Thay thế hoàn toàn background cũ được khoanh đỏ) ── */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[295px] z-0 overflow-hidden">
         <img
           src="/Background.svg"
           alt="GreenBin City Background"
-          className="w-full h-full object-cover object-bottom select-none opacity-90"
+          className="w-full h-full object-cover object-bottom select-none"
         />
-        {/* Lớp phủ sáng mềm mịn bên trái giúp chữ nổi bật tuyệt đối so với nét vẽ của nhà & cây */}
-        <div className="absolute inset-0 bg-gradient-to-r from-cream/95 via-cream/65 to-transparent pointer-events-none" />
         {/* Lớp chuyển sắc mềm mượt ở đáy nối vào nền kem bên dưới */}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-cream via-cream/80 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-cream via-cream/70 to-transparent pointer-events-none" />
       </div>
 
       {/* ── header: lời chào + chuông ── */}
       <div className="relative z-10 flex items-center justify-between">
         <div className="min-w-0">
-          <div className="inline-flex items-center gap-1 rounded-full bg-surface/90 px-2.5 py-0.5 text-xs font-bold text-ink shadow-[0_1px_4px_rgba(20,40,25,.06)] backdrop-blur-sm border border-white/80">
-            {greeting}
-          </div>
-          <div className="mt-1 truncate font-[family-name:var(--font-display)] text-[26px] font-extrabold leading-none tracking-tight text-ink drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]">
+          <div className="text-xs font-bold text-ink-soft drop-shadow-[0_1px_2px_rgba(255,255,255,0.9)]">{greeting}</div>
+          <div className="mt-0.5 truncate font-[family-name:var(--font-display)] text-[26px] font-extrabold leading-none tracking-tight text-ink drop-shadow-[0_1px_4px_rgba(255,255,255,0.9)]">
             {user?.full_name?.split(" ").pop() ?? "Bạn"} <IconMamXanh className="ml-0.5 inline h-6 w-6 text-leaf" strokeWidth={1.9} />
           </div>
         </div>
@@ -140,14 +136,12 @@ export function AskScreen({
       </div>
 
       {/* ── hero: scan chính ── */}
-      <div className="relative z-10 mt-10">
-        <div className="mb-4 inline-block rounded-2xl bg-surface/90 px-4 py-3 shadow-[0_4px_16px_rgba(20,40,25,.07)] backdrop-blur-md border border-white/80">
-          <h1 className="font-[family-name:var(--font-display)] text-[30px] font-extrabold leading-[1.08] tracking-tight text-leaf-dark">
-            Không biết bỏ
-            <br />
-            vào thùng nào?
-          </h1>
-        </div>
+      <div className="relative z-10 mt-14">
+        <h1 className="mb-4 max-w-[240px] font-[family-name:var(--font-display)] text-[34px] font-extrabold leading-[1.04] tracking-tight text-leaf-dark drop-shadow-[0_2px_10px_rgba(255,255,255,0.95)]">
+          Không biết bỏ
+          <br />
+          vào thùng nào?
+        </h1>
         <Button block size="lg" className="rounded-2xl p-0 py-6 text-left" onClick={() => void layAnh("camera")}>
           <span className="flex w-full items-center gap-4 px-6">
             <span className="flex h-[54px] w-[54px] flex-none items-center justify-center rounded-lg bg-surface/20">
