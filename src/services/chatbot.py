@@ -662,15 +662,15 @@ def handle_bin_query(
     # --- Xác định trạng thái vị trí ---
     dia_danh_name = ""
     vi_tri = "khong_biet"
-    if building_id is not None:
+    if user_lat is not None and user_lng is not None:
+        vi_tri = "gps"
+    elif building_id is not None:
         building = session.get(Building, building_id)
         if building and building.lat is not None and building.lng is not None:
             user_lat = building.lat
             user_lng = building.lng
             vi_tri = "gps"
             dia_danh_name = building.name
-    elif user_lat is not None and user_lng is not None:
-        vi_tri = "gps"
     else:
         kq = _tra_dia_danh(norm_q)
         if kq is not None:

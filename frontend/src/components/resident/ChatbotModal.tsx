@@ -178,17 +178,22 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
     setIsLoading(true);
 
     try {
-      // Ưu tiên lấy toạ độ toà nhà từ database của cư dân
-      let sendLat = userLat ?? null;
-      let sendLng = userLng ?? null;
+      let sendLat: number | null = null;
+      let sendLng: number | null = null;
 
-      // Nếu người dùng chưa có toạ độ toà nhà (khách vãng lai), mới dùng GPS thiết bị
-      if ((sendLat === null || sendLng === null) && isBinQuery(q) && !hasTrackedRef.current) {
+      // Ưu tiên lấy GPS thực tế của người dùng từ thiết bị
+      if (isBinQuery(q)) {
         const loc = await trackLocationOnce();
         if (loc) {
           sendLat = loc.lat;
           sendLng = loc.lng;
         }
+      }
+
+      // Fallback về toạ độ toà nhà nếu thiết bị không bật GPS
+      if (sendLat === null || sendLng === null) {
+        sendLat = userLat ?? null;
+        sendLng = userLng ?? null;
       }
 
       const res = await api.chatbotAsk({

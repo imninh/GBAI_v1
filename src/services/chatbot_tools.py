@@ -106,15 +106,18 @@ def query_viable_bins(
     for cat in session.scalars(select(WasteCategory)).all():
         categories_map[cat.code] = cat.name
 
-    # Ưu tiên lấy toạ độ toà nhà từ database nếu có building_id
-    if building_id is not None:
+    has_user_gps = user_lat is not None and user_lng is not None
+
+    # Nếu người dùng chưa có GPS, fallback về toạ độ toà nhà (nếu có building_id)
+    if not has_user_gps and building_id is not None:
         building = session.get(Building, building_id)
         if building and building.lat is not None and building.lng is not None:
             user_lat = building.lat
             user_lng = building.lng
 
     statement = select(Bin).where(Bin.is_active.is_(True))
-    if building_id is not None:
+    # Khi không có GPS người dùng thực tế thì mới lọc giới hạn theo toà nhà
+    if not has_user_gps and building_id is not None:
         statement = statement.where((Bin.building_id == building_id) | (Bin.building_id.is_(None)))
 
     bins = session.scalars(statement).all()
