@@ -141,10 +141,14 @@ def test_xu_ly_su_co_chap_nhan_tao_mot_thong_bao(db_session) -> None:
     assert ket_qua.trang_thai == "da_xu_ly"
     assert ket_qua.xu_ly_luc is not None
     assert ket_qua.nguoi_xu_ly_id == nguoi_duyet.id
+    # C3: bao_su_co nay cũng notify manager cùng đơn vị, nhưng notification của
+    # xu_ly_su_co là dành riêng cho người báo → lọc user_id để đếm đúng 1 cái
+    # do chính xu_ly_su_co sinh ra (không làm yếu test).
     cac_tb = db_session.scalars(
         select(Notification).where(
             Notification.entity == "su_co_thu_gom",
             Notification.entity_id == str(su_co.id),
+            Notification.user_id == nguoi_bao.id,
         )
     ).all()
     assert len(cac_tb) == 1

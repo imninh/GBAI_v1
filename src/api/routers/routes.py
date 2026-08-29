@@ -583,3 +583,21 @@ def complete_stop(
 
     route = session.get(PickupRoute, route_id)
     return route_dict(session, route, full=True)
+
+
+@router.post("/{route_id}/stops/{stop_id}/revert")
+def revert_stop_route(
+    route_id: int,
+    stop_id: int,
+    session: DbSession,
+    user: Annotated[User, Depends(require("complete_stop"))],
+) -> dict:
+    """Đội vệ sinh hoàn tác đánh dấu đã thu (nút "Hoàn tác" khi mis-tap)."""
+    stop = session.get(RouteStop, stop_id)
+    if stop is None or stop.route_id != route_id:
+        raise not_found("điểm dừng này")
+
+    route_planner.revert_stop(session, stop=stop, actor=user)
+
+    route = session.get(PickupRoute, route_id)
+    return route_dict(session, route, full=True)

@@ -58,11 +58,16 @@ CLUSTER_RADIUS_KM = 0.8
 # không trao điểm dựa trên ước lượng của máy".
 KG_MOI_LIT_RAC_TAI_CHE = 0.08
 
+# GOI_4 / C6 — taxonomy sự cố dùng chung cho cả 2 chỗ (điểm dừng + sự cố thu
+# gom). Giữ nguyên `khoi_luong_khac` (đã có data cũ) và bổ sung `thung_day`,
+# `phan_loai_sai` để khớp với `LOAI_HOP_LE` bên su_co_thu_gom.
 STOP_ISSUES: list[dict[str, str]] = [
     {"code": "khong_co_nguoi", "label_vi": "Không có người"},
     {"code": "khoi_luong_khac", "label_vi": "Khối lượng khác dự kiến"},
     {"code": "co_rac_nguy_hai", "label_vi": "Có rác nguy hại lẫn vào"},
     {"code": "khong_tiep_can", "label_vi": "Không tiếp cận được"},
+    {"code": "thung_day", "label_vi": "Thùng đầy / quá tải"},
+    {"code": "phan_loai_sai", "label_vi": "Phân loại sai"},
     {"code": "khac", "label_vi": "Khác"},
 ]
 STOP_ISSUE_CODES = {i["code"] for i in STOP_ISSUES}
@@ -832,5 +837,37 @@ def complete_stop(
             route.status = "done"
         elif route.status == "approved":
             route.status = "in_progress"
+    session.flush()
+    return stop
+
+
+def revert_stop(
+    session: Session,
+    *,
+    stop: RouteStop,
+    actor: User,
+) -> RouteStop:
+    """Hoàn tác đánh dấu đã thu — dùng cho nút "Hoàn tác" trên app đội vệ sinh
+    khi mis-tap (app tự giới hạn 5 giây). Chỉ mở lại điểm vừa hoàn thành, không
+    dùng để mở lại điểm cũ từ hôm trước.
+
+    Điểm ``thung``: xác nhận đã đổ rác thật nên mức rác giữ 0 (không phục hồi).
+    Điểm ``yeu_cau``: trả yêu cầu về trạng thái đã nhận để tránh kẹt ở ``hoan_tat``.
+    """
+    if stop.done_at is None:
+        return stop
+
+    stop.done_at = None
+    stop.issue = ""
+    stop.issue_note = None
+    stop.actual_weight_kg = None
+
+    request = yeu_cau_cua(session, stop)
+    if request is not None and request.status == HOAN_TAT:
+        request.status = DA_NHAN
+
+    route = session.get(PickupRoute, stop.route_id)
+    if route is not None and route.status == "done":
+        route.status = "in_progress"
     session.flush()
     return stop

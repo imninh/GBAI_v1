@@ -55,3 +55,18 @@ def dieu_kien_theo_to_chuc(nguoi_xem: User, cot_user_id):
         (User.organization_id == org) | (User.organization_id.is_(None))
     )
     return cot_user_id.in_(id_nguoi_trong_don_vi.scalar_subquery())
+
+
+def quan_ly_cua_to_chuc(session, org: int | None) -> list[User]:
+    """Trả về các user role='manager' trong tổ chức `org`.
+
+    Tập trung truy cập ``organization_id`` vào module này (quy tắc "chỉ hai file
+    được chứa ``organization_id``" của ``test_loc_theo_to_chuc_chi_nam_trong_hai_file``).
+    ``su_co_thu_gom.bao_su_co`` gọi hàm này thay vì tự viết mệnh đề lọc.
+
+    ``org is None`` → toàn bộ manager (không bị lọc đơn vị).
+    """
+    stmt = select(User).where(User.role == "manager")
+    if org is not None:
+        stmt = stmt.where(User.organization_id == org)
+    return list(session.scalars(stmt).all())

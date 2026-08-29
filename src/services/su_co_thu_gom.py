@@ -21,10 +21,32 @@ from src.db.models import Notification, PickupRoute, RouteStop, SuCoThuGom, User
 from src.services import pham_vi_to_chuc
 from src.services.auth import write_audit
 
-# phan_loai_sai | thung_day | khong_tiep_can | khac
-LOAI_HOP_LE = frozenset({"phan_loai_sai", "thung_day", "khong_tiep_can", "khac"})
+# GOI_4 / C6 — dùng chung vocabulary với STOP_ISSUES (route_planner): cùng tập
+# mã, cộng thêm `tam_hoan` (đội vệ sinh tạm hoãn một điểm, KHÔNG tính hoàn thành).
+LOAI_HOP_LE = frozenset(
+    {
+        "phan_loai_sai",
+        "thung_day",
+        "khong_tiep_can",
+        "khac",
+        "khong_co_nguoi",
+        "co_rac_nguy_hai",
+        "tam_hoan",
+    }
+)
 # cho_xu_ly | da_xu_ly | tu_choi
 TRANG_THAI_HOP_LE = frozenset({"cho_xu_ly", "da_xu_ly", "tu_choi"})
+
+# Nhãn tiếng Việt cho từng loại sự cố — chỉ dùng để viết nội dung thông báo.
+LOAI_NHAN = {
+    "phan_loai_sai": "Phân loại sai",
+    "thung_day": "Thùng đầy/quá tải",
+    "khong_tiep_can": "Không tiếp cận được điểm dừng",
+    "khac": "Khác",
+    "khong_co_nguoi": "Không có người",
+    "co_rac_nguy_hai": "Có rác nguy hại",
+    "tam_hoan": "Tạm hoãn",
+}
 
 
 def _utcnow() -> datetime:
@@ -82,6 +104,35 @@ def bao_su_co(
         entity_id=str(su_co.id),
         detail={"loai": loai, "route_id": route_id, "stop_id": stop_id},
     )
+
+    # GOI_1 / C3 — báo ban quản lý cùng đơn vị về sự cố mới. Bọc try/except để
+    # thông báo hỏng không làm hỏng việc báo sự cố (đồng nhất với xu_ly_su_co).
+    # Truy cập đơn vị tập trung qua pham_vi_to_chuc (giữ quy tắc "chỉ hai file").
+    try:
+        org = pham_vi_to_chuc.to_chuc_cua_nguoi_xem(nguoi_bao)
+        managers = pham_vi_to_chuc.quan_ly_cua_to_chuc(session, org)
+        nguoi_bao_ten = getattr(nguoi_bao, "full_name", "")
+        label = LOAI_NHAN.get(loai, loai)
+        for mgr in managers:
+            if mgr.id == nguoi_bao.id:
+                continue
+            session.add(
+                Notification(
+                    user_id=mgr.id,
+                    title="Có sự cố thu gom mới",
+                    body=(
+                        f"{label} tại chuyến #{route_id}"
+                        + (f" (điểm #{stop_id})" if stop_id else "")
+                        + (f". {nguoi_bao_ten} báo." if nguoi_bao_ten else "")
+                    ),
+                    entity="su_co_thu_gom",
+                    entity_id=str(su_co.id),
+                )
+            )
+        session.flush()
+    except Exception:
+        pass
+
     return su_co
 
 
