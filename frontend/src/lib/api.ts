@@ -317,6 +317,24 @@ export const api = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+  revertStop: (routeId: number, stopId: number) =>
+    request<PickupRoute>(`/routes/${routeId}/stops/${stopId}/revert`, { method: "POST" }),
+  /** Vị trí GPS mới nhất của một tuyến (GET /tracking/{route_id}/latest).
+   *  Dùng cho màn "Xe đang chạy" — trả `position: null` nếu tuyến chưa có GPS. */
+  trackingLatest: (routeId: number) =>
+    request<{
+      route_id: number;
+      position: {
+        lat: number;
+        lng: number;
+        snapped_lat: number;
+        snapped_lng: number;
+        speed_mps: number | null;
+        heading: number | null;
+        accuracy_m: number | null;
+        recorded_at: string | null;
+      } | null;
+    }>(`/tracking/${routeId}/latest`),
 
   // --- Vận hành ---
   overview: () => request<Overview>("/overview"),

@@ -12,6 +12,7 @@ import { BellButton, NotificationSheet, type NotifyTarget } from "@/components/u
 import { Button, Card, Chip, EmptyState, ErrorState, Skeleton } from "@/components/ui/primitives";
 import { api } from "@/lib/api";
 import { startGPSTracker, stopGPSTracker } from "@/lib/gps-tracker";
+import { queueAction, registerOfflineFlush } from "@/lib/offline-queue";
 import { gioVn, kg, ngayVn, soVn } from "@/lib/format";
 import {
   IconCanhBao,
@@ -34,15 +35,44 @@ const CleanerNavigationMap = dynamic(() => import("@/components/cleaner/navigati
   loading: () => <Skeleton className="h-[500px] w-full rounded-2xl" />,
 });
 
-/** Bốn loại sự cố backend chấp nhận — nguồn sự thật là ``LOAI_HOP_LE`` trong
- *  ``src/services/su_co_thu_gom.py``, giá trị ngoài danh sách bị từ chối 400.
- *  Nhãn hiển thị nằm ở đây chứ không mượn enum của việc khác. */
+/** Loại sự cố chuyến (route-level) backend chấp nhận — nguồn sự thật là
+ *  ``LOAI_HOP_LE`` trong ``src/services/su_co_thu_gom.py`` (GOI_4/C6 gộp chung
+ *  với STOP_ISSUES). Nhãn hiển thị nằm ở đây. `tam_hoan` cố tình KHÔNG nằm đây
+ *  vì nó chỉ dùng cho "tạm hoãn" từng điểm (xem nút Tạm hoãn). */
 const LOAI_SU_CO: { code: string; label: string }[] = [
   { code: "phan_loai_sai", label: "Phân loại sai" },
   { code: "thung_day", label: "Thùng đầy / quá tải" },
   { code: "khong_tiep_can", label: "Không tiếp cận được điểm dừng" },
+  { code: "khong_co_nguoi", label: "Không có người" },
+  { code: "co_rac_nguy_hai", label: "Có rác nguy hại" },
   { code: "khac", label: "Khác" },
 ];
+
+// GOI_1 / C1 — lớp cache tuyến offline (chỉ đọc ghi localStorage, không đổi
+// logic nghiệp vụ). Lưu bản tuyến đã tải đầy đủ để xem khi mất mạng.
+const ROUTE_CACHE_KEY = "greenbin_route_cache";
+const ROUTE_CACHE_MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 giờ
+
+function setCachedRoute(data: PickupRoute) {
+  localStorage.setItem(
+    ROUTE_CACHE_KEY,
+    JSON.stringify({ data, timestamp: Date.now() })
+  );
+}
+
+function readRouteCache(): { data: PickupRoute; stale: boolean } | null {
+  try {
+    const raw = localStorage.getItem(ROUTE_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.data) return null;
+    const stale =
+      Date.now() - (parsed.timestamp ?? 0) > ROUTE_CACHE_MAX_AGE_MS;
+    return { data: parsed.data as PickupRoute, stale };
+  } catch {
+    return null;
+  }
+}
 
 export function RouteTodayScreen({
   onXemLichSu,
@@ -73,6 +103,11 @@ export function RouteTodayScreen({
   const [dangGuiSuCo, setDangGuiSuCo] = React.useState(false);
   const [thongBaoSuCo, setThongBaoSuCo] = React.useState("");
   const [moThongBao, setMoThongBao] = React.useState(false);
+  // GOI_4 / C4 — xác nhận + hoàn tác cho nút "ĐÃ THU" (mis-tap khi đeo găng).
+  const [pendingConfirm, setPendingConfirm] = React.useState<number | null>(null);
+  const [undoStop, setUndoStop] = React.useState<number | null>(null);
+  // GOI_1 / C1 — "" = online, "offline" = đang xem bản lưu, "stale" = bản lưu >4h.
+  const [offlineBanner, setOfflineBanner] = React.useState<"" | "offline" | "stale">("");
 
   const tai = React.useCallback(() => {
     api
@@ -80,12 +115,25 @@ export function RouteTodayScreen({
       .then(async (d) => {
         const dangChay = d.items.find((r) => r.status !== "done") ?? d.items[0];
         if (!dangChay) return setTuyen(null);
-        setTuyen(await api.route(dangChay.id));
+        const full = await api.route(dangChay.id);
+        setTuyen(full);
+        setCachedRoute(full);
+        setOfflineBanner("");
       })
-      .catch((e) => setLoi(e.message));
+      .catch(() => {
+        const cached = readRouteCache();
+        if (cached) {
+          setTuyen(cached.data);
+          setLoi("");
+          setOfflineBanner(cached.stale ? "stale" : "offline");
+        } else {
+          setLoi("Không tải được tuyến và không có bản lưu offline.");
+        }
+      });
   }, []);
 
   React.useEffect(() => {
+    registerOfflineFlush();
     tai();
     api.enums().then((e) => setDsSuCo(e.stop_issues)).catch(() => setDsSuCo([]));
   }, [tai]);
@@ -102,6 +150,19 @@ export function RouteTodayScreen({
 
   async function danhDau(stopId: number, issue = "") {
     if (!tuyen) return;
+    // GOI_1 / C2 — optimistic: đánh dấu xong ngay trên UI, không chờ mạng.
+    setTuyen((prev) =>
+      prev
+        ? {
+            ...prev,
+            stops: (prev.stops ?? []).map((s) =>
+              s.stop_id === stopId
+                ? { ...s, done_at: new Date().toISOString() }
+                : s
+            ),
+          }
+        : prev
+    );
     setDangChotId(stopId);
     setLoiHienTruong("");
     try {
@@ -109,9 +170,15 @@ export function RouteTodayScreen({
       setTuyen(moi);
       setDangMoBaoLoi(null);
     } catch {
-      // B5: lỗi ngoài trời thường là mất mạng — nói rõ hướng xử lý, đừng để nút
-      // treo im. Số cân đã nhập không bị mất (chỉ xoá sau khi lưu thành công).
-      setLoiHienTruong("Chưa gửi được — kiểm tra mạng rồi thử lại. Số liệu đã nhập vẫn được giữ.");
+      // GOI_1 / C2 — mất mạng: giữ optimistic, đẩy vào hàng đợi đồng bộ bù.
+      queueAction({
+        id: `${stopId}_${Date.now()}`,
+        type: "COMPLETE_STOP",
+        payload: { route_id: tuyen.id, stop_id: stopId, data: { issue } },
+        retryCount: 0,
+        createdAt: Date.now(),
+      });
+      setLoiHienTruong("Chưa gửi được (đã lưu chờ mạng) — sẽ tự động đồng bộ khi có mạng. Số liệu đã nhập vẫn được giữ.");
     } finally {
       setDangChotId(null);
     }
@@ -120,6 +187,19 @@ export function RouteTodayScreen({
   /** Chốt điểm thu gom kèm khối lượng THẬT (kg) do đội vệ sinh cân tại chỗ. */
   async function chotDiem(stopId: number, weightKg: number) {
     if (!tuyen) return;
+    // GOI_1 / C2 — optimistic: đánh dấu xong ngay trên UI.
+    setTuyen((prev) =>
+      prev
+        ? {
+            ...prev,
+            stops: (prev.stops ?? []).map((s) =>
+              s.stop_id === stopId
+                ? { ...s, done_at: new Date().toISOString() }
+                : s
+            ),
+          }
+        : prev
+    );
     setDangChotId(stopId);
     setLoiHienTruong("");
     try {
@@ -132,9 +212,71 @@ export function RouteTodayScreen({
       });
       setDangMoBaoLoi(null);
     } catch {
-      setLoiHienTruong("Chưa chốt được — kiểm tra mạng rồi thử lại. Số kg đã nhập vẫn được giữ.");
+      queueAction({
+        id: `${stopId}_${Date.now()}`,
+        type: "COMPLETE_STOP",
+        payload: { route_id: tuyen.id, stop_id: stopId, data: { actual_weight_kg: weightKg } },
+        retryCount: 0,
+        createdAt: Date.now(),
+      });
+      setLoiHienTruong("Chưa chốt được (đã lưu chờ mạng) — sẽ tự động đồng bộ khi có mạng. Số kg đã nhập vẫn được giữ.");
     } finally {
       setDangChotId(null);
+    }
+  }
+
+  // GOI_4 / C4 — hoàn tác đánh dấu đã thu (mis-tap). Ưu tiên revert trên máy
+  // chủ; nếu lỗi mạng thì vẫn mở lại cục bộ để UI nhất quán.
+  async function hoanTac(stopId: number) {
+    setUndoStop(null);
+    setTuyen((prev) =>
+      prev
+        ? {
+            ...prev,
+            stops: (prev.stops ?? []).map((s) =>
+              s.stop_id === stopId
+                ? { ...s, done_at: null, issue: "", actual_weight_kg: null }
+                : s
+            ),
+          }
+        : prev
+    );
+    if (!tuyen) return;
+    try {
+      const moi = await api.revertStop(tuyen.id, stopId);
+      setTuyen(moi);
+    } catch {
+      setLoiHienTruong("Đã hoàn tác cục bộ, nhưng chưa đồng bộ được với máy chủ (có thể cần làm mới).");
+    }
+  }
+
+  // GOI_4 / C10 — tạm hoãn MỘT điểm: báo sự cố loại `tam_hoan` (KHÔNG đánh dấu
+  // xong). Điểm vẫn nằm trong tuyến, chưa tính hoàn thành.
+  async function tamHoan(stopId: number) {
+    if (!tuyen) return;
+    setDangMoBaoLoi(null);
+    try {
+      await api.baoSuCo({
+        route_id: tuyen.id,
+        stop_id: stopId,
+        loai: "tam_hoan",
+        mo_ta: "Tạm hoãn từ hiện trường — đội vệ sinh chưa xử lý xong điểm này",
+      });
+      setLoiHienTruong("Đã ghi nhận tạm hoãn — điểm này vẫn còn trong tuyến, chưa tính hoàn thành.");
+    } catch {
+      queueAction({
+        id: `th_${stopId}_${Date.now()}`,
+        type: "REPORT_INCIDENT",
+        payload: {
+          route_id: tuyen.id,
+          stop_id: stopId,
+          loai: "tam_hoan",
+          mo_ta: "Tạm hoãn từ hiện trường",
+        },
+        retryCount: 0,
+        createdAt: Date.now(),
+      });
+      setLoiHienTruong("Đã lưu tạm hoãn, sẽ gửi khi có mạng.");
     }
   }
 
@@ -152,8 +294,23 @@ export function RouteTodayScreen({
       setMoBaoSuCo(false);
       setLoaiSuCo("");
       setMoTaSuCo("");
-    } catch (e) {
-      setThongBaoSuCo(e instanceof Error ? e.message : "Không gửi được báo cáo sự cố.");
+    } catch {
+      // GOI_1 / C3 (phía client) — mất mạng: lưu báo cáo vào hàng đợi.
+      queueAction({
+        id: `sc_${Date.now()}`,
+        type: "REPORT_INCIDENT",
+        payload: {
+          route_id: tuyen.id,
+          loai: loaiSuCo,
+          mo_ta: moTaSuCo.trim() || undefined,
+        },
+        retryCount: 0,
+        createdAt: Date.now(),
+      });
+      setThongBaoSuCo("Đã lưu báo cáo sự cố, sẽ gửi tự động khi có mạng.");
+      setMoBaoSuCo(false);
+      setLoaiSuCo("");
+      setMoTaSuCo("");
     } finally {
       setDangGuiSuCo(false);
     }
@@ -182,6 +339,19 @@ export function RouteTodayScreen({
           const daThu = stops.filter((s) => s.done_at).length;
           return (
             <>
+              {offlineBanner && (
+                <div
+                  className={`mb-3 rounded-2xl px-4 py-3 text-[13px] font-bold ${
+                    offlineBanner === "stale"
+                      ? "border border-amber-line bg-amber-soft text-amber"
+                      : "bg-ink text-white"
+                  }`}
+                >
+                  {offlineBanner === "stale"
+                    ? "Dữ liệu offline — bản lưu đã quá 4 giờ, có thể cũ"
+                    : "Dữ liệu offline — đang xem bản lưu, sẽ tự làm mới khi có mạng"}
+                </div>
+              )}
               <div className="mb-3 flex items-center justify-between">
                 <div className="font-[family-name:var(--font-display)] text-[21px] font-bold">Tuyến hôm nay</div>
                 <div className="flex flex-none items-center gap-2">
@@ -294,7 +464,7 @@ export function RouteTodayScreen({
                               );
                             })}
                           </div>
-                          <label htmlFor="mo-ta-su-co" className="mb-1 mt-3 block text-[11px] font-extrabold text-muted">
+                          <label htmlFor="mo-ta-su-co" className="mb-1 mt-3 block text-xs font-extrabold text-muted">
                             Mô tả thêm (tuỳ chọn)
                           </label>
                           <input
@@ -368,10 +538,30 @@ export function RouteTodayScreen({
                           <IconDuyet className="h-4 w-4 flex-none" />
                           Đã thu lúc {gioVn(s.done_at)}
                           {s.actual_weight_kg != null ? ` · cân ${kg(s.actual_weight_kg)}` : ""}
-                          {s.issue ? ` · ${s.issue}` : ""}
+                          {s.issue ? ` · ${dsSuCo.find((x) => x.code === s.issue)?.label_vi ?? s.issue}` : ""}
+                          {undoStop === s.stop_id && (
+                            <button
+                              type="button"
+                              onClick={() => hoanTac(s.stop_id)}
+                              className="ml-2 rounded-full bg-ink px-3 py-1 text-[13px] font-extrabold text-white"
+                            >
+                              Hoàn tác
+                            </button>
+                          )}
                         </div>
                       ) : dangMoBaoLoi === s.stop_id ? (
                         <div className="flex flex-col gap-2">
+                          <Button
+                            size="lg"
+                            variant="outline"
+                            block
+                            className="border-amber-line text-amber"
+                            onClick={() => tamHoan(s.stop_id)}
+                          >
+                            <IconCanhBao className="h-5 w-5" />
+                            Tạm hoãn (chưa xong, giữ nguyên điểm)
+                          </Button>
+                          <div className="px-1 text-xs font-extrabold text-muted">Báo lỗi hoàn thành:</div>
                           {dsSuCo.map((su) => (
                             <Button key={su.code} size="lg" variant="outline" block onClick={() => danhDau(s.stop_id, su.code)}>
                               {su.label_vi}
@@ -383,7 +573,7 @@ export function RouteTodayScreen({
                         </div>
                       ) : s.stop_kind === "thung" ? (
                         <div className="flex gap-2.5">
-                          <Button variant="leaf" size="lg" className="flex-1" disabled={dangChotId === s.stop_id} onClick={() => danhDau(s.stop_id)}>
+                          <Button variant="leaf" size="lg" className="flex-1" disabled={dangChotId === s.stop_id} onClick={() => setPendingConfirm(s.stop_id)}>
                             <IconDuyet className="h-5 w-5" strokeWidth={2.6} />
                             {dangChotId === s.stop_id ? "Đang lưu…" : "ĐÃ THU"}
                           </Button>
@@ -394,10 +584,36 @@ export function RouteTodayScreen({
                         </div>
                       ) : (
                         <div>
-                          <label htmlFor={`can-${s.stop_id}`} className="mb-1 block text-[11px] font-extrabold text-muted">
+                          <label htmlFor={`can-${s.stop_id}`} className="mb-1 block text-xs font-extrabold text-muted">
                             Khối lượng thật (kg) — cân tại chỗ
                           </label>
+                          {/* GOI_4 / C9 — preset nhanh + stepper ±0.5 thay vì gõ tay
+                              khi đeo găng. Giữ input để gõ tự do khi cần. */}
+                          <div className="mb-2 flex gap-2">
+                            {[10, 20, 30].map((kgPre) => (
+                              <button
+                                key={kgPre}
+                                type="button"
+                                onClick={() => setSoKg((cu) => ({ ...cu, [s.stop_id]: String(kgPre) }))}
+                                className="flex-1 rounded-xl border border-leaf bg-leaf-soft py-2 text-sm font-extrabold text-leaf-dark"
+                              >
+                                {kgPre}kg
+                              </button>
+                            ))}
+                          </div>
                           <div className="flex items-end gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setSoKg((cu) => ({
+                                  ...cu,
+                                  [s.stop_id]: String(Math.max(0, Math.round((Number(cu[s.stop_id]) || 0) * 10 - 5) / 10)),
+                                }))
+                              }
+                              className="flex h-12 w-12 flex-none items-center justify-center rounded-xl border border-line-2 bg-surface text-xl font-extrabold text-ink-soft"
+                            >
+                              −
+                            </button>
                             <input
                               id={`can-${s.stop_id}`}
                               type="number"
@@ -409,6 +625,18 @@ export function RouteTodayScreen({
                               placeholder="vd: 18.5"
                               className="h-12 w-full flex-1 rounded-lg border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
                             />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setSoKg((cu) => ({
+                                  ...cu,
+                                  [s.stop_id]: String(Math.round((Number(cu[s.stop_id]) || 0) * 10 + 5) / 10),
+                                }))
+                              }
+                              className="flex h-12 w-12 flex-none items-center justify-center rounded-xl border border-line-2 bg-surface text-xl font-extrabold text-ink-soft"
+                            >
+                              +
+                            </button>
                             <Button
                               variant="leaf"
                               size="lg"
@@ -434,6 +662,38 @@ export function RouteTodayScreen({
                     </Card>
                   ))}
                   </div>
+
+                  {/* GOI_4 / C4 — sheet xác nhận "ĐÃ THU" (chống mis-tap khi đeo
+                      găng). Sau khi xác nhận, hiện nút "Hoàn tác" 5 giây. */}
+                  {pendingConfirm !== null && (
+                    <div className="fixed inset-x-0 bottom-0 z-40 px-4 pb-4">
+                      <Card className="mx-auto max-w-md p-4">
+                        <div className="mb-1 text-[15px] font-bold">Xác nhận đã thu thùng này?</div>
+                        <p className="mb-4 text-[13px] font-semibold leading-relaxed text-muted">
+                          Thao tác ghi nhận hoàn thành điểm dừng. Bạn có 5 giây để hoàn tác nếu lỡ bấm.
+                        </p>
+                        <div className="flex gap-2.5">
+                          <Button variant="outline" size="lg" className="flex-1" onClick={() => setPendingConfirm(null)}>
+                            Huỷ
+                          </Button>
+                          <Button
+                            variant="leaf"
+                            size="lg"
+                            className="flex-1"
+                            onClick={() => {
+                              const id = pendingConfirm;
+                              setPendingConfirm(null);
+                              danhDau(id);
+                              setUndoStop(id);
+                              setTimeout(() => setUndoStop((cur) => (cur === id ? null : cur)), 5000);
+                            }}
+                          >
+                            Xác nhận
+                          </Button>
+                        </div>
+                      </Card>
+                    </div>
+                  )}
                 </>
               )}
             </>
