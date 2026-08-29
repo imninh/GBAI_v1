@@ -364,7 +364,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
         </button>
         </div>
 
-        <p className="mt-5 text-center text-[11px] font-semibold leading-relaxed text-muted">
+        <p className="mt-5 text-center text-xs font-semibold leading-relaxed text-muted">
           Điện thoại dùng để xác thực — thùng tự chụp và phân loại khi bạn mở phiên bỏ rác.
         </p>
       </div>
@@ -539,7 +539,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
             <span className="h-2.5 w-2.5 rounded-full bg-leaf animate-ping" />
             PHIÊN BỎ RÁC ĐANG MỞ
           </div>
-          <span className="text-[11px] font-mono font-bold text-muted">
+          <span className="text-xs font-mono font-bold text-muted">
             {maThung || "BIN-01"}
           </span>
         </div>
@@ -616,7 +616,7 @@ export function ScanScreen({ onChup }: { onChup: () => void }) {
           {dangDongPhien ? "Đang chốt phiên..." : (<><IconDuyet className="mr-2 inline h-5 w-5" strokeWidth={2.4} />Hoàn tất & Chốt điểm</>)}
         </Button>
 
-        <p className="mt-3 text-center text-[11px] font-semibold text-muted">
+        <p className="mt-3 text-center text-xs font-semibold text-muted">
           Điểm nhận thức khuyến khích thói quen phân loại rác đúng cách.
         </p>
       </div>

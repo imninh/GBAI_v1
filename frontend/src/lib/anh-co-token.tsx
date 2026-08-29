@@ -18,7 +18,7 @@ import { API_URL, ApiError, getToken } from "@/lib/api";
 // Nền giữ chỗ dùng lại đúng token sọc đang có ở màn "Ảnh của bạn được xử lý thế
 // nào" (personal.tsx) — không đặt màu mới.
 const NEN_SOC = "bg-[repeating-linear-gradient(135deg,var(--color-skeleton),var(--color-skeleton)_8px,var(--color-skeleton-deep)_8px,var(--color-skeleton-deep)_16px)]";
-const NOI_THAT = "flex h-full w-full items-center justify-center p-2 text-center text-[11px] font-semibold";
+const NOI_THAT = "flex h-full w-full items-center justify-center p-2 text-center text-xs font-semibold";
 
 function cauLoi(status: number): string {
   if (status === 401 || status === 403) return "Không xem được ảnh này.";

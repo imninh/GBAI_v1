@@ -69,7 +69,7 @@ export function SourceSheet({ source, onClose }: { source: AdviceSource | null; 
     <div className="absolute inset-0 z-50 flex items-end bg-black/40" onClick={onClose}>
       <div className="max-h-[70%] w-full overflow-y-auto rounded-t-[28px] bg-surface p-5" onClick={(e) => e.stopPropagation()}>
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-line-2" />
-        <div className="text-[11px] font-extrabold uppercase tracking-wide text-muted">{source.doc_type}</div>
+        <div className="text-xs font-extrabold uppercase tracking-wide text-muted">{source.doc_type}</div>
         <div className="mt-1 font-[family-name:var(--font-display)] text-lg font-bold">{source.doc_title}</div>
         <div className="mb-3 text-[13px] font-bold text-leaf-dark">{source.section}</div>
         <p className="text-sm font-semibold leading-relaxed text-ink-soft">{source.quote}</p>
@@ -79,7 +79,7 @@ export function SourceSheet({ source, onClose }: { source: AdviceSource | null; 
             khi trích dẫn ra ngoài.
           </div>
         )}
-        {source.source && <div className="mt-3 text-[11px] font-semibold text-muted">Nguồn: {source.source}</div>}
+        {source.source && <div className="mt-3 text-xs font-semibold text-muted">Nguồn: {source.source}</div>}
         <Button block variant="outline" className="mt-4" onClick={onClose}>
           Đóng
         </Button>
@@ -390,7 +390,7 @@ export function HazardResultScreen({
               <circle cx="12" cy="12" r="9" />
               <path d="M12 8v5M12 16v.5" strokeLinecap="round" />
             </svg>
-            <span className="text-[11px] font-bold text-amber-muted">
+            <span className="text-xs font-bold text-amber-muted">
               {ketQua.safety_warning_note || "Cảnh báo an toàn theo danh mục chuẩn — không do AI tự viết."}
             </span>
           </div>

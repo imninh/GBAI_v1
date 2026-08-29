@@ -248,7 +248,7 @@ export function PickupWizard({
                             setMon((cu) => cu.map((x, j) => (j === i ? { ...x, category_code: ma } : x)))
                           }
                           aria-pressed={dangChon}
-                          className="cursor-pointer rounded-lg px-2 py-0.5 text-[11px] font-extrabold transition-colors"
+                          className="cursor-pointer rounded-lg px-2 py-0.5 text-xs font-extrabold transition-colors"
                           style={{
                             background: dangChon ? "var(--color-bulky-soft)" : "var(--color-line-4)",
                             color: dangChon ? "var(--color-category-selected)" : "var(--color-category-unselected)",
@@ -260,7 +260,7 @@ export function PickupWizard({
                       );
                     })}
                     {!HAI_NHOM.includes(m.category_code) && (
-                      <span className="rounded-lg bg-bulky-soft px-2 py-0.5 text-[11px] font-extrabold text-bulky-dark">
+                      <span className="rounded-lg bg-bulky-soft px-2 py-0.5 text-xs font-extrabold text-bulky-dark">
                         {tenNhom(m.category_code, danhMuc)}
                       </span>
                     )}
@@ -271,11 +271,11 @@ export function PickupWizard({
                       onChange={(e) =>
                         setMon((cu) => cu.map((x, j) => (j === i ? { ...x, est_weight_kg: Number(e.target.value) } : x)))
                       }
-                      className="w-16 rounded-lg bg-line-4 px-2 py-0.5 text-[11px] font-bold text-amber-muted outline-none"
+                      className="w-16 rounded-lg bg-line-4 px-2 py-0.5 text-xs font-bold text-amber-muted outline-none"
                     />
-                    <span className="text-[11px] font-bold text-amber-muted">kg</span>
+                    <span className="text-xs font-bold text-amber-muted">kg</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-amber-muted">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-muted">
                     Khối lượng bạn tự nhập — sửa lại nếu chưa đúng
                   </div>
                 </div>
@@ -403,7 +403,7 @@ export function PickupWizard({
                   placeholder="VD: 25 Lý Thường Kiệt, Hoàn Kiếm"
                   className="w-full rounded-xl border border-line-3 bg-surface px-3 py-2 text-[14px] font-semibold outline-none focus:border-leaf"
                 />
-                <div className="mt-1 text-[11px] font-semibold text-muted">
+                <div className="mt-1 text-xs font-semibold text-muted">
                   Để trống thì đội vệ sinh lấy tại nơi ở đã đăng ký.
                 </div>
               </div>
@@ -420,7 +420,7 @@ export function PickupWizard({
                   placeholder="Số nhà, tên phố, phường/xã, quận/huyện"
                   className="w-full rounded-xl border border-line-3 bg-surface px-3 py-2 text-[14px] font-semibold outline-none focus:border-leaf"
                 />
-                <div className="mt-1 text-[11px] font-semibold text-muted">
+                <div className="mt-1 text-xs font-semibold text-muted">
                   Đội vệ sinh sẽ đến lấy tại địa chỉ này.
                 </div>
               </div>

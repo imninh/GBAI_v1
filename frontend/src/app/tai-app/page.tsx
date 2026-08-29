@@ -125,7 +125,7 @@ export default function TaiAppPage() {
         </Link>
       </Card>
 
-      <p className="text-center text-[11px] font-semibold leading-relaxed text-muted-slate">
+      <p className="text-center text-xs font-semibold leading-relaxed text-muted-slate">
         Bản demo chạy trên hạ tầng miễn phí: máy chủ ngủ khi rảnh nên lần mở đầu tiên có thể chậm
         vài chục giây, và ảnh đã tải lên sẽ mất khi máy chủ khởi động lại.
       </p>

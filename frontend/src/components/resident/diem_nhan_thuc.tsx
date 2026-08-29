@@ -170,7 +170,7 @@ export function DiemNhanThucScreen({ onBack }: DiemNhanThucProps) {
         <div className="mb-3 flex items-center justify-between">
           <span className="text-sm font-extrabold">Nhiệm vụ hôm nay</span>
           {nhiemVuNgay.length > 0 && (
-            <span className="text-[11px] font-bold text-muted">{ngayVn(nhiemVu.ngay)}</span>
+            <span className="text-xs font-bold text-muted">{ngayVn(nhiemVu.ngay)}</span>
           )}
         </div>
 
@@ -240,7 +240,7 @@ export function DiemNhanThucScreen({ onBack }: DiemNhanThucProps) {
       )}
 
       {/* Footer ghi chú */}
-      <p className="text-center text-[11px] font-semibold leading-relaxed text-muted">
+      <p className="text-center text-xs font-semibold leading-relaxed text-muted">
         Con số đếm là <span className="font-extrabold">số vật đã phân loại</span> (một túi nhiều vỏ chai = 1 vật), không phải số rác đã bỏ.
       </p>
     </div>
@@ -274,7 +274,7 @@ function NhiemVuCard({ nhiemVu }: { nhiemVu: NhiemVuDiemNhanThuc }) {
         </div>
         <div className="flex-none text-right">
           <div className="font-extrabold text-leaf-dark">+{soVn(nhiemVu.diem)}</div>
-          <div className="text-[11px] font-semibold text-muted">điểm</div>
+          <div className="text-xs font-semibold text-muted">điểm</div>
         </div>
       </div>
 
@@ -289,7 +289,7 @@ function NhiemVuCard({ nhiemVu }: { nhiemVu: NhiemVuDiemNhanThuc }) {
         />
       </div>
 
-      <div className="flex items-center justify-between text-[11px] font-bold">
+      <div className="flex items-center justify-between text-xs font-bold">
         <span className="text-muted">{nhiemVu.tien_do} / {nhiemVu.dieu_kien_nguong}</span>
         <span className={daXong ? "text-leaf-dark" : "text-amber"}>
           {phanTram}%

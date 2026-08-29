@@ -1,11 +1,15 @@
 @import "tailwindcss";
+/* GOI_6 / A1 — font hỗ trợ tiếng Việt (Manrope thiếu glyph ư,ơ,ă,đ…). Tải Be
+   Vietnam Pro làm fallback có glyph tiếng Việt; trình duyệt chỉ dùng nó cho
+   những ký tự Manrope không có, chữ Latin thường vẫn giữ Manrope. */
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap');
 
 /* Design token rút trực tiếp từ bản thiết kế ở `original/GreenBin AI.dc.html`.
    Màu nhóm rác ở đây chỉ là giá trị dự phòng — giá trị thật đọc từ API
    (`bin_color` của từng nhóm), vì mỗi toà có thể quy định khác nhau. */
 @theme {
-  --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-manrope), 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-manrope), 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
 
   /* ===== NHAN_DIEN §2 — Hệ màu GreenBin AI (xanh rêu ấm, kem ấm, navy) ===== */
   /* 8 neo cố định (§2.4) */

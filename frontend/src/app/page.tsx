@@ -36,6 +36,31 @@ import { laAppNative } from "@/lib/platform";
 import { SessionProvider, useSession } from "@/lib/session";
 import type { Classification } from "@/lib/types";
 
+// GOI_6 / G2 — deep-link: lưu màn hiện tại vào hash URL (#/role/man) để F5 không
+// mất state và có thể share link. Chỉ deep-link màn cấp 1 (tab chính); màn con
+// cần thêm tham số (vd requestDetail?id=…) → xem UNKNOWN trong output.
+const MAN_CAP_1 = new Set(["ask", "diem", "scan", "requests", "me", "schedule", "diemxanh"]);
+const MAN_NGUOI_VE_SINH = new Set(["route", "history", "me"]);
+
+function docHashMan(role: string, fallback: string): string {
+  if (typeof window === "undefined") return fallback;
+  const parts = window.location.hash.replace(/^#\/?/, "").split("/");
+  const m = parts[1];
+  if (
+    parts[0] === role &&
+    m &&
+    (role === "cleaner" ? MAN_NGUOI_VE_SINH.has(m) : MAN_CAP_1.has(m))
+  ) {
+    return m;
+  }
+  return fallback;
+}
+
+function writeHashMan(role: string, man: string) {
+  if (typeof window === "undefined") return;
+  window.history.replaceState(null, "", `#/${role}/${man}`);
+}
+
 export default function Page() {
   const [mounted, setMounted] = React.useState(false);
 
@@ -146,7 +171,7 @@ function ManagerTrenAppScreen() {
         <Button block variant="danger" onClick={dangXuat}>
           Đăng xuất
         </Button>
-        <p className="mt-4 text-[11px] font-semibold leading-relaxed text-muted-slate">
+        <p className="mt-4 text-xs font-semibold leading-relaxed text-muted-slate">
           App trên điện thoại dành cho cư dân và đội vệ sinh.
         </p>
       </div>
@@ -222,7 +247,7 @@ const ICON = {
 
 function ResidentApp() {
   const { user, dangXuat } = useSession();
-  const [man, setMan] = React.useState<ManCuDan>("ask");
+  const [man, setMan] = React.useState<ManCuDan>(() => docHashMan("resident", "ask") as ManCuDan);
   const [ketQua, setKetQua] = React.useState<Classification | null>(null);
   const [buocXuLy, setBuocXuLy] = React.useState(0);
   const [cacBuoc, setCacBuoc] = React.useState(BUOC_MAC_DINH);
@@ -264,6 +289,19 @@ function ResidentApp() {
       huy = true;
     };
   }, [chucMung]);
+
+  // GOI_6 / G2 — đồng bộ màn hiện tại ↔ URL hash.
+  React.useEffect(() => {
+    writeHashMan("resident", man);
+  }, [man]);
+  React.useEffect(() => {
+    const onHash = () => {
+      const m = docHashMan("resident", man);
+      if (m !== man) setMan(m as ManCuDan);
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, [man]);
 
   async function chay(goi: () => Promise<Classification>, coAnh: boolean) {
     huyRef.current = false;
@@ -516,7 +554,20 @@ function ResidentApp() {
 
 function CleanerApp() {
   const { user, dangXuat } = useSession();
-  const [man, setMan] = React.useState("route");
+  const [man, setMan] = React.useState(() => docHashMan("cleaner", "route"));
+
+  // GOI_6 / G2 — đồng bộ màn hiện tại ↔ URL hash.
+  React.useEffect(() => {
+    writeHashMan("cleaner", man);
+  }, [man]);
+  React.useEffect(() => {
+    const onHash = () => {
+      const m = docHashMan("cleaner", man);
+      if (m !== man) setMan(m);
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, [man]);
 
   const tabs: TabItem[] = [
     { key: "route", label: "Tuyến", icon: ICON.tuyen },

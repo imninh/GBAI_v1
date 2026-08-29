@@ -607,7 +607,7 @@ export function LoginScreen() {
         <IconTiepTuc className="h-[18px] w-[18px] text-muted" />
       </a>
 
-      <p className="m-0 text-center text-[11px] font-semibold leading-relaxed text-muted-slate">
+      <p className="m-0 text-center text-xs font-semibold leading-relaxed text-muted-slate">
         {demo?.notice ??
           "Hệ thống demo dùng dữ liệu mô phỏng và dữ liệu công khai. Ảnh tải lên được tự động xoá thông tin vị trí và làm mờ khuôn mặt trước khi xử lý."}
       </p>

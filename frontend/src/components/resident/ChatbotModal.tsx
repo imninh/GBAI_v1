@@ -348,7 +348,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
             </div>
 
             {/* Thanh hiển thị trạng thái GPS Tracking thời gian thực */}
-            <div className="flex items-center justify-between border-b border-leaf-dark/15 bg-leaf-soft/90 px-3.5 py-1.5 text-[11px] text-leaf-dark dark:bg-leaf-dark/50 dark:text-leaf-mint">
+            <div className="flex items-center justify-between border-b border-leaf-dark/15 bg-leaf-soft/90 px-3.5 py-1.5 text-xs text-leaf-dark dark:bg-leaf-dark/50 dark:text-leaf-mint">
               <div className="flex items-center gap-1.5 overflow-hidden">
                 {gpsStatus === "tracking" ? (
                   <>
@@ -390,7 +390,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
             {/* Gợi ý câu hỏi nhanh */}
             {suggestions.length > 0 && messages.length <= 2 && (
               <div className="border-b border-zinc-100 bg-zinc-50 p-2 dark:border-zinc-800 dark:bg-zinc-950">
-                <p className="mb-1.5 flex items-center gap-1 px-1 text-[11px] font-medium text-zinc-500">
+                <p className="mb-1.5 flex items-center gap-1 px-1 text-xs font-medium text-zinc-500">
                   <Lightbulb className="h-3.5 w-3.5" strokeWidth={1.9} /> Câu hỏi gợi ý:
                 </p>
                 <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">
@@ -425,7 +425,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                   >
                     {/* Badge nguồn và Confidence (cho AI) */}
                     {m.sender === "ai" && m.responseMeta && (
-                      <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+                      <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-xs">
                         <span className="rounded-md bg-leaf-soft px-1.5 py-0.5 font-medium text-leaf-dark dark:bg-leaf-dark dark:text-leaf-mint">
                           {m.responseMeta.source_badge}
                         </span>
@@ -506,7 +506,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                         <div className="mt-2.5 border-t border-zinc-200/60 pt-1.5 dark:border-zinc-700/60">
                           <button
                             onClick={() => toggleSources(m.id)}
-                            className="text-[11px] font-semibold text-leaf-dark underline hover:text-leaf-dark dark:text-leaf-mint"
+                            className="text-xs font-semibold text-leaf-dark underline hover:text-leaf-dark dark:text-leaf-mint"
                           >
                             {expandedSources[m.id]
                               ? "Ẩn căn cứ trích dẫn ▲"
@@ -518,7 +518,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
                               {m.responseMeta.sources.map((s, idx) => (
                                 <div
                                   key={idx}
-                                  className="rounded bg-surface/80 p-2 text-[11px] text-zinc-700 shadow-2xs dark:bg-zinc-900/90 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700/50"
+                                  className="rounded bg-surface/80 p-2 text-xs text-zinc-700 shadow-2xs dark:bg-zinc-900/90 dark:text-zinc-300 border border-zinc-200/50 dark:border-zinc-700/50"
                                 >
                                   <div className="flex items-center gap-1 font-semibold text-leaf-dark dark:text-leaf-mint">
                                     <ScrollText className="h-3.5 w-3.5 shrink-0" strokeWidth={1.9} />
@@ -536,7 +536,7 @@ export function ChatbotModal({ buildingId, userLat, userLng }: ChatbotModalProps
 
                     {/* Phản hồi 👍 / 👎 (HAX G15) */}
                     {m.sender === "ai" && m.responseMeta && (
-                      <div className="mt-2 flex items-center justify-end gap-2 border-t border-zinc-200/40 pt-1 text-[11px] text-zinc-500 dark:border-zinc-700/40">
+                      <div className="mt-2 flex items-center justify-end gap-2 border-t border-zinc-200/40 pt-1 text-xs text-zinc-500 dark:border-zinc-700/40">
                         <span>Câu trả lời có hữu ích?</span>
                         <button
                           onClick={() => handleFeedback(m.id, 1)}

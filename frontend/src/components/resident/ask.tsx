@@ -214,17 +214,17 @@ export function AskScreen({
             <div className="font-[family-name:var(--font-display)] text-2xl font-bold leading-none text-leaf-dark tabular-nums">
               <NumberFlow value={diem} locales="vi-VN" />
             </div>
-            <div className="mt-1 flex items-center gap-1 text-[11px] font-bold text-ink-soft"><IconMamXanh className="h-3.5 w-3.5" strokeWidth={2} /> Điểm xanh</div>
+            <div className="mt-1 flex items-center gap-1 text-xs font-bold text-ink-soft"><IconMamXanh className="h-3.5 w-3.5" strokeWidth={2} /> Điểm xanh</div>
           </div>
           <div className="flex-1 rounded-2xl bg-amber-soft px-3 py-3">
             <div className="font-[family-name:var(--font-display)] text-2xl font-bold leading-none text-amber tabular-nums">
               {streak}
             </div>
-            <div className="mt-1 flex items-center gap-1 text-[11px] font-bold text-ink-soft"><Flame className="h-3.5 w-3.5" strokeWidth={2} /> Ngày liên tiếp</div>
+            <div className="mt-1 flex items-center gap-1 text-xs font-bold text-ink-soft"><Flame className="h-3.5 w-3.5" strokeWidth={2} /> Ngày liên tiếp</div>
           </div>
         </div>
         <div className="mt-3">
-          <div className="mb-1.5 flex justify-between text-[11px] font-bold text-ink-soft">
+          <div className="mb-1.5 flex justify-between text-xs font-bold text-ink-soft">
             <span>
               Cấp {cap.ten} {cap.icon}
             </span>

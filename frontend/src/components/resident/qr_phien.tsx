@@ -89,7 +89,7 @@ export function QrPhienScreen({ ma, onDong }: { ma: string; onDong: () => void }
       </p>
 
       <div className="w-full max-w-xs rounded-2xl border border-line-3 bg-surface p-5 shadow-[var(--shadow-xs)]">
-        <div className="text-[11px] font-extrabold uppercase tracking-wider text-muted">Mã phiên</div>
+        <div className="text-xs font-extrabold uppercase tracking-wider text-muted">Mã phiên</div>
         <div className="mt-0.5 break-all font-mono text-[15px] font-bold">{phien.ma_phien}</div>
 
         <div className="mt-3 grid grid-cols-2 gap-2">
@@ -113,7 +113,7 @@ export function QrPhienScreen({ ma, onDong }: { ma: string; onDong: () => void }
 
       {/* Điểm nhận thức ≠ điểm xanh: loại điểm này chỉ xếp hạng/huy hiệu, không
           đổi quà. Nói rõ để người dùng không chờ điểm xanh tăng lên oan. */}
-      <p className="mt-3 max-w-xs text-[11px] font-semibold leading-relaxed text-muted">
+      <p className="mt-3 max-w-xs text-xs font-semibold leading-relaxed text-muted">
         Điểm nhận thức chỉ phục vụ xếp hạng — điểm xanh đổi quà tính riêng.
       </p>
 

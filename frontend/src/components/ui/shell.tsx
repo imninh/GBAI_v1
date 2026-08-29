@@ -149,7 +149,7 @@ export function TabBar({
                 {item.badge}
               </span>
             ) : null}
-            <span className={cn("text-[11px] tracking-tight transition-all", isActive ? "font-extrabold text-ink" : "font-bold text-muted")}>
+            <span className={cn("text-xs tracking-tight transition-all", isActive ? "font-extrabold text-ink" : "font-bold text-muted")}>
               {item.label}
             </span>
           </button>

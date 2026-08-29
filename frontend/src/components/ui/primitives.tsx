@@ -6,7 +6,7 @@
 
 import { cva, type VariantProps } from "class-variance-authority";
 import { Slot } from "@radix-ui/react-slot";
-import type { LucideIcon } from "lucide-react";
+import { type LucideIcon, Loader2 } from "lucide-react";
 import * as React from "react";
 
 import { IconCanhBao, IconGapLoi, IconMamXanh } from "@/lib/icons";
@@ -18,6 +18,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // GOI_FIX / B2 — revert D2: brand green --color-leaf (#548045) + chữ trắng
+        // đã đạt WCAG AA (4.61:1). Giữ nền leaf, hover đậm hơn.
         primary: "bg-leaf text-white font-[family-name:var(--font-display)] shadow-[var(--shadow-sm)] hover:bg-leaf-dark hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5",
         leaf: "bg-leaf text-white shadow-[var(--shadow-sm)] hover:bg-leaf-dark hover:shadow-[var(--shadow-leaf-glow)] hover:-translate-y-0.5",
         outline: "bg-surface border-[1.5px] border-line-2 text-ink-soft shadow-[var(--shadow-xs)] hover:border-leaf hover:bg-leaf-soft/30 hover:text-leaf-dark",
@@ -29,8 +31,8 @@ const buttonVariants = cva(
       size: {
         lg: "px-6 py-4 text-base min-h-[52px]",
         md: "px-4.5 py-3 text-sm min-h-[44px]",
-        sm: "px-3.5 py-2 text-xs min-h-[36px]",
-        icon: "size-10 p-0 rounded-full",
+        sm: "px-3.5 py-2 text-xs min-h-[40px]",
+        icon: "size-11 p-0 rounded-full",
       },
       block: { true: "w-full", false: "" },
     },
@@ -42,12 +44,29 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  /** GOI_6 / A7 — hiện spinner + vô hiệu hoá khi đang xử lý. */
+  loading?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, block, asChild, ...props }, ref) => {
+  ({ className, variant, size, block, asChild, loading, disabled, children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp ref={ref} className={cn(buttonVariants({ variant, size, block }), className)} {...props} />;
+    return (
+      <Comp
+        ref={ref}
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
+        className={cn(
+          buttonVariants({ variant, size, block }),
+          loading && "opacity-70 cursor-not-allowed",
+          className,
+        )}
+        {...props}
+      >
+        {loading && !asChild && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+        {children}
+      </Comp>
+    );
   },
 );
 Button.displayName = "Button";
@@ -146,7 +165,7 @@ export function ErrorState({ message, code, onRetry }: { message: string; code?:
           Thử lại
         </Button>
       )}
-      {code && <div className="text-[11px] font-bold tracking-wider text-muted">mã lỗi: {code}</div>}
+      {code && <div className="text-xs font-bold tracking-wider text-muted">mã lỗi: {code}</div>}
     </div>
   );
 }
@@ -170,3 +189,58 @@ export function SeedBadge({ className }: { className?: string }) {
     </span>
   );
 }
+
+/** GOI_6 / A6 — Input primitive thay thế style inline rải rác.
+ *  Quy ước: cao 48px, viền line-2, focus ring xanh, lỗi chuyển hazard. */
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  error?: boolean;
+  label?: string;
+}
+
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ error, label, className, id, ...props }, ref) => {
+    const reactId = React.useId();
+    const inputId = id || `input-${reactId}`;
+    return (
+      <div className="flex flex-col gap-1">
+        {label && (
+          <label htmlFor={inputId} className="text-sm font-semibold text-ink">
+            {label}
+          </label>
+        )}
+        <input
+          ref={ref}
+          id={inputId}
+          className={cn(
+            "h-12 w-full rounded-[var(--gb-r-md)] border-[1.5px] border-line-2 bg-surface px-4 text-[15px] font-semibold text-ink outline-none transition-shadow",
+            "focus:ring-2 focus:ring-leaf focus:border-leaf placeholder:text-ink/40",
+            error && "border-hazard focus:ring-hazard",
+            className,
+          )}
+          {...props}
+        />
+      </div>
+    );
+  },
+);
+Input.displayName = "Input";
+
+export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  error?: boolean;
+}
+
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ error, className, ...props }, ref) => (
+    <textarea
+      ref={ref}
+      className={cn(
+        "w-full rounded-[var(--gb-r-md)] border-[1.5px] border-line-2 bg-surface px-4 py-3 text-[15px] font-semibold text-ink outline-none transition-shadow min-h-[120px] resize-none",
+        "focus:ring-2 focus:ring-leaf focus:border-leaf placeholder:text-ink/40",
+        error && "border-hazard focus:ring-hazard",
+        className,
+      )}
+      {...props}
+    />
+  ),
+);
+Textarea.displayName = "Textarea";

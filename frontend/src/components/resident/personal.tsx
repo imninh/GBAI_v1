@@ -58,13 +58,13 @@ export function PrivacyScreen({ mediaId, onBack }: { mediaId: number; onBack: ()
           <>
             <div className="mb-4 flex gap-2.5">
               <div className="flex-1">
-                <div className="mb-1.5 text-[11px] font-bold text-muted">Ảnh gốc (chỉ ban quản lý mở được)</div>
+                <div className="mb-1.5 text-xs font-bold text-muted">Ảnh gốc (chỉ ban quản lý mở được)</div>
                 <div className="flex aspect-[3/4] items-center justify-center rounded-2xl bg-[repeating-linear-gradient(135deg,var(--color-skeleton-warm),var(--color-skeleton-warm)_8px,var(--color-skeleton-warm-deep)_8px,var(--color-skeleton-warm-deep)_16px)] font-mono text-[10px] font-semibold text-ink-faint">
                   {bao.has_original ? "đã khoá" : "không lưu"}
                 </div>
               </div>
               <div className="flex-1">
-                <div className="mb-1.5 text-[11px] font-bold text-leaf">Đã gửi cho AI</div>
+                <div className="mb-1.5 text-xs font-bold text-leaf">Đã gửi cho AI</div>
                 <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-[repeating-linear-gradient(135deg,var(--color-skeleton),var(--color-skeleton)_8px,var(--color-skeleton-deep)_8px,var(--color-skeleton-deep)_16px)]">
                   {!daXoa && (
                     <AnhCoToken mediaId={bao.media_id} alt="Ảnh đã xử lý" className="h-full w-full object-cover" />
@@ -183,7 +183,7 @@ export function ScheduleScreen({
             <div className="grid min-w-[340px] gap-1.5" style={{ gridTemplateColumns: "auto repeat(7, 1fr)" }}>
               <span />
               {thu.map((t) => (
-                <span key={t} className="text-center text-[11px] font-extrabold text-muted">
+                <span key={t} className="text-center text-xs font-extrabold text-muted">
                   {t}
                 </span>
               ))}
@@ -470,17 +470,17 @@ function LichSuVatLieu() {
 
       <div className="mb-3 flex gap-2">
         <div className="flex-1 rounded-xl bg-muted-bg p-3">
-          <div className="text-[11px] font-bold text-muted">Yêu cầu đã gửi</div>
+          <div className="text-xs font-bold text-muted">Yêu cầu đã gửi</div>
           <div className="text-lg font-extrabold">{ls.tong.so_yeu_cau}</div>
-          <div className="text-[11px] font-semibold text-muted">đã thu {ls.tong.so_yeu_cau_da_thu}</div>
+          <div className="text-xs font-semibold text-muted">đã thu {ls.tong.so_yeu_cau_da_thu}</div>
         </div>
         <div className="flex-1 rounded-xl bg-muted-bg p-3">
-          <div className="text-[11px] font-bold text-muted">Khối lượng ước lượng</div>
+          <div className="text-xs font-bold text-muted">Khối lượng ước lượng</div>
           <div className="text-lg font-extrabold leading-tight">
             {so(ls.tong.khoi_luong_min_kg)} – {so(ls.tong.khoi_luong_max_kg)}
             <span className="text-[13px]"> kg</span>
           </div>
-          <div className="text-[11px] font-semibold text-muted">là khoảng, không phải cân thật</div>
+          <div className="text-xs font-semibold text-muted">là khoảng, không phải cân thật</div>
         </div>
       </div>
 
@@ -510,7 +510,7 @@ function LichSuVatLieu() {
         ))
       )}
 
-      <p className="m-0 mt-3 text-[11px] font-semibold leading-relaxed text-muted">{ls.ghi_chu}</p>
+      <p className="m-0 mt-3 text-xs font-semibold leading-relaxed text-muted">{ls.ghi_chu}</p>
     </Card>
   );
 }
@@ -604,7 +604,7 @@ function SuaHoSo({ user, onXong, onHuy }: { user: User; onXong: () => void; onHu
           </option>
         ))}
       </select>
-      <p className="m-0 mb-3 text-[11px] font-semibold text-muted">
+      <p className="m-0 mb-3 text-xs font-semibold text-muted">
         Đổi căn hộ là đổi luôn lịch thu gom và thứ tự danh sách điểm gửi.
       </p>
 
@@ -691,7 +691,7 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
 
       {/* thẻ hero: cấp + điểm + thanh tiến độ */}
       <div className="relative mt-3 overflow-hidden rounded-2xl border border-line bg-surface p-4 pb-5 text-center shadow-[0_2px_10px_rgba(20,40,25,.05)]">
-        <div className="absolute left-4 top-4 rounded-full bg-leaf-soft px-3 py-1.5 text-[11px] font-extrabold tracking-wide text-leaf-dark">
+        <div className="absolute left-4 top-4 rounded-full bg-leaf-soft px-3 py-1.5 text-xs font-extrabold tracking-wide text-leaf-dark">
           CẤP · {cap.ten.toUpperCase()} {cap.icon}
         </div>
         <div className="mb-1 mt-10 flex h-[150px] items-end justify-center">
@@ -744,7 +744,7 @@ export function DiemXanhScreen({ user, onBack }: { user: User; onBack: () => voi
         ))}
       </div>
 
-      <p className="mt-4 text-center text-[11px] font-semibold leading-relaxed text-muted">
+      <p className="mt-4 text-center text-xs font-semibold leading-relaxed text-muted">
         Điểm xanh cộng khi yêu cầu thu gom của bạn hoàn tất. Streak đếm số ngày bạn phân loại trên máy này.
       </p>
     </div>
