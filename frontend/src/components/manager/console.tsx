@@ -15,6 +15,7 @@ import Link from "next/link";
 
 import { AgentRunScreen, OpsScreen, OverviewScreen, QualityScreen } from "@/components/manager/insights";
 import { KipVaSuCo } from "@/components/manager/kip_va_su_co";
+import { LichThuGom } from "@/components/manager/lich-thu-gom";
 import { LiveVehiclesScreen } from "@/components/manager/live-vehicles";
 import { PickupQueue, RouteApproval, VerifyQueue } from "@/components/manager/queues";
 import { TatCaYeuCau } from "@/components/manager/tat-ca-yeu-cau";
@@ -47,7 +48,7 @@ function useDuRong(): boolean | null {
   return duRong;
 }
 
-type Nav = "homnay" | "duyet" | "tat_ca" | "xep_tuyen" | "kip_suco" | "baocao" | "overview" | "runs" | "xe";
+type Nav = "homnay" | "duyet" | "tat_ca" | "xep_tuyen" | "kip_suco" | "baocao" | "lich" | "overview" | "runs" | "xe";
 type TabDuyet = "pickup" | "verify" | "route";
 type TabBaoCao = "ops" | "quality";
 
@@ -61,6 +62,7 @@ const MUC_CHINH: Muc[] = [
   { key: "tat_ca", label: "Tất cả yêu cầu", permission: "view_all_pickups" },
   { key: "xep_tuyen", label: "Xếp tuyến", permission: "review_route" },
   { key: "kip_suco", label: "Kíp thu gom & sự cố", permission: "review_route" },
+  { key: "lich", label: "Lịch thu gom", permission: "manage_bins" },
   { key: "baocao", label: "Báo cáo", permission: "view_ops" },
 ];
 
@@ -232,6 +234,7 @@ export function ManagerConsole() {
           )}
           {nav === "kip_suco" && <KipVaSuCo />}
           {nav === "tat_ca" && <TatCaYeuCau />}
+          {nav === "lich" && <LichThuGom />}
           {nav === "xe" && <LiveVehiclesScreen />}
           {nav === "overview" && <OverviewScreen
             onGoto={(nav) => {

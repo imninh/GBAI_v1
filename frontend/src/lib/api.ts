@@ -233,6 +233,28 @@ export const api = {
         location: string;
       }[];
     }>(`/buildings/${buildingId}/schedule`),
+  /** Ghi đè lịch thu gom của một toà (GOI_P3). Chỉ gửi trường có thể sửa:
+   *  category_code / weekdays / window / location. */
+  luuSchedule: (
+    buildingId: number,
+    items: { category_code: string; weekdays: number[]; window: string; location: string }[],
+  ) =>
+    request<{
+      building: { id: number; code: string; name: string };
+      items: {
+        category_code: string;
+        category_name: string;
+        bin_color: string;
+        icon: string;
+        weekdays: number[];
+        weekdays_vi: string[];
+        window: string;
+        location: string;
+      }[];
+    }>(`/buildings/${buildingId}/schedule`, {
+      method: "PUT",
+      body: JSON.stringify({ items }),
+    }),
   knowledge: (params: Record<string, string | number> = {}) =>
     request<{ items: { id: number; title: string; doc_type: string; chunk_count: number; needs_verification: boolean }[] }>(
       `/knowledge?${new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)]))}`,
