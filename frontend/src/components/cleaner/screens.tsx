@@ -24,9 +24,13 @@ import {
 } from "@/lib/icons";
 import {
   BUOC_KE_TIEP,
+  BUOC_VAN_CHUYEN,
+  NHAN_NHOM,
   NHAN_TRANG_THAI_YEU_CAU,
+  NHOM_CUA_YEU_CAU,
   TRANG_THAI_KIEN_DANG_THEO,
   trangThaiYeuCau,
+  type NhomHienThi,
 } from "@/lib/pickup-states";
 import type { PickupRequest, PickupRoute, User } from "@/lib/types";
 
@@ -706,6 +710,47 @@ export function RouteTodayScreen({
   );
 }
 
+// GOI_P0 — thứ tự 5 nhóm hiển thị (ẩn nhóm rỗng).
+const THU_TU_NHOM: NhomHienThi[] = ["can_lam", "da_nhan", "dang_xu_ly", "da_xong", "co_van_de"];
+
+// Thanh tiến độ con cho đồ cồng kềnh (nhóm ③): Nhận ✓ → Vận chuyển → Giao đơn vị.
+function TienDoVanChuyen({ buoc }: { buoc: number }) {
+  const cacBuoc = ["Nhận", "Vận chuyển", "Giao đơn vị"];
+  return (
+    <div className="mb-3">
+      <div className="flex items-center gap-2">
+        {cacBuoc.map((ten, idx) => {
+          const so = idx + 1;
+          const xong = so < buoc;
+          const hienTai = so === buoc;
+          return (
+            <React.Fragment key={ten}>
+              <span
+                className={[
+                  "flex h-6 w-6 flex-none items-center justify-center rounded-full text-[11px] font-extrabold",
+                  xong
+                    ? "bg-leaf text-white"
+                    : hienTai
+                      ? "bg-leaf-soft text-leaf-dark ring-2 ring-leaf"
+                      : "bg-muted-bg text-muted",
+                ].join(" ")}
+              >
+                {xong ? "✓" : so}
+              </span>
+              {idx < cacBuoc.length - 1 && (
+                <span className={["h-0.5 flex-1 rounded", xong ? "bg-leaf" : "bg-muted-bg"].join(" ")} />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+      <div className="mt-1.5 text-[12px] font-semibold text-muted">
+        {buoc === 3 ? "Chờ đơn vị xác nhận khối lượng" : cacBuoc[buoc - 1]}
+      </div>
+    </div>
+  );
+}
+
 function KienDangTheoSection() {
   const [kien, setKien] = React.useState<PickupRequest[] | null>(null);
   const [loi, setLoi] = React.useState("");
@@ -762,6 +807,54 @@ function KienDangTheoSection() {
     return <div className="rounded-2xl bg-muted-bg p-3 text-center text-[13px] font-bold text-muted">Đã kết thúc</div>;
   }
 
+  function KienCard({ k, nhom }: { k: PickupRequest; nhom: NhomHienThi }) {
+    const trangThai = trangThaiYeuCau(k.status);
+    const buocTienDo = trangThai ? BUOC_VAN_CHUYEN[trangThai] : null;
+    return (
+      <Card className="mb-3 p-4">
+        <div className="mb-3 flex items-start gap-3">
+          <span className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-2xl bg-recycle-soft text-[15px] font-extrabold text-recycle">
+            <IconMonDo className="h-4 w-4" />
+          </span>
+          <div className="flex-1">
+            <div className="flex justify-between gap-2">
+              <span className="text-base font-extrabold">{k.building} · {k.unit}</span>
+              <span className="text-[13px] font-extrabold text-muted">{kg(k.weight_max_kg)}</span>
+            </div>
+            <div className="text-[13px] font-semibold text-muted">
+              {k.resident?.full_name ?? ""}
+              {k.preferred_window ? ` · ${k.preferred_window}` : ""}
+            </div>
+            <div className="mt-1 text-[13px] font-bold text-bulky-dark">
+              {k.items.map((i) => `${i.qty > 1 ? `${i.qty} ` : ""}${i.name}`).join(", ")}
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-3">
+          <Chip tone={trangThai === "da_giao_don_vi" ? "amber" : "neutral"}>
+            {trangThai ? NHAN_TRANG_THAI_YEU_CAU[trangThai] : k.status}
+          </Chip>
+        </div>
+
+        {nhom === "dang_xu_ly" && buocTienDo !== null && <TienDoVanChuyen buoc={buocTienDo} />}
+
+        {traiThai(k)}
+      </Card>
+    );
+  }
+
+  // GOI_P0 — gộp kiện theo 5 nhóm hiển thị (ẩn nhóm rỗng).
+  const dsKien = kien ?? [];
+  const nhomCuaKien: Record<NhomHienThi, PickupRequest[]> = {
+    can_lam: [], da_nhan: [], dang_xu_ly: [], da_xong: [], co_van_de: [],
+  };
+  for (const k of dsKien) {
+    const tt = trangThaiYeuCau(k.status);
+    const nhom = tt ? NHOM_CUA_YEU_CAU[tt] : "co_van_de";
+    nhomCuaKien[nhom].push(k);
+  }
+
   return (
     <section className="mt-7">
       <div className="mb-2 font-[family-name:var(--font-display)] text-lg font-bold">Kiện đang theo</div>
@@ -773,37 +866,19 @@ function KienDangTheoSection() {
       ) : kien.length === 0 ? (
         <EmptyState icon={IconXeThuGom} title="Chưa có kiện nào được giao" />
       ) : (
-        kien.map((k) => {
-          const trangThai = trangThaiYeuCau(k.status);
+        THU_TU_NHOM.map((nhom) => {
+          const ds = nhomCuaKien[nhom];
+          if (ds.length === 0) return null;
           return (
-            <Card key={k.id} className="mb-3 p-4">
-              <div className="mb-3 flex items-start gap-3">
-                <span className="flex h-[34px] w-[34px] flex-none items-center justify-center rounded-2xl bg-recycle-soft text-[15px] font-extrabold text-recycle">
-                  <IconMonDo className="h-4 w-4" />
-                </span>
-                <div className="flex-1">
-                  <div className="flex justify-between gap-2">
-                    <span className="text-base font-extrabold">{k.building} · {k.unit}</span>
-                    <span className="text-[13px] font-extrabold text-muted">{kg(k.weight_max_kg)}</span>
-                  </div>
-                  <div className="text-[13px] font-semibold text-muted">
-                    {k.resident?.full_name ?? ""}
-                    {k.preferred_window ? ` · ${k.preferred_window}` : ""}
-                  </div>
-                  <div className="mt-1 text-[13px] font-bold text-bulky-dark">
-                    {k.items.map((i) => `${i.qty > 1 ? `${i.qty} ` : ""}${i.name}`).join(", ")}
-                  </div>
-                </div>
+            <div key={nhom} className="mb-4">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="font-[family-name:var(--font-display)] text-[15px] font-bold text-muted-2">{NHAN_NHOM[nhom]}</span>
+                <span className="rounded-full bg-muted-bg px-2 py-0.5 text-[11px] font-bold text-muted">{ds.length}</span>
               </div>
-
-              <div className="mb-3">
-                <Chip tone={trangThai === "da_giao_don_vi" ? "amber" : "neutral"}>
-                  {trangThai ? NHAN_TRANG_THAI_YEU_CAU[trangThai] : k.status}
-                </Chip>
-              </div>
-
-              {traiThai(k)}
-            </Card>
+              {ds.map((k) => (
+                <KienCard key={k.id} k={k} nhom={nhom} />
+              ))}
+            </div>
           );
         })
       )}
