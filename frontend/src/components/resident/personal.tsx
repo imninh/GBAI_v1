@@ -11,7 +11,7 @@ import { Button, Card, EmptyState, Skeleton } from "@/components/ui/primitives";
 import { ScreenHeader } from "@/components/ui/shell";
 import { api } from "@/lib/api";
 import { AnhCoToken } from "@/lib/anh-co-token";
-import { dungLuong, kg, ngayVn, TRANG_THAI_YEU_CAU } from "@/lib/format";
+import { dungLuong, kg, ngayGioVn, ngayVn, TRANG_THAI_YEU_CAU } from "@/lib/format";
 import { CAP_DO, tinhCap, tinhStreak } from "@/lib/gamification";
 import { useSession } from "@/lib/session";
 import { Flame, Recycle } from "lucide-react";
@@ -391,7 +391,7 @@ export function RequestDetailScreen({ id, onBack }: { id: number; onBack: () => 
                 <IconDuyet className="h-3.5 w-3.5" strokeWidth={3} />
               </span>
               <div className="flex-1">
-                <div className="text-xs font-extrabold text-muted">{new Date(moc.at).toLocaleString("vi-VN")}</div>
+                <div className="text-xs font-extrabold text-muted">{ngayGioVn(moc.at)}</div>
                 <div className="text-sm font-bold leading-snug">{moc.label_vi}</div>
               </div>
             </div>

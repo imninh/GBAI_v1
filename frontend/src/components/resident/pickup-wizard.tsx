@@ -15,7 +15,7 @@ import * as React from "react";
 import { Button, Card } from "@/components/ui/primitives";
 import { AnhCoToken } from "@/lib/anh-co-token";
 import { api } from "@/lib/api";
-import { kg, ngayVn } from "@/lib/format";
+import { gioVn, kg, ngayVn } from "@/lib/format";
 import { IconChoDuyet, IconDuyet, IconQuayLai, IconTuChoi, IconXeThuGom } from "@/lib/icons";
 import { useSession } from "@/lib/session";
 import type { Classification, PickupRequest, ScheduleHint, WasteCategory } from "@/lib/types";
@@ -472,7 +472,7 @@ export function PickupWizard({
                     <IconDuyet className="h-3 w-3" strokeWidth={3} />
                   </span>
                   <div className="text-[13px] font-bold">
-                    <span className="font-semibold text-muted">{new Date(moc.at).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} · </span>
+                    <span className="font-semibold text-muted">{gioVn(moc.at)} · </span>
                     {moc.label_vi}
                   </div>
                 </div>

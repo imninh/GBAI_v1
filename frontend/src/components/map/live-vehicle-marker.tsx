@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Marker, Popup, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
 import { API_URL, getToken } from "@/lib/api";
+import { gioVn } from "@/lib/format";
 import { IconXeThuGom } from "@/lib/icons";
 
 export interface LivePosition {
@@ -208,7 +209,7 @@ export default function LiveVehicleMarker({
             )}
             {pos.recorded_at && (
               <div className="mt-1 text-[10px] text-slate-400">
-                Cập nhật: {new Date(pos.recorded_at).toLocaleTimeString("vi-VN")}
+                Cập nhật: {gioVn(pos.recorded_at)}
               </div>
             )}
           </div>
