@@ -189,6 +189,22 @@ class UpdateCategoryRequest(BaseModel):
     safety_warning: str | None = None
 
 
+# --- Lịch thu gom (Ban quản lý sửa lịch của toà) -----------------------------
+
+
+class ScheduleItemIn(BaseModel):
+    category_code: str = Field(min_length=1, max_length=40)
+    weekdays: list[int] = Field(default_factory=list)
+    window: str = ""
+    location: str = ""
+
+
+class UpdateScheduleRequest(BaseModel):
+    """Ghi đè lịch thu gom của một toà — thay toàn bộ hàng cũ."""
+
+    items: list[ScheduleItemIn] = Field(default_factory=list)
+
+
 class RetrievalTestRequest(BaseModel):
     """Ô "Thử truy hồi" trong màn Kho quy định — công cụ debug RAG nhìn thấy được."""
 

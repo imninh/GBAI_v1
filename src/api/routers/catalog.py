@@ -5,14 +5,18 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from src.api.deps import CurrentUser, DbSession, require
-from src.api.errors import not_found
+from src.api.errors import bad_request, not_found
 from src.api.serializers import category_dict
 from src.db.models import Building, CollectionSchedule, KnowledgeChunk, KnowledgeDoc, Unit, User, WasteCategory
 from src.db.seed_data import KNOWN_LIMITATIONS, PICKUP_REJECT_REASONS
-from src.models.schemas import RetrievalTestRequest, UpdateCategoryRequest
+from src.models.schemas import (
+    RetrievalTestRequest,
+    UpdateCategoryRequest,
+    UpdateScheduleRequest,
+)
 from src.services import rag
 from src.services.auth import write_audit
 from src.services.route_planner import STOP_ISSUES
@@ -121,6 +125,66 @@ def building_schedule(building_id: int, session: DbSession) -> dict:
             for r in rows
         ],
     }
+
+
+@router.put("/buildings/{building_id}/schedule")
+def update_building_schedule(
+    building_id: int,
+    payload: UpdateScheduleRequest,
+    session: DbSession,
+    user: Annotated[User, Depends(require("manage_bins"))],
+) -> dict:
+    """Ghi đè lịch thu gom của một toà (thay toàn bộ hàng cũ).
+
+    Quyền ``manage_bins`` — chỉ ban quản lý; collection schedule gắn liền với
+    thùng/thu gom của toà. Validate: ``category_code`` phải tồn tại, ``weekdays``
+    chỉ chứa 0..6 không trùng, ``window`` đúng dạng ``HH:MM-HH:MM`` hoặc rỗng.
+    """
+    import re
+
+    building = session.get(Building, building_id)
+    if building is None:
+        raise not_found("toà nhà này")
+
+    valid_codes = {c.code for c in session.scalars(select(WasteCategory)).all()}
+    win_re = re.compile(r"^([01]\d|2[0-3]):[0-5]\d-([01]\d|2[0-3]):[0-5]\d$")
+    for it in payload.items:
+        if it.category_code not in valid_codes:
+            raise bad_request(f"category_code không hợp lệ: {it.category_code}")
+        seen: set[int] = set()
+        for d in it.weekdays:
+            if not isinstance(d, int) or isinstance(d, bool) or d < 0 or d > 6:
+                raise bad_request(f"weekdays chỉ chứa số 0..6, gặp: {d!r}")
+            if d in seen:
+                raise bad_request(f"weekdays bị trùng ngày {d}")
+            seen.add(d)
+        if it.window and not win_re.match(it.window):
+            raise bad_request(f"window phải có dạng HH:MM-HH:MM hoặc rỗng, gặp: {it.window!r}")
+
+    # Thay toàn bộ: xoá hàng cũ của toà rồi thêm mới.
+    session.execute(
+        delete(CollectionSchedule).where(CollectionSchedule.building_id == building_id)
+    )
+    for it in payload.items:
+        session.add(
+            CollectionSchedule(
+                building_id=building_id,
+                category_code=it.category_code,
+                weekdays=sorted(it.weekdays),
+                window=it.window,
+                location=it.location,
+            )
+        )
+    session.flush()
+    write_audit(
+        session,
+        actor=user,
+        action="update_schedule",
+        entity="collection_schedule",
+        entity_id=str(building_id),
+        detail={"items": [i.model_dump() for i in payload.items]},
+    )
+    return building_schedule(building_id, session)
 
 
 @router.get("/knowledge")
