@@ -45,13 +45,24 @@ export function ngayVn(iso: string | null | undefined): string {
     return `${d}/${m}/${y}`;
   }
   const d = new Date(iso);
-  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+  // GOI_FIX / B5 — pin múi giờ VN để giờ không lệch khi xem từ máy không phải +07.
+  return d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
 }
 
 export function gioVn(iso: string | null | undefined): string {
   if (!iso) return "";
   const d = new Date(iso);
-  return d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+  // GOI_FIX / B5 — pin múi giờ VN.
+  return d.toLocaleTimeString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
 }
 
 export function ngayGioVn(iso: string | null | undefined): string {

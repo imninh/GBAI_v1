@@ -393,7 +393,7 @@ def verify_label(
 
     classification.human_label_id = category.id
     classification.verified_by = user.id
-    classification.verified_at = datetime.now()
+    classification.verified_at = datetime.now(UTC)
     if payload.reply_text:
         classification.advice = payload.reply_text
     session.flush()

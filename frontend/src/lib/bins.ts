@@ -89,11 +89,13 @@ export function computeStats(bins: Bin[]): BinStats {
 export function formatLastSeen(iso: string | null): string {
   if (!iso) return "chưa có dữ liệu";
   const d = new Date(iso);
+  // GOI_FIX / B5 — pin múi giờ VN để giờ hiện thị không lệch theo máy người xem.
   return d.toLocaleString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "Asia/Ho_Chi_Minh",
   });
 }
 
