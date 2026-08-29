@@ -22,7 +22,7 @@ const MARKER_STYLE: Record<Bin["status"], string> = {
     "background:var(--color-muted-bg);color:var(--color-ink-faint);border:1.5px dotted var(--color-line-faint);font-weight:400;opacity:.8",
 };
 
-function icon(bin: Bin) {
+function icon(bin: Bin, active = false) {
   // WS-4: không còn "?" — thùng nào cũng hiện nhãn thật (phần trăm đầy, hoặc
   // "–" khi chưa có số liệu). "Mất kết nối / số liệu cũ" được phân biệt bằng
   // style (nét đứt + nhạt) và title, không phải bằng dấu hỏi.
@@ -32,11 +32,15 @@ function icon(bin: Bin) {
       : bin.status === "chua_trien_khai"
         ? "chưa"
         : "–";
+  // GOI_5 / P5 — thùng đang chọn (từ danh sách hoặc map) được khoanh viền nổi bật.
+  const highlight = active
+    ? ";outline:3px solid var(--leaf);outline-offset:2px;box-shadow:0 0 0 6px oklch(0.62 0.16 145 / .25)"
+    : "";
   return L.divIcon({
     className: "bin-marker-icon",
     iconSize: [46, 30],
     iconAnchor: [23, 15],
-    html: `<div title="${bin.code} · ${STATUS_LABEL[bin.status]}" style="${MARKER_STYLE[bin.status]};display:flex;align-items:center;justify-content:center;width:46px;height:30px;border-radius:999px;font-size:12px;font-family:var(--font-sans)">${label}</div>`,
+    html: `<div title="${bin.code} · ${STATUS_LABEL[bin.status]}" style="${MARKER_STYLE[bin.status]}${highlight};display:flex;align-items:center;justify-content:center;width:46px;height:30px;border-radius:999px;font-size:12px;font-family:var(--font-sans)">${label}</div>`,
   });
 }
 
@@ -122,7 +126,7 @@ export default function BinMap({
           <Marker
             key={bin.code}
             position={[bin.lat, bin.lng]}
-            icon={icon(bin)}
+            icon={icon(bin, selected?.code === bin.code)}
             eventHandlers={{ click: () => onSelect(bin) }}
           />
         ))}
@@ -136,7 +140,7 @@ export default function BinMap({
             dưới). Có几何 thật (≥2 điểm) → vẽ polyline OSRM. Không có gì cả (chưa
             xin xong) → vẽ đoạn thẳng nét đứt mốc→thùng làm bản xem trước. */}
         {!loiDuongDi && duongDi && duongDi.length >= 2 ? (
-          <Polyline positions={duongDi} pathOptions={{ color: '#1f6feb', weight: 4, opacity: 0.85 }} />
+          <Polyline positions={duongDi} pathOptions={{ color: 'var(--color-noi-thung)', weight: 4, opacity: 0.85 }} />
         ) : (
           !loiDuongDi &&
           tuMoc &&

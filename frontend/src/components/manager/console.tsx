@@ -15,14 +15,16 @@ import Link from "next/link";
 
 import { AgentRunScreen, OpsScreen, OverviewScreen, QualityScreen } from "@/components/manager/insights";
 import { KipVaSuCo } from "@/components/manager/kip_va_su_co";
+import { LiveVehiclesScreen } from "@/components/manager/live-vehicles";
 import { PickupQueue, RouteApproval, VerifyQueue } from "@/components/manager/queues";
 import { TatCaYeuCau } from "@/components/manager/tat-ca-yeu-cau";
 import { XepTuyen } from "@/components/manager/xep-tuyen";
+import { BinDetail } from "@/components/bins/bin-detail";
 import { BrowserFrame } from "@/components/ui/shell";
 import { BellButton, NotificationSheet } from "@/components/ui/notifications";
 import { ErrorState, Skeleton } from "@/components/ui/primitives";
 import { api } from "@/lib/api";
-import type { Bin } from "@/lib/bins";
+import type { Bin, NhanVien } from "@/lib/bins";
 import { IconKhoa } from "@/lib/icons";
 import { useSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
@@ -45,7 +47,7 @@ function useDuRong(): boolean | null {
   return duRong;
 }
 
-type Nav = "homnay" | "duyet" | "tat_ca" | "xep_tuyen" | "kip_suco" | "baocao" | "overview" | "runs";
+type Nav = "homnay" | "duyet" | "tat_ca" | "xep_tuyen" | "kip_suco" | "baocao" | "overview" | "runs" | "xe";
 type TabDuyet = "pickup" | "verify" | "route";
 type TabBaoCao = "ops" | "quality";
 
@@ -64,6 +66,7 @@ const MUC_CHINH: Muc[] = [
 
 const MUC_PHU: Muc[] = [
   { key: "overview", label: "Tổng quan", permission: "view_ops" },
+  { key: "xe", label: "Xe đang chạy", permission: "review_route" },
   { key: "runs", label: "Agent run", permission: "view_runs" },
 ];
 
@@ -87,8 +90,9 @@ const BinMap = dynamic(() => import("@/components/bins/bin-map"), {
 export function ManagerConsole() {
   const { user, dangXuat, duocPhep, lyDoCam } = useSession();
   const duRong = useDuRong();
-  // Vào là thấy việc, không phải thấy số liệu — "Tổng quan" nằm ở nhóm phụ bên dưới.
-  const [nav, setNav] = React.useState<Nav>("duyet");
+  // GOI_3 / M2 — vào là thấy tình hình tổng (bản đồ thùng + việc chờ), không phải
+  // hàng đợi duyệt. Badge "Cần duyệt" vẫn hiện ở mục "Chờ tôi duyệt".
+  const [nav, setNav] = React.useState<Nav>("homnay");
   const [tabDuyet, setTabDuyet] = React.useState<TabDuyet>("pickup");
   const [tabBaoCao, setTabBaoCao] = React.useState<TabBaoCao>("ops");
   const [dem, setDem] = React.useState({ pickup: 0, labels: 0, routes: 0 });
@@ -146,7 +150,7 @@ export function ManagerConsole() {
         </span>
           <span>
             <span className="block text-[13px] font-bold leading-tight">{user?.full_name}</span>
-            <span className="text-[11px] font-semibold text-muted">Đơn vị thu gom</span>
+            <span className="text-xs font-semibold text-muted">Đơn vị thu gom</span>
           </span>
         </span>
         <button onClick={dangXuat} className="cursor-pointer text-[13px] font-bold text-hazard-dark">
@@ -228,10 +232,21 @@ export function ManagerConsole() {
           )}
           {nav === "kip_suco" && <KipVaSuCo />}
           {nav === "tat_ca" && <TatCaYeuCau />}
+          {nav === "xe" && <LiveVehiclesScreen />}
           {nav === "overview" && <OverviewScreen
-            onGoto={() => {
-              setNav("duyet");
-              setTabDuyet("pickup");
+            onGoto={(nav) => {
+              if (nav === "homnay") {
+                setNav("homnay");
+              } else if (nav === "kip_suco") {
+                setNav("kip_suco");
+              } else if (nav === "duyet:route") {
+                setNav("duyet");
+                setTabDuyet("route");
+              } else {
+                // "pickup" hoặc "duyet:pickup" — mặc định hàng đợi thu gom.
+                setNav("duyet");
+                setTabDuyet("pickup");
+              }
             }}
           />}
 {nav === "runs" && <AgentRunScreen />}
@@ -246,6 +261,11 @@ export function ManagerConsole() {
             if (target === "manager:queues") {
               setNav("duyet");
               setTabDuyet("pickup");
+            } else if (target === "manager:kip_suco") {
+              setNav("kip_suco");
+            } else if (target === "manager:duyet_route") {
+              setNav("duyet");
+              setTabDuyet("route");
             }
           }}
         />
@@ -262,6 +282,12 @@ function HomNayPanel() {
   const [dangChon, setDangChon] = React.useState<Bin | null>(null);
   const [loi, setLoi] = React.useState("");
 
+  // GOI_3 / M3 — quyền giao thùng + danh sách nhân viên để mở BinDetail.
+  const { duocPhep, lyDoCam } = useSession();
+  const [nhanVien, setNhanVien] = React.useState<NhanVien[] | null>(null);
+  const [coQuyenGiao, setCoQuyenGiao] = React.useState(false);
+  const [lyDoCamGiao, setLyDoCamGiao] = React.useState("");
+
   const tai = React.useCallback(() => {
     setLoi("");
     api
@@ -270,6 +296,29 @@ function HomNayPanel() {
       .catch((e) => setLoi(e instanceof Error ? e.message : "Không tải được danh sách thùng."));
   }, []);
   React.useEffect(tai, [tai]);
+
+  // GOI_5 / P5 — khi chọn thùng (từ map hoặc danh sách), cuộn dòng tương ứng
+  // trong danh sách vào giữa để map ↔ list đồng bộ.
+  React.useEffect(() => {
+    if (!dangChon) return;
+    const el = document.getElementById(`bin-row-${dangChon.code}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [dangChon]);
+
+  // Kiểm quyền giao thùng MỘT LẦN khi mở màn (mirror dieu-phoi/page.tsx).
+  React.useEffect(() => {
+    const duoc = duocPhep("assign_bin");
+    setCoQuyenGiao(duoc);
+    setLyDoCamGiao(lyDoCam("assign_bin"));
+    if (!duoc) {
+      setNhanVien(null);
+      return;
+    }
+    api
+      .nhanVien()
+      .then((d) => setNhanVien(d.items))
+      .catch(() => setNhanVien(null));
+  }, [duocPhep, lyDoCam]);
 
   if (loi) return <ErrorState message={loi} onRetry={tai} />;
   if (!bins) return <Skeleton className="h-96 w-full" />;
@@ -289,8 +338,18 @@ function HomNayPanel() {
       <p className="mb-4 text-sm font-semibold text-muted">Bản đồ thùng trong toà — bấm thùng để xem chi tiết.</p>
 
       <div className="lg:grid lg:grid-cols-[1.5fr_1fr] lg:items-start lg:gap-4">
-        <div className="mb-4 h-[420px] overflow-hidden rounded-2xl border border-line lg:sticky lg:top-4 lg:mb-0 lg:h-[calc(100vh-9rem)]">
+        <div className="relative mb-4 h-[420px] overflow-hidden rounded-2xl border border-line lg:sticky lg:top-4 lg:mb-0 lg:h-[calc(100vh-9rem)]">
           <BinMap bins={bins} selected={dangChon} onSelect={setDangChon} />
+          {dangChon && (
+            <BinDetail
+              bin={dangChon}
+              nhanVien={nhanVien}
+              coQuyenGiao={coQuyenGiao}
+              lyDoCam={lyDoCamGiao}
+              onGanXong={tai}
+              onClose={() => setDangChon(null)}
+            />
+          )}
         </div>
 
         <div className="space-y-2.5">
@@ -303,6 +362,7 @@ function HomNayPanel() {
             canGom.map((b) => (
               <button
                 key={b.code}
+                id={`bin-row-${b.code}`}
                 type="button"
                 onClick={() => setDangChon(b)}
                 className={`block w-full cursor-pointer rounded-2xl border bg-surface px-3.5 py-3 text-left transition-all ${
@@ -312,7 +372,7 @@ function HomNayPanel() {
                 <div className="mb-0.5 flex items-center justify-between gap-2">
                   <span className="text-[13px] font-extrabold">{b.code}</span>
                   <span
-                    className={`flex-none rounded-lg px-2 py-0.5 text-[11px] font-extrabold ${
+                    className={`flex-none rounded-lg px-2 py-0.5 text-xs font-extrabold ${
                       b.status === "can_gom" ? "bg-amber-line text-amber-darker" : "bg-muted-bg text-muted"
                     }`}
                   >
@@ -434,7 +494,7 @@ function NavButton({
       <span className="flex-1" />
       {!allowed && <IconKhoa className="h-3.5 w-3.5 opacity-60" />}
       {allowed && badge ? (
-        <span className="rounded-lg bg-hazard px-2 py-0.5 text-[11px] font-extrabold text-white shadow-xs">{badge}</span>
+        <span className="rounded-lg bg-hazard px-2 py-0.5 text-xs font-extrabold text-white shadow-xs">{badge}</span>
       ) : null}
     </button>
   );

@@ -380,7 +380,7 @@ export default function NavigationMode({
             )}
           </div>
           {speedKmh != null && (
-            <div className="flex items-center gap-1 border-l border-slate-700 pl-2 text-[11px] font-extrabold text-emerald-400">
+            <div className="flex items-center gap-1 border-l border-slate-700 pl-2 text-xs font-extrabold text-emerald-400">
               <IconNhanh className="h-3.5 w-3.5" strokeWidth={2} />
               <span>{speedKmh} km/h</span>
             </div>
@@ -464,7 +464,7 @@ export default function NavigationMode({
           zIndexOffset={900}
         >
           <Tooltip direction="top" offset={[0, -48]} permanent>
-            <span className="inline-flex items-center gap-1 rounded bg-red-600 px-1.5 py-0.5 text-[11px] font-extrabold text-white shadow-md">
+            <span className="inline-flex items-center gap-1 rounded bg-red-600 px-1.5 py-0.5 text-xs font-extrabold text-white shadow-md">
               <IconViTri className="mr-1 inline h-3.5 w-3.5" strokeWidth={1.9} />Đích: {dest.diem_dung_vi || `Điểm ${dest.seq}`}
             </span>
           </Tooltip>

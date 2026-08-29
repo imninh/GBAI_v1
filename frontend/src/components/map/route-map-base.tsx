@@ -153,11 +153,11 @@ export default function RouteMapBase({
 
         {/* Tuyến đường: vẽ đường thật OSRM nếu có, hoặc đường chim bay nét đứt */}
         {coDuongThat ? (
-          <Polyline positions={hinhDuongDi} pathOptions={{ color: '#1f8a4f', weight: 4, opacity: 0.9 }} />
+          <Polyline positions={hinhDuongDi} pathOptions={{ color: 'var(--color-leaf)', weight: 4, opacity: 0.9 }} />
         ) : (
           <Polyline
             positions={cacDiem.map((s) => [s.lat, s.lng] as ToaDoDuongDi)}
-            pathOptions={{ color: '#1f8a4f', weight: 3, dashArray: "6 6", opacity: 0.7 }}
+              pathOptions={{ color: 'var(--color-leaf)', weight: 3, dashArray: "6 6", opacity: 0.7 }}
           />
         )}
 
@@ -197,7 +197,7 @@ export default function RouteMapBase({
       </MapContainer>
 
       {showLegend && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000] rounded-t-lg bg-surface/90 backdrop-blur px-2.5 py-1 text-center text-[11px] font-semibold text-muted shadow-sm">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000] rounded-t-lg bg-surface/90 backdrop-blur px-2.5 py-1 text-center text-xs font-semibold text-muted shadow-sm">
           {coDuongThat
             ? lo_trinh_meta
               ? `Đường đi thật OSRM · ${lo_trinh_meta.total_km} km · ~${lo_trinh_meta.total_minutes} phút`

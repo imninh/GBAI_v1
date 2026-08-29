@@ -190,7 +190,7 @@ export default function LiveVehicleMarker({
       <FollowVehicle pos={pos} follow={follow} />
       <Marker position={[displayLat, displayLng]} icon={vehicleIcon(pos.heading)} zIndexOffset={1000}>
         <Tooltip direction="top" offset={[0, -22]} permanent>
-          <span className="inline-flex items-center gap-1 rounded bg-surface/95 px-1.5 py-0.5 text-[11px] font-extrabold text-emerald-800 shadow">
+          <span className="inline-flex items-center gap-1 rounded bg-surface/95 px-1.5 py-0.5 text-xs font-extrabold text-emerald-800 shadow">
             <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
             Xe thu gom ({speedKmh} km/h)
           </span>

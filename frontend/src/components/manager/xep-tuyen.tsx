@@ -145,7 +145,7 @@ export function XepTuyen({ onDuyetTuyen }: { onDuyetTuyen?: () => void }) {
             )}
           </div>
           {tuyen && !tuyen.duong_di && (
-            <p className="mt-2 text-[11px] font-semibold text-muted">
+            <p className="mt-2 text-xs font-semibold text-muted">
               Tuyến ước lượng — chưa có đường đi thật nên bản đồ nối thẳng giữa các điểm.
             </p>
           )}
@@ -156,7 +156,7 @@ export function XepTuyen({ onDuyetTuyen }: { onDuyetTuyen?: () => void }) {
           {tuyen && (
             <Card className="p-4">
               <div className="mb-2 flex items-center gap-2.5">
-                <span className="rounded-lg bg-amber-line px-2.5 py-1 text-[11px] font-extrabold text-amber-darker">
+                <span className="rounded-lg bg-amber-line px-2.5 py-1 text-xs font-extrabold text-amber-darker">
                   AI ĐỀ XUẤT — CHỜ DUYỆT
                 </span>
                 <div className="font-[family-name:var(--font-display)] text-[16px] font-bold">
@@ -208,7 +208,7 @@ export function XepTuyen({ onDuyetTuyen }: { onDuyetTuyen?: () => void }) {
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label htmlFor="xt-ngay" className="mb-1 block text-[11px] font-extrabold text-muted">
+                <label htmlFor="xt-ngay" className="mb-1 block text-xs font-extrabold text-muted">
                   Ngày thu gom
                 </label>
                 <input
@@ -220,7 +220,7 @@ export function XepTuyen({ onDuyetTuyen }: { onDuyetTuyen?: () => void }) {
                 />
               </div>
               <div>
-                <label htmlFor="xt-khung" className="mb-1 block text-[11px] font-extrabold text-muted">
+                <label htmlFor="xt-khung" className="mb-1 block text-xs font-extrabold text-muted">
                   Khung giờ
                 </label>
                 <select
@@ -237,7 +237,7 @@ export function XepTuyen({ onDuyetTuyen }: { onDuyetTuyen?: () => void }) {
                 </select>
               </div>
               <div>
-                <label htmlFor="xt-doi" className="mb-1 block text-[11px] font-extrabold text-muted">
+                <label htmlFor="xt-doi" className="mb-1 block text-xs font-extrabold text-muted">
                   Mã đội (tuỳ chọn)
                 </label>
                 <input
@@ -252,7 +252,7 @@ export function XepTuyen({ onDuyetTuyen }: { onDuyetTuyen?: () => void }) {
                 />
               </div>
               <div>
-                <label htmlFor="xt-tai-trong" className="mb-1 block text-[11px] font-extrabold text-muted">
+                <label htmlFor="xt-tai-trong" className="mb-1 block text-xs font-extrabold text-muted">
                   Tải trọng xe (kg, tuỳ chọn)
                 </label>
                 <input
@@ -295,17 +295,17 @@ export function XepTuyen({ onDuyetTuyen }: { onDuyetTuyen?: () => void }) {
                 <Card key={yc.id} className="p-3.5">
                   <div className="mb-1 flex justify-between">
                     <span className="text-[13px] font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
-                    <span className="rounded-lg bg-amber-soft px-2 py-0.5 text-[11px] font-extrabold text-amber">
+                    <span className="rounded-lg bg-amber-soft px-2 py-0.5 text-xs font-extrabold text-amber">
                       {yc.weight_min_kg}–{yc.weight_max_kg} kg
                     </span>
                   </div>
                   <div className="text-[13px] font-bold">
                     {yc.unit} · {yc.resident?.full_name}
                   </div>
-                  <div className="mt-0.5 text-[11px] font-semibold text-muted">
+                  <div className="mt-0.5 text-xs font-semibold text-muted">
                     {yc.items.map((m) => `${m.qty > 1 ? `${m.qty} ` : ""}${m.name}`).join(", ")}
                   </div>
-                  <div className="mt-1 text-[11px] font-semibold text-muted">
+                  <div className="mt-1 text-xs font-semibold text-muted">
                     mong muốn {yc.preferred_date ? ngayVn(yc.preferred_date) : "chưa rõ"}
                     {yc.preferred_window ? ` · ${yc.preferred_window}` : ""}
                   </div>

@@ -27,6 +27,23 @@ import {
 } from "@/lib/icons";
 import type { AgentRunDetail, EvalSummary, OpsMetrics, Overview } from "@/lib/types";
 
+// GOI_2 / M1 — Alert object chỉ có `severity`/`title`/`threshold` (không có
+// `loai`), nên đích điều hướng được suy từ nội dung. Chuẩn hoá dấu để khớp cả
+// có/không dấu. Mặc định → "homnay" (bản đồ) theo yêu cầu.
+function alertNav(alert: { title?: string; threshold?: string }): string {
+  const text = alert.title?.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase() ?? "";
+  const nguong = alert.threshold?.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase() ?? "";
+  const hay = `${text} ${nguong}`;
+  if (hay.includes("nguy hai") || hay.includes("su co") || hay.includes("hien truong")) {
+    return "kip_suco";
+  }
+  if (hay.includes("tuyen") || hay.includes("route")) return "duyet:route";
+  if (hay.includes("yeu cau") || hay.includes("thu gom") || hay.includes("pickup") || hay.includes("duyet")) {
+    return "duyet:pickup";
+  }
+  return "homnay";
+}
+
 export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
   const [du, setDu] = React.useState<Overview | null>(null);
   const [loi, setLoi] = React.useState("");
@@ -34,6 +51,11 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
     api.overview().then(setDu).catch((e) => setLoi(e.message));
   }, []);
   React.useEffect(tai, [tai]);
+
+  // GOI_5 / P6 — bộ lọc ngày cho các chỉ số tổng quan.
+  const [khoang, setKhoang] = React.useState<"7d" | "30d" | "custom">("7d");
+  const [tuNgay, setTuNgay] = React.useState("");
+  const [denNgay, setDenNgay] = React.useState("");
 
   if (loi) return <ErrorState message={loi} onRetry={tai} />;
   if (!du) return <Skeleton className="h-96 w-full" />;
@@ -49,6 +71,39 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
       </div>
       <div className="mb-4 text-sm font-semibold text-muted">Hôm nay có gì cần anh xử lý?</div>
 
+      {/* GOI_5 / P6 — bộ lọc ngày. Backend chưa có API chuỗi thời gian nên đây là
+          phần chọn; các card bên dưới vẫn dùng dữ liệu tổng quan hiện tại. */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {([["7d", "7 ngày"], ["30d", "30 ngày"], ["custom", "Tuỳ chọn"]] as const).map(([k, label]) => (
+          <button
+            key={k}
+            onClick={() => setKhoang(k)}
+            className={`rounded-2xl px-3.5 py-2 text-xs font-bold transition-all ${
+              khoang === k ? "bg-ink text-white shadow-[var(--shadow-xs)]" : "text-ink-soft hover:bg-black/5"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+        {khoang === "custom" && (
+          <>
+            <input
+              type="date"
+              value={tuNgay}
+              onChange={(e) => setTuNgay(e.target.value)}
+              className="h-9 rounded-2xl border border-line-2 bg-surface px-3 text-[13px] font-bold text-ink-soft outline-none focus:border-leaf"
+            />
+            <span className="text-xs font-bold text-muted">→</span>
+            <input
+              type="date"
+              value={denNgay}
+              onChange={(e) => setDenNgay(e.target.value)}
+              className="h-9 rounded-2xl border border-line-2 bg-surface px-3 text-[13px] font-bold text-ink-soft outline-none focus:border-leaf"
+            />
+          </>
+        )}
+      </div>
+
       {du.alerts.map((c) => (
         <div
           key={c.id}
@@ -63,7 +118,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
             <IconCanhBao className="h-5 w-5" />
           </span>
           <span className="flex-1 text-sm font-bold">{c.title}</span>
-          <Button size="sm" variant="outline" onClick={() => api.runs().then(() => onGoto("pickup"))}>
+          <Button size="sm" variant="outline" onClick={() => api.runs().then(() => onGoto(alertNav(c)))}>
             Xem
           </Button>
         </div>
@@ -75,7 +130,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
           <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums">
             <NumberFlow value={du.queues.total} locales="vi-VN" />
           </div>
-          <div className="mt-1.5 text-[11px] font-semibold text-muted">
+          <div className="mt-1.5 text-xs font-semibold text-muted">
             {du.queues.pickup} thu gom · {du.queues.labels} nhãn · {du.queues.routes} tuyến
           </div>
           <div className="mt-2 flex items-center gap-1 text-xs font-extrabold text-leaf">
@@ -89,7 +144,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
           <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums">
             <NumberFlow value={du.classifications_this_week} locales="vi-VN" />
           </div>
-          <div className="mt-1.5 text-[11px] font-extrabold text-leaf-dark">
+          <div className="mt-1.5 text-xs font-extrabold text-leaf-dark">
             {du.growth === null ? (
               "chưa có tuần trước để so"
             ) : (
@@ -106,7 +161,7 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
           <div className="font-[family-name:var(--font-display)] text-[32px] font-bold leading-none tabular-nums">
             <NumberFlow value={du.accuracy ?? 0} locales="vi-VN" />
           </div>
-          <div className="mt-1.5 text-[11px] font-semibold text-muted">trên {du.verified_count} ca đã xác nhận</div>
+          <div className="mt-1.5 text-xs font-semibold text-muted">trên {du.verified_count} ca đã xác nhận</div>
         </Card>
 
         {/* Chỉ số an toàn cốt lõi của đề — nằm ở tổng quan, không giấu trong trang eval. */}
@@ -128,11 +183,31 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
           >
             <NumberFlow value={antoan.hazard_missed_count} locales="vi-VN" />
           </div>
-          <div className="mt-1.5 text-[11px] font-semibold" style={{ color: antoanXanh ? "var(--color-amber-green)" : "var(--color-amber-brown)" }}>
+          <div className="mt-1.5 text-xs font-semibold" style={{ color: antoanXanh ? "var(--color-amber-green)" : "var(--color-amber-brown)" }}>
             mục tiêu 0 · trên {antoan.hazard_total} ca nguy hại
           </div>
         </Card>
       </div>
+
+      {/* GOI_5 / P6 — placeholder xu hướng: backend chưa có API chuỗi thời gian
+          nên chưa vẽ biểu đồ thật. Giữ chỗ để tích hợp sau. */}
+      <Card className="mb-4 p-4">
+        <div className="mb-1 flex items-center justify-between">
+          <div className="text-sm font-bold">Xu hướng phân loại &amp; thu gom</div>
+          <span className="text-xs font-semibold text-muted">
+            {khoang === "7d"
+              ? "7 ngày qua"
+              : khoang === "30d"
+                ? "30 ngày qua"
+                : tuNgay && denNgay
+                  ? `${tuNgay} → ${denNgay}`
+                  : "chọn khoảng ngày"}
+          </span>
+        </div>
+        <div className="flex h-40 items-center justify-center rounded-2xl bg-console-bg text-[13px] font-semibold text-muted">
+          Biểu đồ xu hướng sẽ hiển thị ở đây (cần API chuỗi thời gian từ backend)
+        </div>
+      </Card>
 
       <div className="grid gap-3.5 grid-cols-1 xl:grid-cols-[1.4fr_1fr]">
         <Card className="p-4">
@@ -204,7 +279,7 @@ export function OpsScreen() {
               style={{ width: `${tiLeNganSach * 100}%`, background: tiLeNganSach > 0.8 ? "var(--color-hazard)" : "var(--color-leaf)" }}
             />
           </div>
-          <div className="mt-1.5 text-[11px] font-bold text-muted">
+          <div className="mt-1.5 text-xs font-bold text-muted">
             {tienUsd(nganSach.used)} / {tienUsd(nganSach.limit)} ngân sách
             {tiLeNganSach > 0.8 && <span className="text-hazard-dark"> · đã vượt 80%</span>}
           </div>
@@ -224,7 +299,7 @@ export function OpsScreen() {
             Tiết kiệm {phanTram(du.cost.saved_ratio, 0)}
           </div>
           {!du.cost.baseline_price_known && (
-            <div className="mt-2 text-[11px] font-semibold opacity-90">
+            <div className="mt-2 text-xs font-semibold opacity-90">
               Model đang dùng chưa có trong bảng giá nên con số này là mốc so sánh nội bộ, chưa dùng được cho báo cáo.
             </div>
           )}
@@ -235,7 +310,7 @@ export function OpsScreen() {
         <div className="mb-3 text-sm font-bold">So sánh các tầng model</div>
         <div className="gb-hscroll">
           <div
-            className="grid gap-2 border-b border-line-4 pb-2 text-[11px] font-extrabold text-muted"
+            className="grid gap-2 border-b border-line-4 pb-2 text-xs font-extrabold text-muted"
             style={{ gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", minWidth: 560 }}
           >
             <span>Tầng</span>
@@ -264,7 +339,7 @@ export function OpsScreen() {
           ))}
         </div>
         {du.cost.by_tier.some((t) => !t.price_known) && (
-          <div className="mt-2.5 text-[11px] font-semibold leading-snug text-muted">
+          <div className="mt-2.5 text-xs font-semibold leading-snug text-muted">
             Tầng ghi <b>chưa có giá</b>: nhà cung cấp không công bố giá theo token cho model đang chạy, nên số token
             thì đo được mà quy ra tiền thì chưa. Đừng đọc thành &ldquo;miễn phí&rdquo;.
           </div>
@@ -322,7 +397,7 @@ export function OpsScreen() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-[13px] font-semibold">
             <thead>
-              <tr className="text-[11px] uppercase text-muted">
+              <tr className="text-xs uppercase text-muted">
                 <th className="pb-1.5">Tầng</th>
                 <th className="pb-1.5">Nhà cung cấp</th>
                 <th className="pb-1.5">Model</th>
@@ -515,7 +590,7 @@ export function QualityScreen() {
           </p>
           <div className="gb-hscroll">
             <table className="w-full min-w-[620px] text-left text-[13px] font-bold">
-              <thead className="text-[11px] font-extrabold text-muted">
+              <thead className="text-xs font-extrabold text-muted">
                 <tr>
                   <th className="pb-2">Bộ dữ liệu</th>
                   <th>Cỡ mẫu</th>
@@ -555,10 +630,10 @@ export function QualityScreen() {
               <div key={f.id} className="rounded-2xl border border-line p-3">
                 <div className="mb-2 aspect-square rounded-lg bg-[repeating-linear-gradient(135deg,var(--color-recycle-muted),var(--color-recycle-muted)_7px,var(--color-skeleton-blue)_7px,var(--color-skeleton-blue)_14px)]" />
                 <div className="text-xs font-extrabold">{f.item_name}</div>
-                <div className="text-[11px] font-semibold text-muted">
+                <div className="text-xs font-semibold text-muted">
                   đúng: {f.true_category_code} · AI: {f.predicted_category_code}
                 </div>
-                <div className="mt-1 text-[11px] font-bold text-hazard-dark">{f.cause}</div>
+                <div className="mt-1 text-xs font-bold text-hazard-dark">{f.cause}</div>
               </div>
             ))}
           </div>
@@ -602,7 +677,7 @@ export function AgentRunScreen() {
                 <span>#{r.id}</span>
                 <span className={r.status === "ok" ? "text-leaf-dark" : "text-hazard-dark"}>{r.status}</span>
               </div>
-              <div className="text-[11px] font-semibold text-muted">
+              <div className="text-xs font-semibold text-muted">
                 {r.kind} · {soVn(r.duration_ms)} ms · {tienUsd(r.total_cost_usd)}
               </div>
             </button>
@@ -633,14 +708,14 @@ export function AgentRunScreen() {
                 </span>
                 <div className="flex-1">
                   <div className="text-[13px] font-extrabold">{n.node}</div>
-                  <div className="text-[11px] font-semibold text-muted">
+                  <div className="text-xs font-semibold text-muted">
                     {soVn(n.duration_ms)} ms · {tienUsd(n.cost_usd)}
                     {n.llm_calls ? ` · ${n.tokens_in}+${n.tokens_out} token` : ""}
                     {n.cache_hits ? " · trúng cache" : ""}
                     {n.error_type ? ` · ${n.error_type}` : ""}
                   </div>
                   {Object.keys(n.meta ?? {}).length > 0 && (
-                    <div className="mt-1 text-[11px] font-semibold text-ink-soft">
+                    <div className="mt-1 text-xs font-semibold text-ink-soft">
                       {Object.entries(n.meta)
                         .map(([k, v]) => `${k}: ${String(v)}`)
                         .join(" · ")}
@@ -649,7 +724,7 @@ export function AgentRunScreen() {
                 </div>
               </div>
             ))}
-            <div className="mt-3 rounded-2xl bg-console-bg p-3 text-[11px] font-semibold text-muted">
+            <div className="mt-3 rounded-2xl bg-console-bg p-3 text-xs font-semibold text-muted">
               Đường đã đi: {chiTiet.path.join(" → ")}
             </div>
           </Card>

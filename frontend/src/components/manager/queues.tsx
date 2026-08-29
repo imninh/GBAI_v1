@@ -134,14 +134,14 @@ style={{ animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}
               >
                 <div className="mb-1 flex justify-between">
                   <span className="text-xs font-extrabold text-bulky">#PR-{String(yc.id).padStart(4, "0")}</span>
-                  <span className="rounded-lg bg-amber-soft border border-amber-line/60 px-2 py-0.5 text-[11px] font-extrabold text-amber">
+                  <span className="rounded-lg bg-amber-soft border border-amber-line/60 px-2 py-0.5 text-xs font-extrabold text-amber">
                     {kg(yc.est_weight_kg)}
                   </span>
                 </div>
                 <div className="text-xs font-bold text-ink">
                   {yc.unit} · {yc.resident?.full_name}
                 </div>
-                <div className="mt-1 text-[11px] font-semibold text-muted">mong muốn {ngayVn(yc.preferred_date)}</div>
+                <div className="mt-1 text-xs font-semibold text-muted">mong muốn {ngayVn(yc.preferred_date)}</div>
               </button>
             ))}
           </div>
@@ -220,7 +220,7 @@ style={{ animationDelay: `${0.06 + _i * 0.06}s`, animationFillMode: "both" }}
 
                 {dangChon.agent_suggestion && (
                   <div className="rounded-2xl border-[1.5px] border-dashed border-[var(--color-bulky-line-faint)] bg-[var(--color-bulky-tint)] p-3.5">
-                    <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-extrabold text-bulky">
+                    <div className="mb-1.5 flex items-center gap-1.5 text-xs font-extrabold text-bulky">
                       <IconAi className="h-3.5 w-3.5" />
                       {dangChon.agent_suggestion.label_vi}
                     </div>
@@ -380,16 +380,16 @@ export function VerifyQueue() {
           AI đoán: {ca.guess?.item_name || ca.item_name || ca.text_query || "không rõ"} · {doTinCay(ca.confidence)}
         </div>
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
-          <Chip tone="hazard" className="text-[11px]">
+          <Chip tone="hazard" className="text-xs">
             Dưới ngưỡng {doTinCay(ca.min_confidence)}
           </Chip>
           {thieu > 0 && (
-            <Chip tone="neutral" className="text-[11px]">
+            <Chip tone="neutral" className="text-xs">
               còn thiếu {phanTram(thieu, 0)}
             </Chip>
           )}
         </div>
-        <div className="mb-2 text-[11px] font-semibold text-muted">Lý do từ chối: {ca.refusal_label_vi}</div>
+        <div className="mb-2 text-xs font-semibold text-muted">Lý do từ chối: {ca.refusal_label_vi}</div>
 
         {/* Bộ chọn nhãn đúng — chips danh mục; mặc định = nhãn AI (đã chọn sẵn). */}
         <div className="mb-1.5 text-xs font-bold text-muted">Nhãn đúng</div>
@@ -484,7 +484,7 @@ export function VerifyQueue() {
 
       {du.hard_cases?.length ? (
         <div className="mb-4 rounded-2xl border border-amber-line bg-amber-soft px-4 py-3.5">
-          <div className="mb-2 flex items-center gap-1.5 text-[11px] font-extrabold text-amber">
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-extrabold text-amber">
             <IconCaKho className="h-3.5 w-3.5" />
             CA KHÓ HAY BỊ NHẦM (từ eval)
           </div>
@@ -656,14 +656,14 @@ export function WeightConfirmQueue() {
                         Tranh chấp — khối lượng thật lệch xa khoảng ước lượng
                       </div>
                     )}
-                    <div className="mt-2 text-[11px] font-semibold text-muted">
+                    <div className="mt-2 text-xs font-semibold text-muted">
                       Đã chốt {soKg[yc.id]} kg · Cư dân tự khai {yc.weight_min_kg}–{yc.weight_max_kg} kg
                     </div>
                   </>
                 ) : (
                   <div className="flex items-end gap-2.5">
                     <div className="flex-1">
-                      <label htmlFor={`khoi-luong-${yc.id}`} className="mb-1 block text-[11px] font-extrabold text-muted">
+                      <label htmlFor={`khoi-luong-${yc.id}`} className="mb-1 block text-xs font-extrabold text-muted">
                         Số cân đội thu gom báo (kg)
                       </label>
                       <input
@@ -864,7 +864,7 @@ export function RouteApproval() {
             </span>
           </div>
           {!tuyen.duong_di && (
-            <p className="mb-4 text-[11px] font-semibold text-muted">
+            <p className="mb-4 text-xs font-semibold text-muted">
               Quãng đường ước tính theo đường chim bay — tuyến này chưa có đường đi thật.
             </p>
           )}
@@ -933,7 +933,7 @@ export function RouteApproval() {
                         </span>
                       )}
                     </div>
-                    {phu && <div className="truncate text-[11px] font-semibold text-muted">{phu}</div>}
+                    {phu && <div className="truncate text-xs font-semibold text-muted">{phu}</div>}
                   </div>
                   <span className="flex-none text-[14px] font-extrabold text-recycle">
                     {laThung ? "—" : kg(s.weight_max_kg)}

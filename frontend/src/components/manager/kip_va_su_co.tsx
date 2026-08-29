@@ -47,7 +47,18 @@ const NHAN_LOAI_SU_CO: Record<string, string> = {
   thung_day: "Thùng đầy / quá tải",
   khong_tiep_can: "Không tiếp cận được điểm dừng",
   khac: "Khác",
+  // GOI_4 / C6 — các mã mới được gộp chung vào LOAI_HOP_LE.
+  khong_co_nguoi: "Không có người",
+  co_rac_nguy_hai: "Có rác nguy hại",
+  tam_hoan: "Tạm hoãn",
 };
+
+/** GOI_5 / P3 — độ khẩn của sự cố để ưu tiên xử lý. */
+function doKhan(sc: SuCoThuGom): { nhan: string; lop: string } {
+  if (sc.loai === "co_rac_nguy_hai") return { nhan: "NGUY HIỂM", lop: "bg-hazard-soft text-hazard-dark" };
+  if (sc.loai === "khong_tiep_can") return { nhan: "CẢNH BÁO", lop: "bg-amber-soft text-amber" };
+  return { nhan: "THƯỜNG", lop: "bg-muted-bg text-muted" };
+}
 
 function tinhTuanBatDau(): string {
   const now = new Date();
@@ -59,6 +70,8 @@ function tinhTuanBatDau(): string {
 
 export function KipVaSuCo() {
   const [tab, setTab] = React.useState<"kip" | "su_co">("kip");
+  // GOI_5 / P3 — khi bấm "Gán kíp" từ một sự cố, chuyển sang tab Kíp và mở sẵn chuyến đó.
+  const [tuyenKipMacDinh, setTuyenKipMacDinh] = React.useState<number | null>(null);
   return (
     <section className="mt-8 border-t border-line-3 pt-6">
       <div className="mb-4 flex items-center gap-2.5">
@@ -82,14 +95,28 @@ export function KipVaSuCo() {
           </button>
         ))}
       </div>
-      {tab === "kip" ? <CrewManagement /> : <IncidentBoard />}
+      {tab === "kip" ? (
+        <CrewManagement khoiTaoRouteId={tuyenKipMacDinh} />
+      ) : (
+        <IncidentBoard
+          onChuyenKip={(rid) => {
+            setTuyenKipMacDinh(rid);
+            setTab("kip");
+          }}
+        />
+      )}
     </section>
   );
 }
 
-function CrewManagement() {
+function CrewManagement({ khoiTaoRouteId = null }: { khoiTaoRouteId?: number | null }) {
   const [tuyen, setTuyen] = React.useState<PickupRoute[] | null>(null);
-  const [routeId, setRouteId] = React.useState<number | null>(null);
+  const [routeId, setRouteId] = React.useState<number | null>(khoiTaoRouteId ?? null);
+  // GOI_5 / P3 — khi bấm "Gán kíp" từ một sự cố khác, mở lại chuyến đó (ngay cả
+  // khi tab Kíp đã mở sẵn, component không remount).
+  React.useEffect(() => {
+    if (khoiTaoRouteId != null) setRouteId(khoiTaoRouteId);
+  }, [khoiTaoRouteId]);
   const [kip, setKip] = React.useState<DanhSachKip | null>(null);
   const [nhanVien, setNhanVien] = React.useState<NhanVienKhaDung[] | null>(null);
   const [chon, setChon] = React.useState<number[]>([]);
@@ -175,7 +202,7 @@ function CrewManagement() {
   return (
     <div className="space-y-4">
       <div>
-        <label htmlFor="chon-tuyen" className="mb-1 block text-[11px] font-extrabold text-muted">
+        <label htmlFor="chon-tuyen" className="mb-1 block text-xs font-extrabold text-muted">
           Chọn chuyến để xem / gán kíp
         </label>
         <select
@@ -224,11 +251,11 @@ function CrewManagement() {
                 </span>
                 <span className="flex-1 text-[14px] font-bold">{tv.full_name}</span>
                 {tv.vai_tro === "truong_kip" ? (
-                  <Chip tone="leaf" className="text-[11px]">
+                  <Chip tone="leaf" className="text-xs">
                     Trưởng kíp
                   </Chip>
                 ) : (
-                  <Chip tone="neutral" className="text-[11px]">
+                  <Chip tone="neutral" className="text-xs">
                     Thành viên
                   </Chip>
                 )}
@@ -264,7 +291,7 @@ function CrewManagement() {
                     {dangChon ? <IconDuyet className="h-3.5 w-3.5" /> : null}
                   </span>
                   <span className="flex-1 text-[14px] font-bold">{nv.full_name}</span>
-                  <span className="text-[11px] font-semibold text-muted">{nv.role}</span>
+                  <span className="text-xs font-semibold text-muted">{nv.role}</span>
                 </button>
               );
             })}
@@ -273,7 +300,7 @@ function CrewManagement() {
 
         {chon.length > 0 && (
           <div className="mt-3 rounded-2xl bg-console-bg px-3.5 py-3">
-            <div className="mb-1.5 text-[11px] font-extrabold text-muted">TRƯỞNG KÍP</div>
+            <div className="mb-1.5 text-xs font-extrabold text-muted">TRƯỞNG KÍP</div>
             <div className="flex flex-wrap gap-2">
               {chon.map((id) => {
                 const nv = nhanVien?.find((x) => x.id === id);
@@ -331,7 +358,7 @@ function CrewManagement() {
               <DongLichTuan nhan="Lịch bỏ vì đã có từ trước" so={ketQuaLich.so_lich_bo_vi_da_co} />
               <DongLichTuan nhan="Lịch bỏ vì không yêu cầu" so={ketQuaLich.so_lich_bo_vi_khong_yeu_cau} />
             </div>
-            <p className="mt-2 text-[11px] font-semibold text-leaf-dark/80">
+            <p className="mt-2 text-xs font-semibold text-leaf-dark/80">
               Chạy lại không tạo chuyến trùng — những ngày đã có lịch tuần được giữ nguyên, nên
               &quot;Số chuyến được tạo&quot; có thể về 0 lần hai.
             </p>
@@ -355,13 +382,16 @@ function DongLichTuan({ nhan, so }: { nhan: string; so: number }) {
   );
 }
 
-function IncidentBoard() {
+function IncidentBoard({ onChuyenKip }: { onChuyenKip?: (routeId: number) => void }) {
   const [trangThai, setTrangThai] = React.useState<TrangThaiSuCoThuGom | "">("");
   const [ds, setDs] = React.useState<SuCoThuGom[] | null>(null);
   const [loi, setLoi] = React.useState("");
   const [dangXuLy, setDangXuLy] = React.useState<number | null>(null);
   const [ghiChu, setGhiChu] = React.useState("");
   const [dangGui, setDangGui] = React.useState(false);
+  // GOI_5 / P3 — mở rộng chi tiết + toạ độ để "link bản đồ".
+  const [moChiTiet, setMoChiTiet] = React.useState<number | null>(null);
+  const [toaDo, setToaDo] = React.useState<{ lat: number; lng: number } | null>(null);
 
   const tai = React.useCallback(() => {
     setLoi("");
@@ -376,6 +406,46 @@ function IncidentBoard() {
   React.useEffect(() => {
     tai();
   }, [tai]);
+
+  // GOI_5 / P3 — độ khẩn: nguy hiểm lên đầu, còn lại mới nhất trước.
+  const hienThi = React.useMemo(() => {
+    if (!ds) return [];
+    return [...ds].sort((a, b) => {
+      const ua = a.loai === "co_rac_nguy_hai" ? 0 : 1;
+      const ub = b.loai === "co_rac_nguy_hai" ? 0 : 1;
+      if (ua !== ub) return ua - ub;
+      return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
+    });
+  }, [ds]);
+
+  async function moRong(sc: SuCoThuGom) {
+    if (moChiTiet === sc.id) {
+      setMoChiTiet(null);
+      return;
+    }
+    setMoChiTiet(sc.id);
+    setToaDo(null);
+    // Lấy toạ độ điểm dừng để hiện link bản đồ (nếu sự cố gắn với một điểm).
+    if (sc.stop_id != null) {
+      try {
+        const route = await api.route(sc.route_id);
+        const stop = route.stops?.find((s) => s.stop_id === sc.stop_id);
+        if (stop && stop.lat != null && stop.lng != null) setToaDo({ lat: stop.lat, lng: stop.lng });
+      } catch {
+        /* không có toạ độ cũng không sao */
+      }
+    }
+  }
+
+  function thoiGianTuongDoi(iso: string | null): string {
+    if (!iso) return "";
+    const phut = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (phut < 1) return "vừa xong";
+    if (phut < 60) return `${phut} phút trước`;
+    const gio = Math.floor(phut / 60);
+    if (gio < 24) return `${gio} giờ trước`;
+    return `${Math.floor(gio / 24)} ngày trước`;
+  }
 
   async function xuLy(chapNhan: boolean) {
     if (dangXuLy === null || dangGui) return;
@@ -423,81 +493,126 @@ function IncidentBoard() {
         <EmptyState
           icon={IconXongHet}
           title="Chưa có sự cố nào"
-          hint="Khi đội thu gom báo sự cố trên đường đi (thùng tràn, xe hỏng, điểm không có người…), danh sách sẽ hiện ở đây để bạn xử lý."
+          hint="Khi đội thu gom báo sự cố trên đường đi (thùng trần, xe hỏng, điểm không có người…), danh sách sẽ hiện ở đây để bạn xử lý."
         />
       ) : (
-        ds.map((sc) => (
-          <Card key={sc.id} className="p-4">
-            <div className="mb-2.5 flex items-start justify-between gap-3">
-              <div className="flex items-center gap-1.5 text-[13px] font-bold text-ink-soft">
-                <IconCanhBao className="h-4 w-4 text-amber" />
-                Sự cố #{sc.id}
-              </div>
-              <Chip
-                tone={sc.trang_thai === "cho_xu_ly" ? "amber" : sc.trang_thai === "da_xu_ly" ? "leaf" : "neutral"}
-              >
-                {TRANG_THAI_SU_CO[sc.trang_thai]}
-              </Chip>
-            </div>
-             <div className="mb-1 text-[14px] font-bold">{NHAN_LOAI_SU_CO[sc.loai] ?? sc.loai}</div>
-            {sc.mo_ta && <div className="mb-1.5 text-[13px] font-semibold text-muted">{sc.mo_ta}</div>}
-            <div className="text-[11px] font-semibold text-muted">
-              Chuyến #{sc.route_id}
-              {sc.created_at ? ` · báo lúc ${ngayGioVn(sc.created_at)}` : ""}
-            </div>
-
-            {sc.trang_thai === "cho_xu_ly" && dangXuLy !== sc.id && (
-              <div className="mt-3 flex gap-2.5">
-                <Button variant="leaf" size="lg" className="flex-1" onClick={() => setDangXuLy(sc.id)}>
-                  <IconDuyet className="h-4 w-4" />
-                  Xử lý
-                </Button>
-              </div>
-            )}
-
-            {dangXuLy === sc.id && (
-              <div className="mt-3 space-y-2.5 rounded-2xl bg-console-bg p-3.5">
-                <div>
-                  <label htmlFor={`ghichu-${sc.id}`} className="mb-1 block text-[11px] font-extrabold text-muted">
-                    Ghi chú xử lý (tuỳ chọn)
-                  </label>
-                  <input
-                    id={`ghichu-${sc.id}`}
-                    value={ghiChu}
-                    onChange={(e) => setGhiChu(e.target.value)}
-                    placeholder="vd: đã điều xe thay thế"
-                    className="h-12 w-full rounded-2xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
-                  />
+        hienThi.map((sc) => {
+          const dk = doKhan(sc);
+          const dangMo = moChiTiet === sc.id;
+          return (
+            <Card
+              key={sc.id}
+              className="cursor-pointer p-4"
+              onClick={() => moRong(sc)}
+            >
+              <div className="mb-2.5 flex items-start justify-between gap-3">
+                <div className="flex items-center gap-1.5 text-[13px] font-bold text-ink-soft">
+                  <IconCanhBao className="h-4 w-4 text-amber" />
+                  Sự cố #{sc.id}
+                  <span className={`rounded px-2 py-0.5 text-[10px] font-extrabold ${dk.lop}`}>{dk.nhan}</span>
                 </div>
-                <div className="flex gap-2.5">
+                <Chip
+                  tone={sc.trang_thai === "cho_xu_ly" ? "amber" : sc.trang_thai === "da_xu_ly" ? "leaf" : "neutral"}
+                >
+                  {TRANG_THAI_SU_CO[sc.trang_thai]}
+                </Chip>
+              </div>
+              <div className="mb-1 text-[14px] font-bold">{NHAN_LOAI_SU_CO[sc.loai] ?? sc.loai}</div>
+              {sc.mo_ta && <div className="mb-1.5 text-[13px] font-semibold text-muted">{sc.mo_ta}</div>}
+              <div className="text-xs font-semibold text-muted">
+                Chuyến #{sc.route_id}
+                {sc.created_at ? ` · báo lúc ${ngayGioVn(sc.created_at)} (${thoiGianTuongDoi(sc.created_at)})` : ""}
+              </div>
+
+              {dangMo && (
+                <div className="mt-3 rounded-2xl bg-console-bg p-3.5 text-[13px]">
+                  <div className="mb-2 font-extrabold text-muted">CHI TIẾT &amp; VỊ TRÍ</div>
+                  {toaDo ? (
+                    <div className="mb-2 font-bold text-ink-soft">
+                      Vị trí điểm dừng: {toaDo.lat.toFixed(5)}, {toaDo.lng.toFixed(5)}
+                    </div>
+                  ) : (
+                    <div className="mb-2 font-semibold text-muted">Không có toạ độ điểm dừng.</div>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    block
+                    disabled={sc.trang_thai !== "cho_xu_ly"}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onChuyenKip?.(sc.route_id);
+                    }}
+                  >
+                    Chuyển sang xử lý kíp
+                  </Button>
+                  <p className="mt-2 text-xs font-semibold text-muted">
+                    (Mini-map chưa tích hợp — cần component bản đồ nhận 1 điểm; xem UNKNOWN.)
+                  </p>
+                </div>
+              )}
+
+              {sc.trang_thai === "cho_xu_ly" && dangXuLy !== sc.id && !dangMo && (
+                <div className="mt-3 flex gap-2.5">
                   <Button
                     variant="leaf"
                     size="lg"
                     className="flex-1"
-                    disabled={dangGui}
-                    onClick={() => xuLy(true)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDangXuLy(sc.id);
+                    }}
                   >
                     <IconDuyet className="h-4 w-4" />
-                    {dangGui ? "Đang lưu…" : "Chấp nhận"}
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="lg"
-                    className="flex-1"
-                    disabled={dangGui}
-                    onClick={() => xuLy(false)}
-                  >
-                    <IconTuChoi className="h-4 w-4" />
-                    Từ chối
+                    Xử lý
                   </Button>
                 </div>
-                <Button size="sm" variant="ghost" block onClick={() => setDangXuLy(null)}>
-                  Đóng
-                </Button>
-              </div>
-            )}
-          </Card>
-        ))
+              )}
+
+              {dangXuLy === sc.id && (
+                <div className="mt-3 space-y-2.5 rounded-2xl bg-console-bg p-3.5" onClick={(e) => e.stopPropagation()}>
+                  <div>
+                    <label htmlFor={`ghichu-${sc.id}`} className="mb-1 block text-xs font-extrabold text-muted">
+                      Ghi chú xử lý (tuỳ chọn)
+                    </label>
+                    <input
+                      id={`ghichu-${sc.id}`}
+                      value={ghiChu}
+                      onChange={(e) => setGhiChu(e.target.value)}
+                      placeholder="vd: đã điều xe thay thế"
+                      className="h-12 w-full rounded-2xl border border-line-2 bg-surface px-3.5 text-base font-bold text-ink-soft outline-none focus:border-leaf"
+                    />
+                  </div>
+                  <div className="flex gap-2.5">
+                    <Button
+                      variant="leaf"
+                      size="lg"
+                      className="flex-1"
+                      disabled={dangGui}
+                      onClick={() => xuLy(true)}
+                    >
+                      <IconDuyet className="h-4 w-4" />
+                      {dangGui ? "Đang lưu…" : "Chấp nhận"}
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="lg"
+                      className="flex-1"
+                      disabled={dangGui}
+                      onClick={() => xuLy(false)}
+                    >
+                      <IconTuChoi className="h-4 w-4" />
+                      Từ chối
+                    </Button>
+                  </div>
+                  <Button size="sm" variant="ghost" block onClick={() => setDangXuLy(null)}>
+                    Đóng
+                  </Button>
+                </div>
+              )}
+            </Card>
+          );
+        })
       )}
     </div>
   );

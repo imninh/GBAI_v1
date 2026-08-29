@@ -26,9 +26,13 @@ const CARDS: CardDef[] = [
 export function StatCards({
   stats,
   loading,
+  km,
 }: {
   stats?: BinStats | undefined;
   loading?: boolean | undefined;
+  /** Quãng đường gom thật (km). Không truyền hoặc = 0 thì ẩn dòng này — tránh
+   *  hiện "—" trông như lỗi (GOI_3 / P4). */
+  km?: number | undefined;
 }) {
 
   return (
@@ -54,10 +58,12 @@ export function StatCards({
           )}
         </div>
       ))}
-      <div className="col-span-2 flex items-center justify-between rounded-2xl border border-dashed bg-muted-bg/40 px-3.5 py-2.5">
-        <span className="text-xs text-muted-foreground">Quãng đường gom — km</span>
-        <span className="font-display text-lg text-muted-foreground">—</span>
-      </div>
+      {km != null && km > 0 && (
+        <div className="col-span-2 flex items-center justify-between rounded-2xl border border-dashed bg-muted-bg/40 px-3.5 py-2.5">
+          <span className="text-xs text-muted-foreground">Quãng đường gom — km</span>
+          <span className="font-display text-lg text-muted-foreground">{km.toFixed(1)} km</span>
+        </div>
+      )}
     </div>
   );
 }
