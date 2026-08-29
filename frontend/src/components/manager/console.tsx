@@ -54,22 +54,40 @@ type TabBaoCao = "ops" | "quality";
 
 type Muc = { key: string; label: string; permission: string; href?: string };
 
-const MUC_CHINH: Muc[] = [
-  // WS-1a: "Hôm nay đi đâu" là tab nội bộ (không nhảy khỏi dashboard). Route
-  // `/dieu-phoi` vẫn tồn tại làm deep-link phụ, nhưng lối chính là tab này.
-  { key: "homnay", label: "Hôm nay đi đâu", permission: "view_bins" },
-  { key: "duyet", label: "Chờ tôi duyệt", permission: "review_pickup" },
-  { key: "tat_ca", label: "Tất cả yêu cầu", permission: "view_all_pickups" },
-  { key: "xep_tuyen", label: "Xếp tuyến", permission: "review_route" },
-  { key: "kip_suco", label: "Kíp thu gom & sự cố", permission: "review_route" },
-  { key: "lich", label: "Lịch thu gom", permission: "manage_bins" },
-  { key: "baocao", label: "Báo cáo", permission: "view_ops" },
-];
-
-const MUC_PHU: Muc[] = [
-  { key: "overview", label: "Tổng quan", permission: "view_ops" },
-  { key: "xe", label: "Xe đang chạy", permission: "review_route" },
-  { key: "runs", label: "Agent run", permission: "view_runs" },
+// GOI_P4 — gom ~10 mục phẳng thành 4 cụm có tiêu đề. GIỮ NGUYÊN key/permission
+// của từng mục (chỉ đổi cách nhóm + thêm header cụm). WS-1a: "Hôm nay đi đâu"
+// vẫn là lối chính vào dashboard, route `/dieu-phoi` giữ làm deep-link phụ.
+const NHOM_NAV: { tieu_de: string; items: Muc[] }[] = [
+  {
+    tieu_de: "Điều phối",
+    items: [
+      { key: "homnay", label: "Hôm nay đi đâu", permission: "view_bins" },
+      { key: "xep_tuyen", label: "Xếp tuyến", permission: "review_route" },
+      { key: "lich", label: "Lịch thu gom", permission: "manage_bins" },
+    ],
+  },
+  {
+    tieu_de: "Duyệt",
+    items: [
+      { key: "duyet", label: "Chờ tôi duyệt", permission: "review_pickup" },
+      { key: "tat_ca", label: "Tất cả yêu cầu", permission: "view_all_pickups" },
+    ],
+  },
+  {
+    tieu_de: "Vận hành",
+    items: [
+      { key: "kip_suco", label: "Kíp & sự cố", permission: "review_route" },
+      { key: "xe", label: "Xe đang chạy", permission: "review_route" },
+    ],
+  },
+  {
+    tieu_de: "Báo cáo",
+    items: [
+      { key: "baocao", label: "Báo cáo", permission: "view_ops" },
+      { key: "overview", label: "Tổng quan", permission: "view_ops" },
+      { key: "runs", label: "Agent run", permission: "view_runs" },
+    ],
+  },
 ];
 
 const TAB_DUYET: Muc[] = [
@@ -162,29 +180,29 @@ export function ManagerConsole() {
 
       <div className="flex flex-1 overflow-hidden">
         <div className="w-[230px] flex-none overflow-y-auto border-r border-line-3 bg-cream-soft p-3">
-          {MUC_CHINH.map((m) => (
-            <NavButton
-              key={m.key}
-              muc={m}
-              nav={nav}
-              setNav={(n) => setNav(n as Nav)}
-              allowed={duocPhep(m.permission)}
-              reason={lyDoCam(m.permission)}
-              badge={m.key === "duyet" ? tongCanDuyet : undefined}
-            />
-          ))}
-
-          <div className="mx-2 my-3 h-px bg-line-3" />
-          {MUC_PHU.map((m) => (
-            <NavButton
-              key={m.key}
-              muc={m}
-              nav={nav}
-              setNav={(n) => setNav(n as Nav)}
-              allowed={duocPhep(m.permission)}
-              reason={lyDoCam(m.permission)}
-            />
-          ))}
+          {NHOM_NAV.map((nhom, idx) => {
+            // GOI_P4 — ẩn cả cụm nếu user không có quyền mục nào trong cụm.
+            const coMucHopLe = nhom.items.some((m) => duocPhep(m.permission));
+            if (!coMucHopLe) return null;
+            return (
+              <div key={nhom.tieu_de} className={idx === 0 ? "" : "mt-4"}>
+                <div className="mb-1 px-3 text-[11px] font-extrabold uppercase tracking-wider text-muted">
+                  {nhom.tieu_de}
+                </div>
+                {nhom.items.map((m) => (
+                  <NavButton
+                    key={m.key}
+                    muc={m}
+                    nav={nav}
+                    setNav={(n) => setNav(n as Nav)}
+                    allowed={duocPhep(m.permission)}
+                    reason={lyDoCam(m.permission)}
+                    badge={m.key === "duyet" ? tongCanDuyet : undefined}
+                  />
+                ))}
+              </div>
+            );
+          })}
         </div>
 
         <div className="gb-scroll flex-1 overflow-y-auto px-8 py-6">
