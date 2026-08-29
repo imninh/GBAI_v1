@@ -8,6 +8,7 @@
  */
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 
 import { Mascot } from "@/components/resident/onboarding";
 import { api } from "@/lib/api";
@@ -24,32 +25,40 @@ export type NotifItem = {
   created_at: string;
 };
 
-/** Đích deep-link sau khi chạm một thông báo — null = không có màn tương ứng. */
+/** Đích deep-link sau khi chạm một thông báo — null = không có màn tương ứng.
+ *  GOI_2 / G1: thêm `manager:kip_suco` (tab Sự cố) và `manager:duyet_route`
+ *  (tab Tuyến gộp) để xoá ghost door cho manager. */
 export type NotifyTarget =
   | "resident:requests"
   | "resident:me"
   | "cleaner:route"
   | "manager:queues"
+  | "manager:kip_suco"
+  | "manager:duyet_route"
   | null;
 
 const POLL_MS = 45_000;
 
-/** `entity` → màn đích theo vai (đúng bảng NHAN_DIEN). Chưa biết → null. */
+/** `entity` → màn đích theo vai (đúng bảng NHAN_DIEN). Chưa biết → null.
+ *  GOI_2 / G1: sửa các đích `null` thành màn thực tế theo role. */
 export function notifyTarget(entity: string, role: string | null): NotifyTarget {
   switch (entity) {
     case "pickup_request":
     case "yeu_cau_thu_gom":
       if (role === "manager") return "manager:queues";
-      if (role === "cleaner") return null;
+      if (role === "cleaner") return "cleaner:route";
       return "resident:requests";
     case "pickup_route":
       if (role === "cleaner") return "cleaner:route";
-      if (role === "manager") return null;
+      if (role === "manager") return "manager:duyet_route";
       return "resident:requests";
     case "phien_thung":
+      // Cleaner/manager không có màn riêng → ẩn (null).
       return role === "resident" ? "resident:me" : null;
     case "su_co_thu_gom":
-      return role === "manager" ? "manager:queues" : null;
+      if (role === "manager") return "manager:kip_suco";
+      if (role === "cleaner") return "cleaner:route";
+      return "resident:me";
     default:
       return null;
   }
@@ -180,7 +189,11 @@ export function NotificationSheet({
     onClose();
   }
 
-  return (
+  // GOI_FIX / B4 — render qua portal ra document.body để sheet thoát khỏi
+  // khung điện thoại (PhoneFrame có transform/overflow làm position:fixed bị
+  // kẹp → mobile không hiện được sheet).
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <div
       className="fixed inset-0 z-[9999] flex items-end justify-center bg-black/40 backdrop-blur-xs sm:items-center sm:p-4"
       role="dialog"
@@ -230,8 +243,8 @@ export function NotificationSheet({
                 key={item.id}
                 type="button"
                 onClick={() => void moItem(item)}
-                className={`flex w-full cursor-pointer items-start gap-3 border-b border-line/60 px-5 py-3.5 text-left transition-colors hover:bg-cream-soft active:scale-[0.99] ${
-                  item.read ? "" : "bg-leaf-soft/25"
+                className={`flex w-full cursor-pointer items-start gap-3 border-b border-line/60 border-l-[3px] px-5 py-3.5 text-left transition-colors hover:bg-cream-soft active:scale-[0.99] ${
+                  item.read ? "border-l-transparent" : "border-l-leaf"
                 }`}
               >
                 <span
@@ -246,7 +259,7 @@ export function NotificationSheet({
                   {item.body ? (
                     <span className="mt-0.5 block text-[13px] font-medium leading-snug text-ink-soft">{item.body}</span>
                   ) : null}
-                  <span className="mt-1 block text-[11px] font-semibold text-muted">
+                  <span className="mt-1 block text-xs font-semibold text-muted">
                     {gioTuongDoi(item.created_at)}
                   </span>
                 </span>
@@ -255,6 +268,7 @@ export function NotificationSheet({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
