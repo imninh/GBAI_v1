@@ -60,6 +60,12 @@ from src.db.models import Base, WasteCategory
 from src.db.seed_data import WASTE_CATEGORIES
 from src.services.vision import CategoryOption, Usage, VisionResult
 
+# GOI_FIX2 / B6 — bộ đếm tần suất login/register sống ở cấp module (`_DAU_VET`),
+# chia sẻ toàn bộ tiến trình test. Nếu không xoá mỗi test, các test login nhiều
+# lần cộng dồn vượt giới hạn và nhận 429 oan. Import sớm để fixture dưới dùng được.
+from src.config import reset_settings_cache
+from src.services.gioi_han_tan_suat import dat_lai
+
 
 @pytest_asyncio.fixture
 async def client():
@@ -69,6 +75,19 @@ async def client():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
+
+@pytest.fixture(autouse=True)
+def _xoam_bo_dem_tan_suat() -> Iterator[None]:
+    # Reset bộ đếm tần suất mỗi test (GOI_FIX2 / B6): login giới hạn 10 lần/IP
+    # trong 300s, đếm ở cấp module nên không tự rỗng giữa hai test. Không xoá thì
+    # test thứ ~11 gọi login trong cả session bỗng 429 và đỏ oan. Reset mỗi test
+    # → mỗi test có nguyên quota riêng; test muốn kiểm 429 tự set giới hạn nhỏ.
+    reset_settings_cache()
+    dat_lai()
+    yield
+    dat_lai()
+    reset_settings_cache()
 
 
 @pytest.fixture

@@ -30,12 +30,25 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login", response_model=LoginResponse)
-def login(payload: LoginRequest, session: DbSession) -> dict:
+def login(payload: LoginRequest, session: DbSession, request: Request) -> dict:
     """Đăng nhập bằng **số điện thoại** hoặc email, kèm mật khẩu.
 
     Ưu tiên `phone` khi client gửi cả hai. Đường email giữ lại cho ba nút "vào
     thẳng" của màn đăng nhập — chúng là cách người chấm vào cả ba vai trò.
+
+    Có giới hạn tần suất theo IP (``LOGIN_RATE_LIMIT`` lần mỗi
+    ``LOGIN_RATE_WINDOW_SECONDS`` giây, mặc định 10 lần / 5 phút; đặt ``0`` để
+    tắt) để chặn dò mật khẩu — cùng hàng rào bộ nhớ như ``/auth/register``.
     """
+    cau_hinh = get_settings()
+    nguoi_goi = request.client.host if request.client else "khong-ro"
+    if not cho_phep(nguoi_goi, cau_hinh.login_rate_limit, cau_hinh.login_rate_window_seconds):
+        raise ApiError(
+            429,
+            "RATE-429",
+            "Bạn đã thử đăng nhập quá nhiều lần. Chờ ít phút rồi thử lại giúp mình nhé.",
+        )
+
     dinh_danh = payload.phone.strip() or payload.email.strip()
     if not dinh_danh:
         raise bad_request("Cần số điện thoại hoặc email để đăng nhập.")

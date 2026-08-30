@@ -217,6 +217,12 @@ class Settings(BaseSettings):
     register_rate_limit: int = Field(default=10, ge=0)
     register_rate_window_seconds: int = Field(default=600, ge=1)
 
+    # Giới hạn tần suất cho `POST /auth/login` — chống dò mật khẩu (brute-force)
+    # theo IP. Đặt `0` để TẮT hẳn. Bộ đếm trong bộ nhớ tiến trình (xem
+    # `src/services/gioi_han_tan_suat.py`): nhiều worker thì mỗi worker một bộ đếm.
+    login_rate_limit: int = Field(default=10, ge=0)
+    login_rate_window_seconds: int = Field(default=300, ge=1)
+
     # --- Thiết bị IoT -----------------------------------------------------
     # Chống phát lại cho đường thiết bị (captures / heartbeat / readings):
     # firmware gửi kèm ``X-Device-Timestamp`` (Unix giây) và
