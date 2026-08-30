@@ -44,6 +44,52 @@ function alertNav(alert: { title?: string; threshold?: string }): string {
   return "homnay";
 }
 
+// GOI_FIX3 / B3 — biểu đồ SVG tự vẽ (không thêm thư viện chart). Hai đường:
+// Phân loại (--color-leaf) và Thu gom (--color-noi-thung), trục X = ngày,
+// trục Y tự scale, legend + nhãn ngày thưa. Reduced-motion an toàn (tĩnh).
+type TrendPoint = { date: string; so_phan_loai: number; so_thu_gom: number };
+
+function XuHuongChart({ items }: { items: TrendPoint[] }) {
+  const W = 640;
+  const H = 220;
+  const padL = 34;
+  const padR = 12;
+  const padT = 14;
+  const padB = 26;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const maxY = Math.max(1, ...items.map((d) => Math.max(d.so_phan_loai, d.so_thu_gom)));
+  const n = items.length;
+  const xTai = (i: number) => (n <= 1 ? padL + plotW / 2 : padL + (i / (n - 1)) * plotW);
+  const yTai = (v: number) => padT + plotH - (v / maxY) * plotH;
+  const duong = (key: "so_phan_loai" | "so_thu_gom") =>
+    items.map((d, i) => `${xTai(i).toFixed(1)},${yTai(d[key]).toFixed(1)}`).join(" ");
+  const chiMoc = n <= 1 ? [0] : [0, Math.floor((n - 1) / 2), n - 1];
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="block" role="img" aria-label="Biểu đồ xu hướng phân loại và thu gom">
+      <line x1={padL} y1={padT} x2={W - padR} y2={padT} stroke="var(--color-line-3)" strokeWidth={1} />
+      <line x1={padL} y1={padT + plotH} x2={W - padR} y2={padT + plotH} stroke="var(--color-line-3)" strokeWidth={1} />
+      <text x={padL - 6} y={padT + 4} textAnchor="end" style={{ fontSize: 10, fill: "var(--color-muted)" }}>
+        {maxY}
+      </text>
+      <polyline points={duong("so_thu_gom")} fill="none" style={{ stroke: "var(--color-noi-thung)" }} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+      <polyline points={duong("so_phan_loai")} fill="none" style={{ stroke: "var(--color-leaf)" }} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+      {items.map((d, i) => (
+        <g key={i}>
+          <circle cx={xTai(i)} cy={yTai(d.so_phan_loai)} r={2.6} style={{ fill: "var(--color-leaf)" }} />
+          <circle cx={xTai(i)} cy={yTai(d.so_thu_gom)} r={2.6} style={{ fill: "var(--color-noi-thung)" }} />
+          {chiMoc.includes(i) && (
+            <text x={xTai(i)} y={H - 8} textAnchor="middle" style={{ fontSize: 10, fill: "var(--color-muted)" }}>
+              {d.date.slice(5)}
+            </text>
+          )}
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
   const [du, setDu] = React.useState<Overview | null>(null);
   const [loi, setLoi] = React.useState("");
@@ -56,6 +102,28 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
   const [khoang, setKhoang] = React.useState<"7d" | "30d" | "custom">("7d");
   const [tuNgay, setTuNgay] = React.useState("");
   const [denNgay, setDenNgay] = React.useState("");
+
+  // GOI_FIX3 / B3 — biểu đồ xu hướng phân loại & thu gom (API chuỗi thời gian).
+  const [xuHuong, setXuHuong] = React.useState<
+    { date: string; so_phan_loai: number; so_thu_gom: number }[] | null
+  >(null);
+  const [loiXuHuong, setLoiXuHuong] = React.useState("");
+  const trendDays = khoang === "30d" ? 30 : khoang === "7d" ? 7 : 30;
+  React.useEffect(() => {
+    let huy = false;
+    setLoiXuHuong("");
+    api
+      .trend(trendDays)
+      .then((d) => {
+        if (!huy) setXuHuong(d.items);
+      })
+      .catch((e) => {
+        if (!huy) setLoiXuHuong(e instanceof Error ? e.message : "Không tải được xu hướng.");
+      });
+    return () => {
+      huy = true;
+    };
+  }, [trendDays]);
 
   if (loi) return <ErrorState message={loi} onRetry={tai} />;
   if (!du) return <Skeleton className="h-96 w-full" />;
@@ -204,9 +272,27 @@ export function OverviewScreen({ onGoto }: { onGoto: (nav: string) => void }) {
                   : "chọn khoảng ngày"}
           </span>
         </div>
-        <div className="flex h-40 items-center justify-center rounded-2xl bg-console-bg text-[13px] font-semibold text-muted">
-          Biểu đồ xu hướng sẽ hiển thị ở đây (cần API chuỗi thời gian từ backend)
+        <div className="mb-2 flex flex-wrap items-center gap-4 text-xs font-bold">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--color-leaf)" }} />
+            Phân loại
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--color-noi-thung)" }} />
+            Thu gom
+          </span>
         </div>
+        {loiXuHuong ? (
+          <ErrorState message={loiXuHuong} onRetry={tai} />
+        ) : !xuHuong ? (
+          <Skeleton className="h-40 w-full" />
+        ) : xuHuong.every((d) => d.so_phan_loai === 0 && d.so_thu_gom === 0) ? (
+          <div className="flex h-40 items-center justify-center rounded-2xl bg-console-bg text-[13px] font-semibold text-muted">
+            Chưa có dữ liệu trong khoảng này
+          </div>
+        ) : (
+          <XuHuongChart items={xuHuong} />
+        )}
       </Card>
 
       <div className="grid gap-3.5 grid-cols-1 xl:grid-cols-[1.4fr_1fr]">

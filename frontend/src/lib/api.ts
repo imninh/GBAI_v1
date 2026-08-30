@@ -362,6 +362,11 @@ export const api = {
   overview: () => request<Overview>("/overview"),
   opsMetrics: () => request<OpsMetrics>("/ops/metrics"),
   evalSummary: () => request<EvalSummary>("/eval/summary"),
+  // GOI_FIX3 / B3 — chuỗi thời gian cho biểu đồ xu hướng phân loại & thu gom.
+  trend: (days: number) =>
+    request<{ items: { date: string; so_phan_loai: number; so_thu_gom: number }[] }>(
+      `/insights/trend?days=${days}`
+    ),
   runs: () => request<{ items: { id: number; kind: string; status: string; duration_ms: number; total_cost_usd: number; started_at: string }[] }>("/runs"),
   run: (id: number) => request<AgentRunDetail>(`/runs/${id}`),
   notifications: () =>
