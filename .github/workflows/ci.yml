@@ -15,6 +15,12 @@ on:
 jobs:
   lint-and-test:
     runs-on: self-hosted  # runner CHUNG do BTC cấp — CI/deploy chạy TỪ repo tổ chức (không tốn Actions minutes)
+    defaults:
+      run:
+        # Runner Windows-native → ép bash (Git Bash) cho các bước dùng cú pháp
+        # bash Linux (`| tee`, `if [ -f ... ]`). Không có dòng này, shell mặc định
+        # trên Windows là pwsh và 2 bước đó đỏ.
+        shell: bash
 
     steps:
       - uses: actions/checkout@v4
