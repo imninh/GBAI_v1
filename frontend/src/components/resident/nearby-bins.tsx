@@ -442,6 +442,7 @@ export function NearbyBinsScreen() {
         />
       </div>
 
+      <div className="min-w-0">
       {sapXep.length === 0 ? (
         <EmptyState
           icon={IconXeThuGom}
@@ -477,6 +478,7 @@ export function NearbyBinsScreen() {
           );
         })
         )}
+      </div>
       </div>
       </div>
     );
