@@ -169,6 +169,21 @@ def overview(
     return ket_qua
 
 
+@router.get("/insights/trend")
+def trend(
+    session: DbSession,
+    user: Annotated[User, Depends(require("view_ops"))],
+    days: int = Query(default=7),
+) -> dict:
+    """Chuỗi thời gian cho biểu đồ xu hướng phân loại & thu gom (mỗi ngày).
+
+    ``days`` bị kẹp vào [1, 90] để không ai ép server quét cả lịch sử — vượt
+    giới hạn thì trả số ngày đã kẹp, không lỗi.
+    """
+    days = max(1, min(90, days))
+    return {"items": metrics.trend_metrics(session, days=days)}
+
+
 @router.get("/bao-cao-tuan-thu")
 def bao_cao_tuan_thu(
     session: DbSession,

@@ -208,6 +208,53 @@ def routing_metrics(session: Session) -> dict[str, Any]:
     }
 
 
+def trend_metrics(session: Session, *, days: int) -> list[dict[str, Any]]:
+    """Chuỗi thời gian cho biểu đồ xu hướng phân loại & thu gom.
+
+    Trả đủ ``days`` ngày gần nhất tính theo **giờ VN (UTC+7)** — kể cả ngày
+    không có dữ liệu (điểm = 0) để biểu đồ liền mạch. Không gọi model thật, chỉ
+    đếm ``Classification.created_at`` (phân loại) và ``RouteStop.done_at`` (điểm
+    thu gom hoàn thành) theo ngày VN.
+    """
+    from src.db.models import RouteStop
+
+    mui_gio_vn = timedelta(hours=7)
+    ngay_hom_nay = (datetime.now() + mui_gio_vn).date()
+    # Danh sách ngày theo thứ tự cũ → mới.
+    cac_ngay = [ngay_hom_nay - timedelta(days=i) for i in range(days - 1, -1, -1)]
+
+    # Cửa sổ lùi an toàn: trừ thêm 1 ngày múi giờ để không sót ngày VN nào.
+    tu_utc = datetime.now() - timedelta(days=days) - mui_gio_vn
+
+    phan_loai_rows = session.scalars(
+        select(Classification.created_at).where(Classification.created_at >= tu_utc)
+    ).all()
+    thu_gom_rows = session.scalars(
+        select(RouteStop.done_at).where(RouteStop.done_at.is_not(None), RouteStop.done_at >= tu_utc)
+    ).all()
+
+    dem_phan_loai: dict[str, int] = defaultdict(int)
+    for t in phan_loai_rows:
+        if t is None:
+            continue
+        dem_phan_loai[(t + mui_gio_vn).date().isoformat()] += 1
+
+    dem_thu_gom: dict[str, int] = defaultdict(int)
+    for t in thu_gom_rows:
+        if t is None:
+            continue
+        dem_thu_gom[(t + mui_gio_vn).date().isoformat()] += 1
+
+    return [
+        {
+            "date": ng.isoformat(),
+            "so_phan_loai": dem_phan_loai.get(ng.isoformat(), 0),
+            "so_thu_gom": dem_thu_gom.get(ng.isoformat(), 0),
+        }
+        for ng in cac_ngay
+    ]
+
+
 def _trang_thai_truy_hoi(session: Session) -> dict[str, Any]:
     """Truy hồi đang chạy hybrid hay thuần từ khoá — và bằng chứng cho câu trả lời.
 
