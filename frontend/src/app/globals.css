@@ -96,7 +96,7 @@
 
   /* Additional neutral */
   --color-neutral: #8B8F8A;
-  --color-line-light: #F0EEE7.
+  --color-line-light: #F0EEE7;
 
   /* ---- Token theo VAI TRÒ (F2-B) — dẫn xuất từ hệ màu mới ---- */
   --color-surface: #ffffff;
@@ -109,53 +109,53 @@
   --color-nen-camera: #12211A;
   --color-nen-trang-chu: #E7F5EC;
   --color-nen-ho-so: #E9F7EF;
-  --color-hero-blob: #E9FAF0.
-  --color-line-faint: #C3CBC2.
-  --color-chip-off: #EFEDE6.
-  --color-chip-bg: #EEF1F6.
-  --color-skeleton: #DFEADF.
-  --color-skeleton-deep: #D5E2D5.
-  --color-skeleton-warm: #D8DED2.
-  --color-skeleton-warm-deep: #CFD6C8.
-  --color-skeleton-blue: #DCE5EF.
-  --color-blob-leaf: #D6EFE0.
-  --color-tint-lavender: #EFE9F9.
-  --color-blob-recycle: #CFE0F7.
-  --color-blob-bulky: #E0D6F4.
-  --color-leaf-line: #BFE6CC.
-  --color-leaf-ink: #2A5A3A.
-  --color-hazard-ink: #7A3418.
-  --color-tip-bg: #F7F2EA.
-  --color-line-green: #E6ECE6.
-  --color-tint-green: #F7F9F7.
-  --color-bulky-line: #D9CEF0.
-  --color-bulky-line-faint: #CBB8EE.
-  --color-bulky-tint: #FAF8FE.
-  --color-bulky-chip: #EDE8FB.
-  --color-bulky-stripe: #E3DAF3.
-  --color-amber-deep: #8A6414.
-  --color-warn-line: #F2D9C2.
-  --color-warn-tint: #FDF3EA.
-  --color-warn-ink: #8A5A1A.
-  --color-warn-text: #5A4A38.
-  --color-schedule-off: #F1EFE8.
-  --color-category-selected: #5B3FBF.
-  --color-category-unselected: #8A7A5A.
-  --color-wizard-unsel-bg: #E0DED4.
-  --color-unsure-ink: #243244.
-  --color-unsure-muted: #64748B.
-  --color-unsure-faint: #7A8798.
-  --color-unsure-line: #CBD5E1.
-  --color-unsure-soft: #DBE6F2.
-  --color-unsure-bg: #EEF1F5.
-  --color-label-faint: #A0A89F.
-  --color-marker-do: #DC2626.
-  --color-marker-ho: #D97706.
-  --color-marker-xanh: #15803D.
-  --color-marker-loi: #EF4444.
-  --color-marker-thung: #F0B429.
-  --color-marker-bulky: #7B5CD6.
-  --color-noi-thung: #1F6FEB.
+  --color-hero-blob: #E9FAF0;
+  --color-line-faint: #C3CBC2;
+  --color-chip-off: #EFEDE6;
+  --color-chip-bg: #EEF1F6;
+  --color-skeleton: #DFEADF;
+  --color-skeleton-deep: #D5E2D5;
+  --color-skeleton-warm: #D8DED2;
+  --color-skeleton-warm-deep: #CFD6C8;
+  --color-skeleton-blue: #DCE5EF;
+  --color-blob-leaf: #D6EFE0;
+  --color-tint-lavender: #EFE9F9;
+  --color-blob-recycle: #CFE0F7;
+  --color-blob-bulky: #E0D6F4;
+  --color-leaf-line: #BFE6CC;
+  --color-leaf-ink: #2A5A3A;
+  --color-hazard-ink: #7A3418;
+  --color-tip-bg: #F7F2EA;
+  --color-line-green: #E6ECE6;
+  --color-tint-green: #F7F9F7;
+  --color-bulky-line: #D9CEF0;
+  --color-bulky-line-faint: #CBB8EE;
+  --color-bulky-tint: #FAF8FE;
+  --color-bulky-chip: #EDE8FB;
+  --color-bulky-stripe: #E3DAF3;
+  --color-amber-deep: #8A6414;
+  --color-warn-line: #F2D9C2;
+  --color-warn-tint: #FDF3EA;
+  --color-warn-ink: #8A5A1A;
+  --color-warn-text: #5A4A38;
+  --color-schedule-off: #F1EFE8;
+  --color-category-selected: #5B3FBF;
+  --color-category-unselected: #8A7A5A;
+  --color-wizard-unsel-bg: #E0DED4;
+  --color-unsure-ink: #243244;
+  --color-unsure-muted: #64748B;
+  --color-unsure-faint: #7A8798;
+  --color-unsure-line: #CBD5E1;
+  --color-unsure-soft: #DBE6F2;
+  --color-unsure-bg: #EEF1F5;
+  --color-label-faint: #A0A89F;
+  --color-marker-do: #DC2626;
+  --color-marker-ho: #D97706;
+  --color-marker-xanh: #15803D;
+  --color-marker-loi: #EF4444;
+  --color-marker-thung: #F0B429;
+  --color-marker-bulky: #7B5CD6;
+  --color-noi-thung: #1F6FEB;
 
   /* ---- Lớp ánh xạ shadcn/ui cho màn Điều phối (không sửa component) ---- */
   --color-background: var(--color-cream);
@@ -165,33 +165,33 @@
   --color-popover: #ffffff;
   --color-popover-foreground: var(--color-ink);
   --color-primary: var(--color-leaf);
-  --color-primary-foreground: #ffffff.
-  --color-secondary: var(--color-leaf-soft).
-  --color-secondary-foreground: var(--color-leaf-dark).
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-leaf-soft);
+  --color-secondary-foreground: var(--color-leaf-dark);
   /* ⚠️ KHÔNG định nghĩa lại `--color-muted`: nó là màu CHỮ phụ (#888B8C). */
-  --color-muted-bg: #EEF1EC.
-  --color-crew-bg: #EEF2F6.
-  --color-muted-foreground: var(--color-muted-2).
-  --color-accent: var(--color-leaf-soft).
-  --color-accent-foreground: var(--color-leaf-dark).
-  --color-destructive: var(--color-hazard).
-  --color-destructive-foreground: #ffffff.
-  --color-border: var(--color-line).
-  --color-input: var(--color-line-2).
-  --color-ring: var(--color-leaf).
-  --color-sidebar: var(--color-cream-soft).
+  --color-muted-bg: #EEF1EC;
+  --color-crew-bg: #EEF2F6;
+  --color-muted-foreground: var(--color-muted-2);
+  --color-accent: var(--color-leaf-soft);
+  --color-accent-foreground: var(--color-leaf-dark);
+  --color-destructive: var(--color-hazard);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--color-line);
+  --color-input: var(--color-line-2);
+  --color-ring: var(--color-leaf);
+  --color-sidebar: var(--color-cream-soft);
 
   /* Bốn trạng thái thùng */
-  --color-warn: var(--color-hazard).
-  --color-warn-foreground: #ffffff.
-  --color-warn-soft: var(--color-hazard-soft).
-  --color-power: var(--color-amber).
-  --color-power-foreground: #ffffff.
-  --color-power-soft: var(--color-amber-soft).
-  --color-stale: var(--color-muted).
-  --color-stale-soft: #F1F2F0.
-  --color-ok: var(--color-leaf).
-  --color-ok-soft: var(--color-leaf-soft).
+  --color-warn: var(--color-hazard);
+  --color-warn-foreground: #ffffff;
+  --color-warn-soft: var(--color-hazard-soft);
+  --color-power: var(--color-amber);
+  --color-power-foreground: #ffffff;
+  --color-power-soft: var(--color-amber-soft);
+  --color-stale: var(--color-muted);
+  --color-stale-soft: #F1F2F0;
+  --color-ok: var(--color-leaf);
+  --color-ok-soft: var(--color-leaf-soft);
 
   /* Bo góc 4 bậc (§4) */
   --gb-r-sm: 8px;
