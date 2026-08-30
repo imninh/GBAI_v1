@@ -358,8 +358,8 @@ function HomNayPanel() {
       </div>
       <p className="mb-4 text-sm font-semibold text-muted">Bản đồ thùng trong toà — bấm thùng để xem chi tiết.</p>
 
-      <div className="lg:grid lg:grid-cols-[1.5fr_1fr] lg:items-start lg:gap-4">
-        <div className="relative mb-4 h-[420px] overflow-hidden rounded-2xl border border-line lg:sticky lg:top-4 lg:mb-0 lg:h-[calc(100vh-9rem)]">
+      <div className="xl:grid xl:grid-cols-[1.5fr_1fr] xl:items-start xl:gap-4">
+        <div className="relative mb-4 h-[420px] overflow-hidden rounded-2xl border border-line xl:sticky xl:top-4 xl:mb-0 xl:h-[calc(100vh-9rem)]">
           <BinMap bins={bins} selected={dangChon} onSelect={setDangChon} />
           {dangChon && (
             <BinDetail
@@ -373,7 +373,7 @@ function HomNayPanel() {
           )}
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-2.5 xl:max-h-[calc(100vh-9rem)] xl:overflow-y-auto">
           <div className="mb-1 text-xs font-extrabold text-muted">THÙNG CẦN GOM</div>
           {canGom.length === 0 ? (
             <div className="rounded-2xl bg-surface px-4 py-6 text-center text-sm font-bold text-muted">

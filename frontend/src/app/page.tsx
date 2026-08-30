@@ -101,6 +101,15 @@ function AppShell() {
     setMaQr(maTuUrl);
   }, []);
 
+  // GOI_FIX2 / B4 — ở landing (chưa đăng nhập) không để hash deep-link cũ sót
+  // lại trên thanh địa chỉ. Đăng xuất cũng chạy nhánh này → hash được xoá về "/".
+  // Khi đã đăng nhập, mỗi app (ResidentApp/CleanerApp) tự ghi hash màn hiện tại.
+  React.useEffect(() => {
+    if (!loading && !user && window.location.hash) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }, [loading, user]);
+
   if (loading) return <Skeleton className="h-dvh w-full" />;
 
   if (!user) {
