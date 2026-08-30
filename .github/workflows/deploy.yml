@@ -50,18 +50,26 @@ jobs:
       - name: Vercel deploy (prebuilt, production)
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
 
-  # --- BE Railway (TÙY CHỌN) -------------------------------------------------
-  # Hiện Railway deploy bằng cơ chế riêng của nó; BE KHÔNG deploy qua yaml này.
-  # Khi muốn kéo BE về chung một nguồn (repo tổ chức), bỏ chú thích khối dưới,
-  # thêm secret RAILWAY_TOKEN vào repo nhóm, và `railway link` service BE một lần.
-  #
-  # deploy-backend:
-  #   runs-on: self-hosted
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Cài Railway CLI
-  #       run: npm i -g @railway/cli
-  #     - name: Railway up
-  #       run: railway up --service <TÊN_SERVICE_BE> --detach
-  #       env:
-  #         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+  # --- BE Railway: deploy TỪ repo tổ chức (thay cho Git-integration repo cá nhân)
+  # `railway up` nén source (Dockerfile ở gốc repo) gửi lên Railway build+deploy
+  # service `greenbin-api`. Token project-scoped (RAILWAY_TOKEN) cho biết project
+  # + environment; `--service` chọn service. Env vars của service (DATABASE_URL,
+  # SUPABASE_*, ...) giữ nguyên — chỉ thay CODE. Sau khi job này chạy OK thì mới
+  # Disconnect Git repo cá nhân khỏi Railway (tránh 2 nguồn deploy).
+  deploy-backend:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cài Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Railway up (deploy BE từ repo tổ chức)
+        run: railway up --service greenbin-api --ci
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
