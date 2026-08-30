@@ -56,15 +56,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from src.db.models import Base, WasteCategory
-from src.db.seed_data import WASTE_CATEGORIES
-from src.services.vision import CategoryOption, Usage, VisionResult
-
 # GOI_FIX2 / B6 — bộ đếm tần suất login/register sống ở cấp module (`_DAU_VET`),
 # chia sẻ toàn bộ tiến trình test. Nếu không xoá mỗi test, các test login nhiều
 # lần cộng dồn vượt giới hạn và nhận 429 oan. Import sớm để fixture dưới dùng được.
 from src.config import reset_settings_cache
+from src.db.models import Base, WasteCategory
+from src.db.seed_data import WASTE_CATEGORIES
 from src.services.gioi_han_tan_suat import dat_lai
+from src.services.vision import CategoryOption, Usage, VisionResult
 
 
 @pytest_asyncio.fixture
