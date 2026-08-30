@@ -1,0 +1,67 @@
+name: Deploy production (repo nhóm → gbai-v1)
+
+# Deploy FE lên project Vercel `gbai-v1` khi merge vào `main` (phương án a: dùng
+# lại project cũ, chỉ chuyển NGUỒN deploy sang repo tổ chức).
+#
+# Chạy trên self-hosted runner CHUNG của BTC — không tốn Actions minutes của org
+# (đó là lý do BTC cấp runner). Đọc 3 secret ở repo nhóm:
+#   VERCEL_TOKEN · VERCEL_ORG_ID · VERCEL_PROJECT_ID
+#
+# ⚠️ Điều kiện để build ĐÚNG: project `gbai-v1` trên Vercel PHẢI giữ nguyên
+# "Root Directory = frontend" như hồi deploy qua Git. `vercel pull` kéo cấu hình
+# đó về → CLI tự build thư mục frontend/. Vì vậy các lệnh vercel chạy ở GỐC repo
+# (không cd vào frontend). Nếu deploy đầu ra sai gốc → kiểm Root Directory ở
+# Vercel dashboard trước khi sửa file này.
+
+on:
+  push:
+    branches: [main]
+
+# Push liên tiếp thì huỷ deploy cũ, chỉ giữ cái mới nhất.
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: true
+
+jobs:
+  deploy-frontend:
+    runs-on: self-hosted
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Cài Vercel CLI
+        run: npm i -g vercel@latest
+
+      # Kéo cấu hình project gbai-v1 (Root Directory + env production) về nhờ
+      # ORG_ID/PROJECT_ID — không cần commit thư mục .vercel.
+      - name: Vercel pull (production)
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel build (production)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel deploy (prebuilt, production)
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+  # --- BE Railway (TÙY CHỌN) -------------------------------------------------
+  # Hiện Railway deploy bằng cơ chế riêng của nó; BE KHÔNG deploy qua yaml này.
+  # Khi muốn kéo BE về chung một nguồn (repo tổ chức), bỏ chú thích khối dưới,
+  # thêm secret RAILWAY_TOKEN vào repo nhóm, và `railway link` service BE một lần.
+  #
+  # deploy-backend:
+  #   runs-on: self-hosted
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Cài Railway CLI
+  #       run: npm i -g @railway/cli
+  #     - name: Railway up
+  #       run: railway up --service <TÊN_SERVICE_BE> --detach
+  #       env:
+  #         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
