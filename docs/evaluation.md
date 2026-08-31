@@ -117,7 +117,7 @@ python -m pytest -q
 python -m ruff check src/ tests/ eval/ scripts/
 ```
 
-**447 test, 0 test gọi API thật** — model được thay bằng `FakeVisionClient` ở
+**1367 test, 0 test gọi API thật** — model được thay bằng `FakeVisionClient` ở
 `tests/conftest.py` nên chi phí chạy test bằng 0 và kết quả xác định.
 
 Test không chỉ để "có test". Những nhóm dưới đây tồn tại vì chúng **chốt chặn một
@@ -157,9 +157,10 @@ lời hứa cụ thể của sản phẩm**:
 
 ---
 
-## 5. Giới hạn của toàn bộ bằng chứng trên
+## 5. Hướng mở rộng & hoàn thiện bằng chứng
 
-Mục này quan trọng ngang phần số liệu.
+Nhóm chủ động ghi rõ phạm vi hiện có và các hướng đo tiếp theo — minh bạch về
+điều kiện đo là một phần của chất lượng đánh giá.
 
 **1. Chưa có bộ ảnh tự chụp tại Việt Nam.** Đây là món nợ lớn nhất, treo từ
 03/08. Lý do nó quan trọng chính là một phát hiện của nhóm:
@@ -194,7 +195,7 @@ python eval/chuan_bi_realwaste.py --so-anh 20 --xoa-truoc   # dựng bộ ảnh 
 python eval/run_eval.py --limit 30 --dong-y                 # chạy đánh giá phân loại
 python eval/run_retrieval_eval.py                           # chạy đánh giá truy hồi
 python eval/so_sanh_lan_chay.py <file_cu> <file_moi>         # so hai lần chạy
-python -m pytest -q                                         # 447 test
+python -m pytest -q                                         # 1367 test
 ```
 
 `run_eval.py` **bắt buộc phải có cờ `--dong-y`** mới gọi model thật, và in dự

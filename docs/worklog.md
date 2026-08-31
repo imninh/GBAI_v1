@@ -1,0 +1,238 @@
+# Worklog — GreenBin AI (VHR-17)
+
+> **Deliverable #9.** Lịch sử phát triển tự động trích từ `git log`. Chứng minh nhóm làm việc đều đặn suốt chặng.
+
+## Tổng quan
+- **Tổng số commit:** 226
+- **Khoảng thời gian:** 23/07/2026 → 31/08/2026 (~6 tuần)
+- **Phân loại commit:** 26 `feat` · 30 `fix` · 5 `ci` · 3 `test` · 6 `style` · 5 `chore` · … (quy ước Conventional Commits)
+- **Cường độ:** nhiều ngày >15 commit (26/08: 22 · 16/08: 20 · 27/08: 20 · 22/08: 17) — làm liên tục, không dồn cuối kỳ.
+
+## Nhật ký commit (mới → cũ)
+
+- `2026-08-31` ci(deploy): them job deploy-backend railway up tu repo to chuc (greenbin-api)
+- `2026-08-30` ci: shell bash cho job test (runner Windows-native self-hosted)
+- `2026-08-30` ci: runner self-hosted + deploy.yml FE Vercel gbai-v1 (deploy tu repo to chuc)
+- `2026-08-30` feat(insights): bieu do xu huong SVG 2 duong that (phan loai/thu gom 7-30 ngay) thay placeholder
+- `2026-08-30` feat(insights): API chuoi thoi gian GET /insights/trend (so phan loai + so thu gom theo ngay VN, view_ops, clamp 1-90) + test
+- `2026-08-30` fix(ui): boc list 'Diem gui' trong 1 div -> grid [map][list] dung 2 o, het card de len map
+- `2026-08-30` chore: ruff isort tests/conftest.py (import block sau khi them fixture reset bo dem)
+- `2026-08-30` security: login rate-limit 429 chong brute-force (login_rate_limit/window) + fixture reset bo dem tan suat moi test
+- `2026-08-30` ui: xoa hash deep-link khi landing/logout (URL sach) + HomNayPanel stack doc <1280px (het bi map ~1100)
+- `2026-08-30` fix(css): 72 token ket thuc bang '.' thay ';' -> --color-surface + ~47 token undefined -> chatbot/notif/list trong suot
+- `2026-08-29` fix(build): Button asChild chi truyen dung 1 con cho Slot - spinner loading lam vo next build static export (/dieu-phoi)
+- `2026-08-29` manager: gom nav 10 muc thanh 4 cum co tieu de (Dieu phoi/Duyet/Van hanh/Bao cao), rut gon nhan Kip & su co
+- `2026-08-29` manager: man 'Lich thu gom' - luoi tuan bat/tat ngay gom moi nhom rac + Luu lich + Tao lich tuan (noi endpoint co san)
+- `2026-08-29` backend: PUT /buildings/{id}/schedule sua lich thu gom (upsert + validate weekdays/window/category, quyen manage_bins) + test
+- `2026-08-29` time: pin Asia/Ho_Chi_Minh cho 3 cho toLocale ngay/gio con sot (xe, lich su, pickup-wizard)
+- `2026-08-29` cleaner: gop trang thai kien ve 5 nhom hien thi + thanh tien do van chuyen; giu route stops theo thu tu tuyen
+- `2026-08-29` time: pin Asia/Ho_Chi_Minh khi hien thi (gio dung du may xem lech mui) + het naive datetime classify
+- `2026-08-29` design/a11y: Input/Textarea + loading + touch 44px, revert D2 (giu leaf green dat AA), font VN fallback, deep-link, hex->token, text-xs
+- `2026-08-29` notif: sua ghost-door target theo vai, render qua portal (mobile hien duoc), unread bang vien trai
+- `2026-08-29` manager: landing 'hom nay', bin detail, xe dang chay, loc/tim/bulk yeu cau, uu tien su co, map-list sync, bo tab Can
+- `2026-08-29` cleaner: offline cache tuyen + hang doi dong bo + confirm/undo 'da thu' + preset kg + tam hoan + nhan tieng Viet
+- `2026-08-29` backend: notify manager khi bao su co (qua helper pham_vi_to_chuc), endpoint revert diem da thu, gop taxonomy su co
+- `2026-08-28` thong bao: bell 3 vai + sheet + deep-link + POST read + bao manager khi co yeu cau moi
+- `2026-08-28` Merge remote-tracking branch 'deploy/main' into va-lock
+- `2026-08-28` ui: onboarding gon khong luot + het rung hero + avatar 3 vai + chu hero vung kem
+- `2026-08-28` Rename new_duoi.svg to song-duoi-trai.svg
+- `2026-08-28` Delete frontend/public/pattern/song-duoi-trai.svg
+- `2026-08-28` Add files via upload
+- `2026-08-28` test: fix ruff F841 + isort trong backfill va profile
+- `2026-08-28` logo: favicon + icon PWA + launcher Android theo chinh.svg
+- `2026-08-28` login: redesign 4 tang khung song la + asset Figma
+- `2026-08-28` dang ky: gan toa/can ho + validate form + backfill building_id
+- `2026-08-27` chore(public): reorganize demo-thiet-bi relative assets in public directory
+- `2026-08-27` feat(chatbot): dynamically prioritize real user GPS device location over static building location
+- `2026-08-27` fix(chatbot): prioritize database building location and normalize S1 coordinates
+- `2026-08-27` fix(ui): format distance dynamically in meters (<1km) and kilometers (>=1km)
+- `2026-08-27` feat(chatbot): upgrade RAG orchestrator with multi-turn memory, tool idempotency, strict schema, and tabitoken provider
+- `2026-08-27` feat(map): remove satellite map toggle from cleaner navigation and default to standard map
+- `2026-08-27` style(resident): shift background banner upwards by 32px
+- `2026-08-27` style(resident): lift greeting header and hero upwards to avoid building roof overlap
+- `2026-08-27` style(resident): set hero title text to white with high-contrast drop shadow
+- `2026-08-27` style(resident): enhance text contrast with text-leaf-dark and luminous halo
+- `2026-08-27` style(resident): enhance typography contrast and add frosted card backdrop over banner
+- `2026-08-27` fix(ui): remove floating mascot button from resident home screen
+- `2026-08-27` Merge origin/main into main
+- `2026-08-27` Merge pull request #14 from imninh/feat/smart-bin-3d-cam-and-ui-cleanup
+- `2026-08-27` fix(ci): fix ruff linting errors across scripts and tests
+- `2026-08-27` fix(tests): resolve all test failures to achieve 100% test pass rate
+- `2026-08-27` feat(iot-sim): integrate live webcam, 4-compartment max fill, QR zoom and clean UI AI icons
+- `2026-08-27` demo: chuan_bi_demo canh bao tuyen demo suy bien (<5 diem hoac 0km) kem lenh seed lai
+- `2026-08-27` UX-cleaner: thong bao loi offline-aware khi chot/danh dau (giu so kg da nhap, khong treo nut)
+- `2026-08-27` UX-BQL: skeleton dung hinh 2 cot (map+bang) cho command-center + duyet tuyen - het man trang ~2s khi Leaflet mount
+- `2026-08-26` UX-dong nhat: bo goc bins/map ve 4 bac chuan (rounded-xl->2xl)
+- `2026-08-26` UX-map: bo marker '?' - hien % day that + phan biet mat ket noi bang style nhat
+- `2026-08-26` UX-cleaner: banner loi hien truong, chong bam dup nut chot/thu, trang thai diem ro
+- `2026-08-26` UX-BQL: 'Nhan nghi ngo' hien anh tu dong (useInView/IntersectionObserver, bo click-to-reveal); cap nhat test canh lazy
+- `2026-08-26` UX-BQL: 'Hom nay di dau' thanh tab noi bo (het nhay trang) + Trung tam dieu phoi 2 cot (map ve polyline tuyen toi uu + bang diem/thong so/duyet)
+- `2026-08-26` F4.3: dong nhat bo goc manager/cleaner ve 4 bac chuan (rounded-md->lg, xl->2xl); grep rounded-(sm|md|xl) = rong
+- `2026-08-26` WOW-A2: skeleton pulse (keyframe gbskeleton chi opacity, noi reduced-motion) + stagger the danh sach resident theo index
+- `2026-08-26` E2E-07: cleaner nhap khoi luong that (kg) + chot diem qua completeStop(actual_weight_kg); thung khong can; validate >=0
+- `2026-08-26` W3: man duyet tuyen manager split-screen o lg (ban do nua man sticky + danh sach), mot cot duoi lg; RouteMap tai dung 1 instance reflow bang CSS grid
+- `2026-08-26` E2E-04b-FIX: khoi phuc bo chon nhan sua + note theo tung the (component TheCa state rieng); cap nhat test canh lazy VerifyQueue
+- `2026-08-26` WOW-D + WOW-E + E2E-04b (batch chua verify ky; W3/E2E-07 chua ap dung)
+- `2026-08-26` WOW-F: nut tron chatbot Bini + keo chatbot ve brand (66 emerald -> token); fix } thua globals.css
+- `2026-08-26` WOW-A: chuyen man enter-only (gbscreen keyed man, loai processing/result, khong mount kep)
+- `2026-08-26` WOW-B: Bini co hon (idle moi pose + entrance + phan ung cham, className o wrapper goc)
+- `2026-08-26` WOW-C: reveal man phan loai theo tang + ring do tin ve dan + nhip nguy hai
+- `2026-08-26` E2E-06: nearby route OSRM null -> banner, bo duong thang gia
+- `2026-08-26` E2E-04: MUN hien ma phien + dem nguoc het han (het_han_luc tu server; kem emoji->icon trong scan)
+- `2026-08-26` F4.2: thay emoji bang icon Lucide net navy (kem NumberFlow trong ask/personal/result)
+- `2026-08-26` F4.4c-2: confetti khi phan loai dung + NumberFlow dem diem
+- `2026-08-26` F4.4c-1: Bini chop mat + nhu mam (inline SVG tach lop, ton trong reduced-motion)
+- `2026-08-26` Don comment cu 4-beat trong onboarding cho khop code 1-slide
+- `2026-08-26` F4.4b: logo vao sidebar, hoa tiet nen (rings/blob/dots) va minh hoa cay chau cho man trong
+- `2026-08-25` F4.4a: thay mascot gau meo cu bang Bini hat mam (6 pose SVG) + animation quiet (troi/tho/vay)
+- `2026-08-25` E2E-03b P1: sua ngay route lech +-1 (parse plain-date), gan nhan distance roi-le/gop-chung, het 0km vo nghia
+- `2026-08-25` E2E-03a P1: bat buoc gan kip truoc khi duyet tuyen, thanh vien kip cung thay route (doc RouteThanhVien)
+- `2026-08-25` E2E-05 P1: khoi phuc phien offline tu ban luu, khong reset ve onboarding khi mat mang
+- `2026-08-25` E2E-02 P1: tinh ngoai_lich tu lua chon thuc te thay vi ep true khi doi ngay, het false-positive gui duyet oan
+- `2026-08-25` E2E-01 P0: bit lo hong T0 cache phat lai nhan qua mat hard block, va trang Chat luong AI khong vo khi thieu du lieu
+- `2026-08-25` F4.1: cai he thiet ke nhan dien - Manrope, palette xanh reu, bong mem, bo goc
+- `2026-08-25` W3: bo cuc laptop cho DVTG va doi thu gom (bang duyet, xep tuyen, danh sach diem)
+- `2026-08-25` W2: bo cuc laptop cho nhom man cu dan
+- `2026-08-25` Them SEO: robots, sitemap, og-image, trang 404 va chinh sach rieng tu
+- `2026-08-25` Merge deploy/main vao va-lock: tich hop sim 3D thiet bi, giu token F2-B va Langfuse P99
+- `2026-08-25` Gom ma mau va token hoa frontend, chan tai phat bang test
+- `2026-08-25` Sua Langfuse gui dung tags va user_id len server, bo flush chan chatbot
+- `2026-08-24` Merge pull request #13 from imninh/feat/in-app-navigation-map
+- `2026-08-24` fix(deploy): resolve Mixed Content by defaulting to HTTPS Railway backend and passing API URL to demo iframe
+- `2026-08-24` chore(branding): rename BOTOL to MUN in 3D simulation and resident UI
+- `2026-08-24` Merge pull request #14 from AI20K-Build-Phase-Cohort-3/feat/in-app-navigation-map
+- `2026-08-24` fix(cors): add 127.0.0.1 and 5173 to default cors origins
+- `2026-08-24` feat(frontend): update /demo-thiet-bi to 3D visual BOTOL simulation directly in public assets for Vercel deployment
+- `2026-08-24` Merge pull request #12 from imninh/feat/in-app-navigation-map
+- `2026-08-24` feat(frontend): integrate 3D device simulation at /demo-thiet-bi/ linked with localhost:5173/demo_visual
+- `2026-08-24` Dung khung desktop co thanh dieu huong doc, giu nguyen giao dien tren dien thoai
+- `2026-08-24` Theo doi duong phan loai rac bang Langfuse, khong gui anh va khong lam cham duong phuc vu
+- `2026-08-23` Merge pull request #11 from imninh/feat/in-app-navigation-map
+- `2026-08-23` merge: resolve conflicts with gbai_v1/main in phien router
+- `2026-08-23` Dua bang chung danh gia va nhat ky AI vao repo de nguoi cham doc duoc
+- `2026-08-23` Sua loi chinh ta man chao, doi ten linh vat thanh Bini va hoan thien ba loi nho phia cu dan
+- `2026-08-23` feat(iot-simulation): integrate 3D BOTOL kiosk with backend, live QR session and real-time dispatch
+- `2026-08-23` update demo 3d
+- `2026-08-23` Them man xep kip thu gom va bao xu ly su co
+- `2026-08-23` Them man diem nhan thuc va nhiem vu ngay tuan cho cu dan
+- `2026-08-23` Noi luong quet ma QR tu trang goc vao phien bo rac
+- `2026-08-23` Them lop goi API cho ma QR, diem nhan thuc, kip thu gom va su co
+- `2026-08-23` Chong phat lai cho ba duong thiet bi bang chu ky va cua so thoi gian, mac dinh tat
+- `2026-08-23` Sao luu va khoi phuc CSDL khong can pg_dump, chot chan tuyet doi khong ghi de production
+- `2026-08-23` Chan y do tan cong he thong trong chatbot ma khong chan nham cau hoi moi truong
+- `2026-08-22` Tro bon o ma thung trong trang mo phong ve mot thung da cap khoa
+- `2026-08-22` Sua duong dan nut demo cho khop cau hinh dau gach cuoi
+- `2026-08-22` Sinh lai tep khoa thu vien tu moi truong ao sach
+- `2026-08-22` Sua bon phien ban thu vien khong ton tai trong tep khoa
+- `2026-08-22` Merge pull request #10 from imninh/cong-viec-p65-p74
+- `2026-08-22` Them trang mo phong thiet bi va loi vao o man dang nhap
+- `2026-08-22` Bo khoi ma cung trang thai thung demo bi rươc lai khi gop nhanh
+- `2026-08-22` Gop nhanh trien khai, giu ban da sua so hieu dieu luat va chot chan bia vi tri
+- `2026-08-22` Them bo kiem thu cho tang theo doi he AI
+- `2026-08-22` Sua thuoc do bam nguon, dung tang theo doi he AI va them am bao cho app
+- `2026-08-22` Va duong dan bi che va tach pham vi don vi cho su co thu gom
+- `2026-08-22` Dong bo ha tang chay that: ghim thu vien, chot chan ghi co so du lieu xa va dung canh thung demo
+- `2026-08-22` Them ma QR doi moi phien cho phien bo rac tai thung
+- `2026-08-22` Them kip thu gom hai nguoi va len lich tu dong tu dau tuan
+- `2026-08-22` Dung luoc do dot C, he diem nhan thuc va nhiem vu ngay tuan
+- `2026-08-22` update huong dan demo
+- `2026-08-22` update demo visual
+- `2026-08-21` Sửa kho tri thức pháp luật, nối lại Mistral cho chatbot, bắt đăng nhập trợ lý và dựng nghiệp vụ điều phối cho đơn vị thu gom
+- `2026-08-21` Merge pull request #9 from imninh/feat/in-app-navigation-map
+- `2026-08-21` ci: publish pytest output to step summary for transparent debugging
+- `2026-08-21` fix(vrp): add greedy fallback when solver timeout is ultra-short and add -ra summary to ci.yml
+- `2026-08-21` fix(vrp): add robust positional constructors for Client, Depot, VehicleType in ProblemData
+- `2026-08-21` fix(vrp): solve VRP using native ProblemData distance matrices to bypass nanobind edge identity check on Linux
+- `2026-08-21` chore(ci): trigger CI workflow for PR #9 verification
+- `2026-08-21` fix(vrp): use model.locations directly to avoid location instance mismatch across platforms
+- `2026-08-21` fix(vrp): ensure cross-platform PyVRP Model.add_depot and add_client parameter compatibility
+- `2026-08-21` style: fix whitespace and import lint issues for ruff CI check
+- `2026-08-21` feat(rag): enrich legal knowledge base, upgrade multi-signal intent routing and hybrid retrieval (100% eval pass)
+- `2026-08-20` Merge pull request #8 from imninh/feat/in-app-navigation-map
+- `2026-08-20` feat(ui): add markdown rendering support to chatbot & result screens, polish UI components
+- `2026-08-19` Merge pull request #7 from imninh/feat/in-app-navigation-map
+- `2026-08-19` fix(ui): isolate map container stacking context and boost chatbot modal z-index above map
+- `2026-08-19` Merge pull request #6 from imninh/feat/in-app-navigation-map
+- `2026-08-19` feat(map): apply Google Maps tile layer across all maps in the project
+- `2026-08-19` fix(hydration): resolve hydration mismatch in Page and update cartocdn tilelayer
+- `2026-08-19` Merge pull request #5 from imninh/feat/in-app-navigation-map
+- `2026-08-19` fix(tests): override get_db dependency and enable StaticPool in test_chatbot
+- `2026-08-19` fix(lint): remove unused imports in chatbot module to pass ruff CI
+- `2026-08-19` Merge pull request #4 from imninh/feat/in-app-navigation-map
+- `2026-08-19` fix(routes): resolve merge conflicts and integrate both chatbot and phien routers
+- `2026-08-19` Merge pull request #3 from imninh/feat/in-app-navigation-map
+- `2026-08-19` Merge remote-tracking branch 'gbai_v1/main' into feat/in-app-navigation-map
+- `2026-08-19` feat: implement RAG chatbot with Mistral AI, GPS tracking, and mascot floating bubble
+- `2026-08-18` thêm phiên bỏ rác tại thùng, gán cư dân theo toà nhà và hoàn thiện đường phân loại cho thiết bị
+- `2026-08-18` khai báo thư viện đọc workbook mà script nhập và khôi phục dữ liệu cư dân đang cần
+- `2026-08-18` cho phép ảnh không gắn người tải lên để mở đường ảnh cho thiết bị, và dọn thứ tự khai báo trong bộ kiểm thử
+- `2026-08-18` hoàn thiện đường ghi số liệu thiết bị, mở khoá yêu cầu thu gom cho cư dân chưa gắn căn hộ và dọn các nhãn hiển thị sai
+- `2026-08-17` Merge remote-tracking branch 'origin/main'
+- `2026-08-17` Merge remote-tracking branch 'deploy/main'
+- `2026-08-17` sửa hai giới hạn đã khai sai trên trang vận hành và mở lối về đăng nhập khi bị chặn
+- `2026-08-17` dựng hợp đồng phản hồi và ánh xạ ngăn vật lý cho thùng phân loại
+- `2026-08-17` tách nơi ở của cư dân khỏi liên kết căn hộ để hộ dân lẻ tạo được yêu cầu thu gom
+- `2026-08-17` trả lại danh sách yêu cầu không gộp vào chuyến, thêm hai chip lọc và bỏ địa chỉ web viết cứng
+- `2026-08-17` đổi mọi giá trị numpy về kiểu Python trước khi ghi vào cột JSON của lần chạy
+- `2026-08-16` Remove lessons learned about DevOps and Code Quality
+- `2026-08-16` Update ARCHITECTURE.md
+- `2026-08-16` Add files via upload
+- `2026-08-16` Merge pull request #13 from AI20K-Build-Phase-Cohort-3/feat/in-app-navigation-map
+- `2026-08-16` filehd
+- `2026-08-16` Merge pull request #12 from AI20K-Build-Phase-Cohort-3/feat/in-app-navigation-map
+- `2026-08-16` fix(merge): integrate IoT vision routing, safety rules, and bin reading adapters
+- `2026-08-16` Merge branch 'origin/main' into merge-test-main
+- `2026-08-16` fix: sanitize numpy types in run meta and return python int in phash_distance
+- `2026-08-16` đính chính số liệu và tình trạng hạ tầng trong tài liệu cho khớp bản chạy thật
+- `2026-08-16` Merge remote-tracking branch 'deploy/main'
+- `2026-08-16` sửa lỗi gọi model reasoning, phân loại từng vật theo YOLO, màn tất cả yêu cầu và cập nhật tài liệu
+- `2026-08-16` fix(osrm): add User-Agent headers to prevent cloud blocking
+- `2026-08-16` Merge pull request #2 from imninh/feat/in-app-navigation-map
+- `2026-08-16` feat(map): tich hop tinh nang dan duong trong app qua Leaflet + OSRM + ban do ve tinh
+- `2026-08-16` khôi phục script nạp dữ liệu nền và khoá lệnh xoá cơ sở dữ liệu bằng hai lớp xác nhận
+- `2026-08-16` Merge remote-tracking branch 'deploy/main'
+- `2026-08-16` gửi kèm header apikey khi gọi Supabase Storage để ảnh lưu được với khoá kiểu mới
+- `2026-08-16` Delete scripts/seed.py
+- `2026-08-16` sửa console đơn vị thu gom, hiển thị khối lượng theo số cư dân nhập và thêm chỉ báo Storage vào trang vận hành
+- `2026-08-15` Merge pull request #1 from imninh/qa/app-cu-dan-p49-p51
+- `2026-08-15` Merge remote-tracking branch 'deploy/main' into merge-qa
+- `2026-08-15` feat: hoàn thiện loạt phản hồi QA app cư dân và cải thiện định tuyến phân loại
+- `2026-08-15` fix(ruff): dọn import và datetime.UTC trong scripts/simulate_gps.py
+- `2026-08-15` fix(frontend): wrap dashboard tab labels in span to fix newline in button innerText (A-04)
+- `2026-08-15` feat(route): OSRM 3-phase pipeline with Table (PyVRP), Route (Leaflet polyline), and Match (Live GPS Tracking)
+- `2026-08-15` fix(ai-log): ưu tiên virtualenv python trong _pyrun để pre-push hook hoạt động đúng trên Windows
+- `2026-08-15` feat(routing): tối ưu gộp tuyến thu gom bằng PyVRP (Hybrid Genetic Search)
+- `2026-08-15` feat(ui): nâng cấp giao diện app theo hướng prototype - font tiếng Việt, nút chụp nổi, onboarding 4 bước, màn điểm xanh và các trạng thái mới
+- `2026-08-14` feat: chỉ báo YOLO trên /ops/metrics, đi thẳng T2 khi YOLO nghi đồ điện tử, màn xếp tuyến, chặn khối lượng ước tính 0 và so sánh model Groq/Mistral
+- `2026-08-13` ci(android): JDK 17->21 de capacitor-android build duoc (fix invalid source release: 21)
+- `2026-08-13` fix(a11y): phân biệt nút Hỏi với tab Hỏi, hint khi nút bị disabled
+- `2026-08-13` feat: nút tạo yêu cầu ở tab Yêu cầu và nút xem lịch sử khi chưa có tuyến
+- `2026-08-13` fix(test): cắt phụ thuộc ảnh thật trong data/eval khi test so sánh model
+- `2026-08-13` feat: thùng chưa triển khai trên bản đồ, nhà cung cấp Mistral, timeout model và so sánh model
+- `2026-08-12` Codex/iot checkpoint 1 (#9)
+- `2026-08-12` feat: nén ảnh ở client, đưa ảnh lên Supabase Storage và đẩy nhanh bước dò khuôn mặt
+- `2026-08-12` feat: điểm thưởng, tầng nhìn local YOLO, dữ liệu GIS Hà Nội và hạn chế tuyến
+- `2026-08-11` docs: add Vietnamese IoT and Wokwi guide (#8)
+- `2026-08-11` feat: add GreenBinAI IoT and Wokwi simulation (#7)
+- `2026-08-11` feat: vẽ đường đi thật trên bản đồ tuyến và tinh chỉnh hiển thị trạng thái yêu cầu
+- `2026-08-11` fix(ai-log): doc .env duoc ca khi thieu python-dotenv
+- `2026-08-11` feat: phân quyền theo đơn vị thu gom, bảo mật thiết bị và bộ công cụ chuẩn bị demo
+- `2026-08-11` chore(repo): giữ tài liệu nội bộ ở máy, siết cổng lint của CI
+- `2026-08-09` Merge pull request #6 from AI20K-Build-Phase-Cohort-3/rs
+- `2026-08-09` fix loi
+- `2026-08-08` Merge branch 'main' of https://github.com/AI20K-Build-Phase-Cohort-3/P-075 into rs
+- `2026-08-08` web ql
+- `2026-08-08` Merge pull request #5 from AI20K-Build-Phase-Cohort-3/rs
+- `2026-08-08` web ql
+- `2026-08-04` them tn giam sat bin db
+- `2026-08-04` Them tinh nang giam sat bin
+- `2026-08-04` Merge pull request #4 from AI20K-Build-Phase-Cohort-3/rs
+- `2026-08-04` research
+- `2026-08-02` Merge pull request #3 from AI20K-Build-Phase-Cohort-3/develop
+- `2026-08-02` Merge pull request #2 from AI20K-Build-Phase-Cohort-3/nghiatran0106/docs
+- `2026-08-02` Update: gate 01 docs
+- `2026-07-30` Merge pull request #1 from AI20K-Build-Phase-Cohort-3/feature/agent-search-tool
+- `2026-07-30` docs: bổ sung hướng dẫn Git workflow
+- `2026-07-30` test: git workflow
+- `2026-07-26` test ai-log pipeline
+- `2026-07-23` Initial commit

@@ -68,6 +68,7 @@ coverage.xml
 # nhóm đọc, có chỗ ghi thẳng điểm yếu của hệ thống. Giữ ở máy, không đẩy lên.
 docs/BAN_GIAO_*.md
 docs/BAO_CAO_*.md
+docs/_noi-bo/
 
 # Sách hướng dẫn của chương trình AI20K, chép vào đây để tra cứu lúc làm.
 # Không phải sản phẩm của nhóm nên không đẩy lên repo nhóm.
@@ -160,9 +161,12 @@ docs/TECH_STACK.md
 # thêm một dòng ngoại lệ, ví dụ:  !docs/ai-logs-trich-dan.md
 *.md
 
-# Hai deliverable phải nằm trong repo — người chấm mở ra đọc.
+# Deliverable BTC yêu cầu — phải nằm trong repo, người chấm mở ra đọc.
 !docs/evaluation.md
 !docs/ai-logs-trich-dan.md
+!docs/architecture_diagram.md
+!docs/worklog.md
+!docs/journal.md
 
 # Khoá Firebase — KHÔNG BAO GIỜ đẩy lên kho mã.
 # Khoá tài khoản dịch vụ = toàn quyền quản trị dự án Firebase.
